@@ -26,7 +26,7 @@ function reconstructMantraCharges(
   const chargeMs = (Number(normal.cooldown) * 1000) / 1.25;
   const rearmMs = (Number(prepare.cooldown) * 1000) / 1.25;
 
-  if (!(chargeMs > 0 && rearmMs >= 2 * chargeMs && Number(normal.ammo) === 3)) return context.recordedActions;
+  if (!(chargeMs > 0 && rearmMs > 0 && Number(normal.ammo) === 3)) return context.recordedActions;
 
   const charges = context.recordedActions
     .filter((action) => [combinedId, normalId, finalId, prepareId].includes(action.rawSkillId))
@@ -70,6 +70,9 @@ function reconstructMantraCharges(
 
     index = end;
   }
+
+  // Liberation rearms faster than two sequential charges recover. Only isolated complete bursts prove its variants.
+  if (rearmMs < 2 * chargeMs) return context.recordedActions.map((action) => replacements.get(action) ?? action);
 
   let minimumCharges = 0;
   let guaranteedRecharges: number[] = [];
@@ -163,7 +166,8 @@ export function normalizeGuardianLogActions(context: LogActionNormalizationConte
       context.profile.specializationId === 'firebrand'
         ? [
             [-20, 41475, 42960, 41714],
-            [-22, 42983, 41988, 40915]
+            [-22, 42983, 41988, 40915],
+            [-23, 40114, 41328, 43357]
           ].reduce(
             (actions, ids) => reconstructMantraCharges({ ...context, recordedActions: actions }, ids),
             recordedActions
