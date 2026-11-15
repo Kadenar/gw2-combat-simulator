@@ -1,7 +1,6 @@
 {
   "metadata": {
     "report": "https://dps.report/667B-20261115-021952_golem",
-    "source": "elementalist-rotation (2).json",
     "description": "Uses the supplied reconstructed rotation with the Elemental Balance pistol/dagger build. The opener uses Elemental Explosion with all bullets stocked and concurrent Flame Barrage."
   },
   "rotation": [
