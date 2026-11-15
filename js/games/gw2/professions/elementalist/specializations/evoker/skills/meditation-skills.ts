@@ -131,12 +131,11 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     icon: 'https://render.guildwars2.com/file/A3DE41C7F223D46269FCC406AEFCDF01ABCF4BE1/3680124.png',
     type: 'Utility',
     slot: 'Utility',
-
     cooldown: 15,
     skillFamily: 'Meditation',
     castTimeMs: 640,
+    interruptCommitMs: 600,
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
-
     effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.5 },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 4, duration: 10 }

@@ -427,11 +427,10 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     slot: 'Weapon_2',
     weapon: WEAPON.PISTOL,
     attunement: 'Earth',
-
     cooldown: 6,
     skillFamily: 'Weapon skill',
     castTimeMs: 520,
-    interruptCommitMs: 400,
+    interruptCommitMs: 360,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.8 },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 10 }
