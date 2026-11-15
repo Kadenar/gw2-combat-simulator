@@ -22,10 +22,10 @@
   "alternateWeapons": ["", ""],
   "rune": "Firebrand",
   "weaponSigils": [
-    ["Smoldering", "Earth"],
-    ["Smoldering", "Earth"]
+    ["Bursting", "Smoldering"],
+    ["Bursting", "Smoldering"]
   ],
-  "relic": "Fractal",
+  "relic": "Last Tyrant",
   "food": "Fishy Rice Bowl",
   "utility": "Toxic Tuning Crystal",
   "jadeBotCore": true,

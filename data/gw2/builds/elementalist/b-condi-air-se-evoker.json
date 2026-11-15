@@ -22,10 +22,10 @@
   "alternateWeapons": ["", ""],
   "rune": "Balthazar",
   "weaponSigils": [
-    ["Bursting", "Earth"],
-    ["Bursting", "Earth"]
+    ["Bursting", "Torment"],
+    ["Bursting", "Torment"]
   ],
-  "relic": "Fractal",
+  "relic": "Last Tyrant",
   "food": "Cilantro and Cured Meat Flatbread",
   "utility": "Toxic Tuning Crystal",
   "jadeBotCore": true,

@@ -606,15 +606,15 @@
         "build": "data/gw2/builds/elementalist/b-condi-air-se-evoker.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-air-se-evoker.json",
-        "benchmarkDps": 42797,
+        "benchmarkDps": 44038,
         "upToDate": true,
-        "benchmarkApm": 100.9,
+        "benchmarkApm": 93.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39092, "phase": 39092 },
-          "80-60": { "cumulative": 41073, "phase": 43266 },
-          "60-40": { "cumulative": 42776, "phase": 46553 },
-          "40-20": { "cumulative": 42663, "phase": 42330 },
-          "20-0": { "cumulative": 42797, "phase": 43367 }
+          "100-80": { "cumulative": 38247, "phase": 38247 },
+          "80-60": { "cumulative": 41479, "phase": 45250 },
+          "60-40": { "cumulative": 42116, "phase": 43537 },
+          "40-20": { "cumulative": 43393, "phase": 47729 },
+          "20-0": { "cumulative": 44038, "phase": 46832 }
         }
       },
       {
@@ -622,15 +622,15 @@
         "build": "data/gw2/builds/elementalist/b-condi-quick-air-se-evoker.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-quickness-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-quick-air-se-evoker.json",
-        "benchmarkDps": 39756,
+        "benchmarkDps": 40125,
         "upToDate": true,
-        "benchmarkApm": 101.3,
+        "benchmarkApm": 94.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35319, "phase": 35319 },
-          "80-60": { "cumulative": 37520, "phase": 40051 },
-          "60-40": { "cumulative": 38365, "phase": 40278 },
-          "40-20": { "cumulative": 39218, "phase": 42001 },
-          "20-0": { "cumulative": 39756, "phase": 42050 }
+          "100-80": { "cumulative": 35660, "phase": 35660 },
+          "80-60": { "cumulative": 37988, "phase": 40806 },
+          "60-40": { "cumulative": 39280, "phase": 42137 },
+          "40-20": { "cumulative": 39612, "phase": 40676 },
+          "20-0": { "cumulative": 40125, "phase": 42286 }
         }
       },
       {
@@ -668,16 +668,16 @@
       {
         "label": "Inferno Fox SE (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-evoker-se.json",
-        "rotation": "data/gw2/rotations/elementalist/r-condi-air-se-evoker.json",
-        "benchmarkDps": 39750,
-        "upToDate": false,
+        "rotation": "data/gw2/rotations/elementalist/r-inferno-evoker-se.json",
+        "benchmarkDps": 41200,
+        "upToDate": true,
         "benchmarkApm": 100.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38235, "phase": 38235 },
-          "80-60": { "cumulative": 38627, "phase": 39039 },
-          "60-40": { "cumulative": 38978, "phase": 39697 },
-          "40-20": { "cumulative": 39239, "phase": 40043 },
-          "20-0": { "cumulative": 39750, "phase": 39750 }
+          "100-80": { "cumulative": 38877, "phase": 38877 },
+          "80-60": { "cumulative": 39909, "phase": 40993 },
+          "60-40": { "cumulative": 40664, "phase": 42287 },
+          "40-20": { "cumulative": 40490, "phase": 39970 },
+          "20-0": { "cumulative": 41200, "phase": 41200 }
         }
       }
     ]
