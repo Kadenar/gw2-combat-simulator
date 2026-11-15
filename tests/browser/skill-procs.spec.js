@@ -39,6 +39,8 @@ test("skill details group proc counts by trigger and disclose only that skill's 
             dpsWindow: 8.5,
             totalDamage: 455,
             conditionDamage: 425,
+            // This proc-only fixture has no player actions for combat activity analysis.
+            events: [],
             // Damage-only fixtures still provide the canonical reports consumed by analysis charts.
             effectReport: { start: 0, end: 10, tracks: [] },
             boonGeneration: { boons: {}, sustained: {} },
