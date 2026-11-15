@@ -376,6 +376,8 @@ test('Riddle of Sand applies to the first ambush and refreshes on shatter', () =
   const riddles = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.name.includes('Riddle of Sand')
   );
+  // Different ambush skills retain the granting trait's comparison identity.
+  assert.ok(riddles.every((event) => event.traitId === TRAIT.RIDDLE_OF_SAND && event.procActivation));
 
   assert.equal(
     riddles.reduce((sum, event) => sum + event.stacks, 0),

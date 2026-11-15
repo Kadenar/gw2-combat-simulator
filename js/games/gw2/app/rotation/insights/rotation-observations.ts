@@ -2,6 +2,7 @@ import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { presentedTimelineSteps, type TimelineOccupancySource } from '#gw2/app/rotation/timeline/occupancy.js';
 import { eventDamagePackets } from '#gw2/platform/results/damage-packets.js';
 import { effectSummary } from '#gw2/platform/results/effect-report.js';
+import { countProcActivations } from '#gw2/platform/results/proc-counts.js';
 import type { Gw2SimulationResult, SimulationStep } from '#gw2/platform/results/types.js';
 
 interface ObservationInterval {
@@ -50,6 +51,15 @@ export function rotationObservations(result: Gw2SimulationResult, duration: numb
   const countedActivations = new Set<string>();
   const usefulActivations = new Set<string>();
   const procs = new Map<string, { label: string; count: number }>();
+  const traitNames = new Map((source.context.catalog?.traits ?? []).map((trait) => [trait.id, trait.name]));
+  // One trait row covers its player, effect, and companion packets; actor ownership remains in the damage rows.
+  const procKey = (event: (typeof result.resolvedEvents)[number]) =>
+    event.traitId != null
+      ? JSON.stringify(['trait', event.traitId])
+      : JSON.stringify([event.actorType, event.sourceId]);
+  const procCounts = countProcActivations(result.resolvedEvents, (event) =>
+    inside(event.at) ? procKey(event) : undefined
+  );
   const ensureSkill = (id: string, label: string) => {
     let row = skills.get(id);
 
@@ -116,15 +126,17 @@ export function rotationObservations(result: Gw2SimulationResult, duration: numb
     )
       usefulActivations.add(event.activationId);
 
-    const count = event.metadata?.procCount;
+    const count = procCounts.get(procKey(event));
 
-    if (count != null && count > 0 && inside(event.at) && event.cancelled !== true) {
-      const procId = JSON.stringify([event.actorType, event.traitId ?? event.sourceId]);
+    if (event.procActivation && count != null && count > 0 && inside(event.at) && event.cancelled !== true) {
+      const procId = procKey(event);
       const proc = procs.get(procId) ?? {
-        label: event.name || event.skillName || String(event.sourceId),
-        count: 0
+        label:
+          event.traitId != null
+            ? (traitNames.get(event.traitId) ?? String(event.traitId))
+            : event.name || event.skillName || String(event.sourceId),
+        count
       };
-      proc.count += count;
       procs.set(procId, proc);
     }
   }

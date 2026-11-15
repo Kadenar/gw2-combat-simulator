@@ -4,6 +4,7 @@ import test from 'node:test';
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { countProcActivations } from '#gw2/platform/results/proc-counts.js';
 import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
 import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -237,10 +238,7 @@ test('Dhuumfire tooltip and combat agree on selected stacks and specialization d
       // Stack splitting preserves one activation marker per accepted proc, even with patched stack counts.
       const activations = result.procSteps.filter((step) => step.skill === 'Dhuumfire');
       assert.ok(activations.length > 0);
-      assert.equal(
-        applications.reduce((total, event) => total + Number(event.metadata?.procCount || 0), 0),
-        activations.length
-      );
+      assert.equal(countProcActivations(applications, () => 'trait').get('trait'), activations.length);
       // Resolution splits intensity stacks into individual entries; each isolated hit has its own timestamp.
       const stacksByImpact = new Map();
       for (const event of applications)

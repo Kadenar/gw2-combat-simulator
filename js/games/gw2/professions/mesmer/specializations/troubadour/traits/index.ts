@@ -22,11 +22,7 @@ import {
 import { isCommittedInterruptedPhantasm } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/condition-profiles.js';
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
-import {
-  buildMesmerConditions,
-  buildMesmerPacket,
-  buildMesmerStrikes
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerPacket, buildMesmerStrikes } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
@@ -374,17 +370,22 @@ function applyMayhemInstrument(
     const condition = mesmerConditionFromProfile(context.helpers, TRAIT.MAYHEM, CONDITION.TORMENT);
 
     if (condition)
-      buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Mayhem - Torment', {
-        source: 'Player',
-        sourceId: TRAIT.MAYHEM,
-        skillId: skill.id,
-        actorType: ACTOR.PLAYER
-      }).forEach((packet) => {
-        context.effects.emit({
-          ...delivery,
-          kind: 'packet',
-          event: packet
-        });
+      context.effects.emit({
+        ...delivery,
+        kind: 'profile',
+        proc: true,
+        profile: skill,
+        effects: [condition],
+        at: damageAt,
+        attribution: {
+          source: 'Player',
+          sourceId: TRAIT.MAYHEM,
+          actorType: ACTOR.PLAYER,
+          skillId: skill.id,
+          skillName: skill.name
+        },
+        // Trait identity stays stable across different instrument skills.
+        transform: (packet) => ({ ...packet, traitId: TRAIT.MAYHEM, name: 'Mayhem - Torment' })
       });
   }
 }
@@ -703,14 +704,22 @@ function resolveAlteredChord(
     const condition = mesmerConditionFromProfile(context.helpers, TRAIT.ALTERED_CHORD, CONDITION.CONFUSION);
 
     if (condition)
-      buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Altered Chord - Confusion', {
-        skillId: skill.id
-      }).forEach((packet) => {
-        context.effects.emit({
-          ...delivery,
-          kind: 'packet',
-          event: packet
-        });
+      context.effects.emit({
+        ...delivery,
+        kind: 'profile',
+        proc: true,
+        profile: skill,
+        effects: [condition],
+        at: damageAt,
+        attribution: {
+          source: 'Player',
+          sourceId: skill.id,
+          actorType: ACTOR.PLAYER,
+          skillId: skill.id,
+          skillName: skill.name
+        },
+        // Trait identity stays stable across different instrument skills.
+        transform: (packet) => ({ ...packet, traitId: TRAIT.ALTERED_CHORD, name: 'Altered Chord - Confusion' })
       });
 
     if (condition)

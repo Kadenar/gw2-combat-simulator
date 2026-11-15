@@ -1243,31 +1243,8 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   }
 }
 
-/* Keep checkpoint comparisons readable without widening the equipment preview. */
-.optimizer-checkpoints {
-  min-width: 0;
-  margin-block: 16px;
-}
-.optimizer-checkpoints p,
+/* Explain the health comparison columns above the results table. */
 .optimizer-checkpoint-label {
   color: var(--text-dim);
   font-size: 0.85rem;
-}
-.optimizer-checkpoint-scroll {
-  max-width: 100%;
-  overflow-x: auto;
-}
-.optimizer-checkpoints table {
-  width: 100%;
-  border-collapse: collapse;
-  font-variant-numeric: tabular-nums;
-}
-.optimizer-checkpoints th,
-.optimizer-checkpoints td {
-  padding: 8px 10px;
-  text-align: right;
-  white-space: nowrap;
-}
-.optimizer-checkpoints th:first-child {
-  text-align: left;
 }

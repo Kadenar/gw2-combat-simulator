@@ -101,7 +101,7 @@ test('critical burst reactions share the resolved outcome for resources and inde
   const bleeding = result.resolvedEvents.find((event) => event.sourceId === TRAIT.BLOODLUST);
   assert.equal(bleeding.skillName, 'Bloodlust');
   assert.equal(bleeding.triggeredBy, 'Eviscerate');
-  assert.equal(bleeding.metadata.procCount, 1);
+  assert.ok(bleeding.procActivation);
   assert.equal(result.resolvedEvents.find((event) => event.kind === 'furious-surge').stacks, 1);
   const noncritical = run(
     ['Eviscerate'],

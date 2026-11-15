@@ -1,6 +1,7 @@
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/results/damage-report.js';
+import { countProcActivations } from '#gw2/platform/results/proc-counts.js';
 import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
@@ -229,18 +230,14 @@ export function skillBreakdownRows(
 ): SkillBreakdownRow[] {
   // Attribute resolved proc damage to its trigger, retaining actual tick damage and the report's DPS window.
   const damageByTrigger = new Map<string, Map<string, number>>();
-  const procCounts = new Map<string, number>();
+  const eventKey = (event: (typeof result.resolvedEvents)[number]) =>
+    keyByIdentity.get(skillDamageIdentityKey({ ...event, parentSkill: event.parentSkillName }));
   for (const event of result.resolvedEvents || []) {
     if (event.type !== 'damage' && event.type !== 'condition') continue;
 
     const key = keyByIdentity.get(skillDamageIdentityKey({ ...event, parentSkill: event.parentSkillName }));
 
     if (!key) continue;
-
-    // Producers mark one primary effect per activation, so ticks and multi-effect procs cannot inflate Hits.
-    const count = Number(event.metadata?.procCount || 0);
-
-    if (count > 0) procCounts.set(key, (procCounts.get(key) || 0) + count);
 
     if (!event.triggeredBy) continue;
 
@@ -286,6 +283,53 @@ export function skillBreakdownRows(
       actionCounts.set(name, (actionCounts.get(name) || 0) + 1);
     }
   }
+
+  // Only output backed by an actual cast makes a row native; an unmarked proc sibling cannot suppress its count.
+  const nativeRows = new Set(
+    (result.resolvedEvents || [])
+      .filter((event) => {
+        if ((event.type !== 'damage' && event.type !== 'condition') || event.procActivation || event.traitId != null)
+          return false;
+
+        const entityName = event.actorType === ACTOR.SUMMON ? event.entityName || '' : '';
+        return actionCountsById.has(actionKey(String(event.skillId ?? event.sourceId), entityName));
+      })
+      .map(eventKey)
+  );
+  // Child rewards may share their parent's visible row, but they must not add another activation to its average.
+  const rowByEventOrder = new Map<number, string>();
+  for (const event of result.resolvedEvents || []) {
+    const key = eventKey(event);
+
+    if (key != null && event.eventOrder != null) rowByEventOrder.set(event.eventOrder, key);
+  }
+
+  const childActivations = new Map<string, Set<string>>();
+  for (const event of result.resolvedEvents || []) {
+    const key = eventKey(event);
+
+    if (
+      !key ||
+      !event.procActivation ||
+      typeof event.parentEventOrder !== 'number' ||
+      rowByEventOrder.get(event.parentEventOrder) !== key
+    )
+      continue;
+
+    const activations = childActivations.get(key) ?? new Set<string>();
+    activations.add(event.procActivation.id);
+    childActivations.set(key, activations);
+  }
+
+  const procCounts = countProcActivations(result.resolvedEvents || [], (event) => {
+    if (event.type !== 'damage' && event.type !== 'condition') return undefined;
+
+    const key = eventKey(event);
+    return nativeRows.has(key) ||
+      (key != null && event.procActivation && childActivations.get(key)?.has(event.procActivation.id))
+      ? undefined
+      : key;
+  });
 
   const grouped = new Map<string, GroupedSkillBreakdown>();
   for (const entry of result.breakdown || []) {

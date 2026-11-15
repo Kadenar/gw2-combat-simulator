@@ -1567,6 +1567,8 @@ test('Dragonhunter tether waits for a delayed impact and its burn retains the sp
   assert.deepEqual(after.warnings, []);
   const hit = after.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.SPEAR_OF_JUSTICE);
   const burn = after.resolvedEvents.find((event) => event.name === 'Spear of Justice - Active Burning');
+  // The accepted tether pulse has its own proc identity after canonical event resolution.
+  assert.equal(burn.procActivation.count, 1);
   assert.equal(burn.at, hit.at);
   assert.equal(burn.activationId, hit.activationId);
   assert.equal(dh(after).tetherUntil, hit.at + 6);

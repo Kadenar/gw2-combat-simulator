@@ -22,12 +22,11 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     mightTierThreshold: 10,
     type: 'Utility',
     slot: 'Utility',
-
     cooldown: 18,
     skillFamily: 'Meditation',
     castTimeMs: 600,
+    interruptCommitMs: 560,
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
-
     // Tier timing belongs to each selected packet; this cast's own boons cannot raise its accepted tier.
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', name: 'Tier 1', coefficient: 1.5, hits: 1 },
@@ -189,6 +188,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     cooldown: 18,
     skillFamily: 'Meditation',
     castTimeMs: 600,
+    interruptCommitMs: 560,
     effects: [],
     // Commit the live-element reward before Altruistic Aspect; acceptance-time damage selection stays independent.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.evoker.rejuvenate' } }]

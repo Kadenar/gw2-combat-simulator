@@ -42,14 +42,21 @@ interface EmissionOptions {
   readonly receipt?: boolean;
 }
 
-export interface PacketEmission extends EffectDelivery, EmissionOptions {
+export type ProcActivation = NonNullable<SimulationEventBase['procActivation']>;
+
+interface ProcEmissionOptions extends EmissionOptions {
+  /** One activation owns every packet expanded by this emission; ordinary cast emissions leave this unset. */
+  readonly proc?: true | { readonly count: number } | ProcActivation;
+}
+
+export interface PacketEmission extends EffectDelivery, ProcEmissionOptions {
   readonly kind: 'packet';
   readonly event: SimulationEventBase;
   /** An application inside the current reaction transaction must settle before the caller's next state query. */
   readonly settlement?: 'reaction';
 }
 
-export interface ProfileEmission extends EffectDelivery, EmissionOptions {
+export interface ProfileEmission extends EffectDelivery, ProcEmissionOptions {
   readonly kind: 'profile';
   /** Every expanded application settles inside the current reaction before the caller resumes. */
   readonly settlement?: 'reaction';
@@ -94,10 +101,31 @@ export interface AnnouncementEmission extends EffectDelivery, EmissionOptions {
 
 /** Every producer uses the same service; only payload authoring differs between a profile and a computed packet. */
 export interface EffectEmissionService {
+  /** Related emissions can share one service-owned activation without changing their combat delivery. */
+  createProcActivation(count?: number): ProcActivation;
   emit(request: PacketEmission & { readonly receipt: true }): SimulationEvent;
   emit(request: ProfileEmission & { readonly receipt: true }): readonly SimulationEvent[];
   emit(request: AnnouncementEmission & { readonly receipt: true }): SimulationEvent;
   emit(request: PacketEmission | ProfileEmission | AnnouncementEmission): void;
+}
+
+/** Validate runtime callers as well as typed producers before assigning any proc identity. */
+function procActivationCount(value: unknown): number | undefined {
+  if (value === undefined) return undefined;
+
+  if (value === true) return 1;
+
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    'count' in value &&
+    typeof value.count === 'number' &&
+    Number.isFinite(value.count) &&
+    value.count > 0
+  )
+    return value.count;
+
+  throw new TypeError('A proc emission requires true or a positive finite count.');
 }
 
 /** Receipts detach nested payloads so retaining causality cannot mutate pending combat work. */
@@ -162,6 +190,26 @@ export function createEffectEmissionService(host: {
   readonly announce: (request: AnnouncementEmission) => SimulationEvent;
 }): EffectEmissionService {
   let generationSequence = 0;
+  let procSequence = 0;
+  const procActivations = new WeakSet();
+  function createProcActivation(count = 1): ProcActivation {
+    procActivationCount({ count });
+    const activation = Object.freeze({ id: `proc:${++procSequence}`, count });
+    procActivations.add(activation);
+    return activation;
+  }
+
+  function resolveProcActivation(proc: unknown): ProcActivation | undefined {
+    if (typeof proc === 'object' && proc !== null && 'id' in proc) {
+      if (!procActivations.has(proc)) throw new TypeError('Proc activation must be created by this emission service.');
+
+      return proc as ProcActivation;
+    }
+
+    const count = procActivationCount(proc);
+    return count === undefined ? undefined : createProcActivation(count);
+  }
+
   function emit(request: PacketEmission & { readonly receipt: true }): SimulationEvent;
   function emit(request: ProfileEmission & { readonly receipt: true }): readonly SimulationEvent[];
   function emit(request: AnnouncementEmission & { readonly receipt: true }): SimulationEvent;
@@ -196,10 +244,21 @@ export function createEffectEmissionService(host: {
       return request.receipt ? immutableReceipt(event) : undefined;
     }
 
+    // IDs belong to accepted emissions, not their cause or any packet copied by a producer.
+    const procActivation = resolveProcActivation(request.proc);
+    const stampProc = (event: SimulationEventBase): SimulationEventBase => {
+      // Reject orphan weights and authored identities even from untyped procedural producers.
+      if (event.metadata && ('procCount' in event.metadata || 'procActivation' in event.metadata))
+        throw new TypeError('Effect metadata has unsupported fields for procs. Use the proc emission option.');
+
+      const { procActivation: _inherited, ...packet } = event;
+      return procActivation ? { ...packet, procActivation } : packet;
+    };
+
     if (request.kind === 'packet') {
       host.expansionBudget.reserve(1, `packet=${request.event.type} source=${request.event.sourceId}`);
       // Only profile expansion establishes yield lineage; copied packets cannot inherit another emission's yield.
-      const event = host.submit(cloneData(withoutBoonLineage(request.event)), delivery);
+      const event = host.submit(cloneData(stampProc(withoutBoonLineage(request.event))), delivery);
       return request.receipt ? immutableReceipt(event) : undefined;
     }
 
@@ -247,7 +306,7 @@ export function createEffectEmissionService(host: {
       const packet = request.transform ? request.transform(event, effect) : event;
 
       if (packet) {
-        let payload = withoutBoonLineage(packet);
+        let payload = stampProc(withoutBoonLineage(packet));
 
         if (host.collectBoonLineage && (payload.type === 'buff' || payload.type === 'boon_extension')) {
           const ownCast = request.cast && payload.traitId == null && payload.sourceId === request.cast.skillId;
@@ -292,5 +351,5 @@ export function createEffectEmissionService(host: {
     return events ? Object.freeze(events) : undefined;
   }
 
-  return Object.freeze({ emit });
+  return Object.freeze({ emit, createProcActivation });
 }

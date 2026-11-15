@@ -376,8 +376,7 @@ const necromancerBarbedPrecisionReaction = criticalProcHandler<
             skillName: 'Barbed Precision',
             triggeredBy: event.skillName,
             ownerActorType: ACTOR.PLAYER,
-            name: 'Barbed Precision' + ' - ' + String(effect.condition),
-            metadata: { procCount: 1 }
+            name: 'Barbed Precision' + ' - ' + String(effect.condition)
           }
         }
       );

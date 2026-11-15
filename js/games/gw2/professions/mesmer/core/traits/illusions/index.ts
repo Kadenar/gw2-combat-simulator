@@ -23,7 +23,6 @@ import {
   skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
-import { buildMesmerConditions } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import { mesmerIllusionsGained } from '#gw2/professions/mesmer/core/mechanics/resources.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
@@ -356,30 +355,29 @@ export function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: 
   for (const hit of resolution.traitHits) {
     if (hit.count <= 0) continue;
 
-    buildMesmerConditions(
-      context,
-      resolution.skill.name,
-      hit.at,
-      { ...effect, stacks: Number(effect.stacks) * hit.count },
-      'Player',
-      'Maim the Disillusioned - Torment',
-      // The caller decides shatter eligibility; the trait proc keeps its grouped hit opportunities.
-      {
+    // A grouped shatter hit owns every expanded condition application and its accepted trigger count.
+    context.effects.emit({
+      ...resolution.delivery,
+      kind: 'profile',
+      proc: { count: hit.count },
+      profile: resolution.skill,
+      effects: [{ ...effect, stacks: Number(effect.stacks) * hit.count }],
+      at: hit.at,
+      attribution: {
+        source: 'Player',
+        sourceId: resolution.skill.id,
+        actorType: ACTOR.PLAYER,
         skillId: resolution.skill.id,
+        skillName: resolution.skill.name,
+        metadata: { shatterTraitEligible: resolution.shatterTraitEligible }
+      },
+      transform: (packet) => ({
+        ...packet,
         procType: 'trait',
-        metadata: { shatterTraitEligible: resolution.shatterTraitEligible, procCount: hit.count }
-      }
-    ).forEach((packet) => {
-      context.effects.emit({
-        ...resolution.delivery,
-        kind: 'packet',
-        // Trait ownership survives the activating skill's attribution so previews report the torment as a trait proc.
-        event: {
-          ...packet,
-          traitId: TRAIT.MAIM_THE_DISILLUSIONED,
-          ...(resolution.persistsAfterInterrupt ? { persistsAfterInterrupt: true } : {})
-        }
-      });
+        name: 'Maim the Disillusioned - Torment',
+        traitId: TRAIT.MAIM_THE_DISILLUSIONED,
+        ...(resolution.persistsAfterInterrupt ? { persistsAfterInterrupt: true } : {})
+      })
     });
   }
 

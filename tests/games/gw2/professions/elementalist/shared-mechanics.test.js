@@ -416,6 +416,7 @@ test('Flame Expulsion lands its strike and Burning together after leaving Fire',
 
   assert.ok(packet.at > exit.at);
   assert.equal(burning.at, packet.at);
+  assert.deepEqual(burning.procActivation, packet.procActivation);
 });
 
 // The delayed ally boon must reach an active elemental without reapplying Might to its owner.
@@ -433,6 +434,7 @@ test('Flame Expulsion grants capped Might to other allies at impact', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(might.at, strike.at);
   assert.equal(might.kind, 'might');
+  assert.deepEqual(might.procActivation, strike.procActivation);
   assert.equal(might.stacks, 10);
   assert.equal(might.resolvedAudience.includesSelf, false);
   assert.equal(might.resolvedAudience.includesSummons, true);
@@ -457,6 +459,8 @@ for (const [specialization, startAttunement, rotation, trigger] of [
     assert.ok(packets.some((event) => event.type === 'damage' && event.damage > 0));
     assert.ok(packets.some((event) => event.type === 'condition' && event.damage > 0));
     assert.ok(packets.every((event) => event.triggeredBy === trigger));
+    // Burning Rage augments this Sunspot activation without adding a second count to its damage row.
+    assert.ok(packets.every((event) => event.procActivation?.id === packets[0].procActivation.id));
     const row = skillBreakdownRows(result).find((entry) => entry.name === 'Sunspot');
     const attributed = row.procDamage.find((entry) => entry.sourceSkill === trigger);
     assert.ok(attributed);

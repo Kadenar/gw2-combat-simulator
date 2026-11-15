@@ -327,6 +327,8 @@ function startUncatchable(runtime: ThiefRuntime, { cast }: ThiefDodge): void {
   runtime.effects.emit({
     kind: 'profile',
     profile: caltrops,
+    // One dodge owns every caltrop pulse and its sibling conditions.
+    proc: true,
     effects: caltrops.effects,
     at: cast.start,
     attribution: {
@@ -338,6 +340,11 @@ function startUncatchable(runtime: ThiefRuntime, { cast }: ThiefDodge): void {
       triggeredBy: cast.skill.name,
       activationId: cast.id
     },
-    transform: (event) => ({ ...event, icon: caltrops.icon, name: 'Uncatchable - Lesser Caltrops' })
+    transform: (event) => ({
+      ...event,
+      traitId: TRAIT.UNCATCHABLE,
+      icon: caltrops.icon,
+      name: 'Uncatchable - Lesser Caltrops'
+    })
   });
 }

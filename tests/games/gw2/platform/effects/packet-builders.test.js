@@ -36,7 +36,8 @@ const trigger = {
   causalOrder: 1,
   hitIndex: 7,
   totalHits: 9,
-  metadata: { procCount: 99 },
+  metadata: { trigger: 'fixture' },
+  procActivation: { id: 'copied', count: 99 },
   holosmithStrikeFactor: 3
 };
 
@@ -55,6 +56,7 @@ test('derived conditions preserve immediate visibility and same-time queued orde
             kind: 'packet',
             cause: event,
             settlement: 'reaction',
+            proc: { count: 2 },
             event: buildResolverCondition({
               at: event.at,
               source: 'Elementalist proc',
@@ -62,8 +64,7 @@ test('derived conditions preserve immediate visibility and same-time queued orde
               actorType: 'player',
               condition: 'Burning',
               stacks: 1,
-              duration: 1,
-              metadata: { procCount: 2 }
+              duration: 1
             })
           });
           context.effects.emit({
@@ -126,7 +127,7 @@ test('derived conditions preserve immediate visibility and same-time queued orde
           assert.equal(event.ownerActorType, 'player');
         }
 
-        if (event.source === 'Elementalist proc') assert.equal(event.metadata.procCount, 2);
+        if (event.source === 'Elementalist proc') assert.equal(event.procActivation.count, 2);
       }
     }
   });
@@ -147,11 +148,12 @@ test('live Ranger profile emission and Engineer packets retain companion ownersh
   assert.equal(pet.summonOwner, 'pet:old-generation');
   assert.equal(pet.independentConditionOwner, true);
   assert.equal(typeof pet.summonBaseConditionDamage, 'number');
-  assert.equal(pet.metadata?.procCount, undefined);
+  assert.equal(pet.procActivation.count, 1);
   assert.equal(pet.holosmithStrikeFactor, undefined);
   effects.emit({
     kind: 'packet',
     settlement: 'reaction',
+    proc: { count: 2 },
     event: buildEngineerCondition(
       { ...trigger, actorType: 'summon', summonOwner: 'mech:1', independentConditionOwner: true },
       {
@@ -160,8 +162,7 @@ test('live Ranger profile emission and Engineer packets retain companion ownersh
         stacks: 3,
         duration: 4,
         actorType: 'summon',
-        metadata: { fixedDuration: true, engineerMech: true },
-        procCount: 2
+        metadata: { fixedDuration: true, engineerMech: true }
       }
     )
   });
@@ -170,7 +171,8 @@ test('live Ranger profile emission and Engineer packets retain companion ownersh
   assert.equal(mech.independentConditionOwner, true);
   assert.equal(mech.fixedDuration, true);
   // Explicit mech identity selects companion attributes without inheriting trigger annotations.
-  assert.deepEqual(mech.metadata, { engineerMech: true, procCount: 2 });
+  assert.deepEqual(mech.metadata, { engineerMech: true });
+  assert.equal(mech.procActivation.count, 2);
   assert.equal(mech.summonInheritsAttributes, true);
   assert.equal(mech.holosmithStrikeFactor, undefined);
 });
@@ -324,7 +326,7 @@ test('neutral packets retain explicit labels, activation identity and duration p
     stacks: 2,
     duration: 4,
     fixedDuration: true,
-    metadata: { procCount: 3 }
+    metadata: { trigger: 'fixture' }
   });
   assert.equal(packet.name, 'Display label');
   assert.equal(packet.skillId, 8);
@@ -333,7 +335,7 @@ test('neutral packets retain explicit labels, activation identity and duration p
   assert.equal(packet.priority, 5);
   assert.equal(packet.duration, 4);
   assert.equal(packet.fixedDuration, true);
-  assert.deepEqual(packet.metadata, { procCount: 3 });
+  assert.deepEqual(packet.metadata, { trigger: 'fixture' });
   assert.equal(resolverSourceSkill({ name: 'Fallback name', source: 'Source' }), 'Fallback name');
   assert.equal(resolverSourceSkill({ source: 'Source' }), 'Source');
 });

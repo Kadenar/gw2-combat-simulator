@@ -1,5 +1,6 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
 import { splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -29,6 +30,7 @@ export function buildRangerStrikes(event: SimulationEventBase): SimulationEventB
 
 /** Attribution and delivery fields for a profile payload that a resolved hit or mechanic delivers. */
 export interface RangerProfileDelivery {
+  readonly proc?: ProfileEmission['proc'];
   readonly attribution: EffectEventBase;
   /** The log label for each delivered packet, independent of the profile's patch-facing name. */
   readonly name?: string;
@@ -47,6 +49,7 @@ export function emitRangerProfile(
 ): void {
   context.effects.emit({
     kind: 'profile',
+    proc: delivery.proc,
     profile,
     at,
     fullEnd: at,
@@ -72,6 +75,7 @@ export function emitRangerAction(
   context.effects.emit({
     kind: 'profile',
     profile: skill,
+    proc: delivery.proc,
     effects: action.effects,
     at,
     fullEnd: at,

@@ -21,35 +21,29 @@ export function schedulePhantasmBonusStrike(
 
   if (!bonus) return;
 
-  buildMesmerStrikes(
-    state,
-    {
-      id: bonus.name,
-      name: bonus.name,
-      weapon: execution.skill.weapon,
-      blade: true
-    },
+  // One entity conversion owns all expanded strike packets.
+  state.effects.emit({
+    ...execution.delivery,
+    kind: 'profile',
+    proc: true,
+    profile: { id: bonus.name, name: bonus.name, weapon: execution.skill.weapon },
+    effects: [{ ...bonus.damage, type: 'strike', summonKind: undefined, source: 'Player' }],
     at,
-    {
-      ...bonus.damage,
-      summonKind: undefined,
+    attribution: {
       source: 'Player',
-      weaponStrength: bonus.damage.weaponStrength
-    }
-  ).forEach((packet, index) => {
-    state.effects.emit({
-      ...execution.delivery,
-      kind: 'packet',
-      // Name the trait owner without changing the blade's combat source, skill identity, or player scaling.
-      event: {
-        ...packet,
-        name: bonus.traitName,
-        procType: 'trait',
-        traitId: bonus.traitId,
-        // Each entity conversion is one proc, even when its strike expands into multiple damage packets.
-        ...(index === 0 ? { metadata: { ...packet.metadata, procCount: 1 } } : {})
-      }
-    });
+      sourceId: bonus.name,
+      skillId: bonus.name,
+      skillName: bonus.name,
+      actorType: ACTOR.PLAYER,
+      metadata: { blade: true }
+    },
+    transform: (packet) => ({
+      ...packet,
+      name: bonus.traitName,
+      procType: 'trait',
+      traitId: bonus.traitId,
+      skillWeapon: execution.skill.weapon
+    })
   });
 }
 

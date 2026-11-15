@@ -55,5 +55,6 @@ export function deliverChargedHit(
 
   if (!action.effects.length || !spend()) return;
 
-  emitRangerAction(context, event.at, skill, actionId, delivery);
+  // A consumed charge owns one proc, including every condition in its payload.
+  emitRangerAction(context, event.at, skill, actionId, { ...delivery, proc: true });
 }

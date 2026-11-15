@@ -5,13 +5,137 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { countProcActivations } from '#gw2/platform/results/proc-counts.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 const attribution = { source: 'Trait', sourceId: 42, actorType: 'player', skillId: 42, skillName: 'Fixture trait' };
 const strike = { ...attribution, type: 'damage', at: 1, coefficient: 1, skillWeapon: 'Sword' };
+
+test('proc identity spans sibling effects and split stacks while separate emissions remain distinct', () => {
+  const profile = {
+    id: 42,
+    name: 'Fixture trait',
+    effects: [
+      {
+        type: 'condition',
+        name: 'Burning',
+        condition: 'Burning',
+        stacks: 3,
+        duration: 2,
+        applications: 2,
+        intervalMs: 500
+      },
+      { type: 'condition', name: 'Slow', condition: 'Slow', stacks: 1, duration: 2 }
+    ]
+  };
+  const result = resolveTestGw2Events({
+    events: [strike],
+    endTime: 4,
+    professionReactions: {
+      'damage.resolved'(runtime, event) {
+        // The same cause can launch independent periodic procs; neither cause nor stack identity can be the key.
+        for (let index = 0; index < 2; index++)
+          emitTraitProfile(
+            { effects: runtime.effects, helpers: { balanceProfilesById: new Map([[42, profile]]) } },
+            42,
+            42,
+            event,
+            { at: 1, attribution, proc: { count: 4 } }
+          );
+      }
+    }
+  });
+  const applications = result.resolvedEvents.filter((event) => event.traitId === 42);
+  assert.equal(countProcActivations(applications, () => 'trait').get('trait'), 8);
+  assert.equal(new Set(applications.map((event) => event.procActivation?.id)).size, 2);
+  assert.ok(applications.every((event) => event.procActivation.count === 4));
+  const first = applications[0];
+  assert.equal(countProcActivations([first, { ...first, cancelled: true }], () => 'trait').get('trait'), 4);
+});
+
+// Distinct deliveries can share a logical activation only through a token issued by their own emitter.
+test('explicit activation tokens join emissions and reject forged or foreign identities', () => {
+  const { effects, events } = captureEffectEmissions();
+  const proc = effects.createProcActivation(2);
+  assert.ok(Object.isFrozen(proc));
+  effects.emit({ kind: 'packet', proc, event: strike });
+  effects.emit({
+    kind: 'profile',
+    proc,
+    attribution,
+    profile: {
+      id: 42,
+      name: 'Fixture',
+      effects: [{ type: 'condition', condition: 'Weakness', stacks: 1, duration: 2 }]
+    }
+  });
+  assert.equal(countProcActivations(events, () => 'trait').get('trait'), 2);
+  assert.ok(events.every((event) => event.procActivation.id === proc.id));
+  const foreign = captureEffectEmissions().effects.createProcActivation();
+  for (const invalid of [{ ...proc }, foreign, { id: 'authored', count: 1 }])
+    assert.throws(
+      () => effects.emit({ kind: 'packet', proc: invalid, event: strike }),
+      /created by this emission service/
+    );
+  for (const count of [0, -1, NaN, Infinity])
+    assert.throws(() => effects.createProcActivation(count), /positive finite count/);
+  assert.equal(events.length, 2);
+});
+
+test('ordinary cast emissions cannot inherit a proc identity from a copied packet', () => {
+  const { effects, events } = captureEffectEmissions();
+  effects.emit({ kind: 'packet', proc: true, event: strike });
+  effects.emit({ kind: 'packet', event: events[0] });
+  effects.emit({ kind: 'packet', proc: true, event: events[0] });
+  assert.ok(events[0].procActivation);
+  assert.equal(events[1].procActivation, undefined);
+  assert.notEqual(events[2].procActivation.id, events[0].procActivation.id);
+  assert.equal(countProcActivations(events, () => 'trait').get('trait'), 2);
+});
+
+test('proc weights require the emission option and metadata cannot author proc identity', () => {
+  const { effects, events } = captureEffectEmissions();
+  for (const proc of [false, null, {}, { count: 0 }, { count: -1 }, { count: NaN }, { count: Infinity }])
+    assert.throws(() => effects.emit({ kind: 'packet', event: strike, proc }), /positive finite count/);
+
+  // Both catalog authoring and procedural packets reject the retired metadata fields.
+  for (const metadata of [{ procCount: 2 }, { procActivation: 'authored' }]) {
+    assert.throws(() => effects.emit({ kind: 'packet', event: { ...strike, metadata } }), /unsupported field/);
+    assert.throws(
+      () =>
+        createCanonicalCatalog({
+          skills: [{ id: 42, name: 'Fixture', effects: [{ type: 'strike', coefficient: 1, metadata }] }]
+        }),
+      /unsupported field/
+    );
+  }
+
+  assert.equal(events.length, 0);
+});
+
+test('boon and buff rewards share one trait activation even without damage', () => {
+  const { effects, events } = captureEffectEmissions();
+  const helpers = createCanonicalCatalog({
+    balanceProfiles: [
+      {
+        id: 42,
+        name: 'Support trait',
+        effects: [
+          { type: 'boon', name: 'Fury', boon: 'fury', duration: 2, stacks: 1 },
+          { type: 'buff', name: 'Reward', kind: 'fixture-reward', duration: 2, stacks: 1 }
+        ]
+      }
+    ]
+  });
+  emitTraitProfile({ effects, helpers }, 42, 42, undefined);
+  assert.ok(events.length > 0);
+  assert.ok(events.every((event) => event.procActivation.count === 1));
+  assert.equal(countProcActivations(events, () => 'support').get('support'), 1);
+});
 
 // An explicit undefined activation opts out of inheritance; an omitted activation still derives from its cause.
 test('authored activation fields retain precedence over effect delivery causes', () => {

@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import { countProcActivations } from '#gw2/platform/results/proc-counts.js';
 import { mesmerControlAccepted, mesmerCritical } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
+import { triggerMaimTheDisillusioned } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -13,6 +15,40 @@ import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+
+test('Maim batches accepted hit counts independently of condition applications', () => {
+  const { effects, events } = captureEffectEmissions();
+  const helpers = withProfile(mesmerCatalog, TRAIT.MAIM_THE_DISILLUSIONED, {
+    effects: [
+      {
+        type: 'condition',
+        name: 'Torment',
+        condition: 'Torment',
+        stacks: 1,
+        duration: 2,
+        applications: 2,
+        intervalMs: 480
+      }
+    ]
+  });
+  triggerMaimTheDisillusioned(
+    { effects, helpers, traits: new Set([TRAIT.MAIM_THE_DISILLUSIONED]) },
+    {
+      skill: { id: 'fixture', name: 'Shatter' },
+      at: 1,
+      delivery: {},
+      shatterTraitEligible: true,
+      traitHits: [
+        { at: 1, count: 3 },
+        { at: 2, count: 2 }
+      ]
+    }
+  );
+  // Multiple payload applications must retain the two hit groups rather than multiply their accepted weights.
+  assert.ok(events.length > 2);
+  assert.ok(events.every((event) => event.traitId === TRAIT.MAIM_THE_DISILLUSIONED));
+  assert.equal(countProcActivations(events, () => 'maim').get('maim'), 5);
+});
 
 // Critical trait handlers read selected traits and patched profiles from the same live runtime as the proc registry.
 test('Master Fencer only claims its strict ICD on a sampled critical hit', () => {
@@ -270,6 +306,11 @@ test('canonical phantasm ownership triggers Sharper Images without Master Fencer
     }
   };
   context.state.effects = captureEffectEmissions({
+    // A successful illusion critical retains its proc count on the trait-owned Bleeding packet.
+    submit: (event) => {
+      assert.equal(event.procActivation.count, 1);
+      return event;
+    },
     announce: (request) => {
       procs.push(request.announcement.name);
       return { type: 'proc', ...request.attribution, ...request.announcement };

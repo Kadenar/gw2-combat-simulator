@@ -72,6 +72,8 @@ test('Untamed control declarations gate cooldowns on the selected surviving effe
           }
         );
         const rewards = result.events.filter((event) => event.sourceId === trait);
+        // Utility conditions such as Slow carry the same proc identity contract as damaging conditions.
+        assert.ok(rewards.every((event) => event.procActivation));
         assert.deepEqual(
           rewards.map((event) => event.condition ?? event.kind),
           removed === selected ? [] : [selected]

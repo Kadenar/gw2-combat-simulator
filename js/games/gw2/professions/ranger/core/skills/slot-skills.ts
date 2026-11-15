@@ -782,6 +782,8 @@ export function emitSunSpiritBurning(runtime: RangerRuntime, skill: Skill, at: n
   if (!solarFlare) throw new Error('Sun Spirit requires the Solar Flare skill.');
 
   emitRangerProfile(runtime, at, solarFlare, {
+    // Each spirit slam owns one Solar Flare activation.
+    proc: true,
     attribution: {
       source: 'ranger',
       sourceId: solarFlare.id,

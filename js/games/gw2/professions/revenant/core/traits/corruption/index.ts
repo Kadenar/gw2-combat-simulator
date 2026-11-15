@@ -151,6 +151,7 @@ function reactAbyssalChill(runtime: RevenantRuntime, { cause: event }: RevenantS
     if (condition) {
       const name = String(condition.condition);
       emitTraitProfile(runtime, TRAIT.ABYSSAL_CHILL, TRAIT.ABYSSAL_CHILL, event, {
+        proc: { count: Math.max(1, event.stacks ?? 1) },
         at: runtime.time,
         fullEnd: runtime.time,
         effect: { type: 'condition', name: CONDITION.TORMENT },
@@ -173,6 +174,8 @@ function reactAbyssalChill(runtime: RevenantRuntime, { cause: event }: RevenantS
 
 /** Runs the trait at its original ordered mechanic boundary. */
 function invokeTorment(runtime: RevenantRuntime): void {
+  // Invoking Torment and its Diabolic Inferno additions share the accepted legend invocation.
+  const proc = runtime.effects.createProcActivation();
   // Each selected trait emits its own balance payload while retaining the shared invocation identity.
   const profiles = [
     TRAIT.INVOKING_TORMENT,
@@ -180,6 +183,7 @@ function invokeTorment(runtime: RevenantRuntime): void {
   ];
   for (const profileId of profiles)
     emitTraitProfile(runtime, TRAIT.INVOKING_TORMENT, profileId, undefined, {
+      proc,
       preserveName: true,
       attribution: {
         activationId: `legend-invocation:${TRAIT.INVOKING_TORMENT}:${runtime.time}`,

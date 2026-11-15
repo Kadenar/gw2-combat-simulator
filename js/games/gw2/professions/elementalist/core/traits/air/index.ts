@@ -378,12 +378,15 @@ function applyInscriptionPostCast(context: ElementalistRuntime, { cast }: Elemen
 
 /** Materializes Lightning Rod from a classified player control event. */
 function applyLightningRod(context: ElementalistRuntime, event: SimulationEvent): void {
+  // Strike and Weakness belong to one accepted control reaction despite their distinct actor attribution.
+  const proc = context.effects.createProcActivation();
   const sourceId = event.skillId ?? event.sourceId;
   const lightningRodProfile = requireBalanceProfile(context.helpers, TRAIT.LIGHTNING_ROD);
   const lightningRodStrike = requireEffect(lightningRodProfile, 'strike', 'Lightning Rod');
 
   if (lightningRodStrike) {
     emitTraitProfile(context, TRAIT.LIGHTNING_ROD, TRAIT.LIGHTNING_ROD, event, {
+      proc,
       at: event.at,
       fullEnd: event.at,
       effect: { type: 'strike', name: 'Lightning Rod' },
@@ -403,6 +406,7 @@ function applyLightningRod(context: ElementalistRuntime, event: SimulationEvent)
 
   const conditionEmitted =
     emitTraitProfile(context, TRAIT.LIGHTNING_ROD, TRAIT.LIGHTNING_ROD, undefined, {
+      proc,
       at: event.at,
       fullEnd: event.at,
       effect: { type: 'condition', name: 'Lightning Rod' },

@@ -71,7 +71,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     skillFamily: 'Familiar',
     castTimeMs: 360,
     // A released Conflagration survives cutting the command animation short.
-    interruptCommitMs: 320,
+    interruptCommitMs: 280,
     effects: impactEffects(
       { atMs: 1040, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [

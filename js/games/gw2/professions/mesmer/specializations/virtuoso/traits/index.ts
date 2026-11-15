@@ -417,6 +417,7 @@ function applyBladeCritical(
   if (!application) return;
 
   emitTraitProfile(runtime, id, id, event, {
+    proc: { count: application.quantity },
     at: runtime.time,
     effect: { type: 'condition', name: condition },
     transform: (payload) =>

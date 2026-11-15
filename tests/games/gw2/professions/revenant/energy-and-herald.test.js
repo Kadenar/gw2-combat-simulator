@@ -632,6 +632,12 @@ test('legend invocation traits resolve after swap effects', () => {
   assert.equal(call.at, 0);
   assert.equal(call.coefficient, 0.9);
   assert.equal(invoke.coefficient, 1);
+  // Diabolic Inferno augments the same invocation despite using another balance profile.
+  assert.ok(
+    result.events
+      .filter((event) => event.skillName === 'Invoke Torment')
+      .every((event) => event.procActivation?.id === invoke.procActivation.id)
+  );
   assert.ok(spiritBoon.eventOrder < call.eventOrder);
   assert.ok(call.eventOrder < invoke.eventOrder);
   assert.deepEqual(

@@ -66,7 +66,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 6,
     skillFamily: 'Weapon skill',
     castTimeMs: 680,
-    interruptCommitMs: 640,
+    interruptCommitMs: 600,
     effects: impactEffects(
       { atMs: 2600, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [

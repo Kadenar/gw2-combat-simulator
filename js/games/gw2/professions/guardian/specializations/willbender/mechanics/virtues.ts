@@ -147,6 +147,8 @@ function reactToWillbenderHit(
       if (burn) {
         runtime.effects.emit({
           kind: 'packet',
+          // Completing Justice's hit counter earns one independent Burning proc.
+          proc: true,
           cause: event,
           event: buildResolverCondition({
             at: runtime.time,

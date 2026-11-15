@@ -27,6 +27,8 @@ export type TraitProfileCause = NonNullable<ProfileEmission['cause']> &
   Partial<Pick<SimulationEventBase, 'skillId' | 'skillName'>>;
 
 export interface TraitProfileOptions {
+  /** Batched triggers supply their accepted quantity at emission, independently of payload stack counts. */
+  readonly proc?: ProfileEmission['proc'];
   /** Explicit delivery preserves accepted cast timing and ownership for deferred trait payloads. */
   readonly at?: number;
   readonly fullEnd?: number;
@@ -96,6 +98,7 @@ export function emitTraitProfile(
   };
   const request: ProfileEmission = {
     kind: 'profile',
+    proc: options.proc ?? true,
     profile,
     effects: options.effects ? effects?.filter(options.effects) : effects,
     at: options.at,
@@ -131,7 +134,7 @@ export function emitTraitProfile(
 
 export interface TraitSkillOptions extends Pick<
   TraitProfileOptions,
-  'at' | 'fullEnd' | 'cast' | 'effect' | 'effects' | 'attribution' | 'transform' | 'durationContext'
+  'at' | 'fullEnd' | 'cast' | 'effect' | 'effects' | 'attribution' | 'transform' | 'durationContext' | 'proc'
 > {
   /** Report the trait proc beside the skill's own packets. */
   readonly announce?: boolean;
@@ -167,6 +170,7 @@ export function invokeTraitSkill(
 
   runtime.effects.emit({
     kind: 'profile',
+    proc: options.proc ?? true,
     profile: skill,
     effects,
     at: options.at ?? cause.at,

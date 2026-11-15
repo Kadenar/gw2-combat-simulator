@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { countProcActivations } from '#gw2/platform/results/proc-counts.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS as ATTUNEMENT,
   ELEMENTALIST_TRAIT_IDS as E
@@ -10,6 +11,8 @@ import {
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ENGINEER_TRAIT_IDS as G, ENGINEER_SKILL_IDS as GS } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { MESMER_TRAIT_IDS as M } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { NECROMANCER_TRAIT_IDS as N } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { RANGER_TRAIT_IDS as R } from '#gw2/professions/ranger/data/ids.js';
@@ -33,6 +36,35 @@ const strike = {
   coefficient: 1,
   skillWeapon: 'Unequipped'
 };
+
+// One accepted trigger retains its activation count when a selected profile changes the condition stack count.
+const conditionTrigger = (condition) => ({
+  ...strike,
+  type: 'condition',
+  coefficient: undefined,
+  condition,
+  stacks: 1,
+  duration: 2
+});
+test('Ineptitude preserves batched trigger counts independently of Confusion stacks', () => {
+  const result = simulate(
+    mesmerProfession,
+    M.INEPTITUDE,
+    { effects: [{ type: 'condition', name: 'Confusion', stacks: 1 }] },
+    {
+      event: { ...conditionTrigger('Blindness'), count: 3 }
+    }
+  );
+  const applications = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.traitId === M.INEPTITUDE && event.condition === 'Confusion'
+  );
+  // The resolver may split stacks, but must retain all three accepted procs exactly once.
+  assert.equal(countProcActivations(applications, () => 'trait').get('trait'), 3);
+  assert.equal(
+    applications.reduce((sum, event) => sum + event.stacks, 0),
+    3
+  );
+});
 
 /** Use native admission and the actual emitter so profile edits cannot pass through a packet-only test double. */
 function simulate(family, trait, patch, { rotation = [combat, wait], event, config = {} } = {}) {
@@ -95,7 +127,7 @@ for (const [name, family, trait, effect, event, config] of [
         removed
           ? { removeEffects: [selector] }
           : {
-              effects: [{ ...selector, stacks: 4, duration: 7, projectile: true, metadata: { procCount: 2 } }]
+              effects: [{ ...selector, stacks: 4, duration: 7, projectile: true, metadata: { trigger: 'fixture' } }]
             },
         { event, config }
       );
@@ -112,7 +144,7 @@ for (const [name, family, trait, effect, event, config] of [
         );
         assert.equal(packets[0].duration, 7);
         assert.equal(packets[0].projectile, true);
-        assert.equal(packets[0].metadata.procCount, 2);
+        assert.equal(packets[0].metadata.trigger, 'fixture');
         assert.equal(packets[0].actorType, 'effect');
         assert.equal(packets[0].triggeredBy, 'Trigger');
       }
@@ -129,7 +161,14 @@ for (const [name, trait, attunement] of [
       trait,
       {
         effects: [
-          { type: 'strike', name, coefficient: 0.75, canCrit: true, weaponStrength: 1234, metadata: { procCount: 2 } }
+          {
+            type: 'strike',
+            name,
+            coefficient: 0.75,
+            canCrit: true,
+            weaponStrength: 1234,
+            metadata: { trigger: 'fixture' }
+          }
         ]
       },
       {
@@ -141,7 +180,7 @@ for (const [name, trait, attunement] of [
     assert.equal(packet.coefficient, 0.75);
     assert.equal(packet.canCrit, true);
     assert.equal(packet.weaponStrength, 1234);
-    assert.equal(packet.metadata.procCount, 2);
+    assert.equal(packet.metadata.trigger, 'fixture');
     assert.equal(packet.sourceId, attunement);
     assert.equal(packet.ownerActorType, 'player');
     assert.match(packet.activationId, /^elementalist\.effect:/);

@@ -398,34 +398,14 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
   const shrapnelProfile = requireBalanceProfile(context.helpers, TRAIT.SHRAPNEL);
   const shrapnelBleeding = requireEffect(shrapnelProfile, 'condition', CONDITION.BLEEDING);
 
-  if (shrapnelBleeding) {
-    emitTraitProfile(context, TRAIT.SHRAPNEL, TRAIT.SHRAPNEL, undefined, {
-      at: event.at,
-      fullEnd: event.at,
-      effect: { type: 'condition', name: CONDITION.BLEEDING },
-      settlement: 'reaction',
-      attribution: {
-        sourceId: TRAIT.SHRAPNEL,
-        actorType: ACTOR.EFFECT,
-        ownerActorType: ACTOR.PLAYER,
-        skillName: 'Shrapnel',
-        source: 'Trait',
-        triggeredBy: event.skillName,
-        offTarget: event.offTarget,
-        metadata: { procCount: 1 }
-      },
-      transform: (packet) => ({ ...packet, name: 'Shrapnel' + ' - ' + packet.condition })
-    });
-  }
-
   const shrapnelCrippled = requireEffect(shrapnelProfile, 'condition', CONDITION.CRIPPLED);
 
-  if (shrapnelCrippled) {
-    // Resolve Crippled as a target condition so duration bonuses and condition queries include it.
+  // One accepted roll owns both conditions, including when a patch removes either component.
+  if (shrapnelBleeding || shrapnelCrippled)
     emitTraitProfile(context, TRAIT.SHRAPNEL, TRAIT.SHRAPNEL, undefined, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'condition', name: CONDITION.CRIPPLED },
+      effects: (effect) => effect === shrapnelBleeding || effect === shrapnelCrippled,
       settlement: 'reaction',
       attribution: {
         sourceId: TRAIT.SHRAPNEL,
@@ -438,7 +418,6 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
       },
       transform: (packet) => ({ ...packet, name: 'Shrapnel' + ' - ' + packet.condition })
     });
-  }
 
   if (shrapnelBleeding || shrapnelCrippled)
     context.effects.emit({

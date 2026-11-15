@@ -258,6 +258,7 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
   // Resolve Ineptitude immediately so nested condition hooks observe the
   // confusion application during the originating blind/control reaction, with explicit player attribution.
   emitTraitProfile(context, TRAIT.INEPTITUDE, TRAIT.INEPTITUDE, undefined, {
+    proc: { count },
     at: event.at,
     settlement: 'reaction',
     effect: { type: 'condition', name: CONDITION.CONFUSION },
@@ -430,6 +431,7 @@ function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, ch
   const procCount = application.quantity;
 
   emitTraitProfile(context, TRAIT.SHARPER_IMAGES, TRAIT.SHARPER_IMAGES, event, {
+    proc: { count: procCount },
     at: event.at,
     effect: { type: 'condition', name: CONDITION.BLEEDING },
     transform: (payload) => ({

@@ -754,6 +754,11 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
     0 0 8px 2px #ff3b4580;
 }
 
+/* Collapse cancelled entries and their insertion gaps in editable and reference timelines. */
+html[data-hide-cancelled-skills='true'] .rot-entry:has(> .rot-skill.rot-cancelled) {
+  display: none;
+}
+
 /* Match timing labels to the cancellation border so the failure is easier to spot. */
 .rot-skill.rot-cancelled :is(.rot-time, .rot-timed-action-badge) {
   color: #ff6b73;

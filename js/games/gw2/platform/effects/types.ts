@@ -48,6 +48,8 @@ export interface ConditionTick {
 
 /** Catalog effects are shared read-only declarations; runtime changes belong in derived packets. */
 export interface SkillEffectBase {
+  /** A mechanic-injected effect owns a proc emission independently of its host cast. */
+  readonly proc?: true;
   /** Accepted applications invoke only the reactions authored on this particular effect. */
   readonly reactions?: readonly EffectReaction[];
   readonly type: string;

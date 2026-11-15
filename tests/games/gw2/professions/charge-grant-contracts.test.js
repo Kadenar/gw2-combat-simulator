@@ -256,6 +256,10 @@ test('Poisonous Strikes gives pet and merged player separate inclusive-expiry gr
   assert.equal(core.player.poisonousStrikes.charges, 1);
   assert.equal(context.events[0].independentConditionOwner, true);
   assert.equal(context.events[1].ownerActorType, 'player');
+  // Pet and merged-player charge consumption both emit independent proc identities.
+  assert.equal(context.events[0].procActivation.count, 1);
+  assert.equal(context.events[1].procActivation.count, 1);
+  assert.notEqual(context.events[0].procActivation.id, context.events[1].procActivation.id);
   triggerPoisonousStrikes(context, { ...pet, at: 3 });
   reactToSoulbeastDamage(context, { ...player, at: 3 });
   assert.equal(core.player.poisonousStrikes.charges, 0);

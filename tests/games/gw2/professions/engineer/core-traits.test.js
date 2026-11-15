@@ -201,7 +201,8 @@ test('generated rocket explosions can trigger Shrapnel', () => {
   assert.equal(crippled[0].at, bleed[0].at);
   assert.equal(crippled[0].effectiveDuration, 1.5);
   assert.equal(crippled[0].ownerActorType, 'player');
-  assert.equal(crippled[0].metadata?.procCount ?? 0, 0);
+  assert.ok(bleed[0].procActivation);
+  assert.equal(crippled[0].procActivation.id, bleed[0].procActivation.id);
   const runtime = observedRuntime(result);
   assert.equal(runtime.combat.targetConditionStacks('Crippled', crippled[0].at), 1);
   assert.equal(runtime.combat.targetConditionStacks('Crippled', crippled[0].at + 1.5), 0);

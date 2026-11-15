@@ -28,6 +28,7 @@ export function emitCastEffects<TState extends object, TSkill extends Skill>(
     context.effects.emit({
       ...delivery,
       kind: 'profile',
+      proc: delivery.proc ?? effect.proc,
       effects: [scaleCastBoundTiming(cast, cast.skill, effect)],
       at: delivery.at ?? cast.start,
       fullEnd: delivery.fullEnd ?? cast.fullEnd,

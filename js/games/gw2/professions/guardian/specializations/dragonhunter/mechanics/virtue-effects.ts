@@ -149,6 +149,8 @@ function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
   runtime.effects.emit({
     kind: 'packet',
     cause: pulse.event,
+    // Each accepted tether pulse is independent of the cast that attached the tether.
+    proc: true,
     event: buildResolverCondition({
       at: runtime.time,
       source: 'guardian',

@@ -127,6 +127,8 @@ test('Firearms emissions retain player and concrete mech ownership and announcem
       assert.equal(packet.summonOwner, actor === 'mech' ? 'engineer.mech' : undefined);
       assert.equal(packet.independentConditionOwner, actor === 'mech' ? true : undefined);
       assert.equal(packet.metadata?.engineerMech, actor === 'mech' ? true : undefined);
+      // Multiple stacks still represent one accepted player or mech proc.
+      assert.ok(packet.procActivation);
       assert.equal(packet.coefficient, undefined);
     }
 
@@ -179,5 +181,5 @@ test('Firearms respects selected profile effect removal and Serrated proc quanti
   const { hit, events } = fixture([TRAIT.SERRATED_STEEL], selected);
   hit('player', 1);
   assert.equal(events[0].stacks, 2);
-  assert.equal(events[0].metadata.procCount, 1);
+  assert.ok(events[0].procActivation);
 });

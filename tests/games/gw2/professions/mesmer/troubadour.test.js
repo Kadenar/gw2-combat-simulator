@@ -1005,6 +1005,12 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
     })
   );
 
+  // Crescendo remains the damage source while the trait owns its proc comparison row.
+  const chordConditions = fluteSpotlight.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.name.includes('Altered Chord')
+  );
+  assert.ok(chordConditions.every((event) => event.traitId === TRAIT.ALTERED_CHORD && event.procActivation));
+
   assert.equal(
     fluteSpotlight.resolvedEvents
       .filter(

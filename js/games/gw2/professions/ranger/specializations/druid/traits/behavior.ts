@@ -71,6 +71,8 @@ export function avatarEffects(
         source: 'Trait',
         sourceId: TRAIT.ECLIPSE,
         skillName: 'Eclipse',
+        // Eclipse owns a proc emission; the Avatar skill's native effects remain ordinary cast output.
+        proc: true,
         actorType: ACTOR.EFFECT,
         ownerActorType: ACTOR.PLAYER,
         interruptCommitMs: 0,

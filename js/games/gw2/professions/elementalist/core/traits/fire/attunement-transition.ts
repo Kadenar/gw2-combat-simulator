@@ -29,6 +29,8 @@ export function emitSunspot(
   applyAura: ElementalistAuraApplier,
   emissionCast?: EffectDelivery['cast']
 ): void {
+  // Sunspot and Burning Rage are components of one attunement reward.
+  const proc = context.effects.createProcActivation();
   // Keep strike and Burning attribution aligned with the actual attunement or overload that triggered Sunspot.
   const sourceSkill = context.helpers.skillsById.get(sourceId)?.name || '';
   const sunspotProfile = requireBalanceProfile(context.helpers, TRAIT.SUNSPOT);
@@ -48,6 +50,7 @@ export function emitSunspot(
 
   if (sunspotStrike) {
     emitTraitProfile(context, TRAIT.SUNSPOT, TRAIT.SUNSPOT, undefined, {
+      proc,
       at: at,
       fullEnd: at,
       effect: { type: 'strike', name: 'Sunspot' },
@@ -71,6 +74,7 @@ export function emitSunspot(
   const burningEmitted =
     hasTrait(context, TRAIT.BURNING_RAGE) &&
     emitTraitProfile(context, TRAIT.BURNING_RAGE, TRAIT.BURNING_RAGE, undefined, {
+      proc,
       at: at,
       fullEnd: at,
       effect: { type: 'condition', name: 'Sunspot Burning' },
@@ -102,6 +106,8 @@ export function emitFlameExpulsion(
   sourceId: Skill['id'],
   emissionCast?: EffectDelivery['cast']
 ): void {
+  // Delayed damage and the Might reward share one Fire-exit activation.
+  const proc = context.effects.createProcActivation();
   const pyromancersPuissanceProfile = requireBalanceProfile(context.helpers, TRAIT.PYROMANCERS_PUISSANCE);
   const impactAt = at + FLAME_EXPULSION_DELAY_SECONDS;
   const cappedMight = Math.min(
@@ -119,6 +125,7 @@ export function emitFlameExpulsion(
     // Capture Might once for the delayed payout; each authored hit retains its share of the bonus.
     const coefficientPerMight = balanceProfileNumber(pyromancersPuissanceProfile, 'damageIncreasePerStack');
     emitTraitProfile(context, TRAIT.PYROMANCERS_PUISSANCE, TRAIT.PYROMANCERS_PUISSANCE, undefined, {
+      proc,
       at: impactAt,
       fullEnd: impactAt,
       effect: { type: 'strike', name: 'Flame Expulsion' },
@@ -146,6 +153,7 @@ export function emitFlameExpulsion(
     const baseBurningDuration = Number(flameExpulsionCondition.duration);
     const burningDurationPerMight = balanceProfileNumber(pyromancersPuissanceProfile, 'durationPerTier');
     emitTraitProfile(context, TRAIT.PYROMANCERS_PUISSANCE, TRAIT.PYROMANCERS_PUISSANCE, undefined, {
+      proc,
       at: impactAt,
       fullEnd: impactAt,
       effect: { type: 'condition', name: 'Flame Expulsion' },
@@ -178,6 +186,7 @@ export function emitFlameExpulsion(
   if (cappedMight > 0) {
     if (pyromancersPuissanceFlameExpulsionMight) {
       emitTraitProfile(context, TRAIT.PYROMANCERS_PUISSANCE, TRAIT.PYROMANCERS_PUISSANCE, undefined, {
+        proc,
         at: impactAt,
         fullEnd: impactAt,
         effect: { type: 'boon', name: 'Flame Expulsion Might' },

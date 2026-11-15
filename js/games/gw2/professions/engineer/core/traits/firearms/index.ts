@@ -527,8 +527,7 @@ function emitFirearmsCondition(
   sourceId: number,
   name: string,
   condition: string,
-  quantity = 1,
-  procCount?: number
+  quantity = 1
 ): void {
   const profile = requireBalanceProfile(context.helpers, sourceId);
   const effect = requireEffect(profile, 'condition', condition);
@@ -536,6 +535,7 @@ function emitFirearmsCondition(
   if (!effect) return;
 
   emitTraitProfile(context, sourceId, sourceId, undefined, {
+    proc: { count: quantity },
     at: event.at,
     effect: { type: 'condition', name: condition },
     settlement: 'reaction',
@@ -547,8 +547,7 @@ function emitFirearmsCondition(
       offTarget: event.offTarget,
       triggeredBy: event.skillName,
       metadata: {
-        ...(owner.actorType === ACTOR.SUMMON ? { engineerMech: true } : {}),
-        ...(procCount == null ? {} : { procCount })
+        ...(owner.actorType === ACTOR.SUMMON ? { engineerMech: true } : {})
       }
     },
     transform: (packet) => ({
@@ -581,16 +580,7 @@ function emitSerratedSteel(
   quantity: number,
   owner: FirearmsConditionOwner
 ): void {
-  emitFirearmsCondition(
-    context,
-    event,
-    owner,
-    TRAIT.SERRATED_STEEL,
-    'Serrated Steel',
-    CONDITION.BLEEDING,
-    quantity,
-    quantity
-  );
+  emitFirearmsCondition(context, event, owner, TRAIT.SERRATED_STEEL, 'Serrated Steel', CONDITION.BLEEDING, quantity);
 }
 
 /** Each eligible Incendiary Powder proc emits one profile application after its actor's cooldown gate. */

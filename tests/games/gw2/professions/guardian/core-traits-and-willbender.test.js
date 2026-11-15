@@ -550,6 +550,9 @@ test('Holy Reckoning grants Fury on Rushing Justice activation and Might only on
   const triggers = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.name === 'Justice - Active Burning'
   );
+  // Counter-triggered Burning reports a proc independently of Rushing Justice's cast output.
+  assert.ok(triggers.length > 0);
+  assert.ok(triggers.every((event) => event.procActivation?.count === 1));
   const fury = result.events.filter(
     (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.HOLY_RECKONING && event.kind === 'fury'
   );

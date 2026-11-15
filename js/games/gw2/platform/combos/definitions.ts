@@ -398,6 +398,8 @@ export function comboOutcomeRequests(combo: ComboEvent): readonly (PacketEmissio
   function packets(event: SimulationEventBase): readonly PacketEmission[] {
     return Array.from({ length: applications }, () => ({
       kind: 'packet',
+      // Combo bolts are independent applications, each with its own proc identity.
+      proc: combo.fieldType === COMBO_FIELD.FIRE && combo.finisherType === COMBO_FINISHER.WHIRL ? true : undefined,
       durationContext: combo,
       event: { ...event }
     }));
@@ -453,9 +455,7 @@ export function comboOutcomeRequests(combo: ComboEvent): readonly (PacketEmissio
               skillName: outcome.name,
               damageBreakdownName: outcome.name,
               parentSkillName: combo.skillName || combo.parentSkillName,
-              icon: 'https://render.guildwars2.com/file/B47BF5803FED2718D7474EAF9617629AD068EE10/102849.png',
-              // Count each bolt application once, independently of its condition payouts.
-              metadata: { procCount: 1 }
+              icon: 'https://render.guildwars2.com/file/B47BF5803FED2718D7474EAF9617629AD068EE10/102849.png'
             }
           : {}),
         type: 'condition',

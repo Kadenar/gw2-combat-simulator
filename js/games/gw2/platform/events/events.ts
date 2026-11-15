@@ -209,8 +209,6 @@ export interface EffectMetadata {
   readonly venomProcEffectIndex?: number;
   /** A returned thief axe retains its projectile attribution while the recall owns malice and dual-wield procs. */
   readonly recallSkillId?: SkillId;
-  /** Proc activations represented by this one primary effect, independent of stacks and damage ticks. */
-  readonly procCount?: number;
   /** Essence Blast retains the spirit count accepted at activation even if spirit lifetimes change before impact. */
   readonly activeSpirits?: number;
   readonly dhuumfireDuration?: number;
@@ -257,6 +255,11 @@ type CommonSimulationEventType = Exclude<(typeof COMMON_EVENT_TYPES)[number], 'd
 type CustomSimulationEventType = `${string}.${string}`;
 
 export interface SimulationEventBase<TType extends string = string> {
+  /** Runtime-owned emission identity and weight, shared by sibling effects and split condition stacks. */
+  readonly procActivation?: {
+    readonly id: string;
+    readonly count: number;
+  };
   /** Reporting lineage groups a finite yield without changing combat activation ownership. */
   readonly boonGeneration?: {
     readonly activationId: string;

@@ -4,6 +4,7 @@ const ROTATION_TIMELINE_SIZE_STORAGE_KEY = 'gw2-rotation-timeline-size';
 export const ROTATION_DEAD_TIME_STORAGE_KEY = 'gw2-rotation-dead-time';
 const TRANSITION_DELAY_VISIBILITY_KEY = 'gw2-rotation-transition-delays';
 const TIMING_DISPLAY_STORAGE_KEY = 'gw2-rotation-timing-display';
+const HIDE_CANCELLED_SKILLS_STORAGE_KEY = 'gw2-rotation-hide-cancelled-skills';
 
 export const ROTATION_TIMELINE_SIZE_OPTIONS = Object.freeze([
   { value: 'normal', label: '100%' },
@@ -21,6 +22,19 @@ export function normalizeRotationTimelineSize(value: unknown): RotationTimelineS
 /** Only an explicit stored true enables opt-in timeline overlays. */
 export function normalizeRotationVisibility(value: unknown): boolean {
   return value === true || value === 'true';
+}
+
+/** Keep cancelled casts in the rotation while optionally hiding their tiles in every timeline. */
+export function rotationCancelledSkillsHidden(root: Document): boolean {
+  const current = root.documentElement.getAttribute('data-hide-cancelled-skills');
+  return current === null
+    ? readStoredTimelineOverlayVisibility(root, HIDE_CANCELLED_SKILLS_STORAGE_KEY)
+    : normalizeRotationVisibility(current);
+}
+
+export function setRotationCancelledSkillsHidden(root: Document, hidden: boolean): void {
+  root.documentElement.setAttribute('data-hide-cancelled-skills', String(hidden));
+  storeTimelineOverlayVisibility(root, HIDE_CANCELLED_SKILLS_STORAGE_KEY, hidden);
 }
 
 /** Transition recovery has its own display preference and never changes simulation timing. */

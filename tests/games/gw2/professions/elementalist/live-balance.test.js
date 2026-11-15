@@ -75,6 +75,11 @@ test('Shock Wave triggers Lightning Rod without its retired Bleeding or projecti
   assert.equal(control.controlKind, 'daze');
   assert.equal(proc.at, control.at);
   assert.equal(proc.sourceId, ID.SHOCK_WAVE);
+  // The strike and its player-owned Weakness are one control reaction.
+  const weakness = result.resolvedEvents.find(
+    (event) => event.traitId === TRAIT.LIGHTNING_ROD && event.condition === 'Weakness'
+  );
+  assert.deepEqual(weakness.procActivation, proc.procActivation);
   assert.ok(result.resolvedEvents.some((event) => event.condition === 'Immobilized'));
   assert.ok(!result.resolvedEvents.some((event) => event.condition === 'Bleeding'));
   assert.ok(!result.events.some((event) => event.comboFinishers?.length));

@@ -153,9 +153,17 @@ export function mountRotationInsertionCursor({
     if (focused && focused !== document.body && !scope.contains(focused)) return;
 
     const rotationLength = getRotationLength();
-    const newIndex = displayIndex() + (event.key === 'ArrowLeft' ? -1 : 1);
+    // Hidden cancelled entries have no visible insertion gap, so arrow navigation skips them.
+    const indexes = [...root.querySelectorAll<HTMLButtonElement>('.rot-insertion-gap')]
+      .filter((gap) => gap.getClientRects().length > 0)
+      .map((gap) => Number(gap.dataset.insertionIndex));
+    const current = displayIndex();
+    const newIndex =
+      event.key === 'ArrowLeft'
+        ? indexes.reverse().find((index) => index < current)
+        : indexes.find((index) => index > current);
 
-    if (newIndex < 0 || newIndex > rotationLength) return;
+    if (newIndex === undefined || newIndex < 0 || newIndex > rotationLength) return;
 
     event.preventDefault();
     moveWithKeyboard(() => (newIndex === rotationLength ? onClear() : onSelect(newIndex)), true);

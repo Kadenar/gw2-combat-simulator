@@ -1,8 +1,10 @@
 import { activeSpecialization } from '#gw2/app/rotation/context.js';
 import {
   readStoredTimelineOverlayVisibility,
+  rotationCancelledSkillsHidden,
   rotationDeadTimeVisibility,
   rotationTransitionDelayVisibility,
+  setRotationCancelledSkillsHidden,
   setRotationDeadTimeVisibility,
   setRotationTransitionDelayVisibility,
   storeRotationProcOverlayVisibility,
@@ -45,6 +47,7 @@ export function mountRotationDisplayControls(app: ProfessionAppState): void {
   if (!container) return;
 
   root.documentElement.setAttribute('data-show-transition-delays', String(rotationTransitionDelayVisibility(root)));
+  root.documentElement.setAttribute('data-hide-cancelled-skills', String(rotationCancelledSkillsHidden(root)));
 
   container.querySelector('#rotation-display-controls')?.remove();
 
@@ -62,6 +65,13 @@ export function mountRotationDisplayControls(app: ProfessionAppState): void {
   const controls = root.createElement('div');
   controls.className = 'perma-group-content';
   controls.append(
+    checkboxControl(root, {
+      id: 'rotation-hide-cancelled-skills',
+      label: 'Hide cancelled skills',
+      title: 'Hide red cancelled skill tiles in rotation timelines. Keeps the rotation and simulation unchanged.',
+      checked: rotationCancelledSkillsHidden(root),
+      onChange: (checked) => setRotationCancelledSkillsHidden(root, checked)
+    }),
     checkboxControl(root, {
       id: 'rotation-show-dead-time',
       label: 'Display idle time',

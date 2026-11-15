@@ -476,6 +476,7 @@ function bloodlustCritical(
 
     if (bleeding) {
       emitTraitProfile(runtime, TRAIT.BLOODLUST, TRAIT.BLOODLUST, event, {
+        proc: { count: proc.quantity },
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.BLOODLUST,
@@ -489,8 +490,7 @@ function bloodlustCritical(
           stacks: proc.quantity * Number(packet.stacks),
           name: 'Bloodlust - Bleeding',
           skillName: 'Bloodlust',
-          triggeredBy: event.skillName,
-          metadata: { procCount: proc.quantity }
+          triggeredBy: event.skillName
         }),
         effects: (candidate) => candidate === bleeding
       });

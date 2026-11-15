@@ -357,8 +357,7 @@ function applyBurningPrecision(context: MechanicCombatContext, event: Gw2Resolve
         sourceId: TRAIT.BURNING_PRECISION,
         actorType: ACTOR.PLAYER,
         skillName: 'Burning Precision',
-        triggeredBy: resolverSourceSkill(event),
-        metadata: { procCount: 1 }
+        triggeredBy: resolverSourceSkill(event)
       },
       transform: (packet) => ({ ...packet, name: 'Burning Precision' + ' - ' + packet.condition })
     });

@@ -11,7 +11,9 @@ import {
   ROTATION_DEAD_TIME_STORAGE_KEY,
   ROTATION_PROC_OVERLAY_STORAGE_KEYS,
   ROTATION_TIMELINE_SIZE_OPTIONS,
+  rotationCancelledSkillsHidden,
   rotationDeadTimeVisibility,
+  setRotationCancelledSkillsHidden,
   setRotationDeadTimeVisibility,
   storeRotationProcOverlayVisibility,
   storeTimelineOverlayVisibility
@@ -277,6 +279,38 @@ function storageRoot(initialValues = {}) {
     }
   };
 }
+
+// Display preferences survive reloads and remain usable when storage is blocked.
+test('cancelled skill visibility defaults off, persists, and can be restored', () => {
+  const root = storageRoot();
+  const attributes = new Map();
+  root.documentElement = {
+    getAttribute: (name) => attributes.get(name) ?? null,
+    setAttribute: (name, value) => attributes.set(name, value)
+  };
+  assert.equal(rotationCancelledSkillsHidden(root), false);
+  setRotationCancelledSkillsHidden(root, true);
+  assert.equal(attributes.get('data-hide-cancelled-skills'), 'true');
+  attributes.clear();
+  assert.equal(rotationCancelledSkillsHidden(root), true);
+  setRotationCancelledSkillsHidden(root, false);
+  attributes.clear();
+  assert.equal(rotationCancelledSkillsHidden(root), false);
+
+  root.defaultView.localStorage = {
+    getItem() {
+      throw new Error('Storage blocked');
+    },
+    setItem() {
+      throw new Error('Storage blocked');
+    }
+  };
+  assert.equal(rotationCancelledSkillsHidden(root), false);
+  setRotationCancelledSkillsHidden(root, true);
+  assert.equal(rotationCancelledSkillsHidden(root), true);
+  setRotationCancelledSkillsHidden(root, false);
+  assert.equal(rotationCancelledSkillsHidden(root), false);
+});
 
 test('keyed timeline reconciliation retains unchanged rows and replaces changed rows', () => {
   const root = {

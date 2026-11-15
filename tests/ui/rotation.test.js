@@ -56,6 +56,7 @@ function insertionCursorFixture(t, gapCount = 3) {
     let active = false;
     return {
       dataset: { insertionIndex: String(index) },
+      getClientRects: () => [{}],
       scrolls: 0,
       matches: () => true,
       focus() {
@@ -136,6 +137,34 @@ test('cursor movement updates markers and keyboard navigation without rebinding 
     handlers
   );
   assert.equal(listeners.size, 2);
+});
+
+// Display filters must not move keyboard focus to invisible rotation entries.
+test('cursor arrows skip hidden insertion gaps in both directions', (t) => {
+  const { gaps, root, press } = insertionCursorFixture(t, 4);
+  gaps[1].getClientRects = () => [];
+  gaps[2].getClientRects = () => [];
+  let cursor = null;
+  const select = (index) => {
+    cursor = updateRotationInsertionCursor(root, index, 3);
+  };
+
+  mountRotationInsertionCursor({
+    root,
+    getInsertionIndex: () => cursor,
+    getRotationLength: () => 3,
+    onSelect: select,
+    onClear: () => select(null)
+  });
+  root.ownerDocument.activeElement = gaps[3];
+  press('ArrowLeft');
+  assert.equal(cursor, 0);
+  assert.equal(root.ownerDocument.activeElement, gaps[0]);
+  press('ArrowLeft');
+  assert.equal(cursor, 0);
+  press('ArrowRight');
+  assert.equal(cursor, null);
+  assert.equal(root.ownerDocument.activeElement, gaps[3]);
 });
 
 // Worker publications remount the cursor; a keyboard user tabbing between gaps must keep their position.

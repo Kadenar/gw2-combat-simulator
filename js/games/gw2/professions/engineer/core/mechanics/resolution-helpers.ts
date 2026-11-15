@@ -24,7 +24,6 @@ interface QueueDamageOptions {
 }
 
 interface ApplyConditionOptions {
-  readonly procCount?: number;
   readonly name: string;
   readonly condition: string;
   readonly stacks: number;
@@ -98,16 +97,7 @@ export function buildEngineerStrike(
 /** Builds a fresh condition while preserving explicit companion ownership and rejecting inherited hit annotations. */
 export function buildEngineerCondition(
   event: EngineerResolverEvent,
-  {
-    name,
-    condition,
-    stacks,
-    duration,
-    actorType = ACTOR.PLAYER,
-    ownerActorType,
-    metadata = {},
-    procCount
-  }: ApplyConditionOptions
+  { name, condition, stacks, duration, actorType = ACTOR.PLAYER, ownerActorType, metadata = {} }: ApplyConditionOptions
 ): SimulationEventBase {
   const application = buildResolverCondition({
     at: event.at,
@@ -131,8 +121,7 @@ export function buildEngineerCondition(
     ...(metadata.fixedDuration == null ? {} : { fixedDuration: metadata.fixedDuration }),
     // Companion identity must remain in event metadata so derived conditions use the mech's attributes.
     metadata: {
-      ...(metadata.engineerMech == null ? {} : { engineerMech: metadata.engineerMech }),
-      ...(procCount == null ? {} : { procCount })
+      ...(metadata.engineerMech == null ? {} : { engineerMech: metadata.engineerMech })
     },
     ...(actorType === ACTOR.SUMMON && metadata.engineerMech ? { summonInheritsAttributes: true } : {})
   });

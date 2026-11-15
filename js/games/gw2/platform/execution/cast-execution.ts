@@ -408,6 +408,8 @@ export function createCastExecution<T extends object>(
 
           return {
             ...event,
+            // Injected trait procs retain their owner without marking the host skill's native effects.
+            ...(effect.proc && effect.source === 'Trait' ? { traitId: effect.sourceId } : {}),
             // Authored boons settle before sibling impacts, preserving the owning activation's queue position.
             ...(event.type === 'buff' ? { causalOrder: action.eventOrder } : {}),
             // Only this activation's immediate declared grants overtake the pending strike.

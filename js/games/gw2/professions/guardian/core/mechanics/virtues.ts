@@ -86,6 +86,7 @@ export function applyJusticeBurn(
   // Settle Burning and its chained reactions before specialization follow-ups resume on the triggering hit.
   context.effects.emit({
     kind: 'packet',
+    proc: true,
     settlement: 'reaction',
     event: buildResolverCondition({
       at: event.at,

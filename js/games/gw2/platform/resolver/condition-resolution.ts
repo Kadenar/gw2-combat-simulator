@@ -509,8 +509,7 @@ export function createGw2ConditionResolution({
     for (let index = 0; index < stackCount; index += 1) {
       const application = {
         ...event,
-        // A multi-stack condition still represents one proc; only its first stack carries the activation count.
-        ...(index > 0 && event.metadata?.procCount ? { metadata: { ...event.metadata, procCount: 0 } } : {}),
+        // Split stacks retain the emission identity, so reports can count the activation once.
         sourceId: event.sourceId,
         name: event.name || `${event.skillName || event.sourceId || 'Condition'} - ${name}`,
         condition: name,

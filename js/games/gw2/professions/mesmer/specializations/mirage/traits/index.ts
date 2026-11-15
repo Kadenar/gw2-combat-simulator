@@ -14,7 +14,6 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
-import { buildMesmerConditions } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerShatterCompleted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -325,14 +324,22 @@ function riddleAmbush(
     : undefined;
 
   if (riddleOfSand) {
-    buildMesmerConditions(state, ambush.name, impactAt, riddleOfSand, 'Player', `${ambush.name} - Riddle of Sand`, {
-      skillId: ambush.id
-    }).forEach((packet) => {
-      state.effects.emit({
-        ...delivery,
-        kind: 'packet',
-        event: packet
-      });
+    // One ambush reward owns every expanded application, independently of the triggering skill.
+    state.effects.emit({
+      ...delivery,
+      kind: 'profile',
+      proc: true,
+      profile: ambush,
+      effects: [riddleOfSand],
+      at: impactAt,
+      attribution: {
+        source: 'Player',
+        sourceId: ambush.id,
+        actorType: ACTOR.PLAYER,
+        skillId: ambush.id,
+        skillName: ambush.name
+      },
+      transform: (packet) => ({ ...packet, traitId: TRAIT.RIDDLE_OF_SAND, name: `${ambush.name} - Riddle of Sand` })
     });
     state.effects.emit({
       ...delivery,
