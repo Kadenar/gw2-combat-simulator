@@ -606,15 +606,15 @@
         "build": "data/gw2/builds/elementalist/b-condi-air-se-evoker.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-air-se-evoker.json",
-        "benchmarkDps": 44038,
+        "benchmarkDps": 44255,
         "upToDate": true,
-        "benchmarkApm": 93.1,
+        "benchmarkApm": 93.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38247, "phase": 38247 },
-          "80-60": { "cumulative": 41479, "phase": 45250 },
-          "60-40": { "cumulative": 42116, "phase": 43537 },
-          "40-20": { "cumulative": 43393, "phase": 47729 },
-          "20-0": { "cumulative": 44038, "phase": 46832 }
+          "100-80": { "cumulative": 39177, "phase": 39177 },
+          "80-60": { "cumulative": 41879, "phase": 45216 },
+          "60-40": { "cumulative": 42786, "phase": 44700 },
+          "40-20": { "cumulative": 43696, "phase": 46693 },
+          "20-0": { "cumulative": 44255, "phase": 46659 }
         }
       },
       {
@@ -622,15 +622,15 @@
         "build": "data/gw2/builds/elementalist/b-condi-quick-air-se-evoker.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-quickness-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-quick-air-se-evoker.json",
-        "benchmarkDps": 40125,
+        "benchmarkDps": 40305,
         "upToDate": true,
-        "benchmarkApm": 94.2,
+        "benchmarkApm": 94.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35660, "phase": 35660 },
-          "80-60": { "cumulative": 37988, "phase": 40806 },
-          "60-40": { "cumulative": 39280, "phase": 42137 },
-          "40-20": { "cumulative": 39612, "phase": 40676 },
-          "20-0": { "cumulative": 40125, "phase": 42286 }
+          "100-80": { "cumulative": 36157, "phase": 36157 },
+          "80-60": { "cumulative": 38412, "phase": 40894 },
+          "60-40": { "cumulative": 39191, "phase": 40945 },
+          "40-20": { "cumulative": 39835, "phase": 41850 },
+          "20-0": { "cumulative": 40305, "phase": 42286 }
         }
       },
       {

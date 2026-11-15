@@ -22,6 +22,10 @@
     },
     {
       "type": "cast",
+      "skillId": 5535
+    },
+    {
+      "type": "cast",
       "skillId": 5542
     },
     {
