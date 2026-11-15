@@ -62,9 +62,3 @@ export interface ComboEvent extends SimulationEventBase<'combo'> {
   readonly applicationCount: number;
   readonly outcome: Readonly<Record<string, unknown>>;
 }
-
-export interface Gw2ComboRuntimeState {
-  readonly fields: Map<string, ComboFieldEvent>;
-  readonly handledAttemptIds: Set<string>;
-  readonly warningKeys: Set<string>;
-}

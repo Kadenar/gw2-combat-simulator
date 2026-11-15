@@ -6,8 +6,7 @@ import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damag
 import { createCombatEngagement, type CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
 import { createProcRegistry, type ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
-import { createGw2ComboRuntimeState } from '#gw2/platform/combos/resolution.js';
-import type { Gw2ComboRuntimeState } from '#gw2/platform/combos/types.js';
+import { createGw2ComboController, type Gw2ComboController } from '#gw2/platform/combos/resolution.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
@@ -97,7 +96,7 @@ export function createGw2ResolverRuntimeState({
     lastHitTime: null,
     deathTime: null,
     activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
-    combo: createGw2ComboRuntimeState(),
+    combo: createGw2ComboController(),
     // Equipment state belongs to this resolution pass, including repeated runs with the same configuration.
     relic: createRelicRuntime(config.relic, config.precastRelics),
     profession: professionState,
@@ -167,7 +166,7 @@ export interface Gw2ResolverRuntime {
   deathTime: number | null;
   readonly engagement: CombatEngagementQueries;
   activeWeaponSet: number;
-  combo: Gw2ComboRuntimeState;
+  readonly combo: Gw2ComboController;
   relic: Gw2RelicRuntime;
   profession: object;
   sigil: Gw2SigilRuntimeState;

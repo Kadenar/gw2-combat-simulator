@@ -1,12 +1,11 @@
+/** Owns combo field history and attempt claims so callers cannot change selection or expiry through shared storage. */
 import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
-import type {
-  ComboEvent,
-  ComboFieldEvent,
-  ComboFinisherEvent,
-  Gw2ComboRuntimeState
-} from '#gw2/platform/combos/types.js';
+import type { ComboEvent, ComboFieldEvent, ComboFinisherEvent } from '#gw2/platform/combos/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { timeKey } from '#kernel/core/clock.js';
+import { cloneData } from '#kernel/core/clone.js';
 
 /**
  * Combo resolution rules: per-run field state, the shared field-window rule, field selection for a finisher, and
@@ -17,7 +16,7 @@ import { timeKey } from '#kernel/core/clock.js';
 export const COMBO_RANDOM_STREAM_PREFIX = 'gw2.combo:';
 
 /** Selects the oldest eligible owned field within the highest binding priority, regardless of field type. */
-export function selectComboFieldForFinisher(fields: readonly ComboFieldEvent[]): ComboFieldEvent | undefined {
+function selectComboFieldForFinisher(fields: readonly ComboFieldEvent[]): ComboFieldEvent | undefined {
   const ordered = [...fields].sort(
     (left, right) => left.at - right.at || (left.eventOrder || 0) - (right.eventOrder || 0)
   );
@@ -35,22 +34,60 @@ export function selectComboFieldForFinisher(fields: readonly ComboFieldEvent[]):
   return candidates[0];
 }
 
-/** Creates isolated mutable state for combo resolution. */
-export function createGw2ComboRuntimeState(): Gw2ComboRuntimeState {
-  return {
+interface ComboState {
+  readonly fields: Map<string, ComboFieldEvent>;
+  readonly handledAttemptIds: Set<string>;
+  readonly warningKeys: Set<string>;
+}
+
+/** One run retains historical fields; registration and observations never share mutable packets with callers. */
+export function createGw2ComboController() {
+  const state: ComboState = {
     fields: new Map(),
     handledAttemptIds: new Set(),
     warningKeys: new Set()
   };
+  return Object.freeze({
+    register(event: ComboFieldEvent): void {
+      state.fields.set(event.fieldId, cloneData(event));
+    },
+    // Binding stays at delivery's existing phase so executed history retains the selected field ID.
+    bind(event: Gw2ResolverEvent): Gw2ResolverEvent {
+      if (event.type !== 'combo_finisher' || !event.comboAutoSelectField) return event;
+
+      const candidates = [...state.fields.values()].filter(
+        (field) =>
+          field.ownerId === event.comboOwnerId &&
+          isComboFieldActiveAt(field, event.at, Number(event.fieldSelectionAt ?? event.at)) &&
+          (event.comboExcludeOwnField !== true || field.activationId !== event.activationId)
+      );
+      const field = selectComboFieldForFinisher(candidates);
+      return { ...event, fieldId: field?.fieldId ?? null };
+    },
+    resolve(event: ComboFinisherEvent, options: ResolveComboAttemptOptions): readonly ComboEvent[] {
+      return resolveComboAttempt(state, event, options);
+    },
+    activeFields(ownerId: string, at: number): readonly Readonly<ComboFieldEvent>[] {
+      return [...state.fields.values()]
+        .filter((field) => field.ownerId === ownerId && isComboFieldActiveAt(field, at))
+        .map((field) => cloneData(field));
+    },
+    fieldFor(skillId: SkillId, at: number | undefined): Readonly<ComboFieldEvent> | undefined {
+      const field = [...state.fields.values()].find((field) => field.skillId === skillId && field.at === at);
+      return field && cloneData(field);
+    },
+    expireField(fieldId: string, at: number): void {
+      const field = state.fields.get(fieldId);
+
+      if (field) state.fields.set(fieldId, { ...field, expiresAt: at });
+    }
+  });
 }
 
-/** Retains field history so delayed finishers can validate a selection made before expiration. */
-export function registerComboField(state: Gw2ComboRuntimeState, event: ComboFieldEvent): void {
-  state.fields.set(event.fieldId, event);
-}
+export type Gw2ComboController = ReturnType<typeof createGw2ComboController>;
 
 /** Applies one canonical field-window rule to scheduler selection and resolver validation. */
-export function isComboFieldActiveAt(
+function isComboFieldActiveAt(
   field: ComboFieldEvent,
   at: number,
   fieldSelectionAt = at,
@@ -74,13 +111,7 @@ function warningLabel(event: ComboFinisherEvent): string {
 type ComboWarn = (diagnostic: Gw2SimulationDiagnostic) => void;
 
 /** Reports a failed binding once per key, located at the finisher's field selection and originating activation. */
-function warnOnce(
-  state: Gw2ComboRuntimeState,
-  key: string,
-  message: string,
-  event: ComboFinisherEvent,
-  warn: ComboWarn
-): void {
+function warnOnce(state: ComboState, key: string, message: string, event: ComboFinisherEvent, warn: ComboWarn): void {
   if (state.warningKeys.has(key)) return;
 
   state.warningKeys.add(key);
@@ -91,7 +122,7 @@ function warnOnce(
   });
 }
 
-function boundField(state: Gw2ComboRuntimeState, event: ComboFinisherEvent, warn: ComboWarn): ComboFieldEvent | null {
+function boundField(state: ComboState, event: ComboFinisherEvent, warn: ComboWarn): ComboFieldEvent | null {
   // An unbound finisher is a normal missed combo opportunity; only failed explicit bindings warrant warnings.
   if (event.fieldId === null) return null;
 
@@ -118,8 +149,8 @@ interface ResolveComboAttemptOptions {
 }
 
 /** Resolves one explicitly bound attempt into zero or more semantic combos. */
-export function resolveComboAttempt(
-  state: Gw2ComboRuntimeState,
+function resolveComboAttempt(
+  state: ComboState,
   event: ComboFinisherEvent,
   { roll, warn }: ResolveComboAttemptOptions
 ): readonly ComboEvent[] {

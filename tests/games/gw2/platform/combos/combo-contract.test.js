@@ -8,14 +8,8 @@ import {
   comboOutcomeRequests,
   validateComboDefinitions
 } from '#gw2/platform/combos/definitions.js';
-import {
-  createGw2ComboRuntimeState,
-  isComboFieldActiveAt,
-  registerComboField,
-  resolveComboAttempt,
-  selectComboFieldForFinisher
-} from '#gw2/platform/combos/resolution.js';
-import { bindRuntimeCombo, produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
+import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 import { normalizeEffect } from '#gw2/platform/effects/validation.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
@@ -24,16 +18,56 @@ import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 
-test('combo field boundaries use exact canonical instants', () => {
-  // Ordinary fields are half-open while explicit inclusivity retains only the exact expiry instant.
-  const field = { at: 1, expiresAt: 2 };
-  assert.equal(isComboFieldActiveAt(field, 0.999999), false);
-  assert.equal(isComboFieldActiveAt(field, 1), true);
-  assert.equal(isComboFieldActiveAt(field, 1.999999), true);
-  assert.equal(isComboFieldActiveAt(field, 2), false);
-  assert.equal(isComboFieldActiveAt({ ...field, inclusiveExpiry: true }, 2), true);
-  assert.equal(isComboFieldActiveAt({ ...field, inclusiveExpiry: true }, 2.000001), false);
-  assert.equal(isComboFieldActiveAt({ ...field, at: 0.1 + 0.2 }, 0.3), true);
+// Field fixtures exercise lifecycle through the same owner used by delivery and mechanics.
+function field(fieldId, overrides = {}) {
+  return {
+    type: 'combo_field',
+    at: 1,
+    expiresAt: 2,
+    fieldId,
+    fieldType: 'Fire',
+    ownerId: 'fixture',
+    ownerActorType: 'player',
+    actorType: 'player',
+    source: 'Fixture',
+    sourceId: 'fixture.field',
+    skillId: 1,
+    ...overrides
+  };
+}
+
+function finisher(attemptId, overrides = {}) {
+  return {
+    type: 'combo_finisher',
+    at: 1,
+    effectAt: 1,
+    attemptId,
+    fieldId: null,
+    comboAutoSelectField: true,
+    comboOwnerId: 'fixture',
+    finisherType: 'Projectile',
+    chance: 1,
+    applications: 1,
+    successfulCombos: 1,
+    actorType: 'player',
+    source: 'Fixture',
+    sourceId: 'fixture.finisher',
+    ...overrides
+  };
+}
+
+test('combo observations preserve canonical field expiry and explicit inclusivity', () => {
+  const combo = createGw2ComboController();
+  combo.register(field('ordinary'));
+  combo.register(field('inclusive', { inclusiveExpiry: true }));
+  const active = (at) => combo.activeFields('fixture', at).map((field) => field.fieldId);
+  assert.deepEqual(active(0.999999), []);
+  assert.deepEqual(active(1), ['ordinary', 'inclusive']);
+  assert.deepEqual(active(1.999999), ['ordinary', 'inclusive']);
+  assert.deepEqual(active(2), ['inclusive']);
+  assert.deepEqual(active(2.000001), []);
+  combo.register(field('fractional', { at: 0.1 + 0.2 }));
+  assert.equal(combo.bind(finisher('fractional', { at: 0.3 })).fieldId, 'fractional');
 });
 
 test('the universal combo table defines every field/finisher pair once', () => {
@@ -51,32 +85,105 @@ test('the universal combo table defines every field/finisher pair once', () => {
   assert.throws(() => validateComboDefinitions(COMBO_DEFINITIONS.slice(1)), /all 36 field\/finisher pairs/);
 });
 
-test('owned-field selection breaks timestamp ties by event order and preserves equal-key order', () => {
-  // Callers may supply fields in either order; identical sort keys retain input order.
-  const first = { at: 1, eventOrder: 1, fieldType: 'Fire' };
-  const second = { ...first, eventOrder: 2 };
-  assert.equal(selectComboFieldForFinisher([second, first]), first);
-  assert.equal(selectComboFieldForFinisher([first, second]), first);
-  const tied = { ...first };
-  assert.equal(selectComboFieldForFinisher([tied, first]), tied);
+test('combo binding preserves event order and stable registration ties', () => {
+  for (const ids of [
+    ['second', 'first'],
+    ['first', 'second']
+  ]) {
+    const combo = createGw2ComboController();
+    for (const id of ids) combo.register(field(id, { eventOrder: id === 'first' ? 1 : 2 }));
+    assert.equal(combo.bind(finisher('ordered')).fieldId, 'first');
+  }
+
+  const combo = createGw2ComboController();
+  combo.register(field('tied-first', { eventOrder: 1 }));
+  combo.register(field('tied-second', { eventOrder: 1 }));
+  assert.equal(combo.bind(finisher('tied')).fieldId, 'tied-first');
 });
 
-test('mixed field types select the oldest field within the highest binding priority', () => {
-  // Field age decides the outcome regardless of type, after authoritative bindings narrow the candidates.
-  const fire = { at: 0, eventOrder: 1, fieldType: 'Fire' };
-  const ice = { at: 1, eventOrder: 2, fieldType: 'Ice' };
-  assert.equal(selectComboFieldForFinisher([ice, fire]), fire);
-  assert.equal(selectComboFieldForFinisher([fire, ice]), fire);
-  const olderIce = { ...ice, at: -1 };
-  assert.equal(selectComboFieldForFinisher([fire, olderIce]), olderIce);
-  const authoritativeIce = { ...ice, comboBindingPriority: 1 };
-  assert.equal(selectComboFieldForFinisher([fire, authoritativeIce]), authoritativeIce);
-  assert.equal(selectComboFieldForFinisher([]), undefined);
+test('combo binding selects owned fields by priority then age and honors explicit bindings', () => {
+  const combo = createGw2ComboController();
+  assert.equal(combo.bind(finisher('empty')).fieldId, null);
+  combo.register(field('foreign', { at: 0, ownerId: 'other', comboBindingPriority: 10 }));
+  combo.register(field('ice', { at: 1, fieldType: 'Ice' }));
+  combo.register(field('fire', { at: 0 }));
+  assert.equal(combo.bind(finisher('oldest')).fieldId, 'fire');
+  combo.register(field('priority', { fieldType: 'Ice', comboBindingPriority: 1, activationId: 'own' }));
+  assert.equal(combo.bind(finisher('priority')).fieldId, 'priority');
+  assert.equal(combo.bind(finisher('exclude', { activationId: 'own', comboExcludeOwnField: true })).fieldId, 'fire');
+  assert.equal(combo.bind(finisher('explicit', { fieldId: 'ice', comboAutoSelectField: false })).fieldId, 'ice');
+});
+
+test('combo registration and observations detach nested data and preserve historical expiry', () => {
+  const combo = createGw2ComboController();
+  const registered = field('stored', { audience: { recipients: 'summons', eligibleCompanionIds: ['pet'] } });
+  combo.register(registered);
+  registered.expiresAt = 99;
+  registered.audience.eligibleCompanionIds.push('caller');
+  const observation = combo.fieldFor(1, 1);
+  assert.equal(observation.expiresAt, 2);
+  assert.deepEqual(observation.audience.eligibleCompanionIds, ['pet']);
+  observation.expiresAt = 99;
+  observation.audience.eligibleCompanionIds.push('observation');
+  const active = combo.activeFields('fixture', 1);
+  active[0].ownerId = 'changed';
+  active[0].audience.eligibleCompanionIds.push('active');
+  active.length = 0;
+  assert.equal(combo.bind(finisher('unmodified')).fieldId, 'stored');
+  assert.deepEqual(combo.fieldFor(1, 1).audience.eligibleCompanionIds, ['pet']);
+  const earlier = combo.fieldFor(1, 1);
+  combo.expireField('stored', 1.5);
+  assert.equal(earlier.expiresAt, 2);
+  assert.equal(combo.fieldFor(1, 1).expiresAt, 1.5);
+  assert.deepEqual(combo.activeFields('fixture', 1.5), []);
+  assert.equal(combo.bind(finisher('historical', { at: 1.75, fieldSelectionAt: 1.25 })).fieldId, 'stored');
+  const options = { roll: () => true, warn: () => assert.fail('Historical binding must remain eligible') };
+  const attempt = combo.bind(finisher('historical', { at: 1.75, fieldSelectionAt: 1.25 }));
+  assert.equal(combo.resolve(attempt, options).length, 1);
+  combo.expireField('missing', 0);
+  assert.equal(combo.fieldFor(99, 1), undefined);
+  assert.equal(combo.fieldFor(1, undefined), undefined);
+  assert.deepEqual(createGw2ComboController().activeFields('fixture', 1), []);
+});
+
+test('combo attempts claim before rolls and warnings can reenter resolution', () => {
+  const combo = createGw2ComboController();
+  combo.register(field('stored'));
+  const accepted = combo.bind(finisher('accepted'));
+  let rolls = 0;
+  const options = {
+    roll() {
+      rolls += 1;
+      assert.deepEqual(combo.resolve(accepted, options), []);
+      return true;
+    },
+    warn() {
+      assert.fail('The accepted field is eligible');
+    }
+  };
+  assert.equal(combo.resolve(accepted, options).length, 1);
+  assert.equal(rolls, 1);
+  const warnings = [];
+  const missing = finisher('missing', { fieldId: 'absent', comboAutoSelectField: false });
+  const rejected = {
+    roll() {
+      assert.fail('Missing fields cannot roll');
+    },
+    warn(diagnostic) {
+      warnings.push(diagnostic);
+      assert.deepEqual(combo.resolve(missing, rejected), []);
+    }
+  };
+  assert.deepEqual(combo.resolve(missing, rejected), []);
+  assert.deepEqual(combo.resolve({ ...missing, attemptId: 'another-missing' }, rejected), []);
+  assert.equal(warnings.length, 1);
+  combo.register(field('absent'));
+  assert.deepEqual(combo.resolve(missing, rejected), []);
 });
 
 test('combo outcomes retain summon condition scaling from the finisher', () => {
-  const state = createGw2ComboRuntimeState();
-  registerComboField(state, {
+  const state = createGw2ComboController();
+  state.register({
     type: 'combo_field',
     at: 0,
     source: 'Ranger',
@@ -111,9 +218,9 @@ test('combo outcomes retain summon condition scaling from the finisher', () => {
   assert.equal(events.length, 1);
   assert.equal(events[0].comboAutoSelectField, true);
   assert.equal(events[0].fieldId, null);
-  const finisher = bindRuntimeCombo(runtime, events[0]);
+  const finisher = state.bind(events[0]);
   assert.deepEqual(finisher.fieldId, 'field:poison');
-  const [combo] = resolveComboAttempt(state, finisher, {
+  const [combo] = state.resolve(finisher, {
     roll: () => true,
     warn: () => {}
   });
@@ -139,7 +246,7 @@ for (const [fieldType, finisherType] of [
 ]) {
   test(`${fieldType} ${finisherType} grants retain one complete yield per combo`, () => {
     // Repeated applications belong to their finisher; a later finisher establishes the repeat interval.
-    const combo = createGw2ComboRuntimeState();
+    const combo = createGw2ComboController();
     const { effects, events } = captureEffectEmissions();
     const context = { combo, effects, random: { roll: () => true }, warnings: [] };
     const handlers = createGw2ComboResolution({ reactions: { dispatch() {} } });

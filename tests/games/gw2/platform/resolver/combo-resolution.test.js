@@ -4,11 +4,7 @@ import test from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import {
-  createGw2ComboRuntimeState,
-  registerComboField,
-  resolveComboAttempt
-} from '#gw2/platform/combos/resolution.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
@@ -334,8 +330,8 @@ test('explicit field IDs preserve the selected field even when older fields exis
 
 test('attempt IDs deduplicate successful and failed rolls', () => {
   // A repeated packet must neither reroll a failure nor materialize a second success.
-  const state = createGw2ComboRuntimeState();
-  registerComboField(state, field('fire:1', 'Fire'));
+  const state = createGw2ComboController();
+  state.register(field('fire:1', 'Fire'));
   const rolls = [];
   const options = {
     roll(chance, stream) {
@@ -349,8 +345,8 @@ test('attempt IDs deduplicate successful and failed rolls', () => {
     ['succeeded', 1]
   ]) {
     const attempt = finisher(attemptId, 'fire:1', { chance: 0.2 });
-    assert.equal(resolveComboAttempt(state, attempt, options).length, count);
-    assert.equal(resolveComboAttempt(state, attempt, options).length, 0);
+    assert.equal(state.resolve(attempt, options).length, count);
+    assert.equal(state.resolve(attempt, options).length, 0);
   }
 
   assert.deepEqual(
@@ -511,9 +507,9 @@ test('target death rejects distinct same-time combo finishers and reactions', ()
 });
 
 function seededSignature(mode, seed, consumeUnrelated = false) {
-  const state = createGw2ComboRuntimeState();
+  const state = createGw2ComboController();
 
-  registerComboField(state, field('fire:stochastic', 'Fire', 0, 10));
+  state.register(field('fire:stochastic', 'Fire', 0, 10));
   const random = createSimulationRandom({ mode, seed });
 
   if (consumeUnrelated) random.roll(0.5, 'unrelated-mechanic');
@@ -521,8 +517,7 @@ function seededSignature(mode, seed, consumeUnrelated = false) {
   return Array.from(
     { length: 12 },
     (_, index) =>
-      resolveComboAttempt(
-        state,
+      state.resolve(
         finisher(`stochastic:${index}`, 'fire:stochastic', {
           at: 1 + index * 0.1,
           effectAt: 1 + index * 0.1,

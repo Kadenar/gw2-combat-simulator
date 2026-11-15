@@ -313,7 +313,7 @@ test('an established pet field remains usable after its damaging pulses stop', (
         event.type === 'combo' && event.fieldType === 'Poison' && event.finisherType === 'Leap' && event.at > swappedAt
     )
   );
-  assert.equal(observedRuntime(result).combo.fields.get(field.fieldId).expiresAt, field.expiresAt);
+  assert.equal(observedRuntime(result).combo.fieldFor(field.skillId, field.at).expiresAt, field.expiresAt);
 });
 
 test('swap cancellation follows causal order for same-time packets and pending field creation', () => {
@@ -380,5 +380,10 @@ test('swap cancellation follows causal order for same-time packets and pending f
     result.resolvedEvents.some((event) => event.sourceId === 'retired-hit'),
     false
   );
-  assert.equal(observedRuntime(result).combo.fields.has('uncreated-field'), false);
+  assert.equal(
+    observedRuntime(result)
+      .combo.activeFields('ranger', 2)
+      .some((field) => field.fieldId === 'uncreated-field'),
+    false
+  );
 });

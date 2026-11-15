@@ -1,11 +1,10 @@
 import { comboOutcomeRequests } from '#gw2/platform/combos/definitions.js';
-import { registerComboField, resolveComboAttempt } from '#gw2/platform/combos/resolution.js';
 import type { ComboFieldEvent, ComboFinisherEvent } from '#gw2/platform/combos/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEventHandlers, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
 
-/** Resolver-authoritative registration, binding, chance, and materialization. */
+/** Dispatch combo operations at their existing phases while the combo owner retains fields and attempt claims. */
 export function createGw2ComboResolution({
   reactions
 }: {
@@ -13,11 +12,11 @@ export function createGw2ComboResolution({
 }): Gw2ResolverEventHandlers {
   return Object.freeze({
     combo_field(context, event) {
-      registerComboField(context.combo, event as ComboFieldEvent);
+      context.combo.register(event as ComboFieldEvent);
     },
 
     combo_finisher(context, event) {
-      const combos = resolveComboAttempt(context.combo, event as ComboFinisherEvent, {
+      const combos = context.combo.resolve(event as ComboFinisherEvent, {
         roll: context.random.roll,
         warn(diagnostic) {
           context.warnings.push(diagnostic);

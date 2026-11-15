@@ -9,7 +9,7 @@ import {
   missesTarget
 } from '#gw2/platform/combat/state/targets.js';
 import { fieldDescriptors, finisherDescriptors } from '#gw2/platform/combos/descriptors.js';
-import { bindRuntimeCombo, produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
+import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import { prepareGw2ComboEvent } from '#gw2/platform/combos/validation.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { type AnnouncementEmission, type EffectDelivery } from '#gw2/platform/effects/emission.js';
@@ -448,7 +448,8 @@ export function createEffectDelivery<T extends object>(
       return;
     }
 
-    event = bindRuntimeCombo(runtime, event);
+    // Keep the owner's selected binding on the packet that gameplay history records after resolution.
+    event = runtime.combo.bind(event);
 
     // A grant precedes its synchronous buff reactions in gameplay; record that order before nested delivery runs.
     if (event.type === 'buff') runtime.observations.record(event);
