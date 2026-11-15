@@ -183,7 +183,7 @@ const firebrandMantraActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>[
       [
         `guardian.finish-mantra-${definition.rootId}`,
         (runtime: GuardianRuntime, context: ActionContext) => {
-          // Every final charge refunds one page before Revelation adds its separate refund.
+          // The shared final-charge refund adds one page before Revelation adds its separate refund.
           applySideEffect(runtime, context, {
             type: 'resourceGrant',
             resource: 'tomePages',

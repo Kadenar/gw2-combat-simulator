@@ -55,8 +55,11 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       { type: 'boon', boon: BOON.PROTECTION, duration: 3, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.RESOLUTION, duration: 3, audience: { recipients: RECIPIENT.PARTY } }
     ],
-    // Retirement fires the final-charge point, so page refunds precede it.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_SOLACE}` } }]
+    // Match the reported in-game extra page on Solace's final charge, before the shared refund and Revelation.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'tomePages', amount: 1 } },
+      { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_SOLACE}` } }
+    ]
   },
   [ID.MANTRA_OF_FLAME]: {
     name: 'Mantra of Flame',
