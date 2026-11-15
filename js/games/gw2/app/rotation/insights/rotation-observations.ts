@@ -1,5 +1,5 @@
-import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
-import { presentedTimelineSteps, type TimelineOccupancySource } from '#gw2/app/rotation/timeline/occupancy.js';
+import { combatDeadTimeMarkers, type TimelineOccupancySource } from '#gw2/app/rotation/timeline/occupancy.js';
+import { usefulActivationIds } from '#gw2/platform/results/cast-activity.js';
 import { eventDamagePackets } from '#gw2/platform/results/damage-packets.js';
 import { effectSummary } from '#gw2/platform/results/effect-report.js';
 import { countProcActivations } from '#gw2/platform/results/proc-counts.js';
@@ -49,7 +49,7 @@ export function rotationObservations(result: Gw2SimulationResult, duration: numb
   const skills = new Map<string, SkillObservation>();
   const activations = new Map<string, SimulationStep>();
   const countedActivations = new Set<string>();
-  const usefulActivations = new Set<string>();
+  const usefulActivations = usefulActivationIds(result.resolvedEvents);
   const procs = new Map<string, { label: string; count: number }>();
   const traitNames = new Map((source.context.catalog?.traits ?? []).map((trait) => [trait.id, trait.name]));
   // One trait row covers its player, effect, and companion packets; actor ownership remains in the damage rows.
@@ -116,16 +116,6 @@ export function rotationObservations(result: Gw2SimulationResult, duration: numb
       row.hits += hits;
     }
 
-    // Preserve accepted damage and utility so support casts are never treated as unresolved failures.
-    if (
-      event.activationId &&
-      (amount > 0 ||
-        (inside(event.at) &&
-          event.cancelled !== true &&
-          ['buff', 'resource', 'control', 'aura', 'combo', 'boon_extension', 'condition'].includes(event.type)))
-    )
-      usefulActivations.add(event.activationId);
-
     const count = procCounts.get(procKey(event));
 
     if (event.procActivation && count != null && count > 0 && inside(event.at) && event.cancelled !== true) {
@@ -145,8 +135,13 @@ export function rotationObservations(result: Gw2SimulationResult, duration: numb
   for (const step of result.steps) {
     if (!step.interrupted || step.invalid || step.skillId == null || !inside(step.end / 1000)) continue;
 
-    // Preserved damage or utility is not an unresolved interruption in the comparison.
-    if (step.activationId && usefulActivations.has(step.activationId)) continue;
+    // Incidental output cannot rescue a known pre-commit cancellation.
+    if (
+      !(step.cancelledBeforeCommit && !step.missingInterruptCommit) &&
+      step.activationId &&
+      usefulActivations.has(step.activationId)
+    )
+      continue;
 
     const id = skillKey('player', step.skillId);
     const row = cancellations.get(id) ?? { label: step.skillName, count: 0 };
@@ -155,13 +150,8 @@ export function rotationObservations(result: Gw2SimulationResult, duration: numb
   }
 
   const idleIntervals = new Map<string, ObservationInterval[]>();
-  const stepsByIndex = new Map(result.steps.map((step) => [step.rotationCommandIndex, step]));
-  for (const marker of timelineDeadTimeMarkers(presentedTimelineSteps(result, source), result.resolvedEvents)) {
+  for (const marker of combatDeadTimeMarkers(result, source)) {
     const kind = marker.reason == null ? 'gap' : marker.reason === 'explicit-wait' ? 'wait' : 'failed-cast';
-    const step = stepsByIndex.get(marker.insertionIndex);
-
-    // A commit marker alone cannot erase recorded utility; keep that time occupied rather than calling it failed.
-    if (kind === 'failed-cast' && step?.activationId && usefulActivations.has(step.activationId)) continue;
 
     const startMs = Math.max(start * 1000, marker.start);
     const endMs = Math.min(end * 1000, marker.end);

@@ -17,6 +17,8 @@ const definitions = [
   { id: 'split', label: 'Charged Souls' }
 ];
 const fixture = () => ({
+  events: [],
+  resolvedEvents: [],
   dpsStartTime: 5,
   combatEndTime: 20,
   encounter: {

@@ -54,6 +54,7 @@ import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecyc
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { combatActivityEndMs, combatActivityStartMs } from '#gw2/platform/results/cast-activity.js';
 import type { Gw2ProcStep, SimulationStep } from '#gw2/platform/results/types.js';
 import { rotationInsertionGapHtml, rotationTimelineEntryHtml } from '#ui/rotation/insertion-cursor.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
@@ -190,7 +191,11 @@ export function timelineRowsView(
     results?.resolvedEvents || [],
     // The authored Wait tile already represents its own duration. Overlay only
     // idle time beyond that shape so the timeline does not render it twice.
-    { includeExplicitWaits: false, encounterPhases: presentation.downtimePhases }
+    {
+      includeExplicitWaits: false,
+      encounterPhases: presentation.downtimePhases,
+      ...(results ? { startMs: combatActivityStartMs(results), endMs: combatActivityEndMs(results) } : {})
+    }
   );
   const deadTimesByIndex = new Map<number, typeof deadTimes>();
   const transitionDelays = timelineTransitionDelayMarkers(

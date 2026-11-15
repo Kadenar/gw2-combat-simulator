@@ -750,6 +750,39 @@
   }
 }
 
+/* One column definition controls headers, rows, and the width needed before panels wrap. */
+:root {
+  --res-skill-width: 180px;
+  --res-metric-width: 72px;
+  --res-dead-time-width: 48px;
+  --res-share-width: 60px;
+  --res-hits-width: 48px;
+  --res-crit-width: 56px;
+  --res-column-gap: 4px;
+  --res-panel-inset: 12px;
+  --res-total-width: var(--res-metric-width);
+  --res-dps-width: var(--res-metric-width);
+  --res-table-min-width: calc(
+    var(--res-skill-width) + 7 * var(--res-metric-width) + var(--res-share-width) + var(--res-dead-time-width) +
+      var(--res-hits-width) + var(--res-crit-width) + 11 * var(--res-column-gap) + 8px
+  );
+}
+
+:root,
+.res-damage-breakdown {
+  --res-numeric-columns: repeat(2, var(--res-metric-width)) var(--res-total-width) var(--res-share-width)
+    var(--res-dps-width) repeat(2, var(--res-metric-width)) var(--res-dead-time-width) var(--res-metric-width)
+    var(--res-hits-width) var(--res-crit-width);
+  --res-skill-columns: minmax(var(--res-skill-width), 1fr) var(--res-numeric-columns);
+}
+
+/* Only the damage and condition pair wraps; encounter analysis keeps its stacked document flow. */
+.res-breakdown:has(> .res-damage-breakdown) {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 12px;
+}
+
 .res-breakdown {
   background: var(--bg-panel);
   border: 1px solid var(--border);
@@ -826,7 +859,7 @@
 }
 
 .res-skill-scroll > [data-role='skill-breakdown'] {
-  min-width: 896px;
+  min-width: var(--res-table-min-width);
 }
 
 .res-scroll-hint {
@@ -836,35 +869,32 @@
   font-size: 12px;
 }
 
-/* Keep visual and reading order identical, with a sticky skill identity on phones. */
-@container result-breakdown (max-width: 940px) {
-  .res-scroll-hint {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
-  .res-skill-scroll :is(.res-hdr, .res-row, .res-skill-group-heading) {
-    grid-template-columns: 148px 72px 72px 80px 60px 64px 72px 72px 72px 48px 56px;
-  }
-
-  .res-skill-scroll [data-result-column='name'] {
-    position: sticky;
-    left: 0;
-    z-index: 1;
-    background: var(--bg-panel);
-    box-shadow: 5px 0 5px var(--bg-panel);
-  }
-
-  .res-skill-scroll .res-skill {
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
+/* Actual overflow selects the phone grid and keeps skill identities visible while scrolling. */
+.res-damage-breakdown[data-compact='true'] {
+  --res-skill-width: 148px;
+  --res-total-width: 80px;
+  --res-dps-width: 64px;
+  --res-skill-columns: var(--res-skill-width) var(--res-numeric-columns);
 }
 
-.res-breakdown-part + .res-breakdown-part .res-section-title {
-  margin-top: 10px;
+.res-damage-breakdown[data-compact='true'] .res-scroll-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.res-damage-breakdown[data-compact='true'] [data-result-column='name'] {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--bg-panel);
+  box-shadow: 5px 0 5px var(--bg-panel);
+}
+
+.res-damage-breakdown[data-compact='true'] .res-skill {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .res-condition-group + .res-condition-group {
@@ -880,35 +910,37 @@
   text-transform: uppercase;
 }
 
-/* Reserve the full table plus a matching right inset before placing conditions beside it. */
-@container result-breakdown (min-width: 1460px) {
-  .res-breakdown:has(> .res-damage-breakdown):has(> .res-condition-breakdown) {
-    display: grid;
-    grid-template-columns: minmax(908px, 2fr) minmax(520px, 1fr);
-    overflow-x: visible;
-  }
+/* Flex bases derive the wrapping threshold from the actual table width. */
+.res-damage-breakdown {
+  box-sizing: border-box;
+  flex: 2 1 calc(var(--res-table-min-width) + var(--res-panel-inset));
+}
 
-  .res-damage-breakdown {
-    padding-right: 12px;
-    overflow-x: clip;
-  }
+.res-condition-breakdown {
+  box-sizing: border-box;
+  flex: 1 1 calc(520px + var(--res-panel-inset) + 1px);
+}
 
-  .res-condition-breakdown {
-    padding-left: 12px;
-    border-left: 1px solid var(--border);
-  }
+/* Preserve the divider and matching insets only while the panels share a row. */
+.res-breakdown[data-side-by-side='true'] > .res-damage-breakdown {
+  padding-right: var(--res-panel-inset);
+}
 
-  .res-breakdown-part + .res-breakdown-part .res-section-title {
-    margin-top: 0;
-  }
+.res-breakdown[data-side-by-side='true'] > .res-condition-breakdown {
+  padding-left: var(--res-panel-inset);
+  border-left: 1px solid var(--border);
+}
+
+.res-breakdown-part + .res-breakdown-part .res-section-title {
+  margin-top: 0;
 }
 
 /* Keep skill identity readable on narrow screens while the numeric columns use
    the breakdown panel's horizontal scroller. */
 .res-hdr {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) 72px 72px 72px 60px 72px 72px 72px 72px 48px 56px;
-  gap: 4px;
+  grid-template-columns: var(--res-skill-columns);
+  gap: var(--res-column-gap);
   padding: 2px 4px;
   font-size: 9px;
   color: var(--text-dim);
@@ -941,6 +973,14 @@
   user-select: none;
 }
 
+/* Keep the icon-only dead-time heading as compact as the other sortable metrics. */
+.res-column-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
 .res-hdr-sortable button:hover {
   color: var(--accent);
 }
@@ -953,8 +993,8 @@
 
 .res-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) 72px 72px 72px 60px 72px 72px 72px 72px 48px 56px;
-  gap: 4px;
+  grid-template-columns: var(--res-skill-columns);
+  gap: var(--res-column-gap);
   padding: 3px 4px;
   font-size: 12px;
   border-bottom: 1px solid rgba(42, 42, 58, 0.3);
@@ -981,9 +1021,9 @@
 
 .res-skill-group-heading {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) 72px 72px 72px 60px 72px 72px 72px 72px 48px 56px;
+  grid-template-columns: var(--res-skill-columns);
   align-items: center;
-  gap: 4px;
+  gap: var(--res-column-gap);
   padding: 7px 4px 4px;
   color: var(--text-bright);
   font-size: 10px;

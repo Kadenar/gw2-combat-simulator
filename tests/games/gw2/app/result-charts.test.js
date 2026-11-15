@@ -54,6 +54,8 @@ test('Analysis projections are prepared only when the Analysis view is active', 
         simulationError: '',
         patchComparison: null,
         results: {
+          events: [],
+          resolvedEvents: [],
           rotationEndTime: 1,
           observationEndTime: 1,
           combatEndTime: 1,

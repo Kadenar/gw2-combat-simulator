@@ -70,6 +70,7 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
   };
   const results = {
     steps,
+    events: [],
     rotationEndTime: 1,
     observationEndTime: 1,
     combatEndTime: 1,
@@ -184,6 +185,8 @@ test('timeline labels the executed skill variant while preserving the saved comm
   for (const skill of [traited, base]) {
     const results = {
       duration: 1,
+      combatEndTime: 1,
+      events: [],
       steps: [{ rotationCommandIndex: 0, skillId: skill.id, skillName: skill.name, start: 0, end: 1000 }]
     };
     const html = timelineRowsView(

@@ -235,6 +235,9 @@ export function createCastExecution<T extends object>(
       interruptAfterMs == null ? fullEnd : Math.min(fullEnd, gw2CooldownReadyAt(start + interruptAfterMs / 1000));
     const cancelled = cancelledBeforeInterruptCommit(skill, start, fullEnd, effectiveEnd);
     const interrupted = castWasInterrupted({ fullEnd, effectiveEnd });
+    // Record missing commit data on the action so reports can classify it without matching timeline labels.
+    const missingInterruptCommit =
+      interrupted && skill.interruptMode !== 'per-packet' && interruptCommitCutoffs(skill).length === 0;
     const baseWork = rechargeWorkFor(skill);
     const rechargeWork = cancelled
       ? baseWork
@@ -302,9 +305,7 @@ export function createCastExecution<T extends object>(
         interrupted,
         ...(cast.laneEnd > effectiveEnd ? { castLockoutEnd: Math.round(cast.laneEnd * 1000) } : {}),
         ...(cancelled ? { cancelledBeforeCommit: true } : {}),
-        ...(interrupted && skill.interruptMode !== 'per-packet' && interruptCommitCutoffs(skill).length === 0
-          ? { missingInterruptCommit: true }
-          : {}),
+        ...(missingInterruptCommit ? { missingInterruptCommit: true } : {}),
         ...(detail == null ? {} : { detail })
       });
 
@@ -339,6 +340,7 @@ export function createCastExecution<T extends object>(
         evades: skill.evades,
         fullEndsAt: fullEnd,
         endsAt: effectiveEnd,
+        ...(missingInterruptCommit ? { missingInterruptCommit: true } : {}),
         // Queued mechanic windows can extend through a retained animation lockout, independently of packet completion.
         castLockoutEndsAt: cast.laneEnd,
         ...(detail == null ? {} : { detail }),

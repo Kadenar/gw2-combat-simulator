@@ -5,6 +5,7 @@ import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicResourceSpend, ProfessionTimelineMarker } from '#gw2/platform/profession-presentation/types.js';
+import { usefulActivationIds } from '#gw2/platform/results/cast-activity.js';
 import type { Gw2ProcStep, Gw2SimulationResult, SimulationStep } from '#gw2/platform/results/types.js';
 import { selectorRootSkillId } from '#gw2/platform/skills/selectors.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
@@ -34,6 +35,9 @@ export interface TimelineDeadTimeMarker {
 }
 
 export interface TimelineDeadTimeOptions {
+  readonly startMs?: number;
+  readonly endMs?: number;
+  readonly includeFailedCasts?: boolean;
   readonly includeExplicitWaits?: boolean;
   readonly encounterPhases?: readonly Pick<EncounterPhaseResult, 'kind' | 'start' | 'end'>[];
 }
@@ -222,7 +226,13 @@ export function timelineSkillCastOrdinals(steps: readonly SimulationStep[] = [])
 export function timelineDeadTimeMarkers(
   steps: readonly TimelineDeadTimeStep[] = [],
   resolvedEvents: readonly SimulationEvent[] = [],
-  { includeExplicitWaits = true, encounterPhases = [] }: TimelineDeadTimeOptions = {}
+  {
+    includeExplicitWaits = true,
+    includeFailedCasts = true,
+    encounterPhases = [],
+    startMs = -Infinity,
+    endMs = Infinity
+  }: TimelineDeadTimeOptions = {}
 ): TimelineDeadTimeMarker[] {
   const explicitWaitMarkers: TimelineDeadTimeMarker[] = [];
   const intervals: Array<{
@@ -366,12 +376,10 @@ export function timelineDeadTimeMarkers(
     previousContainsSkill ||= next.containsSkill;
   }
 
-  const damagingActivations = new Set(
-    resolvedEvents
-      .filter((event) => event.activationId && Number(event.damage) > 0)
-      .map((event) => String(event.activationId))
-  );
+  const usefulActivations = includeFailedCasts ? usefulActivationIds(resolvedEvents) : new Set<string>();
   for (const step of steps) {
+    if (!includeFailedCasts) break;
+
     if (!isTimelineSkillStep(step) || !step.activationId) continue;
 
     const missingCommitMetadata = step.missingInterruptCommit === true;
@@ -379,9 +387,8 @@ export function timelineDeadTimeMarkers(
 
     if (!missingCommitMetadata && !cancelledBeforeKnownCommit) continue;
 
-    // A declared cutoff proves the cast failed even if an incidental proc dealt damage;
-    // missing metadata remains dead time only when the activation produced no damage at all.
-    if (missingCommitMetadata && damagingActivations.has(step.activationId)) continue;
+    // A known pre-commit cancellation failed even if an incidental proc fired. Utility only resolves unknown commits.
+    if (!cancelledBeforeKnownCommit && usefulActivations.has(step.activationId)) continue;
 
     const start = Math.round(Number(step.start));
     const end = Math.round(Number(step.end));
@@ -399,7 +406,13 @@ export function timelineDeadTimeMarkers(
     });
   }
 
-  return markers.sort((left, right) => left.start - right.start || left.insertionIndex - right.insertionIndex);
+  return markers
+    .flatMap((marker) => {
+      const start = Math.max(startMs, marker.start);
+      const end = Math.min(endMs, marker.end);
+      return end > start ? [{ ...marker, start, end, durationMs: end - start }] : [];
+    })
+    .sort((left, right) => left.start - right.start || left.insertionIndex - right.insertionIndex);
 }
 
 /** Display only recovery that adds a gap; existing casts, retained recovery, and authored waits already occupy time. */

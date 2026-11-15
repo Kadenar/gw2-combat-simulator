@@ -159,7 +159,10 @@ test('Preview comparison reports failed and idle requests accurately', () => {
 
 test('Preview comparison notes use preview trait positions and experimental tuning', () => {
   const app = appFor(preview.id);
-  app.analysis.state.patchComparison = { current: { dps: 0, events: [] }, preview: { dps: 0, events: [] } };
+  app.analysis.state.patchComparison = {
+    current: { dps: 0, events: [], resolvedEvents: [] },
+    preview: { dps: 0, events: [], resolvedEvents: [] }
+  };
   const container = element('div');
   const previous = globalThis.document;
   globalThis.document = { createElement: element };
@@ -189,7 +192,10 @@ test('Preview comparison asks for relaid trait choices before reporting DPS', ()
     }
   };
   app.profession = { ...profession, resolvePatch: () => app.patch };
-  app.analysis.state.patchComparison = { current: { dps: 1000, events: [] }, preview: { dps: 500, events: [] } };
+  app.analysis.state.patchComparison = {
+    current: { dps: 1000, events: [], resolvedEvents: [] },
+    preview: { dps: 500, events: [], resolvedEvents: [] }
+  };
   const container = element('div');
   const previous = globalThis.document;
   globalThis.document = { createElement: element };

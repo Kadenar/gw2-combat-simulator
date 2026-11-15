@@ -39,6 +39,7 @@ test('breakdown cast attribution excludes actions aimed away from the target', (
       endsAt: 1
     };
     const result = {
+      resolvedEvents: [],
       events: [action, { ...action, offTarget: false }, { ...action, offTarget: true }],
       breakdown: [{ name: 'Attack', actorType: 'player', strikeDamage: 120, ...attribution }],
       dpsWindow: 3
@@ -230,6 +231,7 @@ test('same-named contributions retain their own parent, actor, display label, an
   }));
   const result = {
     breakdown,
+    events: [],
     // A same-named observation must not fill a deliberate empty parent or icon in any contribution.
     resolvedEvents: [
       {
@@ -264,6 +266,7 @@ test('same-named contributions retain their own parent, actor, display label, an
 // Unequal payouts must aggregate by their trigger, never by multiplying a proc count by an average.
 test('proc damage summaries use actual payouts and the observation denominator', () => {
   const result = {
+    events: [],
     dpsWindow: 8.5,
     breakdown: [{ name: 'Strength of Stone', conditionDamage: 425, actorType: 'effect' }],
     resolvedEvents: [

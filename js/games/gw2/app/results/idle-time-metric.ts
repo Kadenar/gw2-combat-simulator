@@ -1,11 +1,12 @@
 import type { ResultSummaryMetric, ResultSummaryMetricDetail } from '#gw2/app/results/summary-metrics.js';
 import { formatTimelineDuration, timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
-import { presentedTimelineSteps, type TimelineOccupancySource } from '#gw2/app/rotation/timeline/occupancy.js';
-import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
+import { combatDeadTimeMarkers, type TimelineOccupancySource } from '#gw2/app/rotation/timeline/occupancy.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
 /** Groups marker durations into the concise contributor rows shown by the dead-time summary disclosure. */
-function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMarkers>): ResultSummaryMetricDetail[] {
+function deadTimeBreakdownDetails(
+  markers: readonly ReturnType<typeof timelineDeadTimeMarkers>[number][]
+): ResultSummaryMetricDetail[] {
   const legitimateMs = markers
     .filter((marker) => marker.reason == null)
     .reduce((total, marker) => total + marker.durationMs, 0);
@@ -35,7 +36,7 @@ function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMar
 
   for (const [skill, cancellation] of cancellations) {
     details.push({
-      label: `Skill cancelled '${skill}'${cancellation.count > 1 ? ` (${cancellation.count} casts)` : ''}`,
+      label: `Cancelled cast '${skill}'${cancellation.count > 1 ? ` (${cancellation.count} casts)` : ''}`,
       value: formatTimelineDuration(cancellation.durationMs)
     });
   }
@@ -43,18 +44,12 @@ function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMar
   return details.length ? details : [{ label: 'No idle time', value: formatTimelineDuration(0) }];
 }
 
-/** Uses charge-aware timeline gaps and cancellations for the combat idle-time summary. */
+/** Includes idle gaps and waits alongside the cancelled cast time shown in the per-skill column. */
 export function timelineIdleTimeMetric(
   result: Gw2SimulationResult,
   source: TimelineOccupancySource
 ): ResultSummaryMetric {
-  // Match the timeline's charge-aware markers so the strip includes idle gaps
-  // and the complete attempted duration of interrupted casts that never committed.
-  const combatStartMs = resultCombatReferenceMs(result);
-  // Pre-combat waits are setup time, so keep them on the timeline without charging them to the combat idle metric.
-  const deadTimeMarkers = timelineDeadTimeMarkers(presentedTimelineSteps(result, source), result.resolvedEvents || [], {
-    encounterPhases: result.encounter?.phases
-  }).filter((marker) => marker.reason !== 'explicit-wait' || marker.start >= combatStartMs);
+  const deadTimeMarkers = combatDeadTimeMarkers(result, source);
   const deadTimeMs = deadTimeMarkers.reduce((total, marker) => total + marker.durationMs, 0);
   return {
     label: 'Total Idle Time',

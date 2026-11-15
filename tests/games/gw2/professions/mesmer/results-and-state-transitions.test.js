@@ -99,13 +99,27 @@ test('result summary includes explicit wait shapes in total idle time', () => {
 });
 
 test('result summary details legitimate gaps and groups repeated missing-commit cancellations', () => {
+  // Canonical action events carry the cancellation outcomes represented by the timeline steps below.
+  const actions = [
+    { activationId: 'cast:2', at: 0.3, endsAt: 0.7 },
+    { activationId: 'cast:3', at: 0.7, endsAt: 0.8 }
+  ].map((event) => ({
+    type: 'action',
+    actorType: 'player',
+    skillId: 1,
+    sourceId: 1,
+    skillName: 'Interrupted Skill',
+    interrupted: true,
+    missingInterruptCommit: true,
+    ...event
+  }));
   const metrics = resultSummaryMetrics(
     {
       rotationEndTime: 1,
       observationEndTime: 1,
       combatEndTime: 1,
       deathTime: null,
-      ...effectFields([], 1, { policies: mesmerBuffPolicies(mesmerProfession.catalog) }),
+      ...effectFields(actions, 1, { policies: mesmerBuffPolicies(mesmerProfession.catalog) }),
 
       steps: [
         {
@@ -144,7 +158,7 @@ test('result summary details legitimate gaps and groups repeated missing-commit 
     className: 'idle-time',
     details: [
       { label: 'Idle time between skills', value: '200ms' },
-      { label: "Skill cancelled 'Interrupted Skill' (2 casts)", value: '500ms' }
+      { label: "Cancelled cast 'Interrupted Skill' (2 casts)", value: '500ms' }
     ]
   });
 });
@@ -171,6 +185,8 @@ test('Kill Time accounts for an explicit Combat Start reference', () => {
 test('result summary hides the internal effect horizon after the target dies', () => {
   const metrics = resultSummaryMetrics(
     {
+      events: [],
+      resolvedEvents: [],
       rotationEndTime: 97.1,
       observationEndTime: 97.1,
       combatEndTime: 93.1,

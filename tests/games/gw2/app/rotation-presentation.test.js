@@ -208,6 +208,7 @@ test('Dragon Trigger excludes only its charge window from timeline gaps and tota
           }
         ],
         dpsStartTime: 0,
+        combatEndTime: (start + 500) / 1000,
         effectReport: null,
         resolvedEvents: []
       };

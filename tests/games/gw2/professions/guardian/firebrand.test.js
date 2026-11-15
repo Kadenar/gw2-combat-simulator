@@ -1031,7 +1031,7 @@ test('Revelation follows canonical mantra IDs and ignores names', () => {
       });
       assert.equal(
         observedRuntime(result).profession.specialization.state.tomePages.value,
-        id === mantra.finalId ? 2 : 0
+        id === mantra.finalId ? (id === GUARDIAN_SKILL_IDS.REJUVENATING_RESPITE ? 3 : 2) : 0
       );
     }
   }

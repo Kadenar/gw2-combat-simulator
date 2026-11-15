@@ -1,5 +1,6 @@
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import type { OwnerConditionDamage, SkillBreakdownRow } from '#gw2/app/results/skill-breakdown.js';
+import { formatTimelineDuration } from '#gw2/app/rotation/timeline/model.js';
 import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
 
 export interface ResultRow {
@@ -13,6 +14,7 @@ export interface ResultRow {
 export interface ResultColumn {
   readonly key: string;
   readonly label?: string;
+  readonly icon?: string;
   readonly numeric?: boolean;
   readonly className?: string;
   readonly format?: (value: unknown) => unknown;
@@ -64,6 +66,16 @@ export const SKILL_COLS: readonly ResultColumn[] = [
   { key: 'dps', label: 'DPS', numeric: true, className: 'dps' },
   { key: 'average', label: 'Avg/Cast', numeric: true },
   { key: 'dct', label: 'DCT', numeric: true },
+  // Show unproductive interrupted player time, including skills with no damage.
+  {
+    key: 'deadTimeMs',
+    label: 'Dead Time',
+    icon: new URL('@images/wiki/out-of-health-potions.png', import.meta.url).href,
+    numeric: true,
+    format: (value) => (value == null ? '-' : formatTimelineDuration(value)),
+    title: () =>
+      'Time lost to casts cancelled before commit, plus interrupted casts with no confirmed commit or useful output. Excludes idle gaps and waits, and time outside combat.'
+  },
   { key: 'casts', label: 'Casts', numeric: true },
   {
     key: 'hits',

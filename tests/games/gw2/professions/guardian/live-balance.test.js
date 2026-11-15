@@ -30,26 +30,35 @@ test('the live Firebrand layout replaces retired traits without a preview overla
   );
 });
 
-test('final mantra charges refund a baseline page and Revelation adds one independently', () => {
-  for (const selected of [false, true])
-    for (const traitTriggers of [false, true]) {
-      const result = runGuardian(
-        [ID.POTENT_HASTE, ID.POTENT_HASTE, ID.OVERWHELMING_CELERITY],
-        {
-          specialization: 'Firebrand',
-          initialTomePages: 0,
-          selectedSkillIds: [ID.MANTRA_OF_POTENCE],
-          selectedTraitIds: selected ? [TRAIT.REVELATION] : []
-        },
-        { profession: { runtimeFor: (config) => guardianProfession.runtimeFor(config, { traitTriggers }) } }
-      );
-      assert.deepEqual(result.warnings, []);
-      const pages = result.planningState.profession[STATE.TOME_PAGES];
-      assert.equal(pages.maximum, 8);
-      assert.equal(pages.interval, 6);
-      assert.equal(pages.value, 1 + Number(selected && traitTriggers));
-      assert.ok(!result.resolvedEvents.some((event) => event.condition === 'Slow'));
-    }
+// Only final charges refund pages; Solace grants an extra page independently of Revelation.
+test('Solace refunds two pages, other mantras refund one, and Revelation adds one independently', () => {
+  for (const [root, normal, final, baseline] of [
+    [ID.MANTRA_OF_SOLACE, ID.RESTORING_REPRIEVE, ID.REJUVENATING_RESPITE, 2],
+    [ID.MANTRA_OF_FLAME, ID.FLAME_RUSH, ID.FLAME_SURGE, 1],
+    [ID.MANTRA_OF_POTENCE, ID.POTENT_HASTE, ID.OVERWHELMING_CELERITY, 1],
+    [ID.MANTRA_OF_TRUTH, ID.ECHO_OF_TRUTH, ID.VOICE_OF_TRUTH, 1],
+    [ID.MANTRA_OF_LIBERATION, ID.PORTENT_OF_FREEDOM, ID.UNHINDERED_DELIVERY, 1]
+  ])
+    for (const selected of [false, true])
+      for (const traitTriggers of [false, true])
+        for (const spendFinal of [false, true]) {
+          const result = runGuardian(
+            [normal, normal, ...(spendFinal ? [final] : [])],
+            {
+              specialization: 'Firebrand',
+              initialTomePages: 0,
+              selectedSkillIds: [root],
+              selectedTraitIds: selected ? [TRAIT.REVELATION] : []
+            },
+            { profession: { runtimeFor: (config) => guardianProfession.runtimeFor(config, { traitTriggers }) } }
+          );
+          assert.deepEqual(result.warnings, []);
+          const pages = result.planningState.profession[STATE.TOME_PAGES];
+          assert.equal(pages.maximum, 8);
+          assert.equal(pages.interval, 6);
+          assert.equal(pages.value, spendFinal ? baseline + Number(selected && traitTriggers) : 0);
+          assert.ok(!result.resolvedEvents.some((event) => event.condition === 'Slow'));
+        }
 });
 
 // Aegis adds its own bonus while the health-or-Aegis multiplier applies only once.

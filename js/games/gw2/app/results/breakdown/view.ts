@@ -1,4 +1,6 @@
+import { resultColumnHeadingHtml } from '#gw2/app/results/breakdown/heading.js';
 import { bindConditionInspectors, renderSkillInspector } from '#gw2/app/results/breakdown/inspectors.js';
+import { bindDamageBreakdownLayout } from '#gw2/app/results/breakdown/layout.js';
 import {
   nextResultSortState,
   prepareDamageBreakdown,
@@ -194,7 +196,7 @@ function skillHeaderHtml(columns: readonly ResultColumn[], sortState: ResultSort
       const indicator = sortState.column === column.key ? (sortState.direction === 'asc' ? ' ▲' : ' ▼') : '';
       const direction =
         activeColumn === column.key ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none';
-      return `<span role="columnheader" aria-sort="${direction}" data-result-column="${escapeHtml(column.key)}"><button type="button" data-sort-col="${escapeHtml(column.key)}">${escapeHtml(column.label || column.key)}${indicator}</button></span>`;
+      return `<span role="columnheader" aria-sort="${direction}" data-result-column="${escapeHtml(column.key)}">${resultColumnHeadingHtml(column, { sortable: true, indicator })}</span>`;
     })
     .join('');
 }
@@ -295,6 +297,8 @@ export function mountDamageBreakdown(
   </section>`
       : ''
   );
+
+  bindDamageBreakdownLayout(container);
 
   const renderSortedRows = (): void => {
     const sorted = sortResultRows(skillRows, skillColumns, sortState.column, sortState.direction);

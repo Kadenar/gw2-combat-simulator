@@ -152,6 +152,8 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
           buildRevision: 2,
           resultRevision: 1,
           results: {
+            events: [],
+            resolvedEvents: [],
             rotationEndTime: 1,
             observationEndTime: 1,
             combatEndTime: 1,

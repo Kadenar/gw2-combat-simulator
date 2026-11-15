@@ -1,5 +1,7 @@
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { failedPlayerCasts } from '#gw2/platform/results/cast-activity.js';
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/results/damage-report.js';
 import { countProcActivations } from '#gw2/platform/results/proc-counts.js';
 import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
@@ -73,6 +75,7 @@ export interface SkillBreakdownRow {
   readonly dps: number;
   readonly average: number | null;
   readonly dct: number | null;
+  readonly deadTimeMs: number | null;
   readonly procDamage: readonly { sourceSkill: string; total: number; dps: number }[];
   // Stable identity shared with the chart's per-hit series, so a
   // clicked breakdown row can highlight its own damage over time.
@@ -101,7 +104,7 @@ interface GroupedSkillBreakdown {
   hits: number;
   critHits: number;
   critEligibleHits: number;
-  fallbackCasts: number;
+  fallbackActions: Set<SimulationEvent>;
 }
 
 // Split only the spaced effect separator so hyphenated skill names retain their attribution.
@@ -256,31 +259,31 @@ export function skillBreakdownRows(
   }
 
   // Canonical action events are the authoritative source for cast count/time.
-  const actionDurations = new Map<string, number>();
-  const actionCounts = new Map<string, number>();
-  const actionCountsById = new Map<string, number>();
-  const actionCountsByEventName = new Map<string, number>();
-  // Actions and damage use the same owner scope, including commands shared by two pets.
+  const actionsBySource = new Map<string, Set<SimulationEvent>>();
+  const playerActionsBySource = new Map<string, Set<SimulationEvent>>();
+  const actionsById = new Map<string, Set<SimulationEvent>>();
+  const actionsByEventName = new Map<string, Set<SimulationEvent>>();
   const actionKey = (name: string, entityName: string): string => JSON.stringify([entityName, name]);
+  const addAction = (index: Map<string, Set<SimulationEvent>>, key: string, event: SimulationEvent) => {
+    const actions = index.get(key) ?? new Set<SimulationEvent>();
+    actions.add(event);
+    index.set(key, actions);
+  };
+
   for (const event of result.events || []) {
-    // Exclude casts aimed away so counts and damage averages describe casts aimed at the target.
+    // Failed-cast rows retain attempted player actions even when aimed away from the target.
+    if (event.type === 'action' && event.actorType === ACTOR.PLAYER)
+      addAction(playerActionsBySource, actionKey(String(event.skillName || event.name || event.sourceId), ''), event);
+
+    // Counts and damage averages describe accepted casts aimed at the target.
     if (event.type !== 'action' || event.offTarget === true) continue;
 
-    // Renamed contributions match accepted actions by ID, then event display name;
-    // derive these counts here instead of transporting them on every contribution.
     const entityName = event.actorType === ACTOR.SUMMON ? event.entityName || '' : '';
-    // Some pet commands deal player-owned damage; retain their combined action totals for those rows.
+    // Some pet commands deal player-owned damage, so those rows share their command actions.
     for (const scope of entityName ? ['', entityName] : ['']) {
-      const id = actionKey(String(event.skillId ?? event.sourceId), scope);
-      const eventName = actionKey(event.name || event.skillName || String(event.sourceId), scope);
-      actionCountsById.set(id, (actionCountsById.get(id) || 0) + 1);
-      actionCountsByEventName.set(eventName, (actionCountsByEventName.get(eventName) || 0) + 1);
-      const name = actionKey(String(event.skillName || event.name || event.sourceId), scope);
-      actionDurations.set(
-        name,
-        (actionDurations.get(name) || 0) + Math.max(0, Number(event.endsAt || event.at) - Number(event.at || 0))
-      );
-      actionCounts.set(name, (actionCounts.get(name) || 0) + 1);
+      addAction(actionsById, actionKey(String(event.skillId ?? event.sourceId), scope), event);
+      addAction(actionsByEventName, actionKey(event.name || event.skillName || String(event.sourceId), scope), event);
+      addAction(actionsBySource, actionKey(String(event.skillName || event.name || event.sourceId), scope), event);
     }
   }
 
@@ -288,11 +291,16 @@ export function skillBreakdownRows(
   const nativeRows = new Set(
     (result.resolvedEvents || [])
       .filter((event) => {
-        if ((event.type !== 'damage' && event.type !== 'condition') || event.procActivation || event.traitId != null)
+        if (
+          (event.type !== 'damage' && event.type !== 'condition') ||
+          event.actorType === ACTOR.EFFECT ||
+          event.procActivation ||
+          event.traitId != null
+        )
           return false;
 
         const entityName = event.actorType === ACTOR.SUMMON ? event.entityName || '' : '';
-        return actionCountsById.has(actionKey(String(event.skillId ?? event.sourceId), entityName));
+        return actionsById.has(actionKey(String(event.skillId ?? event.sourceId), entityName));
       })
       .map(eventKey)
   );
@@ -352,7 +360,7 @@ export function skillBreakdownRows(
       hits: 0,
       critHits: 0,
       critEligibleHits: 0,
-      fallbackCasts: 0
+      fallbackActions: new Set<SimulationEvent>()
     };
 
     if (!current.parentSkill && parentSkill) current.parentSkill = parentSkill;
@@ -365,72 +373,142 @@ export function skillBreakdownRows(
       current.sourceId = sourceId;
     }
 
-    current.sourceSkills.add(sourceSkill);
+    // Effect packets retain triggering skill IDs for lineage, but do not own the trigger's casts or occupied time.
+    if (actorType !== ACTOR.EFFECT) current.sourceSkills.add(sourceSkill);
+
     current.strike += Number(entry.strikeDamage || 0);
     current.condition += Number(entry.conditionDamage || 0);
     current.hits += Number(entry.hits || 0);
     current.critHits += Number(entry.critHits || 0);
     current.critEligibleHits += Number(entry.critEligibleHits || 0);
-    const contributionCasts =
-      actionCountsById.get(actionKey(String(entry.skillId ?? entry.sourceId), entityName)) ??
-      actionCountsByEventName.get(actionKey(entry.name, entityName)) ??
-      0;
-    current.fallbackCasts = Math.max(current.fallbackCasts, contributionCasts);
+    const contributionActions =
+      actorType === ACTOR.EFFECT
+        ? undefined
+        : (actionsById.get(actionKey(String(entry.skillId ?? entry.sourceId), entityName)) ??
+          actionsByEventName.get(actionKey(entry.name, entityName)));
+    for (const action of contributionActions ?? []) current.fallbackActions.add(action);
     grouped.set(groupKey, current);
   }
 
-  return [...grouped.values()]
-    .map((entry): SkillBreakdownRow => {
-      const procCount =
-        procCounts.get(skillBreakdownKey(entry.group, entry.name, entry.entityName)) ||
-        equipmentProcCounts.get(entry.name) ||
-        0;
-      // Prefer source-name counts; renamed contributions use ID/display-name counts.
-      // Child effects and proc-only rows cannot borrow casts from their triggering skill ID.
-      // A shared row can contain distinct range variants; count each source's actions once.
-      const sources = [...entry.sourceSkills].map((source) => actionKey(source, entry.entityName));
-      const casts = sources.some((source) => actionCounts.has(source))
-        ? sources.reduce((total, source) => total + Number(actionCounts.get(source) || 0), 0)
-        : entry.parentSkill || procCount > 0
-          ? 0
-          : entry.fallbackCasts;
-      const total = entry.strike + entry.condition;
-      const castTime = sources.reduce((total, source) => total + Number(actionDurations.get(source) || 0), 0);
-      // Proc-only rows have no cast events, so use their canonical activation count for average damage.
-      const averageCount = casts || procCount;
-      return {
-        name: entry.name,
-        key: skillBreakdownKey(entry.group, entry.name, entry.entityName),
-        sourceSkill: entry.sourceSkill,
-        parentSkill: entry.parentSkill,
-        icon: entry.icon,
-        skillId: entry.skillId,
-        sourceId: entry.sourceId,
-        actorType: entry.actorType,
-        entityName: entry.entityName,
-        group: entry.group,
-        strike: entry.strike,
-        condition: entry.condition,
-        hits: entry.hits || procCount,
-        procCount,
-        total,
-        dps: total / Math.max(0.001, Number(result.dpsWindow ?? result.rotationEndTime ?? 0)),
-        procDamage: [...(damageByTrigger.get(skillBreakdownKey(entry.group, entry.name, entry.entityName)) || [])].map(
-          ([sourceSkill, damage]) => ({
-            sourceSkill,
-            total: damage,
-            dps: damage / Math.max(0.001, Number(result.dpsWindow ?? result.rotationEndTime ?? 0))
-          })
-        ),
-        average: averageCount > 0 ? total / averageCount : null,
-        // DCT is damage divided by occupied cast time, not encounter duration.
-        dct: castTime > 0 ? total / castTime : null,
-        casts,
-        observedCritRate: entry.critEligibleHits > 0 ? entry.critHits / entry.critEligibleHits : null,
-        critHits: entry.critHits,
-        critEligibleHits: entry.critEligibleHits
-      };
-    })
-    .filter((row) => row.total > 0)
+  const rowsByAction = new Map<SimulationEvent, SkillBreakdownRow>();
+  const rows = [...grouped.values()].map((entry): SkillBreakdownRow => {
+    const procCount =
+      procCounts.get(skillBreakdownKey(entry.group, entry.name, entry.entityName)) ||
+      equipmentProcCounts.get(entry.name) ||
+      0;
+    // Prefer source-name counts; renamed contributions use ID/display-name counts.
+    // Child effects and proc-only rows cannot borrow casts from their triggering skill ID.
+    // A shared row can contain distinct range variants; count each source's actions once.
+    const sources = [...entry.sourceSkills].map((source) => actionKey(source, entry.entityName));
+    const actions = sources.some((source) => actionsBySource.has(source))
+      ? new Set(sources.flatMap((source) => [...(actionsBySource.get(source) ?? [])]))
+      : entry.parentSkill || procCount > 0
+        ? new Set<SimulationEvent>()
+        : entry.fallbackActions;
+    const casts = actions.size;
+    const total = entry.strike + entry.condition;
+    const castTime = [...actions].reduce(
+      (sum, action) => sum + Math.max(0, Number(action.endsAt ?? action.at) - action.at),
+      0
+    );
+    // Proc-only rows have no cast events, so use their canonical activation count for average damage.
+    const averageCount = casts || procCount;
+    const row: SkillBreakdownRow = {
+      name: entry.name,
+      key: skillBreakdownKey(entry.group, entry.name, entry.entityName),
+      sourceSkill: entry.sourceSkill,
+      parentSkill: entry.parentSkill,
+      icon: entry.icon,
+      skillId: entry.skillId,
+      sourceId: entry.sourceId,
+      actorType: entry.actorType,
+      entityName: entry.entityName,
+      group: entry.group,
+      strike: entry.strike,
+      condition: entry.condition,
+      hits: entry.hits || procCount,
+      procCount,
+      total,
+      dps: total / Math.max(0.001, Number(result.dpsWindow ?? result.rotationEndTime ?? 0)),
+      procDamage: [...(damageByTrigger.get(skillBreakdownKey(entry.group, entry.name, entry.entityName)) || [])].map(
+        ([sourceSkill, damage]) => ({
+          sourceSkill,
+          total: damage,
+          dps: damage / Math.max(0.001, Number(result.dpsWindow ?? result.rotationEndTime ?? 0))
+        })
+      ),
+      average: total > 0 && averageCount > 0 ? total / averageCount : null,
+      // DCT is damage divided by occupied cast time, not encounter duration.
+      dct: total > 0 && castTime > 0 ? total / castTime : null,
+      casts,
+      deadTimeMs: entry.group === 'Player' && casts > 0 && !entry.parentSkill ? 0 : null,
+      observedCritRate: entry.critEligibleHits > 0 ? entry.critHits / entry.critEligibleHits : null,
+      critHits: entry.critHits,
+      critEligibleHits: entry.critEligibleHits
+    };
+
+    // Reuse the exact action set behind Casts and DCT, including every source in a merged row.
+    if (row.deadTimeMs !== null) {
+      const playerActions = new Set([
+        ...actions,
+        ...sources.flatMap((source) => [...(playerActionsBySource.get(source) ?? [])])
+      ]);
+      for (const action of playerActions) {
+        if (!rowsByAction.has(action) || entry.name === entry.sourceSkill) rowsByAction.set(action, row);
+      }
+    }
+
+    return row;
+  });
+
+  const deadTimeByRow = new Map<SkillBreakdownRow, number>();
+  const missingRows = new Map<string, SkillBreakdownRow>();
+  for (const { action, durationMs } of failedPlayerCasts(result)) {
+    let row = rowsByAction.get(action);
+
+    if (!row) {
+      const name = action.skillName || action.name || String(action.skillId ?? action.sourceId);
+      const key = skillBreakdownKey('Player', name, '');
+      row = missingRows.get(key);
+
+      if (!row) {
+        const actions = playerActionsBySource.get(actionKey(name, '')) ?? new Set([action]);
+        row = {
+          name,
+          sourceSkill: name,
+          parentSkill: '',
+          icon: '',
+          skillId: action.skillId ?? null,
+          sourceId: action.sourceId ?? null,
+          actorType: ACTOR.PLAYER,
+          entityName: '',
+          group: 'Player',
+          strike: 0,
+          condition: 0,
+          hits: 0,
+          procCount: 0,
+          casts: actions.size,
+          total: 0,
+          dps: 0,
+          average: null,
+          dct: null,
+          deadTimeMs: 0,
+          procDamage: [],
+          key,
+          observedCritRate: null,
+          critHits: 0,
+          critEligibleHits: 0
+        };
+        missingRows.set(key, row);
+        rows.push(row);
+      }
+    }
+
+    deadTimeByRow.set(row, (deadTimeByRow.get(row) ?? 0) + durationMs);
+  }
+
+  return rows
+    .map((row) => ({ ...row, deadTimeMs: deadTimeByRow.get(row) ?? row.deadTimeMs }))
+    .filter((row) => row.total > 0 || Number(row.deadTimeMs) > 0)
     .sort((left, right) => right.total - left.total);
 }

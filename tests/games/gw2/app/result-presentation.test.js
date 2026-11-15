@@ -56,6 +56,7 @@ test('result sorting handles defaults, numeric directions, strings, and cycling'
       'dps',
       'average',
       'dct',
+      'deadTimeMs',
       'casts',
       'hits',
       'observedCritRate'
@@ -98,6 +99,30 @@ test('result sorting handles defaults, numeric directions, strings, and cycling'
     column: null,
     direction: null
   });
+});
+
+// Duration labels retain numeric sorting, while non-player rows show an unavailable value.
+test('dead-time column renders its local icon and cancelled durations', () => {
+  const column = SKILL_COLS.find((candidate) => candidate.key === 'deadTimeMs');
+  assert.equal(column.format(null), '-');
+  assert.equal(column.format(0), '0ms');
+  assert.equal(column.format(250), '250ms');
+  assert.equal(column.format(1500), '1.5s');
+  const rows = [
+    { name: 'Short', deadTimeMs: 250 },
+    { name: 'Long', deadTimeMs: 1500 }
+  ];
+  assert.deepEqual(
+    sortResultRows(rows, SKILL_COLS, column.key, 'desc').map((row) => row.name),
+    ['Long', 'Short']
+  );
+  const container = inertContainer();
+  mountDamageBreakdown(container, { skillRows: rows, skillColumns: SKILL_COLS, conditions: [] });
+  assert.match(
+    container.innerHTML,
+    /aria-label="Dead Time" title="Dead Time"><img[^>]+out-of-health-potions\.png" width="14" height="14" alt="" \/><\/button>/
+  );
+  assert.match(container.innerHTML, /Excludes idle gaps and waits/);
 });
 
 test('shared results render summaries, totals, contributions, and icons', () => {

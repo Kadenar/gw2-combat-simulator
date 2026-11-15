@@ -146,7 +146,7 @@ test('mobile focus mode keeps one viewport-wide scrolling workspace', async ({ p
 });
 
 test('damage and condition breakdowns split only when their container is wide', async ({ page }) => {
-  await page.setViewportSize({ width: 1500, height: 900 });
+  await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(() => {
@@ -154,23 +154,26 @@ test('damage and condition breakdowns split only when their container is wide', 
   });
   const fixture = page.locator('[data-layout-fixture="result-breakdown"]');
 
-  await page.evaluate(() => {
+  await page.evaluate(async () => {
+    const { SKILL_COLS } = await import('/js/games/gw2/app/results/breakdown/model.ts');
+    const { resultColumnHeadingHtml } = await import('/js/games/gw2/app/results/breakdown/heading.ts');
+    const { bindDamageBreakdownLayout } = await import('/js/games/gw2/app/results/breakdown/layout.ts');
     const section = document.createElement('section');
     section.className = 'res-breakdown-section';
     section.dataset.layoutFixture = 'result-breakdown';
-    // The expanded condition table requires the current 1460px container before the two sections fit side by side.
-    section.style.width = '1460px';
+    // A wide host places the real metric headings beside conditions; the narrow host stacks them.
+    section.style.width = '1560px';
     section.innerHTML = `<div class="res-breakdown">
       <div class="res-breakdown-part res-damage-breakdown">
         <div class="res-section-title">Damage Breakdown</div>
-        <div class="res-hdr">
-          <span>Skill</span><span>Strike</span><span>Condition</span><span>Total</span><span>% Damage</span><span>DPS</span>
-          <span>Avg/Cast</span><span>DCT</span><span>Casts</span><span>Hits</span><span>Crit %</span>
-        </div>
+        <div class="res-skill-scroll"><div data-role="skill-breakdown"><div class="res-hdr">
+          ${SKILL_COLS.map((column) => resultColumnHeadingHtml(column, { sortable: true })).join('')}
+        </div></div></div>
       </div>
       <div class="res-breakdown-part res-condition-breakdown">Conditions</div>
     </div>`;
     document.body.append(section);
+    bindDamageBreakdownLayout(section);
   });
 
   const positions = () =>
@@ -184,6 +187,7 @@ test('damage and condition breakdowns split only when their container is wide', 
   const [wideDamage, wideConditions] = await positions();
   expect(wideConditions.x).toBeGreaterThan(wideDamage.x);
   expect(wideConditions.y).toBe(wideDamage.y);
+  await expect(fixture.locator('.res-condition-breakdown')).toHaveCSS('border-left-width', '1px');
   expect(
     await fixture.locator('.res-hdr').evaluate((header) => {
       const damage = header.closest('.res-damage-breakdown');
@@ -197,4 +201,9 @@ test('damage and condition breakdowns split only when their container is wide', 
   const [narrowDamage, narrowConditions] = await positions();
   expect(narrowConditions.x).toBe(narrowDamage.x);
   expect(narrowConditions.y).toBeGreaterThanOrEqual(narrowDamage.bottom);
+  await expect(fixture.locator('.res-damage-breakdown')).toHaveAttribute('data-compact', 'true');
+  expect(
+    await fixture.locator('.res-hdr').evaluate((header) => getComputedStyle(header).gridTemplateColumns.split(' ')[0])
+  ).toBe('148px');
+  await expect(fixture.locator('.res-condition-breakdown')).toHaveCSS('border-left-width', '0px');
 });

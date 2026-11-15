@@ -104,6 +104,7 @@ test('Spite minors and Swift Termination add the 50% target-health timeline mark
     const app = { profession, activeCatalog: catalog, adapter: { eliteSpecialization: () => 'Core' } };
     const result = {
       steps: [],
+      events: [],
       resolvedEvents: [{ type: 'damage', at: 1, damage: 600 }],
       rotationEndTime: 1,
       planningState: { atSeconds: 1 }
