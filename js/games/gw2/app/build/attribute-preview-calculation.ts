@@ -2,12 +2,12 @@
 import { attributePreviewControls, normalizeAttributePreview } from '#gw2/app/build/attribute-preview-controls.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import type { AttributePreviewState } from '#gw2/app/build/types.js';
-import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
-import type { Gw2NumericStatKey } from '#gw2/platform/attributes/stats.js';
+import { derivedAttribute } from '#gw2/platform/attributes/calculation.js';
+import { ATTRIBUTE_KEYS, CONDITION_DURATION_KEYS } from '#gw2/platform/attributes/inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
-import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
 import { createAristocracyPreviewQueries } from '#gw2/platform/equipment/relics/runtime.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -155,9 +155,7 @@ function calculatePreview(
     data.attributes[name] = Object.assign({}, original, { final, conditional: final - original.final });
   };
 
-  for (const name of PRIMARY_ATTRIBUTES) {
-    set(name, Number(stats[(name[0].toLowerCase() + name.slice(1).replaceAll(' ', '')) as Gw2NumericStatKey]));
-  }
+  for (const [name, key] of Object.entries(ATTRIBUTE_KEYS)) set(name, stats[key]);
 
   set('Critical Chance', (critical.chanceBeforeCap ?? critical.chance) * 100);
   set('Critical Damage', critical.damage * 100);
@@ -176,14 +174,8 @@ function calculatePreview(
   if (queryOptions.conditionDurations) {
     const duration = (query.conditionDurationMultiplier('', 1, stats, event, runtime) - 1) * 100;
     set('Condition Duration', duration);
-    for (const name of [CONDITION.BURNING, CONDITION.BLEEDING, CONDITION.TORMENT, CONDITION.CONFUSION, 'Poison'])
-      set(
-        `${name} Duration`,
-        (query.conditionDurationMultiplier(name === 'Poison' ? CONDITION.POISONED : name, 1, stats, event, runtime) -
-          1) *
-          100 -
-          duration
-      );
+    for (const [name, condition] of Object.entries(CONDITION_DURATION_KEYS))
+      set(name, (query.conditionDurationMultiplier(condition, 1, stats, event, runtime) - 1) * 100 - duration);
   }
 
   return data;

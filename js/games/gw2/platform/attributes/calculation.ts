@@ -1,4 +1,8 @@
-import { equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
+import {
+  ATTRIBUTE_NAMES,
+  CONDITION_DURATION_KEYS,
+  equipmentAttributeConversions
+} from '#gw2/platform/attributes/inputs.js';
 import type {
   Gw2AttributeBreakdown,
   Gw2AttributeConversionInputs,
@@ -53,25 +57,9 @@ interface FinalizeBuildAttributesOptions {
 
 // Attribute calculators preserve a source breakdown because the build UI and
 // contribution analysis need more than the final numeric value.
-export const PRIMARY_ATTRIBUTES = Object.freeze([
-  'Power',
-  'Precision',
-  'Toughness',
-  'Vitality',
-  'Ferocity',
-  'Condition Damage',
-  'Expertise',
-  'Concentration',
-  'Healing Power'
-]);
+export const PRIMARY_ATTRIBUTES: readonly string[] = Object.freeze(Object.values(ATTRIBUTE_NAMES));
 
-export const CONDITION_DURATION_ATTRIBUTES = Object.freeze([
-  'Burning Duration',
-  'Bleeding Duration',
-  'Torment Duration',
-  'Confusion Duration',
-  'Poison Duration'
-]);
+export const CONDITION_DURATION_ATTRIBUTES = Object.freeze(Object.keys(CONDITION_DURATION_KEYS));
 
 const BOON_DURATION_ATTRIBUTES = Object.freeze(['Quickness Duration', 'Might Duration', 'Fury Duration']);
 

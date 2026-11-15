@@ -1,5 +1,5 @@
 import { resolveAttributeEffects } from '#gw2/platform/attributes/calculation.js';
-import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
+import { ATTRIBUTE_KEYS } from '#gw2/platform/attributes/inputs.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import type {
   Gw2AttributeContext,
@@ -17,8 +17,9 @@ import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 
-const ATTRIBUTE_KEYS = new Map<string, keyof typeof ATTRIBUTE_NAMES>(
-  Object.entries(ATTRIBUTE_NAMES).map(([key, name]) => [name, key as keyof typeof ATTRIBUTE_NAMES])
+/** Compile one lookup from the canonical names so each live stat adjustment needs only Map.get. */
+const ATTRIBUTE_KEY_LOOKUP = new Map<string, (typeof ATTRIBUTE_KEYS)[keyof typeof ATTRIBUTE_KEYS]>(
+  Object.entries(ATTRIBUTE_KEYS)
 );
 
 /** Live boon reads share prototype accessors rather than allocating nine descriptors for every sample. */
@@ -107,7 +108,7 @@ export function resolveAttributeContributions(
 /** Resolved amounts are sparse, so visit only affected attributes; each attribute accumulates independently of order. */
 function addAttributeAmounts(result: Gw2MutableStats, amounts: Readonly<Gw2NumericAttributes>): void {
   for (const name in amounts) {
-    const key = ATTRIBUTE_KEYS.get(name);
+    const key = ATTRIBUTE_KEY_LOOKUP.get(name);
     const amount = amounts[name];
 
     if (key !== undefined && amount) result[key] = (result[key] ?? 0) + amount;

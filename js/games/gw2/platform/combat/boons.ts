@@ -588,12 +588,12 @@ export interface Gw2TimedBuffApplication {
 /** Power and Condition Damage granted by one stack of Might. */
 export const MIGHT_ATTRIBUTE_BONUS_PER_STACK = 30;
 
-/** Cap ordinary bonuses before adding effects that explicitly exceed the boon-duration cap. */
-export function gw2BoonDurationMultiplier(boon: BoonId, stats: Gw2Stats, sigils: Gw2SigilSet = {}): number {
+/** Cap ordinary bonuses before adding uncapped effects; null samples generic duration without a named boon bonus. */
+export function gw2BoonDurationMultiplier(boon: BoonId | null, stats: Gw2Stats, sigils: Gw2SigilSet = {}): number {
   const bonus =
     (stats.concentration || 0) / 1500 +
     (stats.boonDurationBonus || 0) / 100 +
-    (stats.boonDurationBonuses?.[boon] || 0) / 100 +
+    (boon == null ? 0 : (stats.boonDurationBonuses?.[boon] || 0) / 100) +
     (sigils.boonDurationBonus || 0) / 100;
   return clamp(1 + bonus, 1, 2) + Math.max(0, stats.uncappedBoonDurationBonus || 0) / 100;
 }

@@ -43,6 +43,22 @@ export const ATTRIBUTE_NAMES = Object.freeze({
   healingPower: 'Healing Power'
 } as const);
 
+/** Derive display-name lookup from the canonical stat names so preview rows cannot invent stat keys. */
+export const ATTRIBUTE_KEYS = Object.freeze(
+  Object.fromEntries(Object.entries(ATTRIBUTE_NAMES).map(([key, name]) => [name, key])) as {
+    readonly [Key in keyof typeof ATTRIBUTE_NAMES as (typeof ATTRIBUTE_NAMES)[Key]]: Key;
+  }
+);
+
+/** Condition duration labels share one canonical condition lookup, including the display name for Poisoned. */
+export const CONDITION_DURATION_KEYS = Object.freeze({
+  'Burning Duration': CONDITION.BURNING,
+  'Bleeding Duration': CONDITION.BLEEDING,
+  'Torment Duration': CONDITION.TORMENT,
+  'Confusion Duration': CONDITION.CONFUSION,
+  'Poison Duration': CONDITION.POISONED
+});
+
 /**
  * Direct callers explicitly author base stats, all eligible for ordinary conversions; calculated totals are not inputs.
  * Tests use distinct base and alternate seeds to exercise the same weapon-set input contract as equipment builds.
@@ -153,10 +169,7 @@ export function attributeSeedFromCommon(common: Gw2CommonAttributeResult): Gw2At
     boonDurationBonus: Math.max(0, duration('Boon Duration') - value('Concentration') / 15),
     conditionDurationBonus: Math.max(0, duration('Condition Duration') - value('Expertise') / 15),
     conditionDurationBonuses: Object.fromEntries(
-      [CONDITION.BLEEDING, CONDITION.BURNING, CONDITION.CONFUSION, 'Poison', CONDITION.TORMENT].map((name) => [
-        name === 'Poison' ? CONDITION.POISONED : name,
-        duration(name + ' Duration')
-      ])
+      Object.entries(CONDITION_DURATION_KEYS).map(([name, condition]) => [condition, duration(name)])
     ),
     boonDurationBonuses: Object.fromEntries(
       [BOON.QUICKNESS, BOON.MIGHT, BOON.FURY].map((name) => [name, duration(BOON_NAMES[name] + ' Duration')])

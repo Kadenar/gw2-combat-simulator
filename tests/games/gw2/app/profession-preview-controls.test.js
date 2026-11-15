@@ -10,7 +10,6 @@ import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
-import { queryDamagePreview } from '#gw2/platform/skill-damage/query-preview.js';
 import { ENGINEER_SKILL_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
 import { headlessApp } from '#tests/helpers/skill-damage.js';
 
@@ -619,6 +618,7 @@ test('Revenant upkeep gives the same outgoing factor to the stat strip and a wea
   close(stats(app, { upkeep })['Strike Multiplier'].final - stats(app)['Strike Multiplier'].final, 0.1);
 });
 
+// Compare native occurrences so explosion-specific facts never require a runtime callback from the stat preview.
 test('Cartridges apply the selected explosion bonus and leave ordinary strikes alone', () => {
   const app = previewApp('warrior', [], 'Bladesworn');
   app.build.selectedSkillIds.Utility1 = app.activeCatalog.skills.find(
@@ -632,20 +632,26 @@ test('Cartridges apply the selected explosion bonus and leave ordinary strikes a
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const controls = skillDamageControls(app);
+  let baseline;
   for (const [cartridges, bonus] of [
     ['', 0],
     ['overcharged-cartridges', 0.15],
     ['supercharged-cartridges', 0.2]
   ]) {
-    const preview = createSkillDamagePreview(app, controls, { ...clearedValues(controls), cartridges });
-    const [ordinary, explosion] = queryDamagePreview(app.profession, preview.config, preview.inputs, (runtime) => {
-      const event = { type: 'strike', at: runtime.time, actorType: 'player', source: 'Player', sourceId: 'preview' };
-      return [
-        runtime.query.strikeMultiplier(event, runtime.time, runtime),
-        runtime.query.strikeMultiplier({ ...event, damageKind: 'explosion' }, runtime.time, runtime)
-      ];
+    const { request } = createSkillDamagePlan(app, controls, { ...clearedValues(controls), cartridges });
+    const occurrences = ['Swift Cut', 'Break Step'].map((name) => {
+      const occurrence = request.occurrences.find((entry) => entry.name === name);
+      assert.ok(occurrence, name);
+      return occurrence;
     });
-    close(explosion / ordinary, 1 + bonus);
+    const factors = evaluateSkillDamage({ ...request, occurrences }, app.profession).occurrences.map((result) => {
+      assert.equal(result.status, 'measured', result.reason);
+      return result.measurement.strikeBreakdown.outgoingMultiplier;
+    });
+    baseline ??= factors;
+    close(factors[0], baseline[0]);
+    close(factors[1] / baseline[1], 1 + bonus);
+    close(stats(app, { cartridges })['Strike Multiplier'].final, baseline[0]);
   }
 });
 
