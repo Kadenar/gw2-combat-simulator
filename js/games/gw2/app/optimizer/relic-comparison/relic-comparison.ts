@@ -1,142 +1,117 @@
+/** Compares any number of relics on one clock and one no-relic baseline. */
 import type { ChartPoint } from '#gw2/app/results/charts/time-series-model.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
-export interface RelicDamageSummary {
-  readonly directDamage: number;
-  readonly contributedDps: number;
-}
-
-/** Direct relic packets come from the breakdown; removing the relic also captures its buffs and interactions. */
-export function relicDamageSummary(
-  result: Pick<Gw2SimulationResult, 'dps' | 'breakdown'>,
-  withoutRelicDps: number
-): RelicDamageSummary {
-  return {
-    directDamage: result.breakdown
-      .filter((entry) => entry.source === 'Relic' || entry.name.startsWith('Relic of '))
-      .reduce((sum, entry) => sum + entry.damage, 0),
-    contributedDps: result.dps - withoutRelicDps
-  };
-}
-
-/** Ignore volatile opener crossovers that do not represent a useful fight-duration decision. */
 export const CROSSOVER_EVALUATION_START_MS = 8000;
 
-/** Availability depends only on distinct selections and a supported alternative, without preparing combat inputs. */
 export function relicComparisonAvailable(
   equippedRelic: string | null | undefined,
-  targetRelic: string | null | undefined,
+  relics: readonly string[],
   relicNames: readonly string[]
 ): boolean {
-  const opponent = String(equippedRelic || '');
-  const target = String(targetRelic || '');
-  return Boolean(opponent && target && opponent !== target && relicNames.includes(target));
+  return Boolean(
+    equippedRelic && relics.length && relics.every((relic) => relic !== equippedRelic && relicNames.includes(relic))
+  );
+}
+
+export interface RelicComparisonSample {
+  readonly buildDps: number;
+  readonly directDps: number;
+  readonly gainedDps: number;
 }
 
 export interface RelicComparisonPoint {
-  /** Milliseconds into the DPS window (fight duration if the fight ended here). */
   readonly tMs: number;
-  readonly opponentDps: number;
-  readonly targetDps: number;
+  /** Samples follow the model's relic order, with the equipped relic first. */
+  readonly samples: readonly RelicComparisonSample[];
+}
+
+export interface RelicKillResult {
+  readonly killTimeMs: number | null;
+  readonly observedMs: number;
+}
+
+export interface RelicComparisonEntry {
+  readonly relic: string;
+  readonly kill: RelicKillResult;
+  /** Last crossing against the equipped relic, bounded by the displayed window. */
+  readonly crossoverMs: number | null;
 }
 
 export interface RelicComparisonModel {
-  readonly opponentDamage?: RelicDamageSummary;
-  readonly targetDamage?: RelicDamageSummary;
   readonly equippedRelic: string;
-  readonly targetRelic: string;
+  readonly relics: readonly RelicComparisonEntry[];
   readonly durationMs: number;
   readonly points: readonly RelicComparisonPoint[];
-  /** Final opponent-ahead to target-ahead crossing, after which the target stays ahead. */
-  readonly crossoverMs: number | null;
-  /** True when the target relic matches or beats the opponent across the evaluation window. */
-  readonly targetAlwaysAhead: boolean;
-  /** Fight time from which the comparison is meaningful. */
   readonly evaluationStartMs: number;
-  readonly opponentFinalDps: number;
-  readonly targetFinalDps: number;
+  readonly targetHealthPercent: number;
+}
+
+export interface RelicComparisonRun {
+  readonly relic: string;
+  readonly dps: readonly ChartPoint[];
+  readonly directDps: readonly ChartPoint[];
+  readonly kill: RelicKillResult;
 }
 
 export interface RelicComparisonModelInput {
-  readonly equippedRelic: string;
-  readonly targetRelic: string;
-  readonly opponentDps: readonly ChartPoint[];
-  readonly targetDps: readonly ChartPoint[];
-  readonly opponentFinalDps: number;
-  readonly targetFinalDps: number;
+  readonly runs: readonly RelicComparisonRun[];
+  readonly withoutRelicDps: readonly ChartPoint[];
+  readonly targetHealthPercent: number;
 }
 
-/** Interpolates the exact crossing time between samples that straddle a target-minus-opponent sign change. */
-function interpolateCrossing(previous: RelicComparisonPoint, current: RelicComparisonPoint): number {
-  const previousDelta = previous.targetDps - previous.opponentDps;
-  const currentDelta = current.targetDps - current.opponentDps;
-  const span = previousDelta - currentDelta;
-
-  if (!(Math.abs(span) > 0)) return current.tMs;
-
-  const fraction = clamp(previousDelta / span, 0, 1);
-  return previous.tMs + (current.tMs - previous.tMs) * fraction;
-}
-
-/** Samples both curves within their shared window; final simulation DPS stays independent of chart samples. */
+/** Retains zero and negative gains; every selected relic subtracts the same no-relic sample. */
 export function buildRelicComparisonModel({
-  equippedRelic,
-  targetRelic,
-  opponentDps,
-  targetDps,
-  opponentFinalDps,
-  targetFinalDps
+  runs,
+  withoutRelicDps,
+  targetHealthPercent
 }: RelicComparisonModelInput): RelicComparisonModel {
-  const durationMs = Math.min(opponentDps.at(-1)?.t ?? 0, targetDps.at(-1)?.t ?? 0);
-  const startMs = Math.max(opponentDps[0]?.t ?? 0, targetDps[0]?.t ?? 0);
-  const times = [...new Set([...opponentDps, ...targetDps].map((point) => point.t))]
-    .filter((time) => time >= startMs && time <= durationMs)
+  const series = [...runs.map((run) => run.dps), withoutRelicDps];
+  const durationMs = Math.min(...series.map((values) => values.at(-1)?.t ?? 0));
+  const times = [...new Set(series.flatMap((values) => values.map((point) => point.t)))]
+    .filter((time) => time > 0 && time <= durationMs)
     .sort((left, right) => left - right);
-  const points: RelicComparisonPoint[] = [];
-  for (const tMs of times) {
-    const opponent = chartValueAt(opponentDps, tMs);
-    const target = chartValueAt(targetDps, tMs);
-
-    // Leading zeroes are not a meaningful tie before either relic deals damage.
-    if (!(opponent > 0) || !(target > 0)) continue;
-
-    points.push({
+  const points = times.map((tMs): RelicComparisonPoint => {
+    const baseline = chartValueAt(withoutRelicDps, tMs);
+    return {
       tMs,
-      opponentDps: opponent,
-      targetDps: target
-    });
-  }
+      samples: runs.map((run) => ({
+        buildDps: chartValueAt(run.dps, tMs),
+        directDps: chartValueAt(run.directDps, tMs),
+        gainedDps: chartValueAt(run.dps, tMs) - baseline
+      }))
+    };
+  });
+  const evalStart = Math.max(
+    0,
+    points.findIndex((point) => point.tMs >= CROSSOVER_EVALUATION_START_MS)
+  );
+  const relics = runs.map((run, relicIndex): RelicComparisonEntry => {
+    let lastBehindIndex = -1;
+    for (let index = evalStart; index < points.length; index += 1) {
+      if (points[index].samples[0].gainedDps > points[index].samples[relicIndex].gainedDps) lastBehindIndex = index;
+    }
 
-  const firstEvalIndex = points.findIndex((point) => point.tMs >= CROSSOVER_EVALUATION_START_MS);
-  const evalStart = firstEvalIndex >= 0 ? firstEvalIndex : 0;
+    let crossoverMs: number | null = null;
 
-  // Use the last opponent lead so the result remains stable across tick-to-tick wobble.
-  let lastOpponentAheadIndex = -1;
-  for (let index = evalStart; index < points.length; index += 1) {
-    if (points[index].opponentDps > points[index].targetDps) lastOpponentAheadIndex = index;
-  }
+    if (lastBehindIndex >= 0 && lastBehindIndex < points.length - 1) {
+      const previous = points[lastBehindIndex];
+      const current = points[lastBehindIndex + 1];
+      const previousDelta = previous.samples[relicIndex].gainedDps - previous.samples[0].gainedDps;
+      const currentDelta = current.samples[relicIndex].gainedDps - current.samples[0].gainedDps;
+      const fraction = clamp(previousDelta / (previousDelta - currentDelta), 0, 1);
+      crossoverMs = previous.tMs + (current.tMs - previous.tMs) * fraction;
+    }
 
-  let crossoverMs: number | null = null;
-  let targetAlwaysAhead = false;
-
-  if (lastOpponentAheadIndex === -1) {
-    targetAlwaysAhead = points.length > evalStart;
-  } else if (lastOpponentAheadIndex < points.length - 1) {
-    crossoverMs = interpolateCrossing(points[lastOpponentAheadIndex], points[lastOpponentAheadIndex + 1]);
-  }
-
-  const evaluationStartMs = firstEvalIndex >= 0 ? points[firstEvalIndex].tMs : Number(points[0]?.tMs ?? 0);
+    return { relic: run.relic, kill: run.kill, crossoverMs };
+  });
   return {
-    equippedRelic,
-    targetRelic,
+    equippedRelic: runs[0]?.relic ?? '',
+    relics,
     durationMs,
     points,
-    crossoverMs,
-    targetAlwaysAhead,
-    evaluationStartMs,
-    opponentFinalDps,
-    targetFinalDps
+    evaluationStartMs: points[evalStart]?.tMs ?? 0,
+    targetHealthPercent
   };
 }

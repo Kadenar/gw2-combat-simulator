@@ -1,133 +1,105 @@
+/** Select multiple relics through the shared equipment picker and keep edits independent of calculation. */
 import { bindRelicComparisonChartHover, relicComparisonChartSvg } from '#gw2/app/optimizer/relic-comparison/chart.js';
 import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
+import { MAX_RELIC_COMPARISON_ALTERNATIVES } from '#gw2/app/optimizer/relic-comparison/types.js';
 import { relicOptionLabel } from '#gw2/app/shared/equipment/labels.js';
-import { enhanceDetailedSelect } from '#gw2/app/shared/equipment/picker.js';
+import { bindCandidatePickers, candidatePicker, updatePicker } from '#gw2/app/shared/equipment/picker.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
 import { escapeHtml } from '#ui/shared/html.js';
-import { groupedOptionsHtml } from '#ui/shared/select-options.js';
 
 export interface RelicComparisonPanelModel {
   readonly relicComparison?: RelicComparisonModel | null;
   readonly relicComparisonAvailable?: boolean;
+  readonly relicComparisonPending?: boolean;
   readonly relicComparisonError?: string;
   readonly relicComparisonOpponent?: string;
-  readonly relicComparisonTarget?: string;
+  readonly relicComparisonSelected?: readonly string[];
   readonly relicComparisonTargets?: readonly string[];
   readonly relicComparisonInitialStacks?: number;
 }
 
-/** Owns relic selection, simulation status and chart interaction independently of rotation results. */
 export function mountRelicComparison(
   container: HTMLElement,
   model: RelicComparisonPanelModel,
-  onRunRelicComparison?: (comparisonRelic: string, initialStacks: number) => unknown,
-  onSelect?: (comparisonRelic: string, initialStacks: number) => boolean
+  onRunRelicComparison?: (relics: readonly string[], initialStacks: number) => unknown,
+  onSelect?: (relics: readonly string[], initialStacks: number) => boolean
 ): void {
-  const relicComparison = model.relicComparison || null;
-  const relicComparisonAvailable = model.relicComparisonAvailable === true;
-  const relicComparisonError = String(model.relicComparisonError || '');
-  const relicComparisonOpponent = String(model.relicComparisonOpponent || '');
-  const relicComparisonTargets = model.relicComparisonTargets || [];
-  // Match the gear selector's categories while keeping only available comparison relics.
-  const relicComparisonGroups = RELIC_GROUPS.map((group) => ({
-    ...group,
-    items: group.items.filter((name) => relicComparisonTargets.includes(name))
-  })).filter((group) => group.items.length);
-  const requestedRelicComparisonTarget = String(model.relicComparisonTarget || '');
-  const relicComparisonTarget = relicComparisonTargets.includes(requestedRelicComparisonTarget)
-    ? requestedRelicComparisonTarget
-    : String(relicComparisonTargets[0] || '');
-  const relicComparisonInitialStacks = Math.min(
-    10,
-    Math.max(0, Math.trunc(Number(model.relicComparisonInitialStacks) || 0))
-  );
-  // Keep the closed selector compact; full relic descriptions remain searchable inside its menu.
-  const relicComparisonAction = `<label class="relic-cmp-control">
-          Compare with
-          <span class="gear-select-display">
-          <select id="relic-comparison-target" class="gear-select" data-role="relic-comparison-target" aria-label="Comparison relic">
-            ${groupedOptionsHtml(relicComparisonGroups, relicComparisonTarget, relicOptionLabel)}
-          </select>
-          <button type="button" class="gear-select-trigger">${escapeHtml(relicComparisonTarget)}</button>
-          </span>
-        </label>
-        <label class="relic-cmp-control" data-role="relic-comparison-stacks-control"${relicComparisonTarget === 'Thorns' ? '' : ' hidden'}>
-          Starting stacks
-          <input type="number" min="0" max="10" step="1" value="${relicComparisonInitialStacks}" data-role="relic-comparison-stacks" aria-label="Starting Thorns stacks" />
-        </label>
-        <button type="button" class="relic-cmp-run-button" data-role="relic-comparison-run">
-          ${relicComparisonError ? 'Retry' : relicComparison ? 'Run again' : 'Run comparison'}
-        </button>`;
-  container.innerHTML = `${
-    relicComparisonAvailable
-      ? `<section class="relic-cmp">
-    <div class="relic-cmp-heading">
-      <div>
-        <h4>Relic break-even comparison</h4>
-        <p>Choose a relic to compare against ${escapeHtml(relicComparisonOpponent ? `Relic of ${relicComparisonOpponent}` : 'your equipped relic')} across fight durations.</p>
-      </div>
+  if (!model.relicComparisonAvailable) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const targets = model.relicComparisonTargets ?? [];
+  const names = RELIC_GROUPS.flatMap((group) => group.items.filter((name) => targets.includes(name)));
+  const selected = [...new Set(model.relicComparisonSelected ?? [])].filter((name) => names.includes(name));
+  const stacks = Math.min(10, Math.max(0, Math.trunc(Number(model.relicComparisonInitialStacks) || 0)));
+  const comparison = model.relicComparison;
+  const error = model.relicComparisonError;
+  // Readiness belongs to the rendered baseline, so picker edits cannot enable a stale comparison.
+  const pending = model.relicComparisonPending === true;
+  container.innerHTML = `<section class="relic-cmp">
+    <div class="relic-cmp-heading"><h4>Relic break-even comparison</h4>
+      <p>Compare up to ${MAX_RELIC_COMPARISON_ALTERNATIVES} relics against ${escapeHtml(model.relicComparisonOpponent ? `Relic of ${model.relicComparisonOpponent}` : 'your equipped relic')} across fight durations.</p></div>
+    <div class="relic-cmp-manual">
+      <div class="relic-cmp-picker" data-role="relic-comparison-picker">${candidatePicker(
+        'comparison-relics',
+        'comparison relic',
+        names,
+        selected,
+        {
+          addLabel: '+ Add relic',
+          limit: MAX_RELIC_COMPARISON_ALTERNATIVES,
+          describe: relicOptionLabel,
+          emptyLabel: 'Add relics to compare',
+          heading: 'Compare with'
+        }
+      )}</div>
+      <label class="relic-cmp-control" data-role="relic-comparison-stacks-control"${selected.includes('Thorns') ? '' : ' hidden'}>
+        Starting Thorns stacks
+        <input type="number" min="0" max="10" step="1" value="${stacks}" data-role="relic-comparison-stacks" aria-label="Starting Thorns stacks" />
+      </label>
+      <button type="button" class="relic-cmp-run-button" data-role="relic-comparison-run"${selected.length && !pending ? '' : ' disabled'}>${error ? 'Retry' : comparison ? 'Run again' : 'Run comparison'}</button>
     </div>
-    <div class="relic-cmp-manual">${relicComparisonAction}</div>
-    <div data-role="relic-comparison-output">${
-      relicComparisonError
-        ? `<div class="relic-cmp-status relic-cmp-error">${escapeHtml(relicComparisonError)}</div>`
-        : relicComparison
-          ? relicComparisonChartSvg(relicComparison, {
-              opponentLabel: relicComparisonOpponent ? `Relic of ${relicComparisonOpponent}` : undefined
-            })
-          : ''
-    }</div>
-  </section>`
-      : ''
-  }`;
+    <div data-role="relic-comparison-output">${error ? `<div class="relic-cmp-status relic-cmp-error">${escapeHtml(error)}</div>` : comparison ? relicComparisonChartSvg(comparison) : ''}</div>
+  </section>`;
 
-  if (relicComparison) bindRelicComparisonChartHover(container, relicComparison);
+  if (comparison) bindRelicComparisonChartHover(container, comparison);
 
-  const runRelicComparison = container.querySelector<HTMLElement>('[data-role="relic-comparison-run"]');
-  const relicComparisonTargetInput = container.querySelector<HTMLSelectElement>(
-    '[data-role="relic-comparison-target"]'
-  );
-  const relicComparisonStacksControl = container.querySelector<HTMLElement>(
-    '[data-role="relic-comparison-stacks-control"]'
-  );
+  const host = container.querySelector<HTMLElement>('[data-role="relic-comparison-picker"]');
+  const button = container.querySelector<HTMLButtonElement>('[data-role="relic-comparison-run"]');
   const stackInput = container.querySelector<HTMLInputElement>('[data-role="relic-comparison-stacks"]');
-  // Commit control edits to the shared owner before a tab switch or baseline refresh can replace this panel.
+  const stackControl = container.querySelector<HTMLElement>('[data-role="relic-comparison-stacks-control"]');
+  const values = () =>
+    host ? [...host.querySelectorAll<HTMLInputElement>('input[type="hidden"]')].map((input) => input.value) : selected;
   const selectionChanged = () => {
-    if (!onSelect?.(relicComparisonTargetInput?.value || relicComparisonTarget, Number(stackInput?.value || 0))) return;
+    const relics = values();
 
-    // Remove stale output without replacing the focused picker or numeric input.
+    if (stackControl) stackControl.hidden = !relics.includes('Thorns');
+
+    // Clamped stack edits may leave the runner unchanged; retain its chart and button label.
+    if (onSelect?.(relics, Number(stackInput?.value || 0)) === false) return;
+
     container.querySelector('[data-role="relic-comparison-output"]')?.replaceChildren();
 
-    if (runRelicComparison) runRelicComparison.textContent = 'Run comparison';
+    if (button) {
+      button.textContent = 'Run comparison';
+      button.disabled = pending || !relics.length;
+    }
   };
+
+  if (host) {
+    bindCandidatePickers(host);
+    host.querySelectorAll<HTMLElement>('[data-picker]').forEach(updatePicker);
+    host.addEventListener('change', selectionChanged);
+  }
 
   if (stackInput) stackInput.oninput = selectionChanged;
 
-  if (relicComparisonTargetInput) {
-    // Show only the selected relic's assumption controls.
-    relicComparisonTargetInput.onchange = () => {
-      if (relicComparisonStacksControl)
-        relicComparisonStacksControl.hidden = relicComparisonTargetInput.value !== 'Thorns';
-
-      selectionChanged();
+  if (button)
+    button.onclick = () => {
+      if (!pending && values().length) onRunRelicComparison?.(values(), Number(stackInput?.value || 0));
     };
-  }
-
-  // Use the workspace's grouped, searchable equipment menu while keeping comparison values and handlers local.
-  container.querySelectorAll<HTMLSelectElement>('select.gear-select').forEach((select) => {
-    enhanceDetailedSelect(select, select.id);
-  });
-
-  if (runRelicComparison && typeof onRunRelicComparison === 'function') {
-    runRelicComparison.onclick = () => {
-      const initialStacks = container.querySelector<HTMLInputElement>('[data-role="relic-comparison-stacks"]');
-      onRunRelicComparison?.(
-        relicComparisonTargetInput?.value || relicComparisonTarget,
-        Number(initialStacks?.value || 0)
-      );
-    };
-  }
 }
 
 /** Compares relics against the equipped workspace build and waits for its baseline to finish. */
@@ -158,22 +130,16 @@ export function renderRelicComparison(app: ProfessionAppState): void {
     {
       relicComparison: runner.comparison,
       relicComparisonAvailable: runner.available,
+      relicComparisonPending:
+        app.analysis.state.simulationStatus !== 'idle' ||
+        app.analysis.state.resultRevision !== app.analysis.state.buildRevision,
       relicComparisonError: runner.error,
       relicComparisonOpponent: app.build.relic,
-      relicComparisonTarget: runner.comparisonRelic,
+      relicComparisonSelected: runner.comparisonRelics,
       relicComparisonTargets: app.relicNames.filter((name) => name !== app.build.relic),
       relicComparisonInitialStacks: runner.initialStacks
     },
-    (relic, stacks) => app.runRelicComparison(relic, stacks),
-    (relic, stacks) => runner.select(relic, stacks)
+    (relics, stacks) => app.runRelicComparison(relics, stacks),
+    (relics, stacks) => runner.select(relics, stacks)
   );
-  // A queued baseline must finish before its output can be used as the comparison opponent.
-  const button = container.querySelector<HTMLButtonElement>('[data-role="relic-comparison-run"]');
-
-  if (
-    button &&
-    (app.analysis.state.simulationStatus !== 'idle' ||
-      app.analysis.state.resultRevision !== app.analysis.state.buildRevision)
-  )
-    button.disabled = true;
 }

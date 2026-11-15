@@ -49,14 +49,28 @@ test('graph tooltips stay inside the chart at desktop and mobile widths', async 
 
     const model = {
       equippedRelic: 'Fractal',
-      targetRelic: 'Akeem',
+      relics: [
+        { relic: 'Fractal', kill: { killTimeMs: null, observedMs: 10000 }, crossoverMs: null },
+        { relic: 'Akeem', kill: { killTimeMs: null, observedMs: 10000 }, crossoverMs: null }
+      ],
       durationMs: 10000,
       evaluationStartMs: 0,
-      opponentFinalDps: 30000,
-      targetFinalDps: 29000,
+      targetHealthPercent: 100,
       points: [
-        { tMs: 0, opponentDps: 30000, targetDps: 29000 },
-        { tMs: 10000, opponentDps: 30000, targetDps: 29000 }
+        {
+          tMs: 0,
+          samples: [
+            { buildDps: 30000, directDps: 1000, gainedDps: 2000 },
+            { buildDps: 29000, directDps: 1000, gainedDps: 1000 }
+          ]
+        },
+        {
+          tMs: 10000,
+          samples: [
+            { buildDps: 30000, directDps: 1000, gainedDps: 2000 },
+            { buildDps: 29000, directDps: 1000, gainedDps: 1000 }
+          ]
+        }
       ]
     };
     const relic = document.querySelector('#relic');

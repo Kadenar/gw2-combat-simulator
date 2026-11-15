@@ -1,438 +1,499 @@
+// Shared-window contracts and presentation use small scenarios independent of saved benchmarks.
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { calculateRelicComparison } from '#gw2/app/optimizer/relic-comparison/calculate.js';
 import { bindRelicComparisonChartHover, relicComparisonChartSvg } from '#gw2/app/optimizer/relic-comparison/chart.js';
 import { mountRelicComparison } from '#gw2/app/optimizer/relic-comparison/panel.js';
 import {
   buildRelicComparisonModel,
-  CROSSOVER_EVALUATION_START_MS,
-  relicComparisonAvailable,
-  relicDamageSummary
+  relicComparisonAvailable
 } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
+import { MAX_RELIC_COMPARISON_ALTERNATIVES } from '#gw2/app/optimizer/relic-comparison/types.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 
-test('break-even chart hover shows the time and both relic DPS values', () => {
-  const tooltip = { innerHTML: '', style: {} };
-  const svg = {
-    getBoundingClientRect: () => ({ height: 260, left: 0, top: 0, width: 640 })
-  };
-  const container = {
-    querySelector: (selector) =>
-      selector === '[data-role="relic-comparison-chart"]'
-        ? svg
-        : selector === '[data-role="relic-comparison-tooltip"]'
-          ? tooltip
-          : null
-  };
-  const model = {
-    equippedRelic: 'Fractal',
-    targetRelic: 'Akeem',
-    durationMs: 2000,
-    points: [
-      { tMs: 0, opponentDps: 1000, targetDps: 900 },
-      { tMs: 2000, opponentDps: 1200, targetDps: 1100 }
+function comparisonModel(opponentDps, targetDps, options = {}) {
+  const zero = opponentDps.map(({ t }) => ({ t, v: 0 }));
+  return buildRelicComparisonModel({
+    runs: [
+      {
+        relic: 'Fractal',
+        dps: opponentDps,
+        directDps: options.opponentDirectDps ?? zero,
+        kill: { killTimeMs: 1880, observedMs: 1880 }
+      },
+      {
+        relic: 'Akeem',
+        dps: targetDps,
+        directDps: options.targetDirectDps ?? zero,
+        kill: { killTimeMs: null, observedMs: 2000 }
+      },
+      ...(options.extraRuns ?? [])
     ],
-    crossoverMs: null,
-    targetAlwaysAhead: false,
-    evaluationStartMs: 0,
-    opponentFinalDps: 1200,
-    targetFinalDps: 1100
+    withoutRelicDps: options.withoutRelicDps ?? zero,
+    targetHealthPercent: 100
+  });
+}
+
+test('fixed-health comparison survives a lethal target and measures condition payouts through the shared endpoint', () => {
+  const config = {
+    relic: 'Last Tyrant',
+    primaryWeapon: 'Scepter',
+    secondaryWeapon: 'Torch',
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, conditionDamage: 1000 }),
+    target: { health: 1, armor: 2597 }
   };
+  const rotation = ['Purging Flames', "Zealot's Flame", { type: 'wait', durationMs: 6000 }];
+  const baseline = simulateGw2({ profession: guardianProfession, config, rotation });
+  const runs = [];
+  const comparison = calculateRelicComparison(
+    {
+      rotation,
+      baseConfig: config,
+      equippedRelic: 'Last Tyrant',
+      comparisonRelics: ['Fractal', 'Thorns'],
+      baselineResult: baseline,
+      initialStacks: 0
+    },
+    guardianProfession,
+    (options) => {
+      const result = simulateGw2(options);
 
-  bindRelicComparisonChartHover(container, model);
-  svg.onmousemove({ clientX: 341, clientY: 100 });
+      if (options.output !== 'score') runs.push(result);
 
-  assert.match(tooltip.innerHTML, /1\.000s/);
-  assert.match(tooltip.innerHTML, /Relic of Fractal: 1,100 DPS/);
-  assert.match(tooltip.innerHTML, /Relic of Akeem: 1,000 DPS/);
-  assert.equal(tooltip.style.display, 'block');
-  assert.match(relicComparisonChartSvg(model), /Relic of Akeem does not overtake Relic of Fractal/);
-  assert.doesNotMatch(relicComparisonChartSvg(model), /Thorns/);
-});
-
-test('relic comparison requires two distinct relics', () => {
-  const relicNames = ['Fractal', 'Thorns', 'Akeem', 'Krait'];
-  assert.equal(relicComparisonAvailable('Fractal', 'Thorns', relicNames), true);
-  assert.equal(relicComparisonAvailable('Thorns', 'Akeem', relicNames), true);
-  assert.equal(relicComparisonAvailable('Thorns', 'Thorns', relicNames), false);
-  assert.equal(relicComparisonAvailable('', 'Krait', relicNames), false);
-  assert.equal(relicComparisonAvailable(null, 'Krait', relicNames), false);
-  assert.equal(relicComparisonAvailable('Fractal', 'Unknown', relicNames), false);
-});
-
-test('break-even samples share timestamps and stop at the shorter simulation endpoint', () => {
-  // Unequal endpoints must not label the shorter curve's final value with the longer curve's time.
-  const longer = [
-    { t: 0, v: 0 },
-    { t: 250, v: 1000 },
-    { t: 500, v: 2000 }
-  ];
-  const shorter = [
-    { t: 0, v: 0 },
-    { t: 250, v: 900 },
-    { t: 400, v: 1100 }
-  ];
-  for (const reversed of [false, true]) {
-    const model = buildRelicComparisonModel({
-      equippedRelic: 'Fractal',
-      targetRelic: 'Thorns',
-      opponentDps: reversed ? shorter : longer,
-      targetDps: reversed ? longer : shorter,
-      opponentFinalDps: reversed ? 1110 : 2010,
-      targetFinalDps: reversed ? 2010 : 1110
-    });
-
-    assert.equal(model.durationMs, 400);
-    assert.deepEqual(model.points, [
-      { tMs: 250, opponentDps: reversed ? 900 : 1000, targetDps: reversed ? 1000 : 900 },
-      { tMs: 400, opponentDps: reversed ? 1100 : 1000, targetDps: reversed ? 1000 : 1100 }
-    ]);
-    assert.equal(model.crossoverMs, reversed ? null : 325);
-    assert.equal(model.targetAlwaysAhead, false);
-    assert.equal(model.opponentFinalDps, reversed ? 1110 : 2010);
-    assert.equal(model.targetFinalDps, reversed ? 2010 : 1110);
-    assert.match(relicComparisonChartSvg(model), /<caption>Final simulation results<\/caption>/);
+      return result;
+    }
+  );
+  assert.notEqual(baseline.deathTime, null);
+  assert.ok(comparison.durationMs > comparison.relics[0].kill.killTimeMs);
+  assert.equal(runs.length, 4);
+  for (const result of runs) {
+    assert.equal(result.output, 'observations');
+    assert.equal('breakdown' in result, false);
+    assert.equal(result.deathTime, null);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.combatEndTime, runs[0].combatEndTime);
   }
 
-  const empty = buildRelicComparisonModel({
-    equippedRelic: 'Fractal',
-    targetRelic: 'Thorns',
-    opponentDps: longer,
-    targetDps: [],
-    opponentFinalDps: 2010,
-    targetFinalDps: 0
+  const final = comparison.points.at(-1);
+  // Observation-only output must retain the same condition payouts as detailed results.
+  const detailed = simulateGw2({
+    profession: guardianProfession,
+    rotation,
+    config: { ...config, target: { ...config.target, health: 0, fixedHealthFraction: 1 } },
+    collectChartData: false
   });
-  assert.deepEqual(empty.points, []);
-  assert.equal(empty.durationMs, 0);
-  assert.equal(empty.crossoverMs, null);
-  assert.equal(empty.targetAlwaysAhead, false);
-  assert.equal(empty.opponentFinalDps, 2010);
+  assert.equal(runs[0].totalDamage, detailed.totalDamage);
+  const relicDamage = detailed.breakdown
+    .filter((entry) => entry.source === 'Relic' || entry.name.startsWith('Relic of '))
+    .reduce((sum, entry) => sum + entry.damage, 0);
+  assert.ok(relicDamage > 0);
+  assert.ok(Math.abs((final.samples[0].directDps * comparison.durationMs) / 1000 - relicDamage) < 0.000001);
+  assert.ok(
+    Math.abs(
+      final.samples[0].gainedDps - (runs[0].totalDamage - runs.at(-1).totalDamage) / (comparison.durationMs / 1000)
+    ) < 0.000001
+  );
 });
 
-test('break-even model interpolates the crossover where Thorns overtakes the opponent', () => {
-  // Opponent flat at 1000; Thorns ramps 900 -> 1100 across the window. They are
-  // equal at t=2000ms (index 2), so the crossover interpolates to exactly 2s.
-  const opponentDps = [
-    { t: 0, v: 1000 },
-    { t: 1000, v: 1000 },
-    { t: 2000, v: 1000 },
-    { t: 3000, v: 1000 },
-    { t: 4000, v: 1000 }
-  ];
-  const thornsDps = [
-    { t: 0, v: 900 },
-    { t: 1000, v: 950 },
-    { t: 2000, v: 1000 },
-    { t: 3000, v: 1050 },
-    { t: 4000, v: 1100 }
-  ];
-  const model = buildRelicComparisonModel({
-    equippedRelic: 'Fractal',
-    targetRelic: 'Thorns',
-    opponentDps,
-    targetDps: thornsDps,
-    opponentFinalDps: opponentDps.at(-1).v,
-    targetFinalDps: thornsDps.at(-1).v
-  });
+// Clip recorded payouts on one clock, including an exact endpoint between regular chart samples.
+test('the earliest rotation bounds every series without erasing damage earned by finishing sooner', () => {
+  for (const fastest of ['Fractal', 'Thorns', '']) {
+    const calls = [];
+    const comparison = calculateRelicComparison(
+      {
+        rotation: [],
+        baseConfig: {},
+        equippedRelic: 'Fractal',
+        comparisonRelics: ['Thorns'],
+        initialStacks: 0,
+        baselineResult: { deathTime: 6, dpsStartTime: 0.5, combatEndTime: 6 }
+      },
+      {},
+      (options) => {
+        calls.push(options);
 
-  assert.equal(model.equippedRelic, 'Fractal');
-  assert.equal(model.targetRelic, 'Thorns');
-  assert.equal(model.points.length, 5);
-  assert.equal(model.crossoverMs, 2000);
-  assert.equal(model.targetAlwaysAhead, false);
-  assert.equal(model.opponentFinalDps, 1000);
-  assert.equal(model.targetFinalDps, 1100);
+        if (options.output === 'score') return { deathTime: 7, dpsStartTime: 1, combatEndTime: 7 };
+
+        const end = options.config.relic === fastest ? 4.125 : 5.125;
+        return {
+          dpsStartTime: options.config.relic === 'Thorns' ? 1 : 0.5,
+          firstHitTime: 1,
+          rotationEndTime: end,
+          observationEndTime: end,
+          combatEndTime: end,
+          resolvedEvents: [
+            { type: 'damage', at: 1, damage: 1000 },
+            { type: 'damage', at: end, damage: 1000 },
+            {
+              type: 'condition',
+              at: 1,
+              source: options.config.relic ? 'Relic' : 'Skill',
+              damage: end > 4.125 ? 950 : 150,
+              damageTicks: [
+                { at: 3.5, damage: 100 },
+                { at: 4.125, damage: 50 },
+                ...(end > 4.125 ? [{ at: 4.25, damage: 800 }] : [])
+              ]
+            }
+          ]
+        };
+      }
+    );
+    assert.equal(calls.length, 4);
+    assert.ok(
+      calls.every((call) => !call.observationPolicy),
+      'comparison needs no padded simulation runs'
+    );
+    assert.equal(comparison.durationMs, 3625);
+    const final = comparison.points.at(-1);
+    assert.equal(final.tMs, 3625);
+    const seconds = comparison.durationMs / 1000;
+    const baselineDamage = fastest === '' ? 2150 : 1150;
+    for (const [index, relic] of ['Fractal', 'Thorns'].entries()) {
+      const damage = relic === fastest ? 2150 : 1150;
+      assert.equal(final.samples[index].buildDps, damage / seconds);
+      assert.equal(final.samples[index].directDps, 150 / seconds);
+      assert.equal(final.samples[index].gainedDps, damage / seconds - baselineDamage / seconds);
+    }
+
+    assert.equal(comparison.relics[0].kill.killTimeMs, 5500);
+    assert.equal(comparison.relics[1].kill.killTimeMs, 6000);
+  }
 });
 
-test('break-even model treats an early tie then lead as "always ahead", not a crossover', () => {
-  // Thorns is tied before its Condition Damage ramps (t=0), then pulls ahead and
-  // never falls behind. No overtake occurs because the opponent never leads.
-  const opponentDps = [
-    { t: 0, v: 1000 },
-    { t: 1000, v: 1000 },
-    { t: 2000, v: 1000 }
-  ];
-  const thornsDps = [
-    { t: 0, v: 1000 },
-    { t: 1000, v: 1040 },
-    { t: 2000, v: 1090 }
-  ];
-  const model = buildRelicComparisonModel({
-    equippedRelic: 'Fractal',
-    targetRelic: 'Thorns',
-    opponentDps,
-    targetDps: thornsDps,
-    opponentFinalDps: opponentDps.at(-1).v,
-    targetFinalDps: thornsDps.at(-1).v
-  });
-
-  assert.equal(model.crossoverMs, null);
-  assert.equal(model.targetAlwaysAhead, true);
+test('relic comparison requires two distinct supported relics', () => {
+  const names = ['Fractal', 'Thorns', 'Akeem'];
+  assert.equal(relicComparisonAvailable('Fractal', ['Thorns', 'Akeem'], names), true);
+  for (const [equipped, target] of [
+    ['Thorns', 'Thorns'],
+    ['', 'Akeem'],
+    [null, 'Akeem'],
+    ['Fractal', 'Unknown']
+  ])
+    assert.equal(relicComparisonAvailable(equipped, [target], names), false);
 });
 
-test('break-even model interpolates a crossover between samples', () => {
-  // Thorns passes the opponent halfway between 1000ms and 2000ms.
-  const opponentDps = [
-    { t: 0, v: 1000 },
-    { t: 1000, v: 1000 },
-    { t: 2000, v: 1000 }
-  ];
-  const thornsDps = [
-    { t: 0, v: 800 },
-    { t: 1000, v: 900 },
-    { t: 2000, v: 1100 }
-  ];
-  const model = buildRelicComparisonModel({
-    equippedRelic: 'Akeem',
-    targetRelic: 'Thorns',
-    opponentDps,
-    targetDps: thornsDps,
-    opponentFinalDps: opponentDps.at(-1).v,
-    targetFinalDps: thornsDps.at(-1).v
+test('comparison attributes direct and indirect effects against the same no-relic sample', () => {
+  const model = comparisonModel(
+    [
+      { t: 1000, v: 1200 },
+      { t: 2000, v: 1100 }
+    ],
+    [
+      { t: 1000, v: 1000 },
+      { t: 2000, v: 900 }
+    ],
+    {
+      withoutRelicDps: [
+        { t: 1000, v: 1000 },
+        { t: 2000, v: 1000 }
+      ],
+      opponentDirectDps: [
+        { t: 1000, v: 150 },
+        { t: 2000, v: 50 }
+      ]
+    }
+  );
+  assert.deepEqual(model.points[0], {
+    tMs: 1000,
+    samples: [
+      { buildDps: 1200, directDps: 150, gainedDps: 200 },
+      { buildDps: 1000, directDps: 0, gainedDps: 0 }
+    ]
   });
-
-  // delta goes -100 -> +100 across [1000, 2000]; zero crossing at the midpoint.
-  assert.equal(model.crossoverMs, 1500);
+  assert.equal(model.points[1].samples[1].gainedDps, -100);
+  assert.equal(model.points[1].samples[0].gainedDps, 100);
+  const markup = relicComparisonChartSvg(model);
+  assert.match(markup, /Results at 2.0s/);
+  assert.match(markup, /Direct relic DPS/);
+  assert.match(markup, /Total DPS gained/);
+  assert.match(markup, /1.88s/);
+  assert.match(markup, /No kill within 2.0s/);
+  assert.doesNotMatch(markup, /Longer fights favour|Final simulation results/);
 });
 
-test('break-even model ignores leading no-damage samples (no spurious t=0 crossover)', () => {
-  // buildChartSeries emits a { t: 0, v: 0 } sample before the first hit. Both
-  // curves are 0 there, which must not be treated as a crossover.
-  const opponentDps = [
-    { t: 0, v: 0 },
-    { t: 1000, v: 1000 },
-    { t: 2000, v: 1000 }
-  ];
-  const thornsDps = [
-    { t: 0, v: 0 },
-    { t: 1000, v: 900 },
-    { t: 2000, v: 1100 }
-  ];
-  const model = buildRelicComparisonModel({
-    equippedRelic: 'Fractal',
-    targetRelic: 'Thorns',
-    opponentDps,
-    targetDps: thornsDps,
-    opponentFinalDps: opponentDps.at(-1).v,
-    targetFinalDps: thornsDps.at(-1).v
-  });
-
-  assert.equal(model.points.length, 2);
-  assert.equal(model.points[0].tMs, 1000);
-  assert.equal(model.crossoverMs, 1500);
+test('comparison bounds samples by all three observation windows', () => {
+  const model = comparisonModel(
+    [
+      { t: 1000, v: 1200 },
+      { t: 2000, v: 1300 }
+    ],
+    [
+      { t: 1000, v: 1000 },
+      { t: 2000, v: 1100 }
+    ],
+    {
+      withoutRelicDps: [
+        { t: 1000, v: 900 },
+        { t: 1500, v: 950 }
+      ]
+    }
+  );
+  assert.equal(model.durationMs, 1500);
+  assert.deepEqual(
+    model.points.map(({ tMs }) => tMs),
+    [1000, 1500]
+  );
+  assert.equal(model.points.at(-1).samples[0].gainedDps, 250);
+  assert.equal(comparisonModel([{ t: 1000, v: 1200 }], []).points.length, 0);
 });
 
-test('break-even model ignores an opponent lead confined to the opener', () => {
-  // Opponent leads only before the evaluation threshold; past it Thorns is
-  // always ahead, so the early crossing must not be reported.
-  assert.ok(CROSSOVER_EVALUATION_START_MS >= 5000);
-  const opponentDps = [
-    { t: 2000, v: 1000 },
-    { t: 6000, v: 1000 },
-    { t: 8000, v: 1000 },
-    { t: 10000, v: 1000 },
-    { t: 12000, v: 1000 }
+test('crossovers describe only the displayed window and retain the last crossing', () => {
+  const opponent = [2000, 8000, 10000, 12000, 14000].map((t) => ({ t, v: 1000 }));
+  const cases = [
+    { values: [900, 1100, 1100, 1100, 1100], crossing: null },
+    { values: [1100, 900, 1100, 900, 1100], crossing: 13000 },
+    { values: [900, 900, 900, 900, 900], crossing: null },
+    { values: [900, 1000, 1000, 1000, 1000], crossing: null }
   ];
-  const thornsDps = [
-    { t: 2000, v: 900 },
-    { t: 6000, v: 950 },
-    { t: 8000, v: 1010 },
-    { t: 10000, v: 1050 },
-    { t: 12000, v: 1100 }
-  ];
-  const model = buildRelicComparisonModel({
-    equippedRelic: 'Fractal',
-    targetRelic: 'Thorns',
-    opponentDps,
-    targetDps: thornsDps,
-    opponentFinalDps: opponentDps.at(-1).v,
-    targetFinalDps: thornsDps.at(-1).v
-  });
-
-  assert.equal(model.crossoverMs, null);
-  assert.equal(model.targetAlwaysAhead, true);
+  for (const { values, crossing } of cases) {
+    const model = comparisonModel(
+      opponent,
+      opponent.map(({ t }, i) => ({ t, v: values[i] }))
+    );
+    assert.equal(model.relics[1].crossoverMs, crossing);
+    assert.equal(model.evaluationStartMs, 8000);
+    assert.doesNotMatch(relicComparisonChartSvg(model), /Longer fights|shorter fights|entire/);
+  }
 });
 
-test('break-even model reports a crossover that occurs past the opener threshold', () => {
-  const opponentDps = [
-    { t: 2000, v: 1000 },
-    { t: 8000, v: 1000 },
-    { t: 10000, v: 1000 },
-    { t: 12000, v: 1000 }
-  ];
-  const thornsDps = [
-    { t: 2000, v: 1200 }, // Ignore Thorns leading during the opener.
-    { t: 8000, v: 900 },
-    { t: 10000, v: 1000 },
-    { t: 12000, v: 1100 }
-  ];
-  const model = buildRelicComparisonModel({
-    equippedRelic: 'Akeem',
-    targetRelic: 'Thorns',
-    opponentDps,
-    targetDps: thornsDps,
-    opponentFinalDps: opponentDps.at(-1).v,
-    targetFinalDps: thornsDps.at(-1).v
-  });
-
-  // Last opponent lead is at 8000ms; crossing interpolates to 10000ms.
-  assert.equal(model.crossoverMs, 10000);
-  assert.equal(model.targetAlwaysAhead, false);
+test('hover and keyboard inspection share a sample across tooltip and table, restoring the selection on exit', () => {
+  const tooltip = { innerHTML: '', style: {} };
+  const table = { innerHTML: '' };
+  const svg = { getBoundingClientRect: () => ({ height: 260, left: 0, top: 0, width: 640 }) };
+  const elements = {
+    'relic-comparison-chart': svg,
+    'relic-comparison-tooltip': tooltip,
+    'relic-comparison-results': table
+  };
+  const container = { querySelector: (selector) => elements[selector.match(/data-role="([^"]+)"/)[1]] ?? null };
+  const model = comparisonModel(
+    [
+      { t: 1000, v: 1000 },
+      { t: 2000, v: 1200 },
+      { t: 3000, v: 1300 }
+    ],
+    [
+      { t: 1000, v: 900 },
+      { t: 2000, v: 1100 },
+      { t: 3000, v: 1200 }
+    ],
+    {
+      withoutRelicDps: [
+        { t: 1000, v: 800 },
+        { t: 2000, v: 800 },
+        { t: 3000, v: 800 }
+      ]
+    }
+  );
+  bindRelicComparisonChartHover(container, model);
+  svg.onmousemove({ clientX: 341, clientY: 100 });
+  assert.match(tooltip.innerHTML, /2.000s/);
+  assert.match(tooltip.innerHTML, /Fractal<\/span>: 400 DPS gained/);
+  assert.match(table.innerHTML, /Results at 2.0s/);
+  assert.match(table.innerHTML, /1,200/);
+  svg.onmouseleave();
+  assert.match(table.innerHTML, /Results at 3.0s/);
+  assert.equal(tooltip.style.display, 'none');
+  svg.onkeydown({ key: 'Home', preventDefault() {} });
+  assert.match(table.innerHTML, /Results at 1.0s/);
+  svg.onmousemove({ clientX: 341, clientY: 100 });
+  svg.onmouseleave();
+  assert.match(table.innerHTML, /Results at 1.0s/);
 });
 
-test('break-even model reports no crossover when Thorns never catches up', () => {
-  const opponentDps = [
-    { t: 0, v: 1000 },
-    { t: 1000, v: 1000 }
-  ];
-  const thornsDps = [
-    { t: 0, v: 800 },
-    { t: 1000, v: 950 }
-  ];
-  const model = buildRelicComparisonModel({
-    equippedRelic: 'Fractal',
-    targetRelic: 'Thorns',
-    opponentDps,
-    targetDps: thornsDps,
-    opponentFinalDps: opponentDps.at(-1).v,
-    targetFinalDps: thornsDps.at(-1).v
-  });
-
-  assert.equal(model.crossoverMs, null);
-  assert.equal(model.targetAlwaysAhead, false);
+test('multiple relics share the baseline while retaining their own crossover and direct damage', () => {
+  const model = comparisonModel(
+    [
+      { t: 1000, v: 1000 },
+      { t: 2000, v: 1000 }
+    ],
+    [
+      { t: 1000, v: 900 },
+      { t: 2000, v: 1100 }
+    ],
+    {
+      withoutRelicDps: [
+        { t: 1000, v: 800 },
+        { t: 2000, v: 800 }
+      ],
+      extraRuns: [
+        {
+          relic: 'Thorns',
+          dps: [
+            { t: 1000, v: 1200 },
+            { t: 2000, v: 1300 }
+          ],
+          directDps: [
+            { t: 1000, v: 0 },
+            { t: 2000, v: 0 }
+          ],
+          kill: { killTimeMs: 1900, observedMs: 1900 }
+        }
+      ]
+    }
+  );
+  assert.deepEqual(
+    model.points.at(-1).samples.map((sample) => sample.gainedDps),
+    [200, 300, 500]
+  );
+  assert.equal(model.relics[1].crossoverMs, 1500);
+  assert.equal(model.relics[2].crossoverMs, null);
+  const markup = relicComparisonChartSvg(model);
+  assert.equal([...markup.matchAll(/<polyline/g)].length, 3);
+  assert.match(markup, /Relic of Thorns/);
+  assert.match(markup, /1.90s/);
 });
 
-test('relic comparison passes assumptions and shows the selected relic controls', () => {
+test('relic comparison preserves multiple choices and updates assumptions without running', () => {
   const runButton = {};
-  const targetInput = { value: 'Thorns' };
   const stackInput = { value: '4' };
   const stackControl = { hidden: false };
+  let selected = ['Akeem', 'Thorns'];
+  const listeners = [];
+  const host = {
+    querySelectorAll: (selector) => (selector === 'input[type="hidden"]' ? selected.map((value) => ({ value })) : []),
+    addEventListener: (name, handler) => {
+      if (name === 'change') listeners.push(handler);
+    }
+  };
   let cleared = 0;
-  const output = {
-    replaceChildren() {
-      cleared++;
+  const elements = {
+    'relic-comparison-run': runButton,
+    'relic-comparison-stacks': stackInput,
+    'relic-comparison-stacks-control': stackControl,
+    'relic-comparison-picker': host,
+    'relic-comparison-output': {
+      replaceChildren() {
+        cleared++;
+      }
     }
   };
   const container = {
     ...inertContainer(),
-    querySelector: (selector) =>
-      selector === '[data-role="relic-comparison-run"]'
-        ? runButton
-        : selector === '[data-role="relic-comparison-target"]'
-          ? targetInput
-          : selector === '[data-role="relic-comparison-stacks-control"]'
-            ? stackControl
-            : selector === '[data-role="relic-comparison-stacks"]'
-              ? stackInput
-              : selector === '[data-role="relic-comparison-output"]'
-                ? output
-                : null
+    querySelector: (selector) => elements[selector.match(/data-role="([^"]+)"/)[1]] ?? null
   };
-  let targetRelic = null;
-  let startingStacks = null;
+  let run;
   const selections = [];
-
   mountRelicComparison(
     container,
     {
       relicComparisonAvailable: true,
       relicComparisonOpponent: 'Fractal',
-      relicComparisonTarget: 'Thorns',
+      relicComparisonSelected: selected,
       relicComparisonTargets: ['Akeem', 'Mirage', 'Thorns'],
       relicComparisonInitialStacks: 4
     },
-    (relic, stacks) => {
-      targetRelic = relic;
-      startingStacks = stacks;
+    (relics, stacks) => {
+      run = { relics, stacks };
     },
-    (relic, stacks) => {
-      selections.push([relic, stacks]);
+    (relics, stacks) => {
+      selections.push([relics, stacks]);
       return true;
     }
   );
-
-  assert.match(container.innerHTML, /Relic break-even comparison/);
-  assert.doesNotMatch(container.innerHTML, /Off by default/);
-  assert.match(container.innerHTML, /<option value="Akeem">Akeem -/);
-  assert.match(container.innerHTML, /<optgroup label="Condition">/);
-  assert.doesNotMatch(container.innerHTML, /<optgroup label="(?:Power|Hybrid)">/);
-  assert.doesNotMatch(container.innerHTML, /value="Fractal"/);
-  assert.match(container.innerHTML, /aria-label="Starting Thorns stacks"/);
-  assert.match(container.innerHTML, /min="0" max="10" step="1" value="4"/);
-  targetInput.value = 'Akeem';
-  targetInput.onchange();
-  assert.equal(stackControl.hidden, true);
-  assert.deepEqual(selections, [['Akeem', 4]], 'picker edits publish without running a simulation');
-  stackInput.value = '6';
-  stackInput.oninput();
-  assert.deepEqual(selections.at(-1), ['Akeem', 6]);
-  assert.equal(cleared, 2, 'each changed selection clears the previous output without remounting the controls');
-  assert.equal(runButton.textContent, 'Run comparison');
-  stackInput.value = '4';
-  runButton.onclick();
-  assert.equal(targetRelic, 'Akeem');
-  assert.equal(startingStacks, 4);
-  assert.doesNotMatch(container.innerHTML, /relic-comparison-evades/);
-  targetInput.value = 'Mirage';
-  targetInput.onchange();
+  assert.match(container.innerHTML, /Remove Akeem from comparison-relics/);
+  assert.match(container.innerHTML, /Remove Thorns from comparison-relics/);
+  selected = ['Akeem', 'Thorns', 'Mirage'];
+  listeners.at(-1)();
+  assert.equal(stackControl.hidden, false);
+  assert.deepEqual(selections.at(-1), [selected, 4]);
+  selected = ['Akeem', 'Mirage'];
+  listeners.at(-1)();
   assert.equal(stackControl.hidden, true);
   runButton.onclick();
-  assert.equal(targetRelic, 'Mirage');
+  assert.deepEqual(run, { relics: ['Akeem', 'Mirage'], stacks: 4 });
+  selected = [];
+  listeners.at(-1)();
+  assert.equal(runButton.disabled, true);
+  assert.equal(cleared, 3);
 });
 
-// Attribution includes direct relic conditions/strikes and counterfactual modifier effects.
-test('relic damage summaries separate direct damage from net DPS contribution', () => {
-  const opponentDamage = relicDamageSummary(
-    {
-      dps: 1200,
-      breakdown: [
-        { name: 'Weapon', damage: 9000 },
-        { name: 'Relic of the Fractal - Burning', damage: 1200 },
-        { name: 'Relic of the Fractal - Torment', damage: 800 }
-      ]
-    },
-    1000
-  );
-  const targetDamage = relicDamageSummary({ dps: 1300, breakdown: [{ name: 'Weapon', damage: 13000 }] }, 1000);
-  assert.deepEqual(opponentDamage, { directDamage: 2000, contributedDps: 200 });
-  assert.deepEqual(targetDamage, { directDamage: 0, contributedDps: 300 });
-  const model = buildRelicComparisonModel({
-    equippedRelic: 'Fractal',
-    targetRelic: 'Thorns',
-    opponentDps: [{ t: 10000, v: 1200 }],
-    targetDps: [{ t: 10000, v: 1300 }],
-    opponentFinalDps: 1200,
-    targetFinalDps: 1300
-  });
-  const markup = relicComparisonChartSvg({ ...model, opponentDamage, targetDamage });
-  assert.match(markup, /Fractal \(standard\)/);
-  assert.match(markup, /Direct relic damage/);
-  assert.match(markup, /Relic DPS contribution/);
-  assert.match(markup, /Build DPS/);
-  assert.ok(markup.includes((2000).toLocaleString()));
-});
-
-// Comparison choices keep the gear categories and selection even when targets arrive alphabetically.
-test('relic comparison groups available choices by damage category', () => {
+test('relic comparison orders available choices by equipment category and disables selected choices', () => {
   const container = inertContainer();
-
   mountRelicComparison(container, {
     relicComparisonAvailable: true,
-    relicComparisonTarget: 'Thorns',
+    relicComparisonSelected: ['Thorns'],
     relicComparisonTargets: ['Akeem', 'Brawler', 'Nourys', 'Thorns']
   });
+  const choices = [...container.innerHTML.matchAll(/data-choice="([^"]+)"/g)].map(([, name]) => name);
+  assert.deepEqual(choices, ['Brawler', 'Akeem', 'Thorns', 'Nourys']);
+  assert.match(container.innerHTML, /data-choice="Thorns" disabled/);
+  assert.match(container.innerHTML, new RegExp(`data-limit="${MAX_RELIC_COMPARISON_ALTERNATIVES}"`));
+});
 
-  const groups = [...container.innerHTML.matchAll(/<optgroup label="([^"]+)">([\s\S]*?)<\/optgroup>/g)];
-  assert.deepEqual(
-    groups.map(([, label, options]) => [
-      label,
-      [...options.matchAll(/<option value="([^"]+)"/g)].map(([, name]) => name)
-    ]),
-    [
-      ['Power', ['Brawler']],
-      ['Condition', ['Akeem', 'Thorns']],
-      ['Hybrid', ['Nourys']]
-    ]
+test('comparison refuses oversized requests before starting synchronous simulation work', () => {
+  let simulated = 0;
+  assert.throws(
+    () =>
+      calculateRelicComparison(
+        {
+          equippedRelic: 'Fractal',
+          comparisonRelics: Array.from(
+            { length: MAX_RELIC_COMPARISON_ALTERNATIVES + 1 },
+            (_, index) => `relic-${index}`
+          )
+        },
+        {},
+        () => {
+          simulated++;
+        }
+      ),
+    /at most 5 alternative relics/
   );
-  assert.match(container.innerHTML, /<option value="Thorns" selected>Thorns -/);
+  assert.equal(simulated, 0);
+});
+
+test('clamped stack edits retain the chart and pending baselines keep Run disabled', () => {
+  for (const { stacks, edit, pending, changed } of [
+    { stacks: 10, edit: '100', pending: false, changed: false },
+    { stacks: 0, edit: '', pending: false, changed: false },
+    { stacks: 0, edit: '1', pending: true, changed: true }
+  ]) {
+    const button = { textContent: 'Run again', disabled: pending };
+    const stackInput = { value: edit };
+    let cleared = 0;
+    let runs = 0;
+    const elements = {
+      'relic-comparison-run': button,
+      'relic-comparison-stacks': stackInput,
+      'relic-comparison-output': {
+        replaceChildren() {
+          cleared++;
+        }
+      }
+    };
+    const container = {
+      ...inertContainer(),
+      querySelector: (selector) => elements[selector.match(/data-role="([^"]+)"/)[1]] ?? null
+    };
+    mountRelicComparison(
+      container,
+      {
+        relicComparisonAvailable: true,
+        relicComparisonPending: pending,
+        relicComparisonSelected: ['Thorns'],
+        relicComparisonTargets: ['Thorns'],
+        relicComparisonInitialStacks: stacks
+      },
+      () => {
+        runs++;
+      },
+      (_relics, value) => Math.min(10, Math.max(0, Math.trunc(value))) !== stacks
+    );
+    stackInput.oninput();
+    assert.equal(cleared, changed ? 1 : 0);
+    assert.equal(button.textContent, changed ? 'Run comparison' : 'Run again');
+    assert.equal(button.disabled, pending);
+
+    if (pending) {
+      assert.match(container.innerHTML, /data-role="relic-comparison-run" disabled/);
+      button.onclick();
+      assert.equal(runs, 0);
+    }
+  }
 });

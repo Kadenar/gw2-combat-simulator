@@ -452,9 +452,9 @@ export class ProfessionApp implements ProfessionAppState {
     this.analysis.runDistribution();
   }
 
-  runRelicComparison(comparisonRelic?: string, initialStacks?: number): void {
+  runRelicComparison(comparisonRelics?: readonly string[], initialStacks?: number): void {
     this.gearOptimizerRunner?.cancel();
-    this.relicComparisonRunner.run?.(comparisonRelic, initialStacks);
+    this.relicComparisonRunner.run?.(comparisonRelics, initialStacks);
   }
 
   selectPatch(patchId: string): void {

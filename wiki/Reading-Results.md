@@ -21,7 +21,8 @@ The condition table reports damage, DPS, and average stacks for each damaging co
 
 ## DPS and effects over time
 
-The charts show how damage develops across the fight and when tracked boons, conditions, and buffs are active. Hover the charts for values at a specific time. Use the effect toggles to hide effects you do not need to compare.
+The charts show how damage develops across the fight and when tracked boons, conditions, and buffs are active. Hover the
+charts for values at a specific time. Use the effect toggles to hide effects you do not need to compare.
 
 ![Analysis walkthrough](https://raw.githubusercontent.com/Kadenar/gw2-combat-simulator/main/images/tutorials/gw2-combat-simulator-analysis.gif)
 
@@ -38,9 +39,9 @@ The normal detailed result is deterministic and reproducible. **Calculate range*
 modeled random effects and reports the mean, median, likely range, and lucky or unlucky outcomes.
 
 Keep the build's **Simulation seed** fixed for reproducible A/B comparisons. The detailed result uses midpoint weapon
-strength and defaults to rolled critical damage; selecting **Averaged** under **Critical damage** uses expected critical damage instead.
-Stochastic trials sample weapon strength and always use rolled critical damage. Use the range to judge whether random
-variation could hide a small difference.
+strength and defaults to rolled critical damage; selecting **Averaged** under **Critical damage** uses expected critical
+damage instead. Stochastic trials sample weapon strength and always use rolled critical damage. Use the range to judge
+whether random variation could hide a small difference.
 
 ## Inspect damage calculations
 
@@ -51,7 +52,10 @@ an aggregate, not a list of individual modifier contributions.
 
 ## Relic break-even comparison
 
-When available, choose another relic to compare both relics across different fight durations. The crossover marker shows
-when the alternative overtakes the equipped relic under the current build and rotation.
+Use **Add relic** to compare several relics against the equipped relic and one shared no-relic baseline. Damage is
+compared until the first rotation finishes, with fixed target health; the panel states that health value. Hover the
+chart, or focus it and use the arrow keys, to inspect the table at that time. Crossovers compare each alternative with
+the equipped relic, only within the displayed window. Time to kill uses separate runs with the original target and
+encounter settings.
 
 Next: [Accuracy and scope](Accuracy-and-Scope).

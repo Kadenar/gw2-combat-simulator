@@ -4,6 +4,8 @@ import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
 import { escapeHtml } from '#ui/shared/html.js';
 
 export interface CandidatePickerOptions {
+  /** The compact add button names the choice when its surrounding context is not enough. */
+  readonly addLabel?: string;
   /** Maximum number of chips; 0 leaves the picker uncapped. */
   readonly limit?: number;
   readonly describe?: (name: string) => string;
@@ -24,6 +26,7 @@ export function candidatePicker(
   names: readonly string[],
   current: readonly string[] = [],
   {
+    addLabel = ADD_CHOICE_LABEL,
     limit = 0,
     describe = (name) => name,
     emptyLabel = 'Keep current equipment',
@@ -37,8 +40,8 @@ export function candidatePicker(
     <div class="optimizer-choices">${current.map((name) => candidateChip(key, name, equipped.includes(name))).join('')}</div>
     <p class="optimizer-picker-empty" title="${escapeHtml(emptyLabel)}">${escapeHtml(emptyLabel)}</p>
     <div class="gear-select-display"><select class="gear-select" id="optimizer-add-${key}" data-add-choice aria-label="Add ${escapeHtml(label.toLowerCase())}">
-      <option value="" disabled selected>${ADD_CHOICE_LABEL}</option>${names.map((name, index) => `<option value="${index}" data-choice="${escapeHtml(name)}"${current.includes(name) ? ' disabled' : ''}>${escapeHtml(name ? describe(name) : 'None')}</option>`).join('')}
-    </select><button type="button" class="gear-select-trigger" aria-label="Add ${escapeHtml(label.toLowerCase())}">${ADD_CHOICE_LABEL}</button></div></div>`;
+      <option value="" disabled selected>${escapeHtml(addLabel)}</option>${names.map((name, index) => `<option value="${index}" data-choice="${escapeHtml(name)}"${current.includes(name) ? ' disabled' : ''}>${escapeHtml(name ? describe(name) : 'None')}</option>`).join('')}
+    </select><button type="button" class="gear-select-trigger" aria-label="Add ${escapeHtml(label.toLowerCase())}">${escapeHtml(addLabel)}</button></div></div>`;
 }
 
 // Selected chips stay tooltip-free; only their remove buttons need keyboard focus.
@@ -224,7 +227,7 @@ export function enhanceDetailedSelect(
       select.value = optionElement.value;
 
       if (!trigger.classList.contains('gear-icon-trigger'))
-        trigger.textContent = select.matches('[data-add-choice]') ? ADD_CHOICE_LABEL : name;
+        trigger.textContent = select.matches('[data-add-choice]') ? select.options[0].textContent : name;
 
       menu.querySelectorAll('[role="option"]').forEach((item) => {
         item.setAttribute('aria-selected', String(item === choice));

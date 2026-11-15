@@ -28,6 +28,7 @@ function minimalResult(damageAt1s) {
   // optional breakdown and event records. Use a small, non-empty result.
   return {
     dps: damageAt1s / 4,
+    deathTime: null,
     dpsStartTime: 0,
     dpsWindow: 4,
     rotationEndTime: 4,
@@ -73,13 +74,13 @@ test('relic comparison derives availability without preparing requests or simula
   runner.schedule();
   assert.equal(runner.available, true);
   assert.equal(app.build.relic, 'Fractal');
-  assert.equal(runner.comparisonRelic, 'Thorns');
+  assert.deepEqual(runner.comparisonRelics, ['Thorns']);
   assert.equal(simulated, 0, 'scheduling must not run the second simulation');
 
-  runner.comparison = { equippedRelic: 'Fractal', targetRelic: 'Thorns' };
+  runner.comparison = { equippedRelic: 'Fractal', relics: [{ relic: 'Fractal' }, { relic: 'Thorns' }] };
   app.build.relic = 'Thorns';
   runner.schedule();
-  assert.equal(runner.comparisonRelic, 'Akeem');
+  assert.deepEqual(runner.comparisonRelics, ['Akeem']);
   assert.equal(runner.comparison, null, 'changed selections discard the previous comparison');
   app.relicNames = ['Thorns'];
   runner.schedule();
@@ -92,60 +93,91 @@ test('relic comparison derives availability without preparing requests or simula
   app.build.rotation = [];
   runner.schedule();
   assert.equal(runner.available, false);
-  assert.equal(runner.comparisonRelic, 'Akeem', 'empty rotations retain the shared selection');
+  assert.deepEqual(runner.comparisonRelics, [], 'empty selections stay editable when alternatives become available');
   app.analysis.state.results = null;
   runner.schedule();
 });
 
-// The calculation owns relic assumptions and counterfactual attribution independently of the runner.
-test('relic comparison scopes assumptions and attributes damage against a no-relic simulation', () => {
-  const simulatedConfigs = [];
-  const simulationOptions = [];
-  const results = minimalResult(4000);
-  const simulate = ({ config, output, collectChartData }) => {
-    simulatedConfigs.push(config);
-    simulationOptions.push(output === 'score' ? { output } : { collectChartData });
-    return output === 'score' ? { dps: 900 } : minimalResult(4200);
+// Fixed-health runs share an origin and endpoint; kill runs retain the original target.
+test('relic comparison scopes assumptions and aligns all damage observations', () => {
+  const calls = [];
+  const baseline = { ...minimalResult(4000), deathTime: 2, combatEndTime: 2 };
+  const baseConfig = {
+    relic: 'Fractal',
+    initialThornsStacks: 8,
+    target: { health: 4000, armor: 2597, startingHealthFraction: 0.5 },
+    professionAssumptions: { hitboxSize: 'small', retainedAssumption: true },
+    encounter: {
+      phases: [
+        {
+          id: 'boss',
+          kind: 'boss',
+          playerTargetId: 'selected',
+          durationSeconds: null,
+          targets: [
+            { id: 'other', armor: 1900, hitboxWidth: 100 },
+            { id: 'selected', armor: 3000, hitboxWidth: 700 }
+          ]
+        }
+      ],
+      repeatFrom: null
+    }
+  };
+  const simulate = (options) => {
+    calls.push(options);
+
+    if (options.output === 'score') return { ...minimalResult(4200), deathTime: 3, combatEndTime: 3 };
+
+    const damage = options.config.relic === 'Fractal' ? 4000 : options.config.relic === '' ? 3600 : 4200;
+    const end = options.config.relic === 'Thorns' ? 5 : 4;
+    return {
+      ...minimalResult(damage),
+      dpsStartTime: options.config.relic === 'Thorns' ? 1 : 0,
+      rotationEndTime: end,
+      observationEndTime: end,
+      combatEndTime: end
+    };
   };
 
-  let comparison;
-  for (const comparisonRelic of ['Akeem', 'Thorns', 'Mirage']) {
-    comparison = calculateRelicComparison(
-      {
-        rotation: STRIKE_ROTATION,
-        // Comparison stacks override the saved main-run value only for the comparison's Thorns relic.
-        baseConfig: { relic: 'Fractal', initialThornsStacks: 8 },
-        equippedRelic: 'Fractal',
-        comparisonRelic,
-        baselineResult: results,
-        initialStacks: 4
-      },
-      {},
-      simulate
-    );
+  const comparison = calculateRelicComparison(
+    {
+      rotation: STRIKE_ROTATION,
+      baseConfig,
+      equippedRelic: 'Fractal',
+      comparisonRelics: ['Thorns'],
+      baselineResult: baseline,
+      initialStacks: 4
+    },
+    {},
+    simulate
+  );
+  assert.equal(calls.length, 4, 'one kill run and three damage runs need no endpoint reruns');
+  assert.equal(calls[0].config.encounter, baseConfig.encounter);
+  assert.equal(calls[0].config.target.health, 4000);
+  assert.equal(calls[0].config.initialThornsStacks, 4);
+  for (const call of calls.slice(1)) {
+    assert.equal(call.output, 'observations');
+    assert.equal(call.config.target.fixedHealthFraction, 0.5);
+    assert.equal(call.config.target.health, 0);
+    assert.equal(call.config.encounter, undefined);
+    assert.equal(call.config.target.armor, 3000);
+    assert.equal(call.config.professionAssumptions.hitboxSize, 'large');
+    assert.equal(call.config.professionAssumptions.retainedAssumption, true);
+    assert.equal(call.config.initialThornsStacks, call.config.relic === 'Thorns' ? 4 : 8);
   }
 
-  assert.deepEqual(
-    simulationOptions,
-    Array.from({ length: 3 }, () => [{ collectChartData: false }, { output: 'score' }]).flat()
-  );
-  assert.deepEqual(
-    simulatedConfigs.map(({ relic, initialThornsStacks }) => ({ relic, initialThornsStacks })),
-    [
-      { relic: 'Akeem', initialThornsStacks: 8 },
-      { relic: '', initialThornsStacks: 8 },
-      { relic: 'Thorns', initialThornsStacks: 4 },
-      { relic: '', initialThornsStacks: 8 },
-      { relic: 'Mirage', initialThornsStacks: 8 },
-      { relic: '', initialThornsStacks: 8 }
+  assert.equal(comparison.targetHealthPercent, 50);
+  assert.equal(comparison.durationMs, 4000);
+  assert.deepEqual(comparison.points.at(-1), {
+    tMs: 4000,
+    samples: [
+      { buildDps: 1000, directDps: 0, gainedDps: 100 },
+      { buildDps: 1050, directDps: 0, gainedDps: 150 }
     ]
-  );
-  assert.equal(comparison.equippedRelic, 'Fractal');
-  assert.equal(comparison.targetRelic, 'Mirage');
-  assert.equal(comparison.opponentFinalDps, results.dps);
-  assert.equal(comparison.targetFinalDps, 1050);
-  assert.deepEqual(comparison.opponentDamage, { directDamage: 0, contributedDps: 100 });
-  assert.deepEqual(comparison.targetDamage, { directDamage: 0, contributedDps: 150 });
+  });
+  assert.equal(comparison.relics[0].kill.killTimeMs, 2000);
+  assert.equal(comparison.relics[1].kill.killTimeMs, 3000);
+  assert.equal(baseConfig.target.health, 4000);
 });
 
 /** A real profession exercises local calculation without worker transport or timer mocks. */
@@ -213,30 +245,30 @@ test('relic comparison publishes synchronously without workers and preserves its
   runner.schedule();
   assert.equal(prepared.length, 0);
   app.build.targetArmor = 3000;
-  runner.run('Thorns', 4);
+  runner.run(['Thorns'], 4);
   assert.equal(prepared.length, 1);
   assert.equal(prepared[0].target.armor, 3000, 'execution prepares the current build rather than the idle refresh');
   assert.equal(app.analysis.state.results, baseline);
   assert.equal(app.analysis.state.results.dps, 1000);
-  assert.equal(runner.comparison.targetRelic, 'Thorns');
+  assert.equal(runner.comparison.relics[1].relic, 'Thorns');
   assert.equal(runner.initialStacks, 4);
   assert.equal(runner.error, '');
   assert.equal(updates(), 1);
-  runner.run('Akeem');
+  runner.run(['Akeem']);
   assert.equal(prepared.length, 2);
-  assert.equal(runner.comparison.targetRelic, 'Akeem');
+  assert.equal(runner.comparison.relics[1].relic, 'Akeem');
   assert.equal(updates(), 2);
 });
 
 // The controls belong to the tool; output belongs to the exact baseline and build revision used by the calculation.
 test('relic controls survive baseline changes while stale output is discarded before execution', async () => {
   const { app, runner, prepared } = await relicFixture();
-  runner.run('Thorns', 4);
+  runner.run(['Thorns'], 4);
   const comparison = runner.comparison;
   runner.schedule();
   assert.equal(runner.comparison, comparison, 'refreshing the same inputs retains completed output');
 
-  runner.select('Thorns', 8);
+  runner.select(['Thorns'], 8);
   assert.equal(runner.comparison, null, 'changing assumptions invalidates the curve immediately');
   runner.run();
   assert.ok(runner.comparison);
@@ -247,7 +279,7 @@ test('relic controls survive baseline changes while stale output is discarded be
   const before = prepared.length;
   runner.run();
   assert.equal(prepared.length, before, 'a queued or stale baseline cannot run a comparison');
-  assert.equal(runner.comparisonRelic, 'Thorns');
+  assert.deepEqual(runner.comparisonRelics, ['Thorns']);
   assert.equal(runner.initialStacks, 8);
 
   app.analysis.state.resultRevision = app.analysis.state.buildRevision;
@@ -258,7 +290,12 @@ test('relic controls survive baseline changes while stale output is discarded be
   runner.schedule();
   assert.equal(runner.comparison, null, 'replacement baselines invalidate output even at the same revision');
   runner.run();
-  assert.equal(runner.comparison.opponentFinalDps, 1250);
+  assert.equal(runner.comparison.relics[0].kill.observedMs, 4000);
+  assert.equal(
+    runner.comparison.points.at(-1).samples[0].buildDps,
+    0,
+    'comparison reruns the rotation instead of borrowing baseline DPS'
+  );
 
   app.analysis.state.results = null;
   runner.schedule();
@@ -267,10 +304,10 @@ test('relic controls survive baseline changes while stale output is discarded be
   assert.equal(runner.initialStacks, 8);
   app.build.relic = 'Thorns';
   runner.schedule();
-  assert.equal(runner.comparisonRelic, 'Akeem', 'an equipped alternative is replaced with a usable choice');
-  runner.select('Akeem', 20.9);
+  assert.deepEqual(runner.comparisonRelics, ['Akeem'], 'an equipped alternative is replaced with a usable choice');
+  runner.select(['Akeem'], 20.9);
   assert.equal(runner.initialStacks, 10);
-  runner.select('Akeem', -5);
+  runner.select(['Akeem'], -5);
   assert.equal(runner.initialStacks, 0);
 });
 
@@ -286,7 +323,7 @@ test('relic preparation failures invalidate prior output and remain visible unti
   assert.equal(runner.comparison, null);
   runner.schedule();
   assert.equal(runner.error, 'Invalid comparison inputs');
-  runner.select('Akeem', 0);
+  runner.select(['Akeem'], 0);
   assert.equal(runner.error, '');
 });
 
@@ -294,7 +331,7 @@ test('relic preparation failures invalidate prior output and remain visible unti
 test('relic comparisons survive validated baseline restoration without another simulation', async () => {
   const { app, runner, prepared } = await relicFixture();
   const live = app.analysis.state.results;
-  runner.run('Thorns', 4);
+  runner.run(['Thorns'], 4);
   const liveComparison = runner.comparison;
   const preview = minimalResult(5000);
   app.analysis.state.results = preview;
@@ -318,17 +355,36 @@ test('relic comparisons survive validated baseline restoration without another s
   }
 
   assert.equal(prepared.length, requests);
-  runner.select('Thorns', 5);
+  runner.select(['Thorns'], 5);
   runner.schedule();
   assert.equal(runner.comparison, null, 'different starting stacks invalidate the saved comparison');
-  runner.select('Akeem', 4);
+  runner.select(['Akeem'], 4);
   runner.schedule();
   assert.equal(runner.comparison, null, 'different relics invalidate the saved comparison');
-  runner.select('Thorns', 4);
+  runner.select(['Thorns'], 4);
   app.analysis.state.results = minimalResult(6000);
   runner.schedule();
   assert.equal(runner.comparison, null, 'newly simulated inputs need a new comparison');
   assert.equal(prepared.length, requests);
+});
+
+test('multi-relic selections deduplicate choices and invalidate cached output when a relic is removed', async () => {
+  const { app, runner } = await relicFixture();
+  runner.run(['Thorns', 'Akeem', 'Thorns', app.build.relic], 4);
+  assert.deepEqual(runner.comparisonRelics, ['Thorns', 'Akeem']);
+  assert.deepEqual(
+    runner.comparison.relics.map((entry) => entry.relic),
+    ['Fractal', 'Thorns', 'Akeem']
+  );
+  runner.select(['Thorns'], 4);
+  runner.schedule();
+  assert.equal(runner.comparison, null);
+  runner.select([], 4);
+  runner.schedule();
+  assert.deepEqual(runner.comparisonRelics, []);
+  assert.equal(runner.available, true, 'empty selections retain the controls so another relic can be added');
+  runner.run();
+  assert.equal(runner.comparison, null);
 });
 
 /** Controlled workers expose transport completion without giving tests application-state mutation privileges. */
@@ -517,7 +573,7 @@ test('local relic comparison reports calculation failures and recovers on retry'
   app.profession = profession;
   runner.run();
   assert.equal(runner.error, '');
-  assert.equal(runner.comparison.targetRelic, 'Thorns');
+  assert.equal(runner.comparison.relics[1].relic, 'Thorns');
   assert.equal(updates(), 3);
 });
 

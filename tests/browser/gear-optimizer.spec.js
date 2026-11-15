@@ -146,7 +146,7 @@ test('gear optimizer tab owns relic comparison and restores through browser hist
   await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   await tab.click();
   const comparison = page.locator('#optimizer-relic-comparison');
-  await expect(comparison.getByRole('button', { name: 'Comparison relic', exact: true })).toBeVisible();
+  await expect(comparison.getByRole('button', { name: 'Add comparison relic', exact: true })).toBeVisible();
   await comparison.getByRole('button', { name: 'Run comparison', exact: true }).click();
   await expect(comparison.locator('[data-role="relic-comparison-chart"]')).toBeVisible();
   await page.getByRole('link', { name: 'Golem Analysis', exact: true }).click();
@@ -621,13 +621,13 @@ test('relic comparison controls survive a narrow host', async ({ page }) => {
     document.body.append(host);
     mountRelicComparison(host, {
       relicComparisonAvailable: true,
-      relicComparisonTarget: 'Fireworks',
+      relicComparisonSelected: ['Fireworks', 'Nourys'],
       relicComparisonTargets: ['Fireworks', 'Thorns', 'Nourys']
     });
   });
   const comparison = page.locator('[data-layout-fixture="relic-comparison"] .relic-cmp');
-  const relicSelect = comparison.locator('select[data-role="relic-comparison-target"]');
-  await expect(relicSelect.locator('optgroup')).toHaveCount(3);
+  const relicSelect = comparison.locator('select[data-add-choice]');
+  await expect(relicSelect.locator('option[data-choice]')).toHaveCount(3);
   await expect(comparison.locator('[data-role="relic-comparison-stacks-control"]')).toBeHidden();
   await expect(comparison.getByRole('button', { name: 'Run comparison' })).toBeEnabled();
   expect(await comparison.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);

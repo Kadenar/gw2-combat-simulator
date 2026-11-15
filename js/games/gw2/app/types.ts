@@ -84,7 +84,7 @@ export interface ProfessionAppState
   renderAttributes(): void;
   selectRotationInsertion(index: number | null): void;
   runRandomDistribution(): void;
-  runRelicComparison(comparisonRelic?: string, initialStacks?: number): void;
+  runRelicComparison(comparisonRelics?: readonly string[], initialStacks?: number): void;
   selectPatch(patchId: string): void;
 }
 
@@ -113,7 +113,7 @@ export interface ProfessionRuntimeApi {
   readonly createBuildContext: BuildContextFactory;
   captureAnalysis(input: AnalysisRequestInput): AnalysisRequestSnapshot;
   calculateModifierContributions(request: ModifierContributionRequest): ModifierContribution[];
-  relicComparisonRequest(app: ProfessionAppState, comparisonRelic?: string): RelicComparisonRequest | null;
+  relicComparisonRequest(app: ProfessionAppState, comparisonRelics?: readonly string[]): RelicComparisonRequest | null;
   calculateRandomDistribution(
     request: RandomDistributionRequest,
     options?: RandomDistributionOptions

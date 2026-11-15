@@ -5,6 +5,7 @@ import type { LiveEffects } from '#gw2/platform/combat/live-effects.js';
 import type { EffectRecipient } from '#gw2/platform/combat/query/effect-stacks.js';
 import { activeBoonStacks, activeBuffStacks, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { remainingTargetHealthBelow, remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
+import { hitboxSizeForWidth } from '#gw2/platform/combat/state/targets.js';
 import type { Gw2ComboController } from '#gw2/platform/combos/resolution.js';
 import type { ComboFieldEvent } from '#gw2/platform/combos/types.js';
 import { ACTOR } from '#gw2/platform/constants.js';
@@ -81,13 +82,10 @@ export function createMechanicCombatServices(
       runtime.query.targetConditionStacks(condition, at, runtime),
     targetHealthBelow: (threshold: number) => remainingTargetHealthBelow(runtime.config, runtime, threshold),
     remainingTargetHealthFraction: () => remainingTargetHealthFraction(runtime.config, runtime),
-    // Full large-golem overlap requires at least its measured 700-unit diameter.
     // Encounter metadata always wins over the editable Golem assumption.
     targetHitboxSize: (): 'small' | 'large' =>
       runtime.encounter
-        ? runtime.encounter.hitboxWidth >= 700
-          ? 'large'
-          : 'small'
+        ? hitboxSizeForWidth(runtime.encounter.hitboxWidth)
         : runtime.config.professionAssumptions?.hitboxSize === 'large'
           ? 'large'
           : 'small',

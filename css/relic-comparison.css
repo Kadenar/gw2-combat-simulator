@@ -17,6 +17,67 @@
   display: none;
 }
 
+/* Reuse the equipment chips while allowing a long comparison selection to wrap. */
+.relic-cmp-picker {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.relic-cmp-picker .optimizer-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.relic-cmp-picker .optimizer-picker-heading {
+  flex-basis: 100%;
+  margin: 0 0 2px;
+}
+
+.relic-cmp-picker .optimizer-choices {
+  display: contents;
+}
+
+.relic-cmp-picker .optimizer-choice {
+  min-height: 28px;
+  margin: 0;
+}
+
+.relic-cmp-picker .optimizer-picker-empty {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.relic-cmp-picker .gear-select-display {
+  width: auto;
+}
+
+.relic-cmp-picker .gear-select-trigger {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px dashed var(--border-light);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.relic-cmp-picker .gear-select-trigger::after {
+  display: none;
+}
+
+.relic-cmp-picker .gear-select-trigger:hover,
+.relic-cmp-picker .gear-select-trigger:focus-visible {
+  border-color: var(--accent);
+  color: var(--text-bright);
+}
+
+.relic-cmp-equipped {
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 400;
+}
+
 .relic-cmp-control > input {
   width: 46px;
   padding: 5px;
@@ -85,7 +146,69 @@
 }
 
 .relic-cmp-damage td:first-of-type {
+  font-weight: 400;
+}
+
+.relic-cmp-damage td:last-child {
   font-weight: 700;
+}
+
+/* Keyboard inspection keeps focus visible without adding a separate duration control. */
+.relic-cmp-svg:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.relic-cmp-plot-heading {
+  padding: 16px 24px 0;
+}
+
+.relic-cmp-plot-heading h5,
+.relic-cmp-kills h5 {
+  margin: 0 0 4px;
+  color: var(--text-bright);
+  font-size: 12px;
+}
+
+.relic-cmp-plot-heading p,
+.relic-cmp-kills p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+/* Keep kill times visibly separate from the fixed-health damage comparison. */
+.relic-cmp-kills {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 24px;
+  margin-top: 12px;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.relic-cmp-kills dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  margin: 0;
+}
+
+.relic-cmp-kills dt {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.relic-cmp-kills dd {
+  margin: 4px 0 0;
+  color: var(--text-bright);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .relic-cmp-damage th:first-child,
@@ -169,10 +292,6 @@
 .relic-cmp-swatch {
   flex: 0 0 20px;
   border-top: 3px solid;
-}
-
-.relic-cmp-verdict b {
-  color: var(--text-bright);
 }
 
 .relic-cmp-empty {

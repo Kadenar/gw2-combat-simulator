@@ -741,20 +741,20 @@ test('relic comparison selections follow the active tool across build tabs', (t)
   publishResult(app, { dps: 10 });
   app.relicComparisonRunner = new RelicComparisonRunner(app);
   const runner = app.relicComparisonRunner;
-  runner.select('Thorns', 7);
+  runner.select(['Thorns'], 7);
   addBuildTab(app, { ...build('other'), relic: 'Fractal' }, 'Other');
   const other = app.workspace.tabs.at(-1);
   assert.equal(app.analysis.state.results, null);
-  assert.equal(runner.comparisonRelic, 'Thorns');
+  assert.deepEqual(runner.comparisonRelics, ['Thorns']);
   assert.equal(runner.initialStacks, 7);
-  runner.select('Akeem', 3);
+  runner.select(['Akeem'], 3);
   app.activateBuildTab(tab.id);
   assert.equal(app.analysis.state.results.dps, 10, 'the first tab restores its cached baseline');
-  assert.equal(runner.comparisonRelic, 'Akeem', 'cached tabs use the current shared choice');
+  assert.deepEqual(runner.comparisonRelics, ['Akeem'], 'cached tabs use the current shared choice');
   assert.equal(runner.initialStacks, 3);
   app.activateBuildTab(other.id);
   assert.equal(app.analysis.state.results, null, 'the second tab still needs a baseline');
-  assert.equal(runner.comparisonRelic, 'Akeem');
+  assert.deepEqual(runner.comparisonRelics, ['Akeem']);
   assert.equal(runner.initialStacks, 3);
 });
 
