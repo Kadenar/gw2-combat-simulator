@@ -945,8 +945,71 @@
     },
     {
       "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5497
+    },
+    {
+      "type": "cast",
       "skillId": 2662,
-      "concurrentOffsetMs": 360
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 76634
+    },
+    {
+      "type": "cast",
+      "skillId": 5678
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 76585
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
     },
     {
       "type": "cast",
@@ -963,7 +1026,7 @@
     {
       "type": "cast",
       "skillId": 76643,
-      "concurrentOffsetMs": 320
+      "concurrentOffsetMs": 120
     },
     {
       "type": "cast",
@@ -971,15 +1034,14 @@
     },
     {
       "type": "cast",
-      "skillId": 5508
-    },
-    {
-      "type": "cast",
-      "skillId": 5508
-    },
-    {
-      "type": "cast",
-      "skillId": 5508
+      "skillId": 76711
     }
-  ]
+  ],
+  "transitionDelays": {
+    "weaponSwapMs": 0,
+    "forgeEntryMs": 0,
+    "forgeExitMs": 0,
+    "shroudEntryMs": 0,
+    "shroudExitMs": 0
+  }
 }
