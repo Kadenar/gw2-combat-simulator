@@ -1,6 +1,5 @@
-/** Resolves authored skill identities and submits palette commands to the editing owner. */
+/** Resolves authored skill identities into commands for the editing owner. */
 import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
-import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import type { RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
@@ -111,9 +110,4 @@ export function createRotationItem(
     ...(Number(options.releaseDelayMs) > 0 ? { releaseDelayMs: Number(options.releaseDelayMs) } : {}),
     ...(options.doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome: options.doubleEdgeOutcome })
   };
-}
-
-/** Builds a single command from a palette identity and inserts it. */
-export function addRotation(app: ProfessionAppState, name: string, options: RotationActionOptions = {}): void {
-  commitRotationEdit(app, { type: 'insert', entries: [createRotationItem(app, name, options)] });
 }

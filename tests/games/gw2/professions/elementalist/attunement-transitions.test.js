@@ -41,8 +41,8 @@ test('family attunement commitment precedes deferred Catalyst rewards', () => {
   assert.equal(reward.causalOrder, observation.causalOrder);
   assert.ok(
     observedRuntime(result)
-      .facts.ofType(observation.type)
-      .some((event) => event.eventOrder === observation.eventOrder)
+      .facts.read()
+      .some((event) => event.type === observation.type && event.eventOrder === observation.eventOrder)
   );
 });
 

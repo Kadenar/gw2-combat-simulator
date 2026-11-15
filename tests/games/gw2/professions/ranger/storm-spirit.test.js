@@ -104,8 +104,8 @@ test('Call Lightning tuning controls Storm Spirit and its trait repeat', () => {
     assert.deepEqual(coefficients, removed ? [] : [4, 2]);
     assert.ok(
       observedRuntime(result)
-        .facts.ofType('buff')
-        .some((event) => event.skillId === ID.STORM_SPIRIT && event.kind === 'fury')
+        .facts.read()
+        .some((event) => event.type === 'buff' && event.skillId === ID.STORM_SPIRIT && event.kind === 'fury')
     );
   }
 });

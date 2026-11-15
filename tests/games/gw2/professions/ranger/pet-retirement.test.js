@@ -226,7 +226,7 @@ for (const output of ['detailed', 'score']) {
               }),
               1
             );
-            const late = runtime.facts.ofType('buff').find((event) => event.sourceId === 'late-grant');
+            const late = runtime.facts.read().find((event) => event.type === 'buff' && event.sourceId === 'late-grant');
             assert.equal(late.resolvedAudience.recipientCount, 0);
           }
         ],

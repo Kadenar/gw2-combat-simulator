@@ -12,6 +12,6 @@ test('executed fact readers observe recorded and interrupted actions without acq
   writer.interruptAction('cast:1', 1);
   assert.equal(reader.actionFor('cast:1').endsAt, 1);
   assert.equal(reader.actionFor('cast:1').interrupted, true);
-  assert.equal(reader.ofType('action').length, 1);
+  assert.equal(reader.read().filter((event) => event.type === 'action').length, 1);
   assert.equal(reader.read().length, 1);
 });

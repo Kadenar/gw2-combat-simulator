@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { mockGw2Icons } from '#tests/helpers/browser-icons.js';
+import { insertRotationSkill } from '#tests/helpers/browser-workspace.js';
 
 test.beforeEach(async ({ page }) => {
   await mockGw2Icons(page);
@@ -49,7 +50,7 @@ test('build switches discard optimizer results and active searches', async ({ pa
   expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.request)).toBeNull();
   // Use the canonical skill ID to enable optimization with a valid rotation; a blank build disables it again.
   await expect(panel.getByRole('button', { name: 'Run optimizer', exact: true })).toBeDisabled();
-  await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
+  await insertRotationSkill(page, 'Bladecall', { skillId: 69311 });
   await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   await expect(panel.getByRole('button', { name: 'Run optimizer', exact: true })).toBeEnabled();
   await addChoice(panel, 'food', '');
@@ -72,7 +73,7 @@ test('build switches discard optimizer results and active searches', async ({ pa
   expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.request)).toBeNull();
 
   await expect(panel.getByRole('button', { name: 'Run optimizer', exact: true })).toBeDisabled();
-  await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
+  await insertRotationSkill(page, 'Bladecall', { skillId: 69311 });
   await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
 
   // Start and switch in one task so cancellation does not depend on worker speed.

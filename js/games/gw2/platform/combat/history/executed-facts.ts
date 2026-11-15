@@ -3,7 +3,6 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 /** Queries observe executed gameplay in every output mode without acquiring its recording capability. */
 export interface ExecutedFactsReader {
   read(): readonly Readonly<Gw2ResolverEvent>[];
-  ofType(type: string): readonly Readonly<Gw2ResolverEvent>[];
   actionFor(activationId: unknown): Readonly<Gw2ResolverEvent> | undefined;
 }
 
@@ -18,7 +17,6 @@ export interface ExecutedFactsWriter {
 export function createExecutedFacts(events: Gw2ResolverEvent[]) {
   const reader: ExecutedFactsReader = Object.freeze({
     read: (): readonly Readonly<Gw2ResolverEvent>[] => events,
-    ofType: (type: string): readonly Readonly<Gw2ResolverEvent>[] => events.filter((event) => event.type === type),
     actionFor: (activationId: unknown): Readonly<Gw2ResolverEvent> | undefined =>
       events.find((event) => event.type === 'action' && event.activationId === activationId)
   });

@@ -6,7 +6,7 @@ import type { RelicComparisonRequest } from '#gw2/app/optimizer/relic-comparison
 import type { ResultViewState } from '#gw2/app/results/state.js';
 import type { RotationComparisonSession } from '#gw2/app/rotation/comparison-state.js';
 import type { CursorPreviewRun } from '#gw2/app/rotation/cursor-preview.js';
-import type { RotationActionOptions, RotationEditingState } from '#gw2/app/rotation/editing/state.js';
+import type { RotationEditingState } from '#gw2/app/rotation/editing/state.js';
 import type { RotationTimelineState } from '#gw2/app/rotation/timeline/state.js';
 import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import type { AnalysisRequestInput, AnalysisRequestSnapshot } from '#gw2/app/simulation/analysis-request-snapshot.js';
@@ -82,7 +82,6 @@ export interface ProfessionAppState
   swapRotationComparison(): void;
   exitRotationComparison(): void;
   renderAttributes(): void;
-  addRotation(name: string, options?: RotationActionOptions): void;
   selectRotationInsertion(index: number | null): void;
   runRandomDistribution(): void;
   runRelicComparison(comparisonRelic?: string, initialStacks?: number): void;

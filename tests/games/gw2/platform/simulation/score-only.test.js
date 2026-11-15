@@ -41,8 +41,8 @@ test('action updates change authoritative history without enabling score reporti
     const fact = runtime.facts.actionFor(action.activationId);
     assert.equal(fact.interrupted, true, output);
     assert.equal(fact.endsAt, update.at, output);
-    assert.equal(runtime.facts.ofType('action').length, 1);
-    assert.equal(runtime.facts.ofType('action_update').length, 0);
+    assert.equal(runtime.facts.read().filter((event) => event.type === 'action').length, 1);
+    assert.equal(runtime.facts.read().filter((event) => event.type === 'action_update').length, 0);
     assert.equal(action.interrupted, undefined, 'emission must detach the authored action');
 
     if (output === 'score') {

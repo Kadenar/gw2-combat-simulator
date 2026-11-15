@@ -61,7 +61,10 @@ test('batch output retains consumer observations and diagnostic locations withou
   assert.equal(runtime.effectRecorder, null);
   assert.ok(runtime.procRecorder);
   assert.ok(runtime.resolved.every((event) => ['damage', 'condition'].includes(event.type)));
-  assert.ok(runtime.facts.ofType('buff').length > 0, 'Accepted buffs remain available to combat queries');
+  assert.ok(
+    runtime.facts.read().some((event) => event.type === 'buff'),
+    'Accepted buffs remain available to combat queries'
+  );
   assert.equal('planningState' in batch, false);
   assert.equal('breakdown' in batch, false);
   const strike = batch.resolvedEvents.find((event) => event.type === 'damage');

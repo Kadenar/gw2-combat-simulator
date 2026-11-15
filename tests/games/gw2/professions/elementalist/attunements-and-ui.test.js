@@ -423,8 +423,8 @@ test('Core mechanics execute through native hooks', () => {
   assert.ok(proc);
   assert.ok(
     observedRuntime(result)
-      .facts.ofType('elementalist.fresh-air')
-      .some((event) => event.eventOrder === proc.eventOrder)
+      .facts.read()
+      .some((event) => event.type === 'elementalist.fresh-air' && event.eventOrder === proc.eventOrder)
   );
   assert.equal(
     observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsById.get(5494).id),

@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { addRotation, createRotationItem } from '#gw2/app/rotation/editing/actions.js';
+import { createRotationItem } from '#gw2/app/rotation/editing/actions.js';
 import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 
@@ -23,7 +23,7 @@ test('palette additions insert at an armed cursor and advance it', () => {
     }
   };
 
-  addRotation(app, 'Second');
+  commitRotationEdit(app, { type: 'insert', entries: [createRotationItem(app, 'Second')] });
   commitRotationEdit(app, {
     type: 'insert',
     entries: [

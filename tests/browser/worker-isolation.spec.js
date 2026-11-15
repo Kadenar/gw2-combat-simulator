@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { insertRotationSkill } from '#tests/helpers/browser-workspace.js';
+
 // Prepared jobs load their engine without browser UI imports, reusing the worker across selected patch versions.
 test('simulation workers load current and preview patches without UI dependencies', async ({ page, context }) => {
   const patchId = 'worker-preview';
@@ -13,9 +15,9 @@ test('simulation workers load current and preview patches without UI dependencie
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.evaluate((patchId) => {
     window.professionApp.patch = window.professionApp.profession.resolvePatch({ id: patchId });
-    // Worker requests carry the canonical skill ID independently of the palette label.
-    window.professionApp.addRotation('Bladecall', { skillId: 69311 });
   }, patchId);
+  // Worker requests carry the canonical skill ID independently of the palette label.
+  await insertRotationSkill(page, 'Bladecall', { skillId: 69311 });
   await page.waitForFunction(
     () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
   );

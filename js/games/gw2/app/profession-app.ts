@@ -26,9 +26,8 @@ import { renderModifierContributions } from '#gw2/app/results/view.js';
 import { renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/builder.js';
 import * as comparisonState from '#gw2/app/rotation/comparison-state.js';
 import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
-import { addRotation } from '#gw2/app/rotation/editing/actions.js';
 import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
-import type { ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
+import type { ProfessionRotationDragState } from '#gw2/app/rotation/editing/state.js';
 import { updatePaletteFreshness } from '#gw2/app/rotation/palette/freshness.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { renderRotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/view.js';
@@ -390,10 +389,6 @@ export class ProfessionApp implements ProfessionAppState {
     this.adapter.renderRotationBuilder(this);
     renderBuildTabs(this);
     renderGearOptimizer(this);
-  }
-
-  addRotation(name: string, options: RotationActionOptions = {}): void {
-    addRotation(this, name, options);
   }
 
   /** Refreshes cursor-dependent views without changing the build or scheduling a simulation. */

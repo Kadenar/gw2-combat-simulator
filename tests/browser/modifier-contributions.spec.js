@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { insertRotationSkill } from '#tests/helpers/browser-workspace.js';
+
 // Real panel geometry must keep long names and signed metrics readable without horizontal scrolling.
 test('modifier contributions adapt to phone and narrow panel widths', async ({ page }) => {
   await page.route('http://127.0.0.1:4173/', (route) =>
@@ -77,7 +79,7 @@ test('modifiers run on demand in Analysis and update only their own section', as
   await page.goto('/mesmer.html#workspace');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   // Explicit skill identity keeps worker requests valid even when multiple variants share a display name.
-  await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
+  await insertRotationSkill(page, 'Bladecall', { skillId: 69311 });
   await page.waitForFunction(
     () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
   );
@@ -163,7 +165,7 @@ test('modifiers run on demand in Analysis and update only their own section', as
   expect(await page.evaluate(() => window.baselineSchedulesAfterCharts)).toBe(0);
 
   await page.getByRole('link', { name: 'Golem', exact: true }).click();
-  await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
+  await insertRotationSkill(page, 'Bladecall', { skillId: 69311 });
   await page.waitForFunction(
     () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
   );

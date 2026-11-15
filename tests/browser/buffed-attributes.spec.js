@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { insertRotationSkill } from '#tests/helpers/browser-workspace.js';
+
 // General duration stays visible; rune-specific bonuses remain visible even when Details is collapsed.
 test('condition details show exceptions and preview controls sit beside attribute values', async ({ page }) => {
   await page.setViewportSize({ width: 1600, height: 1000 });
@@ -83,7 +85,7 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
   await page.goto('/mesmer.html#workspace', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   // Supply the canonical skill ID so optimization can validate the rotation before previewing attributes.
-  await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
+  await insertRotationSkill(page, 'Bladecall', { skillId: 69311 });
   await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   const state = () =>
     page.evaluate(() =>

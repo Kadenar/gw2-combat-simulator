@@ -122,7 +122,7 @@ test('result events, damage rows, and command steps are detached from live store
   const runtime = observedRuntime(result);
   const liveStepEnd = runtime.steps[0].end;
   const liveDamage = runtime.totals.strike + runtime.totals.condition;
-  const liveAction = runtime.facts.ofType('action')[0];
+  const liveAction = runtime.facts.read().find((event) => event.type === 'action');
   const liveActionAt = liveAction.at;
   result.steps[0].end = -1;
   result.breakdown[0].damage = -1;

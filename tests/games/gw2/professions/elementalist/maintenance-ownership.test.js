@@ -153,7 +153,7 @@ test('profession aura sources adjust duration once and record one accepted appli
             (runtime) => {
               assert.equal(runtime.profession.core.activeAuras.length, 1);
               assert.equal(runtime.profession.core.activeAuras[0].expiresAt, 1 + expectedDuration);
-              assert.equal(runtime.facts.ofType('aura').length, 1);
+              assert.equal(runtime.facts.read().filter((event) => event.type === 'aura').length, 1);
             }
           ],
           [1 + expectedDuration, (runtime) => assert.equal(runtime.profession.core.activeAuras.length, 0)]

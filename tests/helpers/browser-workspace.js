@@ -14,3 +14,16 @@ export async function openTemplates(page) {
   await page.getByRole('button', { name: /Browse templates/ }).click();
   await expect(page.locator('#build-templates-dialog')).toBeVisible();
 }
+
+// Seed rotations through the editing owner so browser setup follows normal history and invalidation rules.
+export async function insertRotationSkill(page, name, options = {}) {
+  await page.evaluate(
+    async ({ name, options }) => {
+      const { createRotationItem } = await import('/js/games/gw2/app/rotation/editing/actions.ts');
+      const { commitRotationEdit } = await import('/js/games/gw2/app/rotation/editing/commit.ts');
+      const app = globalThis.professionApp;
+      commitRotationEdit(app, { type: 'insert', entries: [createRotationItem(app, name, options)] });
+    },
+    { name, options }
+  );
+}
