@@ -669,15 +669,15 @@
         "label": "Inferno Fox SE (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-evoker-se.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-evoker-se.json",
-        "benchmarkDps": 41200,
+        "benchmarkDps": 41744,
         "upToDate": true,
-        "benchmarkApm": 100.9,
+        "benchmarkApm": 93.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38877, "phase": 38877 },
-          "80-60": { "cumulative": 39909, "phase": 40993 },
-          "60-40": { "cumulative": 40664, "phase": 42287 },
-          "40-20": { "cumulative": 40490, "phase": 39970 },
-          "20-0": { "cumulative": 41200, "phase": 41200 }
+          "100-80": { "cumulative": 37710, "phase": 37710 },
+          "80-60": { "cumulative": 39143, "phase": 40678 },
+          "60-40": { "cumulative": 40131, "phase": 42335 },
+          "40-20": { "cumulative": 41487, "phase": 46051 },
+          "20-0": { "cumulative": 41744, "phase": 41744 }
         }
       }
     ]
