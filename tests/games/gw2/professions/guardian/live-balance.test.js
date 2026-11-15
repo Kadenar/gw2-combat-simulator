@@ -15,6 +15,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 test('the live Firebrand layout replaces retired traits without a preview overlay', () => {
@@ -73,7 +74,7 @@ test('Unscathed Contender combines its Aegis bonus with the health-or-Aegis mult
     const context = {
       catalog: native.catalog,
       config: { selectedTraitIds: [TRAIT.UNSCATHED_CONTENDER], boons: { aegis } },
-      runtime: { boons: new Map(), buffs: new Map() },
+      runtime: { liveEffects: createTestLiveEffects() },
       time: 0,
       event: { actorType: 'player' },
       attributePreviewPlayerHealthFraction: health
@@ -91,7 +92,7 @@ test('Unscathed Contender adds Aegis damage to the existing strike bucket only w
     const context = {
       catalog: native.catalog,
       config: { selectedTraitIds: selected ? [TRAIT.UNSCATHED_CONTENDER] : [], boons: { aegis: true } },
-      runtime: { boons: new Map(), buffs: new Map() },
+      runtime: { liveEffects: createTestLiveEffects() },
       time: 0,
       event: { actorType: 'player' },
       damageInputs: { strikeSigilBonus: 0.1 }
@@ -131,7 +132,7 @@ test('Inspired Virtue caps its damage bonus at five boon types', () => {
         selectedTraitIds: [TRAIT.INSPIRED_VIRTUE],
         boons: Object.fromEntries(kinds.slice(0, count).map((kind) => [kind, kind === 'might' ? 25 : true]))
       },
-      runtime: { boons: new Map(), buffs: new Map() },
+      runtime: { liveEffects: createTestLiveEffects() },
       time: 0,
       event: { actorType: 'player' }
     };
@@ -193,7 +194,7 @@ test('live Firebrand condition bonuses use the supplied values and condition gat
         time: 0,
         condition,
         config: { selectedTraitIds: [TRAIT.UNRELENTING_CRITICISM, TRAIT.IMBUED_HASTE], boons: { quickness } },
-        runtime: { boons: new Map(), buffs: new Map() }
+        runtime: { liveEffects: createTestLiveEffects() }
       };
       const expected = 100 * (condition === 'Bleeding' ? 1.05 : 1) * (quickness ? 1.1 : 1);
       assert.ok(Math.abs(native.calculations.modifyConditionDamage(context, 100) - expected) < 1e-9);

@@ -4,6 +4,7 @@ import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { createEnduranceController } from '#gw2/platform/combat/resources/endurance-controller.js';
 import { createVigorWindowReader, vigorEnduranceIntervals } from '#gw2/platform/combat/resources/endurance.js';
 import { createResourceController } from '#gw2/platform/combat/resources/resource-controller.js';
@@ -17,6 +18,7 @@ import { createEncounter, initialEncounterTarget } from '#gw2/platform/combat/st
 import { targetHealthReached } from '#gw2/platform/combat/state/target-health.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { permanentComboFieldAssumption } from '#gw2/platform/combos/permanent-field-assumption.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { validateCatalogResourceGrants } from '#gw2/platform/effects/action-declarations.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
@@ -245,7 +247,12 @@ export function runRuntime<T extends object>(
   const effectRecorder = output === 'detailed' && collectChartData ? new EffectRecorder() : null;
   const damageReport = output === 'detailed' ? createDamageReportRecorder() : null;
   // Phase 3: resolver state and execution owners share one live clock.
+  // Resolver commands stay in this closure; profession runtimes receive only their query views.
+  const liveEffects = createLiveEffects(config);
+  const combo = createGw2ComboController();
   const base = createGw2ResolverRuntimeState({
+    liveEffects,
+    combo,
     engagement: engagementController.query,
     config,
     traits: normalizeSelectedTraitIds(config.selectedTraitIds),
@@ -396,6 +403,8 @@ export function runRuntime<T extends object>(
   }
 
   const deliveryOwner = createEffectDelivery(runtime, profession, execution, conditions, reactions, {
+    liveEffects,
+    combo,
     makeWork,
     enqueueWork,
     identify,

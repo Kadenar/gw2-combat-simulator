@@ -27,6 +27,7 @@ import {
   runElementalist,
   runNative
 } from '#tests/helpers/elementalist-simulation.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 test('Catalyst baseline renewal rejects intervals that cannot advance the clock before emitting work', () => {
@@ -356,8 +357,7 @@ test('Relentless Fire exposes separate strike and condition modifiers for its ac
     helpers: elementalistCatalog,
     time: 1,
     runtime: {
-      boons: new Map([]),
-      buffs: new Map([
+      liveEffects: createTestLiveEffects([
         ['relentless fire', [{ resolvedAudience: { includesSelf: true }, at: 0, expiresAt: 5, stacks: 1 }]]
       ])
     }

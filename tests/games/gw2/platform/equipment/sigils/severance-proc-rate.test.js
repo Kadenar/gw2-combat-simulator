@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { applyRuntimeSigils } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
@@ -15,6 +17,13 @@ const cooldownKey = `sigil.${SIGIL_IDS.SEVERANCE}`;
 function fixture(chance, mode = 'deterministic') {
   const capture = captureEffectEmissions();
   const runtime = createGw2ResolverRuntimeState({
+    liveEffects: createLiveEffects({
+      sigilSets: [{ names: ['Severance'] }, { names: ['Severance'] }],
+      procRateOverrides: chance === undefined ? {} : { 'sigil.severance': chance },
+      randomness: { seed: 42, mode }
+    }),
+    combo: createGw2ComboController(),
+
     conditions: createTestConditionResolution(),
     config: {
       sigilSets: [{ names: ['Severance'] }, { names: ['Severance'] }],

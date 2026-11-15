@@ -23,7 +23,7 @@ procContext.query.statsAt(1);
 const modifierContext: Gw2ModifierContext = {
   catalog: createCanonicalCatalog(),
   time: 1,
-  state: { profession: { core: {} }, boons: new Map() }
+  state: { profession: { core: {} } }
 };
 // @ts-expect-error Modifier state exposes no command cursor.
 modifierContext.state?.cursor;

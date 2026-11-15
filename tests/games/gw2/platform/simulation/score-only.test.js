@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -76,6 +77,7 @@ test('combo and aura handlers skip score report rows while preserving state and 
     };
     // Resolver handlers notify the registry even when reporting is disabled.
     const handlers = createGw2ComboResolution({
+      controller: createGw2ComboController(),
       reactions: createGw2ResolverReactionRegistry({
         professionReactions: {
           'combo.resolved': (_ctx, event) => {

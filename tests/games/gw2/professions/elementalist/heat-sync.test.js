@@ -54,8 +54,13 @@ function simulate({ might = 0, concentration = 0, count = 4, grants = [] } = {})
         [
           3,
           (runtime) => {
-            playerMight = buffApplicationStacks(runtime.boons.get('might') ?? [], 'might', 3, 25);
-            playerFury = remainingDurationStackSeconds(runtime.boons.get('fury') ?? [], 3, {
+            playerMight = buffApplicationStacks(
+              runtime.liveEffects.queries.boonApplications('might') ?? [],
+              'might',
+              3,
+              25
+            );
+            playerFury = remainingDurationStackSeconds(runtime.liveEffects.queries.boonApplications('fury') ?? [], 3, {
               maximum: 30,
               includes: (application) => buffMatchesAudience(application, RECIPIENT.SELF)
             });

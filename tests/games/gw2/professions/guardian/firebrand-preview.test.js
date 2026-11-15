@@ -3,7 +3,6 @@ import test from 'node:test';
 
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
@@ -25,6 +24,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { wait } from '#tests/helpers/commands.js';
 import { firebrandTestProfession as profession } from '#tests/helpers/firebrand-patch.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 
 const patchId = profession.preview.id;
 const config = { specialization: 'Firebrand', patchId };
@@ -59,7 +59,7 @@ test('provisional damage modifiers respect conditions, Ashes ownership, selectio
     time: 0,
     actorType: 'player',
     config: { ...config, selectedTraitIds: [TRAIT.UNRELENTING_CRITICISM, TRAIT.IMBUED_HASTE, REWORK.RIGHTEOUS_FLAMES] },
-    runtime: { boons: new Map(), buffs: new Map() }
+    runtime: { liveEffects: createTestLiveEffects() }
   };
   const multiplier = (id) => 1 + catalog.balanceProfilesById.get(id).conditionDamageIncrease;
   const bleeding = 100 * multiplier(TRAIT.UNRELENTING_CRITICISM);
@@ -68,7 +68,7 @@ test('provisional damage modifiers respect conditions, Ashes ownership, selectio
   assert.ok(Math.abs(damage('Bleeding') - bleeding) < 1e-9);
   assert.equal(damage('Burning'), 100);
   assert.equal(damage('Burning', 'guardian.ashes-of-the-just'), 100);
-  recordBuffApplication(context.runtime.boons, {
+  grantTestEffect(context.runtime.liveEffects, {
     kind: 'quickness',
     at: 0,
     duration: 2,

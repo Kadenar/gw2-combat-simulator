@@ -1,6 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -114,9 +113,7 @@ export function emitFlameExpulsion(
     balanceProfileNumber(pyromancersPuissanceProfile, 'maximumStacks'),
     context.config.boons?.might
       ? Number(context.config.boons.might)
-      : buffApplicationStacks(context.combat.boonApplications(BOON.MIGHT), BOON.MIGHT, at, 25, {
-          includes: (application) => application.resolvedAudience.includesSelf
-        })
+      : context.combat.activeBoonStacks(BOON.MIGHT, at, 25)
   );
   const flameExpulsionStrike = requireEffect(pyromancersPuissanceProfile, 'strike', 'Flame Expulsion');
   const flameExpulsionCondition = requireEffect(pyromancersPuissanceProfile, 'condition', 'Flame Expulsion');

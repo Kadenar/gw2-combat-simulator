@@ -93,7 +93,7 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
     selectedTraitIds: [TRAIT.FLUID_STRIKES]
   });
   assert.deepEqual(step.warnings, []);
-  assert.ok(observedRuntime(step).buffs.get('fluid-strikes').at(-1).expiresAt > 1);
+  assert.ok(observedRuntime(step).liveEffects.queries.buffApplications('fluid-strikes').at(-1).expiresAt > 1);
 });
 
 test('Signet of Agility grants precision while ready and restores 100 endurance on its 30-second recharge', () => {

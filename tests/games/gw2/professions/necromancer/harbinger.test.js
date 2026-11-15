@@ -191,7 +191,7 @@ test('Meltdown follows delayed acceptance and patched duration without adding a 
   assert.equal(planningBuffAt(pending.planningState, 'meltdown'), null);
   assert.equal(observedRuntime(pending).combat.activeBuffStacks('meltdown', pending.planningState.atSeconds, 1), 0);
   const grant = active.events.find((event) => event.type === 'buff' && event.kind === 'meltdown');
-  const expiry = observedRuntime(active).buffs.get('meltdown')[0].expiresAt;
+  const expiry = observedRuntime(active).liveEffects.queries.buffApplications('meltdown')[0].expiresAt;
   assert.equal(grant.duration, 2);
   assert.equal(planningBuffAt(active.planningState, 'meltdown').remaining, expiry - active.planningState.atSeconds);
   assert.equal(observedRuntime(active).combat.activeBuffStacks('meltdown', active.planningState.atSeconds, 1), 1);

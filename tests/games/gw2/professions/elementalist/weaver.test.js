@@ -22,7 +22,7 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 test('Elements of Rage requires attuning to a double element rather than starting in one', () => {
   // Initial equipment state cannot grant a transition reward; explicit preparation swaps can.
-  const rage = (result) => observedRuntime(result).buffs.get('elements of rage') ?? [];
+  const rage = (result) => observedRuntime(result).liveEffects.queries.buffApplications('elements of rage') ?? [];
   for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
     const options = {
       lines: [['Fire'], ['Air'], ['Weaver', '1-1-1']],
@@ -63,10 +63,10 @@ test('Core and Weaver orb casts refresh existing buffs without duplicating them'
   assert.equal(state.hammerOrbActivationIds.Fire, single.activationId);
   assert.equal(state.hammerOrbActivationIds.Air, dual.activationId);
   assert.equal(state.hammerOrbActivationIds.Earth, dual.activationId);
-  const fire = runtime.buffs.get('hammer fire orb');
+  const fire = runtime.liveEffects.queries.buffApplications('hammer fire orb');
   assert.equal(fire.length, 1);
   assert.equal(fire[0].expiresAt, state.hammerOrbs.Fire);
-  assert.equal(runtime.buffs.get('hammer air orb').length, 1);
+  assert.equal(runtime.liveEffects.queries.buffApplications('hammer air orb').length, 1);
 });
 
 test('Weaver hammer orbs require both distinct hands and respect Unravel replacement skills', () => {

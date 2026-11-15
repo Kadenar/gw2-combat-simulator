@@ -1,5 +1,6 @@
 /** Retain planned boon yields for reports while admission and resolution keep their existing combat rules. */
 import { isStandardBoon, normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
+import type { LiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { targetHealthReached } from '#gw2/platform/combat/state/target-health.js';
 import {
@@ -9,6 +10,7 @@ import {
   missesTarget
 } from '#gw2/platform/combat/state/targets.js';
 import { fieldDescriptors, finisherDescriptors } from '#gw2/platform/combos/descriptors.js';
+import type { Gw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import { prepareGw2ComboEvent } from '#gw2/platform/combos/validation.js';
 import { ACTOR } from '#gw2/platform/constants.js';
@@ -56,6 +58,8 @@ function withoutInheritedReaction(event: SimulationEventBase, cause?: EffectDeli
 }
 
 interface DeliveryHost {
+  readonly liveEffects: Pick<LiveEffects, 'grant' | 'extend'>;
+  readonly combo: Gw2ComboController;
   readonly makeWork: (input: WorkInput<RuntimeWork>) => RuntimeWork;
   enqueueWork(work: RuntimeWork): void;
   identify<E extends PacketIdentity>(event: E): E;
@@ -100,6 +104,8 @@ export function createEffectDelivery<T extends object>(
   const handlers = new HandlerRegistry<Gw2Runtime<T>, Gw2ResolverEvent>()
     .registerAll(
       createGw2ResolverEventHandlers({
+        liveEffects: host.liveEffects,
+        combo: host.combo,
         hitResolution: createGw2HitResolution({
           strikeMultiplier: relicStrikeMultiplier,
           activeBuffs: () => snapshotActivePlayerBuffs(runtime, profession)
@@ -449,7 +455,7 @@ export function createEffectDelivery<T extends object>(
     }
 
     // Keep the combo controller's selected binding on the packet that gameplay history records after resolution.
-    event = runtime.combo.bind(event);
+    event = host.combo.bind(event);
 
     // A grant precedes its synchronous buff reactions in gameplay; record that order before nested delivery runs.
     if (event.type === 'buff') runtime.observations.record(event);

@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { effectStateValue, observeBuffState } from '#gw2/platform/combat/effect-state.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { gw2BuffApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -15,6 +15,7 @@ import { renegadeHooks } from '#gw2/professions/revenant/specializations/renegad
 import { bandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
@@ -31,12 +32,14 @@ function fixture(traits = []) {
     profession: native.createState(config),
     helpers: native.catalog
   };
-  runtime.buffs = new Map();
-  runtime.companions = new Map();
-  runtime.combat = createMechanicCombatServices(runtime, createTestConditionResolution());
+  runtime.liveEffects = createTestLiveEffects();
+  runtime.combat = createMechanicCombatServices(runtime, createTestConditionResolution(), {
+    liveEffects: runtime.liveEffects,
+    combo: createGw2ComboController()
+  });
   const acceptBuff = (event) => {
     if (event.type === 'buff')
-      recordBuffApplication(runtime.buffs, {
+      grantTestEffect(runtime.liveEffects, {
         ...event,
         resolvedAudience: gw2BuffApplicationRecipients(config, event)
       });

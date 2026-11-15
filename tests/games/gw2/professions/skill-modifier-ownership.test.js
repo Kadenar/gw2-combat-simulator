@@ -24,6 +24,7 @@ import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorAppAdapter } from '#gw2/professions/warrior/app/app-definition.js';
 import { WARRIOR_SKILL_IDS as WARRIOR } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 
 const preview = {
   id: 'intrinsic-owners',
@@ -377,7 +378,7 @@ test('Sic Em player modifier preserves Soulbeast eligibility in live and detache
       config: { specialization: 'Core' },
       runtime: {
         profession: { specialization: { kind: specialization, state: {} } },
-        buffs: new Map([
+        liveEffects: createTestLiveEffects([
           [
             'sic-em',
             [
@@ -453,7 +454,7 @@ test('split buff rules retain recipient checks, expiry, and independent selected
           event: { skillId: -1, ...actor },
           runtime: {
             profession: { specialization: { kind: 'Amalgam', state: { plasmaticStateUntil: 5 } } },
-            buffs: new Map(
+            liveEffects: createTestLiveEffects(
               buff ? [[buff, [{ at: 0, expiresAt: 5, stacks: 1, resolvedAudience: { includesSelf: true } }]]] : []
             )
           }
@@ -496,7 +497,7 @@ test('Frost Bow and Crescent Wind retain cross-skill state bonuses and stop at e
       event: { skillId: -1, actorType: 'player' },
       runtime: {
         profession: { core: { conjureEquipped: 'Frost Bow', conjureExpiresAt: 5 } },
-        buffs: new Map([
+        liveEffects: createTestLiveEffects([
           ['hammer air orb', [{ at: 0, expiresAt: 5, stacks: 1, resolvedAudience: { includesSelf: true } }]]
         ])
       }
@@ -504,7 +505,7 @@ test('Frost Bow and Crescent Wind retain cross-skill state bonuses and stop at e
     assert.equal(hooks.modifyConditionDuration(context, 1), time < 5 ? 1.2 : 1);
     assert.equal(hooks.modifyCriticalChance(context, 0.5), time < 5 ? 0.65 : 0.5);
     context.runtime.profession.core.conjureEquipped = null;
-    context.runtime.buffs.clear();
+    context.runtime.liveEffects = createTestLiveEffects();
     assert.equal(hooks.modifyConditionDuration(context, 1), 1);
     assert.equal(hooks.modifyCriticalChance(context, 0.5), 0.5);
   }

@@ -152,11 +152,13 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
 
           if (!recipient) return false;
 
-          const buffs =
+          const applications = context.runtime?.liveEffects?.queries.buffApplications(
+            `attack-of-opportunity-${recipient}`,
             recipient === 'pet'
-              ? context.runtime?.companions?.get(String(context.event?.summonOwner))?.buffs
-              : context.runtime?.buffs;
-          return (buffs?.get(`attack-of-opportunity-${recipient}`) || []).some(
+              ? { actor: 'companion', companionId: String(context.event?.summonOwner) }
+              : { actor: ACTOR.PLAYER }
+          );
+          return (applications ?? []).some(
             (application) =>
               application.at <= context.time &&
               application.expiresAt > context.time &&

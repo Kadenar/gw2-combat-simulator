@@ -246,8 +246,8 @@ test('successive Finales extend only their own orb buff applications', () => {
         canonicalTime(first.end / 1000 + 1.001),
         (runtime) => {
           observed = true;
-          const active = runtime.buffs
-            .get('hammer fire orb')
+          const active = runtime.liveEffects.queries
+            .buffApplications('hammer fire orb')
             .filter((buff) => buff.at <= runtime.time && buff.expiresAt > runtime.time);
           assert.equal(active.length, 1);
         }
@@ -257,7 +257,7 @@ test('successive Finales extend only their own orb buff applications', () => {
   assert.deepEqual(result.warnings, []);
   assert.ok(observed);
   const runtime = observedRuntime(result);
-  const buffs = runtime.buffs.get('hammer fire orb');
+  const buffs = runtime.liveEffects.queries.buffApplications('hammer fire orb');
   assert.equal(buffs[0].expiresAt, canonicalTime(first.end / 1000 + 1));
   assert.ok(buffs.every((buff) => buff.expiresAt <= canonicalTime(last.end / 1000 + 1)));
   assert.deepEqual(runtime.profession.core.hammerOrbs, { Fire: null, Water: null, Air: null, Earth: null });
@@ -284,7 +284,11 @@ test('orb creation excludes an element at its exact expiry', () => {
   const runtime = observedRuntime(result);
   assert.equal(runtime.profession.core.hammerOrbs.Fire, null);
   assert.ok(runtime.profession.core.hammerOrbs.Water > coil.end / 1000);
-  assert.ok(runtime.buffs.get('hammer fire orb').every((buff) => buff.expiresAt === canonicalTime(coil.end / 1000)));
+  assert.ok(
+    runtime.liveEffects.queries
+      .buffApplications('hammer fire orb')
+      .every((buff) => buff.expiresAt === canonicalTime(coil.end / 1000))
+  );
 });
 
 // Finale may consume a live primary orb while a secondary orb expires at that same cast-start boundary.
@@ -324,7 +328,7 @@ test('Finale excludes an orb expiring exactly at cast start', () => {
   );
   assert.ok(
     observedRuntime(result)
-      .buffs.get('hammer water orb')
+      .liveEffects.queries.buffApplications('hammer water orb')
       .every((buff) => buff.expiresAt === start)
   );
 });

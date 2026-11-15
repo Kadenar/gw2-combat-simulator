@@ -16,6 +16,7 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { wait } from '#tests/helpers/commands.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import {
   createObservedProfessionSimulator,
   observedRuntime,
@@ -112,8 +113,8 @@ function resolverContext(balanceProfiles, selectedTraitIds, specialization, skil
     config,
     traits: new Set(config.selectedTraitIds),
     helpers: applySkillPatch(applyBalanceProfilePatch(rangerCatalog, { balanceProfiles }), { skills }),
-    boons: new Map(),
-    buffs: new Map(),
+    liveEffects: createTestLiveEffects(),
+
     // Neutral stats keep derived boon durations at their authored values.
     query: { statsAt: () => ({}) },
     queued,

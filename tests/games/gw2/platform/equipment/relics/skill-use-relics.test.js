@@ -78,9 +78,9 @@ test('Deadeye relic follows player cantrip completions independently of professi
   assert.equal(procs[0].start, completed.endsAt * 1000);
 
   const ctx = observedRuntime(result);
-  const until = ctx.buffs.get('relic-deadeye').at(-1).expiresAt;
+  const until = ctx.liveEffects.queries.buffApplications('relic-deadeye').at(-1).expiresAt;
   ctx.relic.completed(ctx, { type: 'action', at: 100, skillId: 940012, actorType: 'summon' });
-  assert.equal(ctx.buffs.get('relic-deadeye').at(-1).expiresAt, until);
+  assert.equal(ctx.liveEffects.queries.buffApplications('relic-deadeye').at(-1).expiresAt, until);
   assert.equal(relicStrikeMultiplier(ctx, { at: until - 0.001, actorType: 'summon' }), 1);
   assert.equal(relicStrikeMultiplier(ctx, { at: until - 0.001, actorType: 'effect', ownerActorType: 'player' }), 1.1);
   assert.equal(relicStrikeMultiplier(ctx, { at: until, actorType: 'player' }), 1);
@@ -389,7 +389,7 @@ test('Director off-target precasts grant the buff without preloading vulnerabili
     ),
     false
   );
-  assert.ok(observedRuntime(offTarget).buffs.has('relic-director'));
+  assert.ok(observedRuntime(offTarget).liveEffects.queries.buffApplications('relic-director').length > 0);
   assert.equal(offTarget.strikeDamage, baseline.strikeDamage);
   assertFlooredDamageMultiplier(onTarget.strikeDamage, baseline.strikeDamage, 1.08 * 1.1);
   assert.equal(offTarget.procSteps.filter((step) => step.type === 'relic_proc').length, 1);
@@ -405,7 +405,7 @@ test('Mount Balrior completes its earned precast activation after combat entry',
   });
   assert.deepEqual(result.warnings, []);
   const runtime = observedRuntime(result);
-  const grants = runtime.buffs.get('relic-mount-balrior');
+  const grants = runtime.liveEffects.queries.buffApplications('relic-mount-balrior');
   assert.equal(grants.length, 1);
   assert.ok(grants[0].at > result.combatStartTime);
   assert.equal(relicStrikeMultiplier(runtime, { at: result.combatStartTime, actorType: 'player' }), 1);

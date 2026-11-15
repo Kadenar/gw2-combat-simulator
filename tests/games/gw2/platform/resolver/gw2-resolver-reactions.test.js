@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
@@ -307,6 +309,12 @@ test('condition stage runs once per stack after insertion, including profession 
   });
   const queue = new StableEventQueue();
   const context = createGw2ResolverRuntimeState({
+    liveEffects: createLiveEffects({
+      relic: 'Fractal',
+      target: { conditions: { Bleeding: 1 } }
+    }),
+    combo: createGw2ComboController(),
+
     conditions,
     config: {
       relic: 'Fractal',

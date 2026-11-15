@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { CONTROL } from '#gw2/platform/constants.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -13,6 +14,7 @@ import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profess
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { wait } from '#tests/helpers/commands.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
@@ -235,15 +237,13 @@ test('Attack of Opportunity ignores effect damage and consumes only its recipien
       ]
     ])
   );
-  const companions = new Map([
-    [
-      'pet-1',
-      { buffs: new Map([['attack-of-opportunity-pet', [...buffs.get('attack-of-opportunity-pet')]]]), boons: new Map() }
-    ]
-  ]);
-  const context = { buffs, companions, profession: { core: { pet: null } } };
+  const liveEffects = createTestLiveEffects(buffs);
+  const context = { liveEffects, profession: { core: { pet: null } } };
   // Bind real owner operations for this focused mechanic fixture.
-  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution(), {
+    liveEffects: context.liveEffects,
+    combo: createGw2ComboController()
+  });
   const event = {
     type: 'damage',
     at: 1,
@@ -253,7 +253,7 @@ test('Attack of Opportunity ignores effect damage and consumes only its recipien
     coefficient: 1
   };
   const active = (packet) =>
-    rangerAttackOfOpportunityModifier.when({ runtime: { buffs, companions }, event: packet, time: packet.at });
+    rangerAttackOfOpportunityModifier.when({ runtime: { liveEffects }, event: packet, time: packet.at });
   reactToRangerGreatswordDamage(context, event);
   assert.equal(active(event), false);
   const player = { ...event, actorType: 'player', source: 'ranger' };

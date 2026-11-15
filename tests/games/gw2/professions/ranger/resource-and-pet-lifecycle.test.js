@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
@@ -10,6 +11,7 @@ import { activeSoulbeastBuff } from '#gw2/professions/ranger/specializations/sou
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
@@ -23,7 +25,11 @@ const config = {
   target: { armor: 2597, conditions: {} }
 };
 // Bind real owner operations for this focused mechanic fixture.
-config.combat = createMechanicCombatServices(config, createTestConditionResolution());
+const combatRuntime = { ...config, liveEffects: createTestLiveEffects() };
+config.combat = createMechanicCombatServices(combatRuntime, createTestConditionResolution(), {
+  liveEffects: combatRuntime.liveEffects,
+  combo: createGw2ComboController()
+});
 const simulate = createObservedProfessionSimulator(rangerProfession, config);
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, `${actual} != ${expected}`);
 // Seed only initial state; every gain, expiry, extension, and wait runs on the common queue.
@@ -149,18 +155,18 @@ test('personal stances ignore pet-only combat and trigger on the next player str
   assert.ok(procs(player).some((event) => event.skillId === ID.ONE_WOLF_PACK));
   assert.ok(procs(player).some((event) => event.skillId === ID.VULTURE_STANCE));
   assert.ok(procs(player).every((event) => event.triggeredBy === 'Slash'));
+  const combatRuntime2 = {
+    liveEffects: createTestLiveEffects([
+      ['vulture-stance', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: false } }]]
+    ])
+  };
   assert.equal(
     activeSoulbeastBuff(
       {
-        combat: createMechanicCombatServices(
-          {
-            boons: new Map([]),
-            buffs: new Map([
-              ['vulture-stance', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: false } }]]
-            ])
-          },
-          createTestConditionResolution()
-        )
+        combat: createMechanicCombatServices(combatRuntime2, createTestConditionResolution(), {
+          liveEffects: combatRuntime2.liveEffects,
+          combo: createGw2ComboController()
+        })
       },
       'vulture-stance',
       1

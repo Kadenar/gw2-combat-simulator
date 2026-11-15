@@ -253,7 +253,6 @@ export function setRangerPetActive(context: RangerRuntime, active: boolean, sour
   state.pet = createRangerPetState(rangerPetInstanceId(state.activePetSlot, state.nextPetInstance++));
   state.pet.busyUntil = context.time;
   state.pet.commandReadyAt = context.time;
-  context.combat.registerCompanion(state.pet.id, state.pet.effects);
   startRangerPet(context);
 }
 
@@ -549,13 +548,8 @@ export function runInstantRangerPetCommand(
   emitRangerPetSkill(runtime, { ...cast.skill, effects }, cast.start, cast.fullEnd, cast.id, cast);
 }
 
-/** Own Core pet registration, queued commands, and packet lifetime so retired companions cannot create new pet effects. */
+/** Own Core pet activation, queued commands, and packet lifetime so retired companions cannot create new pet effects. */
 export const rangerPetLifecycle = {
-  initialize(runtime) {
-    const pet = runtime.profession.core.pet;
-
-    if (pet) runtime.combat.registerCompanion(pet.id, pet.effects);
-  },
   onCombatStart: startRangerPet,
   onCastStart: beginRangerPetCommand,
   // Pet recharge belongs to the incarnation accepting the command, not whichever pet is active later.

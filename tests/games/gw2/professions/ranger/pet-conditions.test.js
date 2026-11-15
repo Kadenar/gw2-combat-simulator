@@ -3,6 +3,8 @@ import test from 'node:test';
 
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { effectStateRevision, effectStateValue } from '#gw2/platform/combat/effect-state.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
@@ -19,6 +21,9 @@ for (const output of ['score', 'detailed']) {
       reactions: { dispatch() {} }
     });
     const context = createGw2ResolverRuntimeState({
+      liveEffects: createLiveEffects({}),
+      combo: createGw2ComboController(),
+
       conditions,
       output,
       config: {},

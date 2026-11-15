@@ -20,6 +20,7 @@ import { evokerState } from '#gw2/professions/elementalist/specializations/evoke
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -781,8 +782,7 @@ test('Familiar Prowess retains its applied window and patched Focus scaling afte
     event: { actorType: 'player' },
     config: { evokerElement: 'Air', selectedTraitIds: [] },
     runtime: {
-      boons: new Map([]),
-      buffs: new Map([
+      liveEffects: createTestLiveEffects([
         ['familiars-prowess', [{ resolvedAudience: { includesSelf: true }, at: 0, expiresAt: 2, stacks: 1 }]]
       ])
     }
@@ -828,8 +828,7 @@ test('Familiar Focus replaces the shared Prowess bonus only while selected and t
             event: { actorType: 'player' },
             config: { evokerElement: element, selectedTraitIds: selected ? [TRAIT.FAMILIARS_FOCUS] : [] },
             runtime: {
-              boons: new Map(),
-              buffs: new Map([
+              liveEffects: createTestLiveEffects([
                 ['familiars-prowess', [{ resolvedAudience: { includesSelf: true }, at: 0, expiresAt: 2, stacks: 1 }]]
               ])
             },

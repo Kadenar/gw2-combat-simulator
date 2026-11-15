@@ -3,11 +3,11 @@ import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { conditionApplicationDuration, createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { comboCombatMetadata } from '#gw2/platform/combos/definitions.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 
 // Exercise the production query so player ownership reaches attributes, equipment, and real trait hooks.
 const config = {
@@ -42,7 +42,7 @@ const player = {
 
 test('summon conditions use player Might, condition equipment, traits, and duration without rewriting their source', () => {
   const combat = query();
-  const runtime = { boons: new Map(), buffs: new Map() };
+  const runtime = { liveEffects: createTestLiveEffects() };
   for (const summonKind of ['clone', 'minion', 'phantasm', 'spirit', 'thieves-guild']) {
     const application = Object.freeze({
       ...player,
@@ -68,7 +68,7 @@ test('summon conditions use player Might, condition equipment, traits, and durat
     assert.equal(application.summonUsesEquipmentModifiers, false);
   }
 
-  recordBuffApplication(runtime.boons, {
+  grantTestEffect(runtime.liveEffects, {
     at: 0.2,
     kind: 'might',
     stacks: 5,

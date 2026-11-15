@@ -1,12 +1,11 @@
 /** Maintains authoritative combat state and narrow optional reporting observers. */
 import type { Gw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { Gw2CriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import { createCombatEngagement, type CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
+import type { LiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { createProcRegistry, type ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
-import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
-import { createGw2ComboController, type Gw2ComboController } from '#gw2/platform/combos/resolution.js';
+import type { Gw2ComboController } from '#gw2/platform/combos/resolution.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
@@ -49,6 +48,8 @@ export function createGw2ResolverRuntimeState({
   effects,
   professionState = {},
   conditions,
+  liveEffects,
+  combo,
   random = createSimulationRandom(config.randomness)
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const criticalDamageMode = normalizeCriticalDamageMode(config.criticalDamageMode);
@@ -84,10 +85,7 @@ export function createGw2ResolverRuntimeState({
     conditionState: conditions.state,
     resolved: [],
     procs: createProcRegistry(() => runtime),
-    boons: new Map(),
-    buffs: new Map(),
-    retiredCompanions: new Map(),
-    companions: new Map(),
+    liveEffects: Object.freeze({ queries: liveEffects.queries }),
     totals: {
       strike: 0,
       condition: 0
@@ -96,7 +94,7 @@ export function createGw2ResolverRuntimeState({
     lastHitTime: null,
     deathTime: null,
     activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
-    combo: createGw2ComboController(),
+    combo: Object.freeze({ activeFields: combo.activeFields, fieldFor: combo.fieldFor }),
     // Equipment state belongs to this resolution pass, including repeated runs with the same configuration.
     relic: createRelicRuntime(config.relic, config.precastRelics),
     profession: professionState,
@@ -126,7 +124,7 @@ export function createGw2ResolverRuntimeState({
       this.healthCheckpointRecorder?.observe(at, this.totals.strike + this.totals.condition, this.environmentDamage);
     }
   };
-  const combat = createMechanicCombatServices(runtime, conditions);
+  const combat = createMechanicCombatServices(runtime, conditions, { liveEffects, combo });
   return runtime;
 }
 
@@ -155,18 +153,14 @@ export interface Gw2ResolverRuntime {
   readonly healthCheckpointRecorder: ReturnType<typeof createHealthCheckpointRecorder>;
   readonly conditionState: ReadonlyMap<string, Gw2ResolverConditionState>;
   resolved: Gw2ResolverEvent[];
-  boons: Map<string, Gw2TimedBuffApplication[]>;
-  /** Retirement ends a companion's live effects while retaining pre-removal history. */
-  retiredCompanions: Map<string, number>;
-  companions: Map<string, CompanionEffects>;
-  buffs: Map<string, Gw2TimedBuffApplication[]>;
+  readonly liveEffects: Pick<LiveEffects, 'queries'>;
   totals: { strike: number; condition: number };
   firstHitTime: number | null;
   lastHitTime: number | null;
   deathTime: number | null;
   readonly engagement: CombatEngagementQueries;
   activeWeaponSet: number;
-  readonly combo: Gw2ComboController;
+  readonly combo: Pick<Gw2ComboController, 'activeFields' | 'fieldFor'>;
   relic: Gw2RelicRuntime;
   profession: object;
   sigil: Gw2SigilRuntimeState;
@@ -178,6 +172,9 @@ export interface Gw2ResolverRuntime {
 }
 
 interface CreateGw2ResolverRuntimeStateOptions {
+  /** Composition retains commands while this state publishes only query views. */
+  readonly liveEffects: LiveEffects;
+  readonly combo: Gw2ComboController;
   readonly engagement?: CombatEngagementQueries;
   readonly boonGeneration?: ReturnType<typeof createBoonGenerationCollector> | null;
   readonly effectRecorder?: EffectReportObserver | null;

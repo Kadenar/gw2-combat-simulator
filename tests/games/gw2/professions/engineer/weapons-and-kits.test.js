@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import { skillFlipReady, skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -10,6 +11,7 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import {
   createObservedProfessionSimulator,
   observedRuntime,
@@ -129,17 +131,18 @@ test('Electric Artillery converts whole charges into Focused-sensitive Vulnerabi
       [10, unfocusedStacks]
     ]) {
       const conditions = [];
+      const combatRuntime = {
+        liveEffects: createTestLiveEffects([
+          ['engineer-focused', [{ at: 0, expiresAt, stacks: 1, resolvedAudience: { includesSelf: true } }]]
+        ])
+      };
       handleElectricArtillery(
         {
           helpers: engineerCatalog,
-          combat: createMechanicCombatServices(
-            {
-              buffs: new Map([
-                ['engineer-focused', [{ at: 0, expiresAt, stacks: 1, resolvedAudience: { includesSelf: true } }]]
-              ])
-            },
-            createTestConditionResolution()
-          ),
+          combat: createMechanicCombatServices(combatRuntime, createTestConditionResolution(), {
+            liveEffects: combatRuntime.liveEffects,
+            combo: createGw2ComboController()
+          }),
           effects: {
             emit(request) {
               if (request.settlement === 'reaction') conditions.push(request.event);

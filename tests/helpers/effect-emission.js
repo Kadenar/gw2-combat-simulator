@@ -1,5 +1,4 @@
-import { isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { gw2BuffApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 
@@ -27,18 +26,12 @@ export function captureEffectEmissions({ now = () => 0, submit, announce } = {})
 
 /** Direct hook fixtures explicitly accept emitted buffs, keeping modifier queries independent of private timers. */
 export function captureAcceptedBuffEmissions() {
-  const boons = new Map();
-  const buffs = new Map();
+  const liveEffects = createLiveEffects();
   return {
-    boons,
-    buffs,
+    liveEffects,
     ...captureEffectEmissions({
       submit(event) {
-        if (event.type === 'buff')
-          recordBuffApplication(isStandardBoon(event.kind) ? boons : buffs, {
-            ...event,
-            resolvedAudience: gw2BuffApplicationRecipients({}, event)
-          });
+        if (event.type === 'buff') liveEffects.grant(event);
 
         return event;
       }

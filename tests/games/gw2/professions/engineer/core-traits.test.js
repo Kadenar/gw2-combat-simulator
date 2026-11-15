@@ -74,7 +74,7 @@ test('Explosives and Firearms traits materialize offensive effects', () => {
   assert.ok(
     result.resolvedEvents.some((event) => event.type === 'condition' && event.name === 'Incendiary Powder - Burning')
   );
-  assert.ok(observedRuntime(result).buffs.get('thermal-vision').length > 0);
+  assert.ok(observedRuntime(result).liveEffects.queries.buffApplications('thermal-vision').length > 0);
 });
 
 test('Explosives traits use the requested packets, gates, and health modifiers', () => {
@@ -961,7 +961,8 @@ const traitCases = [
     name: 'Thermal Vision',
     trait: TRAIT.THERMAL_VISION,
     rotation: ['Blowtorch', shortWait],
-    verify: (result) => assert.ok(observedRuntime(result).buffs.get('thermal-vision').length > 0)
+    verify: (result) =>
+      assert.ok(observedRuntime(result).liveEffects.queries.buffApplications('thermal-vision').length > 0)
   },
   {
     name: 'Sanguine Array',

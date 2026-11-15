@@ -1,22 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 
 // Record only executed grants so each query observes its exact position in same-time event ordering.
 function fixture(boons = {}) {
   const runtime = {
-    companions: new Map(),
     config: { boons },
-    boons: new Map(),
-    buffs: new Map(),
-    retiredCompanions: new Map()
+    liveEffects: createTestLiveEffects([], { boons })
   };
   return {
-    combat: createMechanicCombatServices(runtime, createTestConditionResolution()),
+    combat: createMechanicCombatServices(runtime, createTestConditionResolution(), {
+      liveEffects: runtime.liveEffects,
+      combo: createGw2ComboController()
+    }),
     grant(kind, at, duration, stacks, companionId) {
       const event = {
         type: 'buff',
@@ -32,8 +32,7 @@ function fixture(boons = {}) {
           recipientCount: 1
         }
       };
-      recordBuffApplication(runtime.boons, event);
-      recordCompanionBuff(runtime.companions, event);
+      grantTestEffect(runtime.liveEffects, event);
     }
   };
 }

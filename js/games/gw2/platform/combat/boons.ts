@@ -97,7 +97,7 @@ interface DurationBoonCursor {
 const durationBoonCursors = new WeakMap<readonly object[], DurationBoonCursor[]>();
 
 /** Advance append-only accepted pools once per recipient; backwards queries replay without changing grant history. */
-function orderedDurationBoonRemaining(
+export function orderedDurationBoonRemaining(
   applications: readonly BuffStackApplication[],
   kind: string,
   time: number,

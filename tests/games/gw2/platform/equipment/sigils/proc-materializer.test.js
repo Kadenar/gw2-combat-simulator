@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
@@ -18,7 +20,12 @@ import { defineTestProfession } from '#tests/helpers/profession.js';
 test('critical sigil decisions use sampled outcomes and strict deadlines without mutating inputs', () => {
   const hit = { type: 'damage', at: 2, source: 'fixture', sourceId: 1, actorType: 'player', coefficient: 1 };
   // Read shared namespaced deadlines without claiming them during the pure decision step.
-  const { procs } = createGw2ResolverRuntimeState({ conditions: createTestConditionResolution(), config: {} });
+  const { procs } = createGw2ResolverRuntimeState({
+    liveEffects: createLiveEffects({}),
+    combo: createGw2ComboController(),
+    conditions: createTestConditionResolution(),
+    config: {}
+  });
   // Seed deadlines through the registry and compare its detached observations below.
   procs.setDeadline(`sigil.${SIGIL_IDS.EARTH}`, 2);
   procs.setDeadline(`sigil.${SIGIL_IDS.AIR}`, 3);

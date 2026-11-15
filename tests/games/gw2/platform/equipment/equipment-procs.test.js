@@ -4,6 +4,8 @@ import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { applyRuntimeSigils } from '#gw2/platform/equipment/sigils/runtime.js';
@@ -23,7 +25,12 @@ test('Mischief shares its nine-second cooldown across equipped copies', () => {
   const procs = [];
   const engagement = createCombatEngagement();
   const runtime = {
-    ...createGw2ResolverRuntimeState({ conditions: createTestConditionResolution(), config: {} }),
+    ...createGw2ResolverRuntimeState({
+      liveEffects: createLiveEffects({}),
+      combo: createGw2ComboController(),
+      conditions: createTestConditionResolution(),
+      config: {}
+    }),
     engagement: engagement.query,
     activeWeaponSet: 1,
     config: { sigilSets: [{ names: ['Mischief'] }, { names: [] }] },
@@ -63,7 +70,12 @@ test('Ice rejects non-defiant hits without consuming its shared cooldown', () =>
   for (const didCrit of [false, true]) {
     const emitted = [];
     const runtime = {
-      ...createGw2ResolverRuntimeState({ conditions: createTestConditionResolution(), config: {} }),
+      ...createGw2ResolverRuntimeState({
+        liveEffects: createLiveEffects({}),
+        combo: createGw2ComboController(),
+        conditions: createTestConditionResolution(),
+        config: {}
+      }),
       engagement: enteredCombat(),
       activeWeaponSet: 1,
       config: { target: { defiant: false }, sigilSets: [{ names: ['Ice', 'Ice'] }] },

@@ -14,6 +14,7 @@ import { activeBoonStacks, boonActive } from '#gw2/platform/combat/query/runtime
 import { runtimeTargetConditionStacks, targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 
 // Both scheduled and accepted histories use canonical, half-open visibility before applying audience and intensity caps.
 test('intensity queries preserve canonical visibility in unordered and ordered histories', () => {
@@ -137,7 +138,7 @@ test('summon boon queries keep capped recipients in separate duration pools', ()
 test('status queries retain the last microsecond and exclude canonical expiry', () => {
   const resolvedAudience = { includesSelf: true, includesSummons: false, companionIds: [] };
   const runtime = {
-    boons: new Map(
+    liveEffects: createTestLiveEffects(
       ['might', 'fury'].map((kind) => [kind, [{ at: 0.2, expiresAt: 0.56 + 0.04, stacks: 1, resolvedAudience }]])
     ),
     conditionState: new Map([['Bleeding', { stacks: [{ at: 0.2, naturalExpiresAt: 0.56 + 0.04, stacks: 1 }] }]])

@@ -242,9 +242,10 @@ test('active buff diagnostics include tied grants and preserve state before afte
 
         // Mutating the live applications cannot retroactively alter the retained hit's facts.
         charges -= 1;
-        ctx.buffs.set(
+        ctx.combat.reviseBuffExpiry(
           'charge',
-          ctx.buffs.get('charge').map((application) => ({ ...application, expiresAt: event.at }))
+          () => true,
+          () => event.at
         );
         ctx.effects.emit({ kind: 'packet', event: buff('after-hit', { at: event.at }) });
       }

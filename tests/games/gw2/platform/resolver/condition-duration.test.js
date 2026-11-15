@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
@@ -35,6 +37,9 @@ test('condition duration preserves phase context, fixed durations, and natural e
       reactions: { dispatch() {} }
     });
     const resolver = createGw2ResolverRuntimeState({
+      liveEffects: createLiveEffects({}),
+      combo: createGw2ComboController(),
+
       conditions: resolution,
       config: {},
       horizon: 5.5,

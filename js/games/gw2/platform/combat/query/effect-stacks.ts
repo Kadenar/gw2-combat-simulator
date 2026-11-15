@@ -1,3 +1,4 @@
+/** Per-recipient boon and buff stack reads over accepted applications, for live queries and boon copying. */
 import {
   buffApplicationStacks,
   buffMatchesAudience,
@@ -10,8 +11,6 @@ import {
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-
-/** Per-recipient boon and buff stack reads over accepted applications, for live queries and boon copying. */
 
 export type EffectRecipient =
   { readonly actor: typeof ACTOR.PLAYER } | { readonly actor: 'companion'; readonly companionId: string | null };
@@ -28,7 +27,7 @@ export function appliedEffectStacks(
   const audience = recipient.actor === ACTOR.PLAYER ? RECIPIENT.SELF : RECIPIENT.SUMMONS;
   const companionId = recipient.actor === 'companion' ? recipient.companionId : undefined;
   // A retired entity has no live boons or buffs; earlier queries still see its accepted grants.
-  const retiredAt = companionId ? context.runtime?.retiredCompanions?.get(companionId) : undefined;
+  const retiredAt = companionId ? context.runtime?.liveEffects?.queries.companionRetiredAt(companionId) : undefined;
 
   if (retiredAt != null)
     return context.time >= retiredAt
@@ -38,12 +37,8 @@ export function appliedEffectStacks(
   if (!context.runtime)
     return context.timeline?.buffStacksAt(kind, context.time, fallbackDuration, maximum, audience, companionId) ?? 0;
 
-  // A live companion reads only its own disposable store, never the global report history.
-  const effects =
-    recipient.actor === 'companion' ? context.runtime.companions?.get(companionId ?? '') : context.runtime;
-  const applications = (isStandardBoon(kind) ? effects?.boons : effects?.buffs)?.get(kind) ?? [];
-  // Accepted histories are chronological, so duration pools can replay without copying and sorting each query.
-  return buffApplicationStacks(applications, kind, context.time, maximum, { audience, companionId, ordered: true });
+  // Live queries use accepted stores; only the historical path above may replay a retired recipient.
+  return context.runtime.liveEffects?.queries.stacks(kind, context.time, maximum, recipient) ?? 0;
 }
 
 /** Snapshot executed applications for one recipient so copying never reconstructs live state from reporting facts. */

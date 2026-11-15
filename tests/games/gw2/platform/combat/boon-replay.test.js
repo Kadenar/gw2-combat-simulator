@@ -46,7 +46,10 @@ test('executed boon replay preserves priority ahead of causal order in both outp
         });
         const expected = priority === -1 ? 1 : 0;
         assert.deepEqual(result.warnings, []);
-        assert.equal(buffApplicationStacks(runtime.boons.get(kind), kind, 1.5, 25), expected);
+        assert.equal(
+          buffApplicationStacks(runtime.liveEffects.queries.boonApplications(kind), kind, 1.5, 25),
+          expected
+        );
         assert.equal(runtime.query.timeline.buffStacksAt(kind, 1.5, 0, 25), expected);
         assert.equal(runtime.query.timeline.buffStacksAt(kind, 0.5, 0, 25), 1);
         assert.equal(runtime.query.timeline.buffStacksAt(kind, 3, 0, 25), 0);
@@ -146,7 +149,7 @@ test('nested immediate grants are recorded before their descendants and visible 
       ['grant', 'nested']
     );
     assert.equal(runtime.query.timeline.buffStacksAt('might', 1.5, 0, 25), 2);
-    assert.equal(buffApplicationStacks(runtime.boons.get('might'), 'might', 1.5, 25), 2);
+    assert.equal(buffApplicationStacks(runtime.liveEffects.queries.boonApplications('might'), 'might', 1.5, 25), 2);
   }
 });
 
@@ -179,7 +182,7 @@ test('native No Quarter records its immediate extension once in gameplay history
     assert.equal(fact.parentEventOrder, hit.eventOrder);
     assert.equal(fact.causalOrder, hit.causalOrder);
     assert.equal(
-      remainingDurationStackSeconds(runtime.boons.get('fury'), 1, {
+      remainingDurationStackSeconds(runtime.liveEffects.queries.boonApplications('fury'), 1, {
         includes: (application) => application.resolvedAudience.includesSelf,
         maximum: 30
       }),
@@ -189,7 +192,10 @@ test('native No Quarter records its immediate extension once in gameplay history
       [3, 1],
       [2 + fact.duration, 0]
     ]) {
-      assert.equal(buffApplicationStacks(runtime.boons.get('fury'), 'fury', at, 1), expected);
+      assert.equal(
+        buffApplicationStacks(runtime.liveEffects.queries.boonApplications('fury'), 'fury', at, 1),
+        expected
+      );
       assert.equal(runtime.query.timeline.buffStacksAt('fury', at, 0, 1), expected);
     }
 
@@ -257,7 +263,7 @@ test('a nested extension is visible immediately and follows its grant without ex
       assert.equal(facts[1].parentEventOrder, parent.eventOrder);
       assert.equal(facts[1].at, parent.at);
       assert.equal(runtime.query.timeline.buffStacksAt(kind, 3, 0, 25), 0);
-      assert.equal(buffApplicationStacks(runtime.boons.get(kind), kind, 3, 25), 0);
+      assert.equal(buffApplicationStacks(runtime.liveEffects.queries.boonApplications(kind), kind, 3, 25), 0);
     }
   }
 });
@@ -287,6 +293,6 @@ test('an immediate extension records execution without resurrecting an expired b
   });
   assert.deepEqual(result.warnings, []);
   assert.equal(runtime.history.filter((event) => event.type === 'boon_extension').length, 1);
-  assert.equal(buffApplicationStacks(runtime.boons.get('fury'), 'fury', 2, 1), 0);
+  assert.equal(buffApplicationStacks(runtime.liveEffects.queries.boonApplications('fury'), 'fury', 2, 1), 0);
   assert.equal(runtime.query.timeline.buffStacksAt('fury', 2, 0, 1), 0);
 });

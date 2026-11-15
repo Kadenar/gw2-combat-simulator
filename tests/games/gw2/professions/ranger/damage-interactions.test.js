@@ -8,6 +8,7 @@ import {
 } from '#gw2/app/results/skill-breakdown.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
@@ -18,6 +19,7 @@ import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profess
 import { wait } from '#tests/helpers/commands.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
@@ -62,15 +64,18 @@ test('Core damage reactions preserve trait and skill ordering without spending c
     // Player strikes consume Blood Thirst only while merged with the pet.
     profession: { core: state, specialization: { kind: 'Soulbeast', state: { beastmodeActive: true } } },
     helpers: rangerCatalog,
-    boons: new Map(),
-    buffs: new Map(),
+    liveEffects: createTestLiveEffects(),
+
     // Exercise real expansion so causal ordering is independent of the author's emission shape.
     effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
   };
   // Exercise the same selected point listeners as the live profession.
   bindTriggerPoints(context, rangerProfession, config);
   // Bind real owner operations for this focused mechanic fixture.
-  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution(), {
+    liveEffects: context.liveEffects,
+    combo: createGw2ComboController()
+  });
   const event = {
     type: 'damage',
     at: 1,

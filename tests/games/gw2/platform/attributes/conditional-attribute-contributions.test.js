@@ -5,6 +5,7 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { attributeContext, resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
 import { attributeSeed, baseAttributeInputs, equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 
 const families = {};
 for (const name of ['elementalist', 'engineer', 'guardian', 'necromancer', 'ranger', 'revenant', 'thief', 'warrior']) {
@@ -96,18 +97,36 @@ for (const [name, specialization, trait, boons, declared, stats] of [
 test('Explosive Temper observes grant, audience, cap and expiry without mutating the seed', () => {
   const probe = scenario('engineer', 'Core', ['Explosive Temper']);
   const grants = [];
-  const runtime = { buffs: new Map([['explosive-temper', grants]]) };
+  const runtime = { liveEffects: createTestLiveEffects([['explosive-temper', grants]]) };
   const seed = structuredClone(probe.config.attributeInputs);
   assert.equal(probe.query.statsAt(1, null, runtime).ferocity, 0);
-  grants.push({ at: 1, expiresAt: 5, stacks: 3, resolvedAudience: { includesSelf: true } });
-  grants.push({ at: 1, expiresAt: 5, stacks: 10, resolvedAudience: { includesSelf: false, includesSummons: true } });
+  grantTestEffect(runtime.liveEffects, {
+    kind: 'explosive-temper',
+    at: 1,
+    expiresAt: 5,
+    stacks: 3,
+    resolvedAudience: { includesSelf: true }
+  });
+  grantTestEffect(runtime.liveEffects, {
+    kind: 'explosive-temper',
+    at: 1,
+    expiresAt: 5,
+    stacks: 10,
+    resolvedAudience: { includesSelf: false, includesSummons: true }
+  });
   assert.equal(probe.query.statsAt(1, null, runtime).ferocity, 60);
   assert.equal(probe.declared(1, runtime).Ferocity, 60);
-  grants.push({ at: 1, expiresAt: 5, stacks: 12, resolvedAudience: { includesSelf: true } });
+  grantTestEffect(runtime.liveEffects, {
+    kind: 'explosive-temper',
+    at: 1,
+    expiresAt: 5,
+    stacks: 12,
+    resolvedAudience: { includesSelf: true }
+  });
   assert.equal(probe.query.statsAt(1, null, runtime).ferocity, 200);
-  const before = structuredClone(runtime);
+  const before = runtime.liveEffects.queries.buffApplications('explosive-temper');
   assert.equal(probe.query.statsAt(5, null, runtime).ferocity, 0);
-  assert.deepEqual(runtime, before);
+  assert.deepEqual(runtime.liveEffects.queries.buffApplications('explosive-temper'), before);
   assert.deepEqual(probe.config.attributeInputs, seed);
 });
 

@@ -1,10 +1,21 @@
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { CastDetailContext, EffectOwnershipContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 // Negative checks guard the canonical family, not a separately narrowed test-only alias.
+function resolverControllers(options: Parameters<typeof createGw2ResolverRuntimeState>[0]) {
+  const { liveEffects, combo, ...state } = options;
+  // @ts-expect-error Composition must retain the live-effect commands before publishing their query view.
+  createGw2ResolverRuntimeState({ ...state, combo });
+  // @ts-expect-error Composition must retain the combo commands before publishing their query view.
+  createGw2ResolverRuntimeState({ ...state, liveEffects });
+}
+
+void resolverControllers;
+
 function ownership(context: EffectOwnershipContext<WarriorSkill>) {
   const charges: boolean | undefined = context.skillFor(1)?.dragonSlash;
   // @ts-expect-error Lifetime selection cannot inspect or mutate the command cursor.
@@ -129,6 +140,46 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
 composeRuntimeHooks([hooks]);
 
 function castStores(runtime: Gw2Runtime<WarriorRuntimeState, WarriorSkill>) {
+  const observation = runtime.liveEffects.queries.buffApplications('charges')[0]!;
+  // @ts-expect-error Shared records are readonly; revisions go through the mechanic command.
+  observation.expiresAt = 0;
+  // @ts-expect-error Nested recipient data is readonly even without a runtime freeze.
+  observation.resolvedAudience.companionIds.push('pet');
+  const projected = runtime.liveEffects.queries.effectStates('charges', 0, { kind: 'charges' }, false)[0]!;
+  // @ts-expect-error Shared reporting projections cannot be revised by their readers.
+  projected.windows[0]!.stacks = 0;
+  // @ts-expect-error Live boon histories belong to the controller, not the runtime aggregate.
+  runtime.boons.clear();
+  // @ts-expect-error Live buff histories belong to the controller, not the runtime aggregate.
+  runtime.buffs.clear();
+  // @ts-expect-error Companion stores cannot be registered through a shared map.
+  runtime.companions.clear();
+  // @ts-expect-error Retirement is an explicit controller operation.
+  runtime.retiredCompanions.clear();
+  // @ts-expect-error The controller does not expose its private stores.
+  runtime.liveEffects.boons.clear();
+  // @ts-expect-error Query capabilities cannot grant effects.
+  runtime.liveEffects.queries.grant({});
+  // @ts-expect-error Grant acceptance belongs to resolver handlers, even through the aggregate runtime.
+  runtime.liveEffects.grant({});
+  // @ts-expect-error Extensions must pass through resolver accounting and reactions.
+  runtime.liveEffects.extend({});
+  // @ts-expect-error Retirement must coordinate both effect and condition ownership.
+  runtime.liveEffects.retireCompanion('pet', 1);
+  // @ts-expect-error Revisions use the explicit mechanic command.
+  runtime.liveEffects.reviseBuffExpiry(
+    'charges',
+    () => true,
+    () => 0
+  );
+  // @ts-expect-error Field admission belongs to resolver handlers.
+  runtime.combo.register({});
+  // @ts-expect-error Attempt claims belong to resolver handlers.
+  runtime.combo.resolve({}, {});
+  // @ts-expect-error Finisher binding belongs to effect delivery.
+  runtime.combo.bind({});
+  // @ts-expect-error Expiry uses the explicit mechanic command.
+  runtime.combo.expireField('field', 1);
   // @ts-expect-error Field storage is private to the combo controller.
   runtime.combo.fields.clear();
   // @ts-expect-error Attempt claims cannot be reset by delivery callers.

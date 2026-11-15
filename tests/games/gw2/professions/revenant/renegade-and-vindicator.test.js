@@ -32,6 +32,7 @@ import {
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { cursorPreviewCapture } from '#tests/helpers/cursor-preview.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
@@ -118,7 +119,7 @@ test('Ferocious Aggression follows self Fury activation and expiry for strike an
     config: { specialization: 'Core', selectedTraitIds: [TRAIT.FEROCIOUS_AGGRESSION], boons: {} },
     event: { actorType: 'player' },
     condition: 'Burning',
-    runtime: { boons: new Map([['fury', [fury]]]), buffs: new Map([]) }
+    runtime: { liveEffects: createTestLiveEffects([['fury', [fury]]]) }
   };
 
   // Only self Fury grants the additive bonus, including both edges of its active window.
@@ -132,9 +133,11 @@ test('Ferocious Aggression follows self Fury activation and expiry for strike an
       assert.equal(modify({ ...context, time }, 1), expected);
     }
 
-    fury.resolvedAudience = { ...PLAYER_AUDIENCE, includesSelf: false, alliedPlayerCount: 1 };
+    context.runtime.liveEffects = createTestLiveEffects([
+      ['fury', [{ ...fury, resolvedAudience: { ...PLAYER_AUDIENCE, includesSelf: false, alliedPlayerCount: 1 } }]]
+    ]);
     assert.equal(modify({ ...context, time: 1 }, 1), 1);
-    fury.resolvedAudience = PLAYER_AUDIENCE;
+    context.runtime.liveEffects = createTestLiveEffects([['fury', [fury]]]);
     assert.equal(modify({ ...context, config: { ...context.config, selectedTraitIds: [] }, time: 1 }, 1), 1);
     assert.equal(modify({ ...context, config: { ...context.config, boons: { fury: true } }, time: 2 }, 1), 1.1);
   }
@@ -690,8 +693,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
           }
         }
       },
-      boons: new Map(),
-      buffs: new Map()
+      liveEffects: createTestLiveEffects()
     },
     query: {
       targetHasCondition: () => false,

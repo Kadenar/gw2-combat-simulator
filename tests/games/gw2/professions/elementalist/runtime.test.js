@@ -141,7 +141,9 @@ for (const expiryPhase of ['during cast', 'after commit']) {
             seen.push('prepared');
             for (const element of ['Fire', 'Air'])
               assert.ok(
-                runtime.buffs.get(`hammer ${element.toLowerCase()} orb`).some((buff) => buff.expiresAt === expiresAt)
+                runtime.liveEffects.queries
+                  .buffApplications(`hammer ${element.toLowerCase()} orb`)
+                  .some((buff) => buff.expiresAt === expiresAt)
               );
           }
         ],
@@ -151,8 +153,8 @@ for (const expiryPhase of ['during cast', 'after commit']) {
             seen.push('reserved');
             for (const element of ['Fire', 'Air'])
               assert.ok(
-                runtime.buffs
-                  .get(`hammer ${element.toLowerCase()} orb`)
+                runtime.liveEffects.queries
+                  .buffApplications(`hammer ${element.toLowerCase()} orb`)
                   .some((buff) => buff.at <= runtime.time && buff.expiresAt > runtime.time)
               );
           }
@@ -163,7 +165,7 @@ for (const expiryPhase of ['during cast', 'after commit']) {
             seen.push('impact');
             for (const element of ['Fire', 'Air']) {
               assert.equal(runtime.profession.core.hammerOrbs[element], null);
-              const buffs = runtime.buffs.get(`hammer ${element.toLowerCase()} orb`);
+              const buffs = runtime.liveEffects.queries.buffApplications(`hammer ${element.toLowerCase()} orb`);
               assert.ok(buffs.some((buff) => buff.at <= runtime.time && buff.expiresAt === expiresAt));
             }
           }
@@ -174,8 +176,8 @@ for (const expiryPhase of ['during cast', 'after commit']) {
             seen.push('expired');
             for (const element of ['Fire', 'Air'])
               assert.equal(
-                runtime.buffs
-                  .get(`hammer ${element.toLowerCase()} orb`)
+                runtime.liveEffects.queries
+                  .buffApplications(`hammer ${element.toLowerCase()} orb`)
                   .some((buff) => buff.at <= runtime.time && buff.expiresAt > runtime.time),
                 false
               );

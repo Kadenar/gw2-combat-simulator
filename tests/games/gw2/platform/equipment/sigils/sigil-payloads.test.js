@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { applyRuntimeSigils, applyRuntimeSigilStrike } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
@@ -23,7 +25,12 @@ function liveFixture(name) {
     config,
     captured,
     runtime: {
-      ...createGw2ResolverRuntimeState({ conditions: createTestConditionResolution(), config }),
+      ...createGw2ResolverRuntimeState({
+        liveEffects: createLiveEffects(config),
+        combo: createGw2ComboController(),
+        conditions: createTestConditionResolution(),
+        config
+      }),
       engagement: enteredCombat(),
       activeWeaponSet: 1,
       effects: captured.effects

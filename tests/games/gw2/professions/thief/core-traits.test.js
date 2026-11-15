@@ -4,9 +4,10 @@ import test from 'node:test';
 import { buildChartSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { applyBoonExtension, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -22,6 +23,7 @@ import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -134,8 +136,8 @@ function traitContext(selectedTraitIds = []) {
     traits: new Set(selectedTraitIds),
     activeWeaponSet: 1,
     queue: new StableEventQueue(),
-    boons: new Map(),
-    buffs: new Map(),
+    liveEffects: createTestLiveEffects(),
+
     resolved: [],
     time: 1,
     effectiveEnd: 1,
@@ -158,7 +160,7 @@ function traitContext(selectedTraitIds = []) {
       submit(event, delivery) {
         if (delivery.settlement === 'reaction') {
           if (event.type === 'boon_extension') {
-            applyBoonExtension(context.boons, event);
+            context.liveEffects.extend(event);
             return event;
           }
 
@@ -176,7 +178,10 @@ function traitContext(selectedTraitIds = []) {
     })
   };
   // Bind real owner operations for this focused mechanic fixture.
-  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution(), {
+    liveEffects: context.liveEffects,
+    combo: createGw2ComboController()
+  });
   bindTriggerPoints(context, thiefProfession);
 
   return { context, core, events, conditions };
@@ -429,7 +434,7 @@ test('Fluid Strikes snapshots its movement-skill duration', () => {
     selectedTraitIds: [TRAIT.FLUID_STRIKES]
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).buffs.get('fluid-strikes').at(-1).expiresAt, 6);
+  assert.equal(observedRuntime(result).liveEffects.queries.buffApplications('fluid-strikes').at(-1).expiresAt, 6);
 });
 
 test('Hard to Catch no longer restores endurance on movement skills', () => {
@@ -504,11 +509,14 @@ test('No Quarter extends active self Fury for each threshold proc', () => {
       recipientCount: 1
     }
   };
-  context.boons.set('fury', [fury]);
+  [fury].forEach((application) => grantTestEffect(context.liveEffects, { ...application, kind: 'fury' }));
   fireCritical(context, { type: 'damage', at: 1, actorType: 'player', coefficient: 1, skillName: 'Critical Test' });
   // Extension is a new chronological delta; the original application remains unchanged.
-  assert.equal(context.boons.get('fury')[0].expiresAt, 5);
-  assert.equal(remainingDurationStackSeconds(context.boons.get('fury'), 6, { maximum: 30 }), 1);
+  assert.equal(context.liveEffects.queries.boonApplications('fury')[0].expiresAt, 5);
+  assert.equal(
+    remainingDurationStackSeconds(context.liveEffects.queries.boonApplications('fury'), 6, { maximum: 30 }),
+    1
+  );
   assert.equal(context.queue.dequeue().sourceId, TRAIT.NO_QUARTER);
 });
 
@@ -522,7 +530,13 @@ test('Thief critical proc batches reread patched effects and leave duration samp
         internalCooldown: 0,
         effects: [{ type: 'boon', name: 'fury', boon: 'fury', duration, stacks: 1 }]
       });
-      context.boons.set('fury', [{ at: 0, expiresAt: 5, resolvedAudience: { includesSelf: true } }]);
+      context.liveEffects = createTestLiveEffects([
+        ['fury', [{ at: 0, expiresAt: 5, resolvedAudience: { includesSelf: true } }]]
+      ]);
+      context.combat = createMechanicCombatServices(context, createTestConditionResolution(), {
+        liveEffects: context.liveEffects,
+        combo: createGw2ComboController()
+      });
       let statReads = 0;
       context.query.statsAt = () => ({ concentration: 1500 * statReads++ });
       context.procs.setDeadline(id, 0);
@@ -542,7 +556,9 @@ test('Thief critical proc batches reread patched effects and leave duration samp
 
       if (id === TRAIT.NO_QUARTER) {
         assert.equal(
-          remainingDurationStackSeconds(context.boons.get('fury'), duration + 1, { maximum: 30 }),
+          remainingDurationStackSeconds(context.liveEffects.queries.boonApplications('fury'), duration + 1, {
+            maximum: 30
+          }),
           4 + duration
         );
       }
@@ -556,7 +572,7 @@ test("No Quarter follows Fury's exact half-open expiration boundary", () => {
     [1, 0]
   ]) {
     const { context } = traitContext([TRAIT.NO_QUARTER]);
-    context.boons.set('fury', [
+    [
       {
         at: 0,
         expiresAt: 1,
@@ -568,13 +584,13 @@ test("No Quarter follows Fury's exact half-open expiration boundary", () => {
           recipientCount: 1
         }
       }
-    ]);
+    ].forEach((application) => grantTestEffect(context.liveEffects, { ...application, kind: 'fury' }));
     fireCritical(
       context,
       { type: 'damage', at, actorType: 'player', coefficient: 1, skillName: 'Boundary Test' },
       at < 1
     );
-    assert.equal(context.boons.get('fury')[0].expiresAt, 1);
+    assert.equal(context.liveEffects.queries.boonApplications('fury')[0].expiresAt, 1);
     assert.equal(context.queue.pending().length, expectedProcs);
   }
 });
@@ -759,7 +775,7 @@ test('cast completion grants Lead stacks before movement traits and leaves poiso
   assert.equal(lead[0].kind, 'lead-attacks');
   assert.equal(lead[0].duration, 10);
   assert.equal(lead[0].stacks, 3);
-  assert.equal(observedRuntime(result).buffs.get('fluid-strikes').at(-1).expiresAt, 5);
+  assert.equal(observedRuntime(result).liveEffects.queries.buffApplications('fluid-strikes').at(-1).expiresAt, 5);
   assert.equal(result.planningState.profession[STATE.ENDURANCE].value, 0);
   // Deadly Ambition's poison follows the activation's first landed strike, never the cast itself.
   const strikes = result.resolvedEvents.filter(

@@ -4,6 +4,7 @@ import test from 'node:test';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
@@ -50,6 +51,7 @@ import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -249,8 +251,8 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
     activeWeaponSet: 1,
     queue: new StableEventQueue(),
     resolved: [],
-    boons: new Map(),
-    buffs: new Map(),
+    liveEffects: createTestLiveEffects(),
+
     events,
     query: { statsAt: () => ({}), timeline: createGw2TimelineIndex() },
     effects: captureEffectEmissions({
@@ -270,7 +272,10 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
     }).effects
   };
   // Bind real owner operations for this focused mechanic fixture.
-  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution(), {
+    liveEffects: context.liveEffects,
+    combo: createGw2ComboController()
+  });
   return { context, events, procs, conditions };
 }
 
@@ -334,7 +339,9 @@ test('Soulbeast stance ICDs share each stance boundary across recipients while c
       });
       context.procs.setDeadline(field, READY_AT);
       context.procs.setDeadline(`ranger.soulbeast.alliedStance:${kind}:1`, READY_AT);
-      context.buffs.set(kind, [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]);
+      [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }].forEach((application) =>
+        grantTestEffect(context.liveEffects, { ...application, kind: kind })
+      );
       const react = ally ? handleSharedStanceHit : reactToSoulbeastDamage;
       const event = {
         type: ally ? 'proc' : 'damage',

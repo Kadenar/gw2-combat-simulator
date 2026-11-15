@@ -2,13 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
 } from '#gw2/platform/combat/formulas.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import {
@@ -27,6 +28,7 @@ import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureAcceptedBuffEmissions, captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -325,7 +327,12 @@ test('named equipment inputs resolve item identities without changing the saved 
 // Runtime construction owns fresh equipment state independently of shared relic rules.
 test('resolver runtimes own isolated relic and equipment state', () => {
   const createRuntime = (relic) =>
-    createGw2ResolverRuntimeState({ conditions: createTestConditionResolution(), config: { relic } });
+    createGw2ResolverRuntimeState({
+      liveEffects: createLiveEffects({ relic }),
+      combo: createGw2ComboController(),
+      conditions: createTestConditionResolution(),
+      config: { relic }
+    });
   const thief = createRuntime('Thief');
   const anotherThief = createRuntime('Thief');
   assert.equal(thief.relic.id, RELIC_IDS.THIEF);
@@ -348,8 +355,8 @@ test('Severance critical contributions are data-driven and expire exactly', () =
     damage: 0,
     chanceContributors: []
   });
-  const runtime = { boons: new Map(), buffs: new Map() };
-  recordBuffApplication(runtime.buffs, {
+  const runtime = { liveEffects: createTestLiveEffects() };
+  grantTestEffect(runtime.liveEffects, {
     type: 'buff',
     kind: 'sigil-severance',
     at: 0,
@@ -378,9 +385,9 @@ test('Severance critical contributions are data-driven and expire exactly', () =
 
 // Recorded applications preserve past windows, refresh without stacking bonuses, and share effect expiry rounding.
 test('Severance queries retain application windows across refreshes and gaps', () => {
-  const runtime = { boons: new Map(), buffs: new Map() };
+  const runtime = { liveEffects: createTestLiveEffects() };
   const grant = (at, duration) =>
-    recordBuffApplication(runtime.buffs, {
+    grantTestEffect(runtime.liveEffects, {
       type: 'buff',
       kind: 'sigil-severance',
       at,
@@ -804,7 +811,7 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
 test('Bloodstone Fervor follows modifier ownership', () => {
   const relic = createRelicRuntime('Bloodstone');
   const context = { relic, ...captureAcceptedBuffEmissions() };
-  recordBuffApplication(context.buffs, {
+  grantTestEffect(context.liveEffects, {
     type: 'buff',
     kind: 'bloodstone-fervor',
     at: 0,
@@ -850,7 +857,7 @@ test('Claw and Peitha follow player modifier ownership for direct and triggered 
   const claw = createRelicRuntime('Claw');
 
   const clawContext = { relic: claw, ...captureAcceptedBuffEmissions() };
-  recordBuffApplication(clawContext.buffs, {
+  grantTestEffect(clawContext.liveEffects, {
     type: 'buff',
     kind: 'relic-claw',
     at: 0,
@@ -864,8 +871,8 @@ test('Claw and Peitha follow player modifier ownership for direct and triggered 
 
   const peitha = createRelicRuntime('Peitha');
 
-  const context = { relic: peitha, boons: new Map(), buffs: new Map() };
-  recordBuffApplication(context.buffs, {
+  const context = { relic: peitha, liveEffects: createTestLiveEffects() };
+  grantTestEffect(context.liveEffects, {
     type: 'buff',
     kind: 'relic-peitha',
     at: 0,
@@ -881,7 +888,7 @@ test('Claw and Peitha follow player modifier ownership for direct and triggered 
   assert.equal(relicStrikeMultiplier(context, { ...player, at: 4 }), 1.1);
   assert.equal(relicStrikeMultiplier(context, { ...player, at: 4.000001 }), 1);
   // A later refresh must preserve queries for the earlier grant and the inactive gap between them.
-  recordBuffApplication(context.buffs, {
+  grantTestEffect(context.liveEffects, {
     type: 'buff',
     kind: 'relic-peitha',
     at: 8,

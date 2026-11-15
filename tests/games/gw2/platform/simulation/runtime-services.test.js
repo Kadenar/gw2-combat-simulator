@@ -688,7 +688,7 @@ test('Fireworks eligibility uses inferred profession weapon strength in detailed
   // The materialized strike has no explicit profile override; the hit resolver supplies the selected profile.
   for (const output of ['detailed', 'score']) {
     const result = run([cast(991013)], { output, config: { ...config, relic: 'Fireworks' } }, native({}));
-    assert.equal(observedRuntime(result).buffs.get('relic-fireworks').at(-1).expiresAt, 6);
+    assert.equal(observedRuntime(result).liveEffects.queries.buffApplications('relic-fireworks').at(-1).expiresAt, 6);
     assert.ok(result.totalDamage > 0);
   }
 });
@@ -741,7 +741,7 @@ test('Peitha effects wait for impact and cannot leak beyond the observation wind
   const options = { config: { ...config, relic: 'Peitha' } };
   const short = run([cast(991004)], options);
   assert.equal(short.resolvedEvents.filter((event) => event.type === 'condition').length, 0);
-  assert.equal(observedRuntime(short).buffs.has('relic-peitha'), false);
+  assert.equal(observedRuntime(short).liveEffects.queries.buffApplications('relic-peitha').length > 0, false);
   const observed = run([cast(991004), wait(1500)], options);
   assert.equal(observed.resolvedEvents.find((event) => event.type === 'condition').at, 0.24);
   assert.ok(observed.conditionDamage > 0);
@@ -781,7 +781,7 @@ test('Peitha preserves expiry-boundary damage without extending buff lifetimes o
     assert.deepEqual(result.warnings, []);
     const runtime = observedRuntime(result);
     assert.deepEqual(
-      runtime.buffs.get('relic-peitha').map(({ at, expiresAt }) => [at, expiresAt]),
+      runtime.liveEffects.queries.buffApplications('relic-peitha').map(({ at, expiresAt }) => [at, expiresAt]),
       [
         [0.24, 4.24],
         [5.04, 9.04]
@@ -826,7 +826,7 @@ test('Peitha preserves expiry-boundary damage without extending buff lifetimes o
 test('Peitha precombat impacts cannot preload Torment or the damage buff', () => {
   const result = run([cast(991004), wait(2000)], { config: { ...config, relic: 'Peitha' }, combatStartTime: 1 });
   const runtime = observedRuntime(result);
-  const buffs = runtime.buffs.get('relic-peitha');
+  const buffs = runtime.liveEffects.queries.buffApplications('relic-peitha');
   assert.deepEqual(
     buffs.map(({ at, expiresAt }) => [at, expiresAt]),
     [[1, 5]]
@@ -1177,13 +1177,7 @@ test('mechanic capabilities exclude cast-only recharge commands and unused query
             assert.equal(name in view, false, name);
         }
 
-        for (const name of [
-          'registerCompanion',
-          'retireCompanion',
-          'reviseBuffExpiry',
-          'warn',
-          'allocateEffectActivation'
-        ])
+        for (const name of ['retireCompanion', 'reviseBuffExpiry', 'warn', 'allocateEffectActivation'])
           assert.equal(name in context.queries.combat, false);
         for (const name of ['isOnCooldown', 'setReadyAt', 'ensureAmmo', 'resetAll'])
           assert.equal(name in context.queries.cooldownController, false);

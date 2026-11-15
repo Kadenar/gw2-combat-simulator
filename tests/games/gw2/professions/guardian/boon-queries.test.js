@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Build real recipient metadata so player queries can distinguish shared, ally-only, and companion-only applications.
@@ -34,18 +34,18 @@ test('Guardian boons prefer live self applications over later same-time timeline
   for (const kind of ['aegis', 'might', 'quickness']) {
     const self = buff(kind, { recipients: 'party' });
     const timeline = createGw2TimelineIndex({ events: [self] });
-    const context = { time: 4, timeline, runtime: { boons: new Map(), buffs: new Map() } };
+    const context = { time: 4, timeline, runtime: { liveEffects: createTestLiveEffects() } };
     assert.equal(guardianBoonActive({ time: 4, timeline }, kind), true);
     assert.equal(guardianBoonActive(context, kind), false);
     for (const audience of [
       { recipients: 'party', affectsSelf: false },
       { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: ['pet'] }
     ]) {
-      recordBuffApplication(context.runtime.boons, buff(kind, audience));
+      grantTestEffect(context.runtime.liveEffects, buff(kind, audience));
       assert.equal(guardianBoonActive(context, kind), false);
     }
 
-    recordBuffApplication(context.runtime.boons, self);
+    grantTestEffect(context.runtime.liveEffects, self);
     assert.equal(guardianBoonActive(context, kind), true);
     assert.equal(guardianBoonActive({ ...context, time: 3 }, kind), false);
     assert.equal(guardianBoonActive({ ...context, time: 6 }, kind), false);
@@ -59,7 +59,7 @@ test('Imbued Haste no longer adds attributes while Quickness is active', () => {
   const context = {
     time: 4,
     timeline: createGw2TimelineIndex({ events: [event] }),
-    runtime: { boons: new Map(), buffs: new Map() }
+    runtime: { liveEffects: createTestLiveEffects() }
   };
   const attributes = (time) =>
     guardianProfession.runtimeFor({ specialization: 'Firebrand' }).calculations.modifyAttributes(
@@ -72,8 +72,8 @@ test('Imbued Haste no longer adds attributes while Quickness is active', () => {
       { conditionDamage: 0 }
     ).conditionDamage;
   assert.equal(attributes(4), 0);
-  recordBuffApplication(context.runtime.boons, event);
-  recordBuffApplication(context.runtime.boons, event);
+  grantTestEffect(context.runtime.liveEffects, event);
+  grantTestEffect(context.runtime.liveEffects, event);
   // Two overlapping two-second applications last four seconds, beyond either individual expiry.
   assert.equal(attributes(6), 0);
   assert.equal(attributes(8), 0);

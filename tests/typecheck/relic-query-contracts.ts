@@ -1,3 +1,4 @@
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import {
   relicConditionDamageBonus,
   relicConditionDurationBonus,
@@ -16,7 +17,7 @@ const relic = createRelicRuntime('Thorns');
 
 // Queries accept only their observations; callers need no emission service or fabricated runtime.
 relicConditionDamageBonus({ config: { initialThornsStacks: 2 }, relic }, 0);
-relicConditionDurationBonus({ relic, buffs: new Map() }, 0);
+relicConditionDurationBonus({ relic, liveEffects: createLiveEffects() }, 0);
 relicCriticalChanceBonus({ relic }, event, 0);
 relicOutgoingDamageBonus({ relic }, 0);
 relicStrikeMultiplier(

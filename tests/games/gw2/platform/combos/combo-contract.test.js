@@ -249,7 +249,7 @@ for (const [fieldType, finisherType] of [
     const combo = createGw2ComboController();
     const { effects, events } = captureEffectEmissions();
     const context = { combo, effects, random: { roll: () => true }, warnings: [] };
-    const handlers = createGw2ComboResolution({ reactions: { dispatch() {} } });
+    const handlers = createGw2ComboResolution({ controller: combo, reactions: { dispatch() {} } });
     const base = { source: 'Fixture', sourceId: 'finisher', actorType: 'player', skillName: 'Finisher' };
     handlers.combo_field(context, {
       ...base,

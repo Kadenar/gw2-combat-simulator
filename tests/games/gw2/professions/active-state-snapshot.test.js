@@ -80,7 +80,8 @@ test('Ranger pet projections expose detached observations without traversing pri
   const profession = rangerProfession.runtimeFor(config).createState(config);
   const pet = profession.core.pet;
   // A nested privacy check must inspect the actual pet owner, not only the player's state keys.
-  for (const key of ['activationClaims', 'effects', 'autoAction', 'commandReadyAt']) {
+  assert.equal(Object.hasOwn(pet, 'effects'), false);
+  for (const key of ['activationClaims', 'autoAction', 'commandReadyAt']) {
     assert.equal(Object.hasOwn(pet, key), true);
     Object.defineProperty(pet, key, { get: () => assert.fail(`Projection read private pet ${key}`) });
   }

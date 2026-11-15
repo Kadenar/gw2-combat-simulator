@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { attunementChanged, auraAccepted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -21,6 +22,7 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
@@ -150,22 +152,22 @@ test('Tempest preserves aura damage windows and grants boons for every actual au
       traits: new Set([TRAIT.TEMPESTUOUS_ARIA, TRAIT.INVIGORATING_TORRENTS, TRAIT.ELEMENTAL_BASTION]),
       config: {},
       query: { statsAt: () => ({ concentration: 0 }) },
-      boons: new Map([]),
-      buffs: new Map([
+      liveEffects: createTestLiveEffects([
         ['tempestuous aria', [{ resolvedAudience: { includesSelf: true }, at: 0, expiresAt: 3, stacks: 1 }]]
       ]),
+
       effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
     };
     // Bind real owner operations for this focused mechanic fixture.
-    context.combat = createMechanicCombatServices(
-      Object.assign(context, { companions: new Map() }),
-      createTestConditionResolution()
-    );
+    context.combat = createMechanicCombatServices(context, createTestConditionResolution(), {
+      liveEffects: context.liveEffects,
+      combo: createGw2ComboController()
+    });
     bindTriggerPoints(context, elementalistProfession, { specialization: 'Tempest' });
     context.fireTrigger(auraAccepted, {
       cause: { type: 'aura', at: 1, skillName: 'Fixture Aura', ...origin }
     });
-    assert.equal(context.buffs.get('tempestuous aria')[0].expiresAt, 8);
+    assert.equal(context.liveEffects.queries.buffApplications('tempestuous aria')[0].expiresAt, 8);
     assert.deepEqual(
       queued.map((event) => event.kind),
       ['vigor', 'regeneration', 'alacrity']
@@ -184,8 +186,8 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
     schedule() {},
     observations: { record() {} },
     traits: new Set([TRAIT.EMPOWERING_AURAS, TRAIT.ELEMENTAL_EPITOME]),
-    boons: new Map(),
-    buffs: new Map(),
+    liveEffects: createTestLiveEffects(),
+
     // Both scalar and effect overrides are assembled before aura reactions read their owners.
     helpers: withProfile(
       withProfile(elementalistCatalog, TRAIT.EMPOWERING_AURAS, { maximumStacks: 1, duration: 8 }),
@@ -198,10 +200,10 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
     }).effects
   };
   // Bind real owner operations for this focused mechanic fixture.
-  context.combat = createMechanicCombatServices(
-    Object.assign(context, { companions: new Map() }),
-    createTestConditionResolution()
-  );
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution(), {
+    liveEffects: context.liveEffects,
+    combo: createGw2ComboController()
+  });
   bindTriggerPoints(context, elementalistProfession, { specialization: 'Catalyst' });
   const event = { type: 'aura', aura: 'Fire Aura', duration: 4, at: 1, skillName: 'Fixture Aura', sourceId: 1 };
   catalystRuntime.reactions['aura.applied'](context, event);

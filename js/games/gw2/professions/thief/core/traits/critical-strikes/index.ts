@@ -1,9 +1,4 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import {
-  buffMatchesAudience,
-  durationStackingBoonCapSeconds,
-  remainingDurationStackSeconds
-} from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import {
   buffActive,
@@ -390,13 +385,7 @@ const applyUnrelentingStrikes = criticalProcHandler(unrelentingStrikesCriticalRe
 
 function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEvent, duration: number): void {
   // Extend Fury only while its canonical half-open window is active at the hit time.
-  if (
-    remainingDurationStackSeconds(context.combat.boonApplications(BOON.FURY), event.at, {
-      includes: (application) => buffMatchesAudience(application, RECIPIENT.SELF),
-      maximum: durationStackingBoonCapSeconds(BOON.FURY)
-    }) <= 0
-  )
-    return;
+  if (context.combat.boonDuration(BOON.FURY, event.at) <= 0) return;
 
   const attribution = {
     source: 'Trait',

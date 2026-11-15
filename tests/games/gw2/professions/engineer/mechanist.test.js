@@ -4,8 +4,7 @@ import { describe, test } from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { createCompanionEffects } from '#gw2/platform/combat/state/companion.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -13,6 +12,7 @@ import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/p
 import { engineerMechHasQuickness } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
@@ -131,10 +131,9 @@ test('Overclock reduces other signet recharges only while its passive is availab
 test('mech Quickness uses its own boon audience and retains copied applications', () => {
   // The player's permanent boon alone is insufficient; copied timed boons retain their own expiry.
   const context = {
-    companions: new Map([['engineer.mech', createCompanionEffects()]]),
     helpers: engineerCatalog,
-    boons: new Map(),
-    buffs: new Map(),
+    liveEffects: createTestLiveEffects(),
+
     config: { boons: { quickness: true }, selectedSkillIds: [63253] },
     cooldowns: new Map(),
     cooldownController: {
@@ -142,7 +141,10 @@ test('mech Quickness uses its own boon audience and retains copied applications'
       setReadyAt: (id, at) => context.cooldowns.set(id, at)
     }
   };
-  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution(), {
+    liveEffects: context.liveEffects,
+    combo: createGw2ComboController()
+  });
   context.facts = { read: () => assert.fail('Live mech queries must use accepted applications') };
   assert.equal(engineerMechHasQuickness(context, 0), false);
   context.config.selectedSkillIds = [63111];
@@ -152,7 +154,7 @@ test('mech Quickness uses its own boon audience and retains copied applications'
   context.config.selectedTraitIds = [TRAIT.MECH_CORE_J_DRIVE];
   assert.equal(engineerMechHasQuickness(context, 1), true);
   context.config = { boons: {}, selectedSkillIds: [] };
-  recordBuffApplication(context.companions.get('engineer.mech').boons, {
+  grantTestEffect(context.liveEffects, {
     source: 'fixture',
     sourceId: 'boon',
     actorType: 'player',
@@ -182,8 +184,8 @@ test('mech Quickness uses its own boon audience and retains copied applications'
   assert.ok(copied?.resolvedAudience.includesSummons);
   assert.equal(copied.resolvedAudience.includesSelf, false);
   // Isolate the actual copied grant so the old fixture cannot satisfy the assertions.
-  context.boons.clear();
-  recordBuffApplication(context.boons, copied);
+  context.liveEffects = createTestLiveEffects();
+  grantTestEffect(context.liveEffects, copied);
   assert.equal(engineerMechHasQuickness(context, copied.at + 0.2), true);
   assert.equal(engineerMechHasQuickness(context, copied.at + copied.duration + 0.1), false);
 });

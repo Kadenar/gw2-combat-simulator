@@ -1,7 +1,7 @@
 /** Relic rules receive typed observations while the runtime privately owns their state. */
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import type { CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
+import type { LiveEffectQueries } from '#gw2/platform/combat/live-effects.js';
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
@@ -49,7 +49,7 @@ interface Gw2RelicEmissionContext {
 }
 
 export interface Gw2RelicContext {
-  readonly buffs?: ReadonlyMap<string, readonly Gw2TimedBuffApplication[]>;
+  readonly liveEffects?: { readonly queries: LiveEffectQueries };
   readonly engagement: CombatEngagementQueries;
   readonly helpers: Gw2ResolverHelpers;
   readonly config: Gw2RelicConfig;
@@ -65,10 +65,10 @@ export interface Gw2ConditionHelpers {
 
 /** Pure relic queries expose only their required observations, never emission capabilities. */
 export type Gw2RelicStrikeQueryContext = Readonly<
-  Pick<Gw2RelicContext, 'config' | 'totals' | 'buffs' | 'helpers' | 'relic'>
+  Pick<Gw2RelicContext, 'config' | 'totals' | 'liveEffects' | 'helpers' | 'relic'>
 >;
 
-export type Gw2RelicDurationQueryContext = Pick<Gw2RelicContext, 'buffs' | 'relic'>;
+export type Gw2RelicDurationQueryContext = Pick<Gw2RelicContext, 'liveEffects' | 'relic'>;
 
 export type Gw2RelicAttributeQueryContext = Pick<Gw2RelicContext, 'config' | 'relic'>;
 

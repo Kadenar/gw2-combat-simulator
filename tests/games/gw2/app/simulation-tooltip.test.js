@@ -14,6 +14,7 @@ import {
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { BOON_NAMES } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -27,6 +28,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
@@ -1015,17 +1017,18 @@ test('Engineer spear resolver and tooltip use the same selected action payload',
     model.facts.some((fact) => fact.name === 'Burning' && fact.stacks === 3 && /5s.*while Focused/.test(fact.detail))
   );
   const packets = [];
+  const combatRuntime = {
+    liveEffects: createTestLiveEffects([
+      ['engineer-focused', [{ at: 0, expiresAt: 20, stacks: 1, resolvedAudience: { includesSelf: true } }]]
+    ])
+  };
   handleElectricArtillery(
     {
       helpers: selected.catalog,
-      combat: createMechanicCombatServices(
-        {
-          buffs: new Map([
-            ['engineer-focused', [{ at: 0, expiresAt: 20, stacks: 1, resolvedAudience: { includesSelf: true } }]]
-          ])
-        },
-        createTestConditionResolution()
-      ),
+      combat: createMechanicCombatServices(combatRuntime, createTestConditionResolution(), {
+        liveEffects: combatRuntime.liveEffects,
+        combo: createGw2ComboController()
+      }),
       effects: captureEffectEmissions({
         submit: (event) => {
           packets.push(event);

@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { applyBoonExtension, isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { effectStateValue, reviseEffectState, timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { sigilBuffPolicies } from '#gw2/platform/equipment/sigils/runtime.js';
 import { EffectRecorder, effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { captureRuntimeEffects, observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 import { chronomancerBuffPolicies } from '#gw2/professions/mesmer/specializations/chronomancer/effect-state.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 
 const audience = {
   includesSelf: true,
@@ -16,16 +16,14 @@ const audience = {
   recipientCount: 3
 };
 const runtime = () => ({
-  boons: new Map(),
-  buffs: new Map(),
-  retiredCompanions: new Map(),
+  liveEffects: createTestLiveEffects(),
   config: {},
   conditionState: new Map(),
   time: 0,
   equipmentBuffPolicies: []
 });
 const grant = (state, kind, at, stacks, duration) =>
-  recordBuffApplication(isStandardBoon(kind) ? state.boons : state.buffs, {
+  state.liveEffects.grant({
     type: 'buff',
     kind,
     at,
@@ -45,7 +43,7 @@ test('player-buff observations preserve full report scopes across grants, policy
   const state = runtime();
   state.config = { boons: { might: 25 }, target: { conditions: { Bleeding: 1 } } };
   state.conditionState.set('Bleeding', { stacks: [{ at: 0, naturalExpiresAt: 10, stacks: 2 }] });
-  state.retiredCompanions.set('clone:1', 2);
+  state.liveEffects.retireCompanion('clone:1', 2);
   let maximumStacks = 2;
   const profession = { buffPolicies: () => [{ kind: 'charges', maximumStacks }] };
   grant(state, 'charges', 0, 5, 4);
@@ -73,11 +71,14 @@ test('player-buff observations preserve full report scopes across grants, policy
   assert.equal(compare(), 0);
   grant(state, 'charges', 4, 1, 3);
   assert.equal(compare(), 1);
-  const applications = state.buffs.get('charges');
-  applications[1] = { ...applications[1], stacks: 2 };
+  grant(state, 'charges', 4, 1, 3);
   assert.equal(compare(), 2);
-  state.buffs.delete('charges');
-  assert.deepEqual(read(), []);
+  state.liveEffects.reviseBuffExpiry(
+    'charges',
+    () => true,
+    () => 4
+  );
+  assert.equal(compare(), 0);
 });
 
 test('player-buff scope retains native recipient precedence and empty profession ownership', () => {
@@ -177,34 +178,32 @@ test('native observations attribute the latest accepted source while retaining e
   assert.equal(read().source, explicit);
   read().name = 'Edited observation';
   assert.equal(native.name, undefined);
-  assert.equal(state.buffs.get('charges')[1].event.at, 2);
+  assert.equal(state.liveEffects.queries.buffApplications('charges')[1].event.at, 2);
 });
 
-// Observation reuse must still see same-time grants, immutable replacements, removals, and expiry.
-test('generic observation follows grant-history changes and time boundaries for each recipient', () => {
+// Observation reuse follows accepted grants and explicit consumption without exposing mutable histories.
+test('generic observation follows grants, expiry revisions, and historical reads for each recipient', () => {
   const state = runtime();
-  const applications = grant(state, 'might', 0, 2, 4);
-  assert.equal(value(state, 'might').count, 2);
-  grant(state, 'might', 0, 3, 8);
-  for (const recipient of ['self', 'ally:1', 'companion:clone:1'])
-    assert.equal(value(state, 'might', recipient).count, 5);
-
-  // Replacing an entry in the same array must invalidate even though its identity and length are unchanged.
-  applications[0] = { ...applications[0], stacks: 1 };
-  assert.equal(value(state, 'might').count, 4);
+  const profession = { buffPolicies: () => [{ kind: 'charges', maximumStacks: 25 }] };
+  const read = (recipient = 'self') => value(state, 'charges', recipient, profession);
+  grant(state, 'charges', 0, 2, 4);
+  assert.equal(read().count, 2);
+  grant(state, 'charges', 0, 3, 8);
+  for (const recipient of ['self', 'ally:1', 'companion:clone:1']) assert.equal(read(recipient).count, 5);
   state.time = 4;
-  assert.equal(value(state, 'might').count, 3);
-  state.boons.set(
-    'might',
-    applications.map((application) => ({ ...application, expiresAt: 5 }))
+  assert.equal(read().count, 3);
+  state.liveEffects.reviseBuffExpiry(
+    'charges',
+    () => true,
+    (expiry) => Math.min(expiry, 5)
   );
-  assert.equal(value(state, 'might').expiresAt, 5);
+  assert.equal(read().expiresAt, 5);
   state.time = 5;
-  assert.equal(value(state, 'might').count, 0);
-  state.boons.delete('might');
-  assert.equal(value(state, 'might'), undefined);
-  grant(state, 'might', 5, 7, 2);
-  assert.equal(value(state, 'might').count, 7);
+  assert.equal(read().count, 0);
+  grant(state, 'charges', 5, 7, 2);
+  assert.equal(read().count, 7);
+  state.time = 1;
+  assert.equal(read().count, 5);
 });
 
 test('duration observation retains pooled deadlines and audience-specific extensions', () => {
@@ -216,7 +215,7 @@ test('duration observation retains pooled deadlines and audience-specific extens
   assert.equal(value(state, 'fury').expiresAt, 5);
   state.time = 2;
   assert.equal(value(state, 'fury').expiresAt, 5);
-  applyBoonExtension(state.boons, { type: 'boon_extension', kind: 'fury', at: 2, duration: 2 });
+  state.liveEffects.extend({ type: 'boon_extension', kind: 'fury', at: 2, duration: 2 });
   assert.equal(value(state, 'fury').expiresAt, 7);
   for (const recipient of ['ally:1', 'companion:clone:1']) assert.equal(value(state, 'fury', recipient).expiresAt, 5);
   state.time = 5;
@@ -246,7 +245,7 @@ test('intensity extension replaces accepted windows without extending other audi
   grant(state, 'might', 0, 2, 3);
   assert.equal(value(state, 'might').expiresAt, 3);
   state.time = 1;
-  applyBoonExtension(state.boons, { type: 'boon_extension', kind: 'might', at: 1, duration: 2 });
+  state.liveEffects.extend({ type: 'boon_extension', kind: 'might', at: 1, duration: 2 });
   assert.equal(value(state, 'might').expiresAt, 5);
   state.time = 3;
   assert.equal(value(state, 'might').count, 2);
@@ -341,15 +340,15 @@ test('scoped recording preserves generated boons alongside permanent assumptions
   state.effectRecorder = new EffectRecorder();
   captureRuntimeEffects(state, {});
   state.time = 1;
-  grant(state, 'might', 1, 3, 4);
+  grant(state, 'might', 1, 3, 2);
   grant(state, 'fury', 1, 1, 2);
   captureRuntimeEffects(state, {});
   state.time = 2;
   captureRuntimeEffects(state, {});
-  applyBoonExtension(state.boons, { type: 'boon_extension', kind: 'fury', at: 2, duration: 2 });
+  state.liveEffects.extend({ type: 'boon_extension', kind: 'fury', at: 2, duration: 2 });
   captureRuntimeEffects(state, {});
   state.time = 3;
-  state.boons.delete('might');
+  // The accepted grant expires without deleting its earlier reporting history.
   captureRuntimeEffects(state, {});
   const report = state.effectRecorder.finish(6);
   const find = (kind, origin, recipient = 'self') =>

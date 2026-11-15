@@ -1,5 +1,4 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, AURA, BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
@@ -273,11 +272,7 @@ export const innerFire = defineTrait({
 
 /** Resolution readiness follows the accepted self-boon pool, including its cap and extension records. */
 function resolutionDeadline(runtime: GuardianRuntime): number {
-  const remaining = remainingDurationStackSeconds(runtime.combat.boonApplications(BOON.RESOLUTION), runtime.time, {
-    includes: (application) => application.resolvedAudience.includesSelf,
-    maximum: durationStackingBoonCapSeconds(BOON.RESOLUTION),
-    ordered: true
-  });
+  const remaining = runtime.combat.boonDuration(BOON.RESOLUTION, runtime.time);
   return remaining > 0 ? canonicalTime(runtime.time + remaining) : 0;
 }
 

@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_TRAIT_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -13,6 +12,7 @@ import {
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { RANGER_TRAIT_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 
 const mesmerRules = (specialization) =>
   mesmerProfession.resolveProfession({
@@ -36,13 +36,13 @@ function modifierContext({
   }
 } = {}) {
   // Formula fixtures seed accepted windows rather than asking a live query to inspect scheduled events.
-  const buffs = new Map(runtime.buffs ?? []);
+  const liveEffects = runtime.liveEffects ?? createTestLiveEffects();
   for (const event of [
     ...active.map((kind) => ({ type: 'buff', kind, at: 0, duration: 10, stacks: 1 })),
     ...Object.entries(stacks).map(([kind, stacks]) => ({ type: 'buff', kind, at: 0, duration: 10, stacks })),
     ...events.filter((event) => event.type === 'buff')
   ])
-    recordBuffApplication(buffs, { ...event, resolvedAudience: { includesSelf: true } });
+    grantTestEffect(liveEffects, { ...event, resolvedAudience: { includesSelf: true } });
   const mightStacksAt = () => Number(config.boons?.might || 0);
   const furyActiveAt = () => Boolean(config.boons?.fury);
   const vulnerabilityStacksAt = () => Number(config.target?.conditions?.Vulnerability || 0);
@@ -61,10 +61,9 @@ function modifierContext({
     runtime: {
       totals: { strike: 0, condition: 0 },
       profession: {},
-      boons: new Map(),
       conditionState: new Map(),
       ...runtime,
-      buffs
+      liveEffects
     },
     query: {
       mightStacksAt,
@@ -128,8 +127,8 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
       core,
       specialization: { kind, state }
     },
-    boons: new Map(),
-    buffs: new Map(),
+    liveEffects: createTestLiveEffects(),
+
     conditionState: new Map()
   });
 
@@ -138,7 +137,7 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
     traits: [NECROMANCER.SOUL_BARBS, NECROMANCER.DREAD, NECROMANCER.SPITEFUL_TALISMAN, NECROMANCER.CLOSE_TO_DEATH],
     runtime: {
       ...runtime('Core', {}, {}),
-      buffs: new Map([
+      liveEffects: createTestLiveEffects([
         ['necromancer-dread', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]]
       ])
     }

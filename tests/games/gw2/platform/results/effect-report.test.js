@@ -12,6 +12,7 @@ import { elementalistProfession } from '#gw2/professions/elementalist/profession
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { explosionAccepted } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/trigger-points.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 
 const track = (result, kind) =>
   result.effectReport.tracks.find(
@@ -203,9 +204,7 @@ test('combat history ends at death while the planning observation includes later
 // Registration rejects missing or competing owners before an uncapped track can escape into results.
 test('effect observation rejects unregistered buffs and duplicate native policies', () => {
   const runtime = {
-    boons: new Map([]),
-    retiredCompanions: new Map(),
-    buffs: new Map([['unknown', []]]),
+    liveEffects: createTestLiveEffects([['unknown', [{ at: 0, duration: 1, stacks: 1 }]]]),
     config: {},
     conditionState: new Map(),
     time: 0,

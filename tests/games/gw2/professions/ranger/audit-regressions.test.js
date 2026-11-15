@@ -219,7 +219,7 @@ test('configured golem boons copy finite duration across refresh boundaries for 
       assert.equal(copied.find((event) => event.kind === 'swiftness').duration, 50 + remaining);
       const runtime = observedRuntime(result);
       assert.equal(
-        remainingDurationStackSeconds(runtime.boons.get('quickness'), runtime.time, {
+        remainingDurationStackSeconds(runtime.liveEffects.queries.boonApplications('quickness'), runtime.time, {
           includes: (application) => application.resolvedAudience.companionIds.includes(rangerPetCompanionId(runtime))
         }),
         0
@@ -302,7 +302,10 @@ test('merged Lesser Sic Em extends player boons through Resounding Timbre', () =
   assert.equal(effects[0].type, 'boon_extension');
   assert.ok(effects[0].boonGeneration, 'Merged extensions retain their granting activation');
   assert.equal(effects[0].duration, 2);
-  assert.equal(remainingDurationStackSeconds(observedRuntime(result).boons.get('vigor'), 3), 9);
+  assert.equal(
+    remainingDurationStackSeconds(observedRuntime(result).liveEffects.queries.boonApplications('vigor'), 3),
+    9
+  );
 });
 
 test('Splitblade shares an impact without merging hit or condition application indices', () => {

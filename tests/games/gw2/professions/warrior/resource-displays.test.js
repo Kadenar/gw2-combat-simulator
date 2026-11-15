@@ -9,6 +9,7 @@ import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { fierceAsFire as fierceAsFireTrait } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
 import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 const patchId = 'warrior-ownership';
@@ -132,8 +133,7 @@ test('Warrior displays use selected stack caps and bonuses', () => {
         catalog: balanceContext.catalog,
         time: 1,
         runtime: {
-          boons: new Map([]),
-          buffs: new Map([
+          liveEffects: createTestLiveEffects([
             [
               'berserkers-power',
               stacks ? [{ at: 0, expiresAt: 10, stacks, resolvedAudience: { includesSelf: true } }] : []
@@ -160,8 +160,7 @@ test('Warrior displays use selected stack caps and bonuses', () => {
         catalog: balanceContext.catalog,
         time: 1,
         runtime: {
-          boons: new Map([]),
-          buffs: new Map([
+          liveEffects: createTestLiveEffects([
             [
               'fierce-as-fire',
               stacks ? [{ at: 0, expiresAt: 10, stacks, resolvedAudience: { includesSelf: true } }] : []

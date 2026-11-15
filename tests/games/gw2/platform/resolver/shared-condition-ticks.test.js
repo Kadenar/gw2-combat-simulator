@@ -840,7 +840,10 @@ test('ordinary state changes follow shared samples and boundary applications owe
       condition(1, { eventOrder: 2 })
     ],
     {
-      query: { conditionMultiplier: (_name, _at, _application, ctx) => (ctx.boons.has('might') ? 2 : 1) }
+      query: {
+        conditionMultiplier: (_name, _at, _application, ctx) =>
+          ctx.liveEffects.queries.boonApplications('might').length > 0 ? 2 : 1
+      }
     }
   );
   // The sample ending at 1s uses prior state; the new multiplier affects subsequent intervals.

@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import {
   createEffectExpansionBudget,
@@ -231,6 +233,9 @@ test('conditions share the packet budget and reject a whole stack batch without 
     }
   });
   const runtime = createGw2ResolverRuntimeState({
+    liveEffects: createLiveEffects({}),
+    combo: createGw2ComboController(),
+
     conditions,
     config: {},
     horizon: 2,

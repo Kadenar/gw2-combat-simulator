@@ -14,6 +14,7 @@ import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-qu
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 
 const families = {};
 for (const name of ['elementalist', 'engineer', 'guardian', 'mesmer', 'ranger', 'revenant', 'thief', 'warrior'])
@@ -324,7 +325,7 @@ test('Might applies baseline and Notoriety together while unbuffed declarations 
     summonBaseConditionDamage: 100
   };
   const runtime = {
-    boons: new Map([
+    liveEffects: createTestLiveEffects([
       [
         'might',
         [
@@ -338,7 +339,7 @@ test('Might applies baseline and Notoriety together while unbuffed declarations 
       ]
     ])
   };
-  runtime.companions = new Map([['pet', { boons: runtime.boons, buffs: new Map() }]]);
+
   assert.equal(probe.query.statsAt(1, pet, runtime).power, 1290);
   assert.equal(probe.query.statsAt(1, pet, runtime).conditionDamage, 190);
   assert.equal(probe.query.statsAt(2, pet, runtime).power, 1200);
@@ -353,10 +354,17 @@ for (const [name, trait, kind, stat, perStack, maximum] of [
     const selected = scenario(name, 'Core', [trait]);
     const unselected = scenario(name, 'Core');
     const grants = [];
-    const runtime = { buffs: new Map([[kind, grants]]) };
+    const runtime = { liveEffects: createTestLiveEffects([[kind, grants]]) };
     assert.equal(unselected.query.statsAt(1, null, runtime)[stat], 0);
-    grants.push({ at: 1, expiresAt: 5, stacks: 2, resolvedAudience: { includesSelf: true } });
-    grants.push({
+    grantTestEffect(runtime.liveEffects, {
+      kind: kind,
+      at: 1,
+      expiresAt: 5,
+      stacks: 2,
+      resolvedAudience: { includesSelf: true }
+    });
+    grantTestEffect(runtime.liveEffects, {
+      kind: kind,
       at: 1,
       expiresAt: 5,
       stacks: 8,
@@ -364,13 +372,25 @@ for (const [name, trait, kind, stat, perStack, maximum] of [
     });
     assert.equal(selected.query.statsAt(1, null, runtime)[stat], 2 * perStack);
     assert.equal(unselected.query.statsAt(1, null, runtime)[stat], 2 * perStack);
-    grants.push({ at: 1, expiresAt: 5, stacks: 1, resolvedAudience: { includesSelf: true } });
+    grantTestEffect(runtime.liveEffects, {
+      kind: kind,
+      at: 1,
+      expiresAt: 5,
+      stacks: 1,
+      resolvedAudience: { includesSelf: true }
+    });
     assert.equal(unselected.query.statsAt(1, null, runtime)[stat], 3 * perStack);
-    grants.push({ at: 1, expiresAt: 5, stacks: 100, resolvedAudience: { includesSelf: true } });
+    grantTestEffect(runtime.liveEffects, {
+      kind: kind,
+      at: 1,
+      expiresAt: 5,
+      stacks: 100,
+      resolvedAudience: { includesSelf: true }
+    });
     assert.equal(unselected.query.statsAt(1, null, runtime)[stat], maximum * perStack);
-    const before = structuredClone(runtime);
+    const before = runtime.liveEffects.queries.buffApplications(kind);
     assert.equal(unselected.query.statsAt(5, null, runtime)[stat], 0);
-    assert.deepEqual(runtime, before);
+    assert.deepEqual(runtime.liveEffects.queries.buffApplications(kind), before);
   });
 }
 
@@ -509,7 +529,9 @@ test('conditional trait conversions follow buff expiry and regeneration', () => 
     for (const seed of inputs.weaponSets) seed.conversions = equipmentAttributeConversions('Leviathan Tempering Oil');
     const probe = scenario(profession, 'Core', [trait], { attributeInputs: inputs });
     const runtime = {
-      buffs: new Map([[kind, [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]]])
+      liveEffects: createTestLiveEffects([
+        [kind, [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]]
+      ])
     };
     assert.equal(probe.query.statsAt(0, null, runtime).ferocity, bonus + Math.round(bonus * 0.03));
     assert.equal(probe.query.statsAt(10, null, runtime).ferocity, 0);
@@ -534,9 +556,9 @@ test('Signet Mastery feeds oil conversions only while its stacks are active', ()
   for (const seed of inputs.weaponSets) seed.conversions = equipmentAttributeConversions('Leviathan Tempering Oil');
   const probe = scenario('warrior', 'Core', ['Signet Mastery'], { attributeInputs: inputs });
   const grant = { at: 0, expiresAt: 10, stacks: 4, resolvedAudience: { includesSelf: true } };
-  const runtime = { buffs: new Map([['signet-mastery', [grant]]]) };
+  const runtime = { liveEffects: createTestLiveEffects([['signet-mastery', [grant]]]) };
   assert.equal(probe.query.statsAt(0, null, runtime).ferocity, 458);
-  grant.stacks = 5;
+  grantTestEffect(runtime.liveEffects, { ...grant, kind: 'signet-mastery', stacks: 1 });
   assert.equal(probe.query.statsAt(0, null, runtime).ferocity, 561);
   assert.equal(probe.query.statsAt(10, null, runtime).ferocity, 46);
 });

@@ -22,10 +22,7 @@ export function latestRadiantArmaments(context: Gw2ModifierContext): SimulationE
   // A live latest-application query includes only accepted grants, including shorter replacements.
   if (context.runtime)
     return (
-      context.runtime.buffs
-        ?.get('guardian-radiant-armaments')
-        ?.filter((application) => application.at <= context.time)
-        .at(-1)?.event ?? null
+      context.runtime.liveEffects?.queries.latestApplication('guardian-radiant-armaments', context.time)?.event ?? null
     );
 
   let latest: SimulationEvent | null = null;

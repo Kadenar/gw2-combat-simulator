@@ -10,6 +10,7 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 
 function canonicalRotation(rotation) {
@@ -454,8 +455,7 @@ test('Persisting Flames patches transform packets before emission and display th
       catalog: runtime.catalog,
       config: { selectedTraitIds: [TRAIT.PERSISTING_FLAMES] },
       runtime: {
-        boons: new Map([]),
-        buffs: new Map([
+        liveEffects: createTestLiveEffects([
           ['persisting flames', [{ resolvedAudience: { includesSelf: true }, at: 0, expiresAt: 15, stacks: 5 }]]
         ])
       },

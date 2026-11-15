@@ -3,7 +3,6 @@ import test from 'node:test';
 
 import { applyMightAttributes, attributeContext } from '#gw2/platform/attributes/evaluation.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { activeBoonStacks, buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
@@ -12,6 +11,7 @@ import { notoriety } from '#gw2/professions/revenant/core/traits/devastation/ind
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { renegadeModule } from '#gw2/professions/revenant/specializations/renegade/module.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 
 // Resolve baseline and adjusted Might together while leaving the source attributes immutable.
 function notorietyAttributes(context, attributes) {
@@ -38,7 +38,7 @@ test('Revenant and Renegade use live self boons, duration stacking, and timeline
     condition: 'Bleeding',
     traits: new Set([TRAIT.ROILING_MISTS, TRAIT.VICIOUS_REPRISAL, TRAIT.BLOOD_FURY]),
     timeline: createGw2TimelineIndex({ events: [fury, resolution] }),
-    runtime: { boons: new Map(), buffs: new Map() }
+    runtime: { liveEffects: createTestLiveEffects() }
   };
   const reprisal = revenantCoreModifierRules.find(({ id }) => id === 'revenant.vicious-reprisal');
   const bloodFury = renegadeModifierRules.find(({ id }) => id === 'revenant.blood-fury-bleeding-duration');
@@ -53,9 +53,9 @@ test('Revenant and Renegade use live self boons, duration stacking, and timeline
   assert.equal(countActiveBoons({ ...context, runtime: undefined }), 2);
   assert.equal(bloodFury.when({ ...context, runtime: undefined }), true);
   for (const kind of ['fury', 'resolution']) {
-    recordBuffApplication(context.runtime.boons, buff(kind, { recipients: 'party', affectsSelf: false }));
-    recordBuffApplication(
-      context.runtime.boons,
+    grantTestEffect(context.runtime.liveEffects, buff(kind, { recipients: 'party', affectsSelf: false }));
+    grantTestEffect(
+      context.runtime.liveEffects,
       buff(kind, { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: ['pet'] })
     );
   }
@@ -64,9 +64,9 @@ test('Revenant and Renegade use live self boons, duration stacking, and timeline
   assert.equal(reprisal.when(context), false);
   assert.equal(bloodFury.when(context), false);
   assert.equal(criticalBonus(context), 0);
-  recordBuffApplication(context.runtime.boons, fury);
-  recordBuffApplication(context.runtime.boons, fury);
-  recordBuffApplication(context.runtime.boons, resolution);
+  grantTestEffect(context.runtime.liveEffects, fury);
+  grantTestEffect(context.runtime.liveEffects, fury);
+  grantTestEffect(context.runtime.liveEffects, resolution);
   assert.equal(countActiveBoons(context), 2);
   assert.equal(reprisal.when(context), true);
   assert.equal(bloodFury.when(context), true);
@@ -86,15 +86,14 @@ test('Notoriety converts configured and live self Might with a combined cap', ()
     time: 4,
     config: { boons: { might: 4 } },
     traits: new Set([TRAIT.NOTORIETY]),
-    runtime: { boons: new Map(), buffs: new Map() }
+    runtime: { liveEffects: createTestLiveEffects() }
   };
-  recordBuffApplication(context.runtime.boons, buff('might', { recipients: 'party' }, 3));
-  recordBuffApplication(context.runtime.boons, buff('might', { recipients: 'party', affectsSelf: false }, 20));
-  const applications = context.runtime.boons.get('might');
-  applications.push(
+  grantTestEffect(context.runtime.liveEffects, buff('might', { recipients: 'party' }, 3));
+  grantTestEffect(context.runtime.liveEffects, buff('might', { recipients: 'party', affectsSelf: false }, 20));
+  [
     { at: 0, expiresAt: 4, stacks: 20, resolvedAudience: { includesSelf: true } },
     { at: 5, expiresAt: 10, stacks: 20, resolvedAudience: { includesSelf: true } }
-  );
+  ].forEach((application) => grantTestEffect(context.runtime.liveEffects, { ...application, kind: 'might' }));
   const attributes = { power: 1000, conditionDamage: 1000 };
   assert.deepEqual(notorietyAttributes({ catalog: revenantCatalog, ...context }, attributes), {
     power: 1280,
@@ -119,8 +118,7 @@ test('Herald custom buffs retain their local query and never count as standard b
   const context = {
     time: 4,
     runtime: {
-      boons: new Map([]),
-      buffs: new Map([
+      liveEffects: createTestLiveEffects([
         ['burst-of-strength', [{ resolvedAudience: { includesSelf: true }, at: 4, expiresAt: 6, stacks: 1 }]]
       ])
     }

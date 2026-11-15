@@ -6,6 +6,7 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { galeshotModule } from '#gw2/professions/ranger/specializations/galeshot/module.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -134,9 +135,7 @@ test('Bird of Prey accepts permanent and timed movement buffs only for player-ow
       boon === 'swiftness'
     );
     const application = { at: 1, expiresAt: 2, resolvedAudience: { includesSelf: true } };
-    const runtime = { boons: new Map(), buffs: new Map() };
-    const applicationsByKind = boon === 'swiftness' ? runtime.boons : runtime.buffs;
-    applicationsByKind.set(boon, [application]);
+    const runtime = { liveEffects: createTestLiveEffects([[boon, [application]]]) };
     for (const [time, expected] of [
       [0, false],
       [1, true],
@@ -149,7 +148,9 @@ test('Bird of Prey accepts permanent and timed movement buffs only for player-ow
     assert.equal(rule.when({ ...context, runtime, event: { actorType: 'effect', ownerActorType: 'player' } }), true);
     assert.equal(rule.when({ ...context, runtime, config: { selectedTraitIds: [] } }), false);
     // Accepted histories are append-only; a different audience needs a fresh history for cached boon queries.
-    applicationsByKind.set(boon, [{ ...application, resolvedAudience: { includesSelf: false } }]);
+    runtime.liveEffects = createTestLiveEffects([
+      [boon, [{ ...application, resolvedAudience: { includesSelf: false } }]]
+    ]);
     assert.equal(rule.when({ ...context, runtime }), false);
   }
 });

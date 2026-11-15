@@ -4,6 +4,7 @@ import test from 'node:test';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import {
@@ -41,6 +42,7 @@ import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -63,13 +65,16 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     state: { time: 0, profession: state, cooldowns: new Map() },
     events,
     effects,
-    boons: new Map(),
-    buffs: new Map(),
+    liveEffects: createTestLiveEffects(),
+
     cooldownController: { readyAt: () => undefined, reduceSkillRecharge() {} },
     start: 0,
     effectiveEnd: 1
   };
-  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution(), {
+    liveEffects: context.liveEffects,
+    combo: createGw2ComboController()
+  });
   // Manual grant tests use the real recipient capability with no autonomous strike rate.
   context.alliedStrikes = createAlliedStrikeController(() => context, {
     schedule() {},

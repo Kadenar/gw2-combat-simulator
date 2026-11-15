@@ -218,8 +218,8 @@ test('merged Maul consumes the old charge and leaves one fresh charge after stan
   );
   assert.deepEqual(result.warnings, []);
   const runtime = observedRuntime(result);
-  const active = runtime.buffs
-    .get('attack-of-opportunity-player')
+  const active = runtime.liveEffects.queries
+    .buffApplications('attack-of-opportunity-player')
     .filter((application) => application.expiresAt > runtime.time);
   assert.equal(active.length, 1);
   assert.equal(active[0].stacks, 1);

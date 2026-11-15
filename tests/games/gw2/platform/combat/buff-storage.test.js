@@ -3,13 +3,14 @@ import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { GW2_STANDARD_BOONS, isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import {
   activeBoonStacks,
   activeBuffStacks,
   boonActive,
   countActiveBoons
 } from '#gw2/platform/combat/query/runtime-query.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { recordTimedBuffProc } from '#gw2/platform/equipment/relics/rules/shared.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -17,6 +18,7 @@ import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureAcceptedBuffEmissions } from '#tests/helpers/effect-emission.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
@@ -73,10 +75,10 @@ for (const output of ['detailed', 'score'])
     });
     const runtime = observedRuntime(result);
     assert.deepEqual(new Set(seen), new Set([...GW2_STANDARD_BOONS, ...custom]));
-    assert.deepEqual([...runtime.boons.keys()], [...GW2_STANDARD_BOONS]);
-    assert.deepEqual([...runtime.buffs.keys()], custom);
+    assert.deepEqual(runtime.liveEffects.queries.effectKinds('boon'), [...GW2_STANDARD_BOONS]);
+    assert.deepEqual(runtime.liveEffects.queries.effectKinds('buff'), custom);
     for (const kind of custom) {
-      assert.equal(runtime.buffs.get(kind)[0].expiresAt, 2);
+      assert.equal(runtime.liveEffects.queries.buffApplications(kind)[0].expiresAt, 2);
       assert.equal(runtime.combat.activeBuffStacks(kind, 1, 1), 1);
       assert.deepEqual(runtime.combat.boonSnapshot(kind, 1, { actor: 'player' }), { stacks: 0, duration: 0 });
     }
@@ -102,9 +104,9 @@ test('live empty stores never borrow scheduled grants or non-boon configuration'
     timeline: createGw2TimelineIndex({ events: [buff] })
   };
   assert.equal(activeBuffStacks(context, 'superspeed', 1), 1);
-  const runtime = { boons: new Map(), buffs: new Map() };
+  const runtime = { liveEffects: createTestLiveEffects() };
   assert.equal(activeBuffStacks({ ...context, runtime }, 'superspeed', 1), 0);
-  recordBuffApplication(runtime.buffs, { ...buff, resolvedAudience: { includesSelf: true } });
+  grantTestEffect(runtime.liveEffects, { ...buff, resolvedAudience: { includesSelf: true } });
   assert.equal(activeBuffStacks({ ...context, runtime }, 'superspeed', 1), 1);
   assert.equal(activeBoonStacks({ ...context, runtime }, 'superspeed'), 0);
   assert.equal(boonActive({ ...context, runtime }, 'superspeed'), false);
@@ -113,13 +115,13 @@ test('live empty stores never borrow scheduled grants or non-boon configuration'
 });
 
 test('buff expiry revisions preserve historical intervals and select only the consumed recipient', () => {
-  const runtime = { config: {}, boons: new Map(), buffs: new Map() };
-  const combat = createMechanicCombatServices(
-    Object.assign(runtime, { companions: new Map() }),
-    createTestConditionResolution()
-  );
+  const runtime = { config: {}, liveEffects: createTestLiveEffects() };
+  const combat = createMechanicCombatServices(runtime, createTestConditionResolution(), {
+    liveEffects: runtime.liveEffects,
+    combo: createGw2ComboController()
+  });
   for (const includesSelf of [true, false])
-    recordBuffApplication(runtime.buffs, {
+    grantTestEffect(runtime.liveEffects, {
       ...packet('fixture-buff', { duration: 10 }),
       resolvedAudience: { includesSelf, includesSummons: !includesSelf, companionIds: includesSelf ? [] : ['pet'] }
     });
@@ -147,16 +149,16 @@ test('reaction-settled buffs use ordinary acceptance and remain visible in execu
     }
   });
   assert.equal(result.events.filter((event) => event.kind === 'fixture-buff').length, 1);
-  assert.equal(runtime.buffs.get('fixture-buff').length, 1);
-  assert.equal(runtime.boons.has('fixture-buff'), false);
+  assert.equal(runtime.liveEffects.queries.buffApplications('fixture-buff').length, 1);
+  assert.equal(runtime.liveEffects.queries.boonApplications('fixture-buff').length > 0, false);
 });
 
 test('replacement and overlapping refresh windows retain their distinct historical semantics', () => {
   const runtime = { ...captureAcceptedBuffEmissions(), config: {}, time: 0 };
-  runtime.combat = createMechanicCombatServices(
-    Object.assign(runtime, { companions: new Map() }),
-    createTestConditionResolution()
-  );
+  runtime.combat = createMechanicCombatServices(runtime, createTestConditionResolution(), {
+    liveEffects: runtime.liveEffects,
+    combo: createGw2ComboController()
+  });
   replaceThiefBuff(runtime, 'fluid-strikes', 10, 'fixture', 'Fluid Strikes', 'Trait');
   runtime.time = 1;
   replaceThiefBuff(runtime, 'fluid-strikes', 2, 'fixture', 'Fluid Strikes', 'Trait');

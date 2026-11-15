@@ -69,9 +69,21 @@ for (const output of ['detailed', 'score']) {
               swap(runtime);
               replacement = runtime.profession.core.pet;
               assert.notEqual(replacement, outgoing);
-              assert.equal(outgoing.effects.boons.size, 0);
-              assert.equal(outgoing.effects.buffs.size, 0);
-              assert.equal(runtime.companions.has(outgoing.id), false);
+              assert.equal(
+                runtime.combat.activeBoonStacks('alacrity', runtime.time, 1, {
+                  actor: 'companion',
+                  companionId: outgoing.id
+                }),
+                0
+              );
+              assert.equal(
+                runtime.combat.activeBuffStacks('superspeed', runtime.time, 1, {
+                  actor: 'companion',
+                  companionId: outgoing.id
+                }),
+                0
+              );
+              assert.equal(runtime.combat.companionRetiredAt(outgoing.id), runtime.time);
               assert.equal(replacement.poisonousStrikes.charges, 0);
               assert.equal(replacement.poisonMasterReady, false);
               assert.equal(replacement.ferociousSymbiosis.stacks, 0);
@@ -96,7 +108,13 @@ for (const output of ['detailed', 'score']) {
               swap(runtime);
               const returned = runtime.profession.core.pet;
               assert.notEqual(returned.id, outgoing.id);
-              assert.equal(returned.effects.boons.size, 0);
+              assert.equal(
+                runtime.combat.activeBoonStacks('alacrity', runtime.time, 1, {
+                  actor: 'companion',
+                  companionId: returned.id
+                }),
+                0
+              );
               assert.equal(returned.poisonousStrikes.charges, 0);
               assert.equal(runtime.cooldownController.readyAt(ID.POISONOUS_CLOUD), readyAt);
             }
@@ -144,8 +162,14 @@ for (const output of ['detailed', 'score']) {
               assert.equal(runtime.profession.core.pet, null);
               assert.equal(runtime.profession.core.player.poisonMasterReady, false);
               assert.equal(runtime.profession.core.player.poisonousStrikes.charges, 0);
-              assert.equal(outgoing.effects.boons.size, 0);
-              assert.equal(runtime.companions.has(outgoing.id), false);
+              assert.equal(
+                runtime.combat.activeBoonStacks('alacrity', runtime.time, 1, {
+                  actor: 'companion',
+                  companionId: outgoing.id
+                }),
+                0
+              );
+              assert.equal(runtime.combat.companionRetiredAt(outgoing.id), runtime.time);
             }
           },
           {
@@ -156,7 +180,13 @@ for (const output of ['detailed', 'score']) {
               assert.notEqual(pet.id, outgoing.id);
               assert.equal(pet.poisonMasterReady, false);
               assert.equal(pet.poisonousStrikes.charges, 0);
-              assert.equal(pet.effects.boons.size, 0);
+              assert.equal(
+                runtime.combat.activeBoonStacks('alacrity', runtime.time, 1, {
+                  actor: 'companion',
+                  companionId: pet.id
+                }),
+                0
+              );
             }
           }
         ]

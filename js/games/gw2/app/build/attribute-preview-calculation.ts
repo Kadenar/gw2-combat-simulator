@@ -5,12 +5,8 @@ import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
 import type { Gw2NumericStatKey } from '#gw2/platform/attributes/stats.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import {
-  GW2_STANDARD_BOONS,
-  isStandardBoon,
-  recordBuffApplication,
-  type Gw2TimedBuffApplication
-} from '#gw2/platform/combat/boons.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
 import { createAristocracyPreviewQueries } from '#gw2/platform/equipment/relics/runtime.js';
@@ -120,16 +116,11 @@ function calculatePreview(
     queryOptions
   });
 
-  const previewBoons = new Map<string, Gw2TimedBuffApplication[]>();
-  const previewBuffs = new Map<string, Gw2TimedBuffApplication[]>();
-  // Preview assumptions replace earlier grants of the same kind; shared recording retains audience and event metadata.
-  for (const event of events) {
-    if (event.type !== 'buff') continue;
-
-    const applications = isStandardBoon(event.kind) ? previewBoons : previewBuffs;
-    applications.delete((event.kind || '').toLowerCase());
-    recordBuffApplication(applications, event);
-  }
+  const liveEffects = createLiveEffects(queryConfig);
+  // Preview assumptions replace earlier grants; only the final prepared packet of each kind enters the controller.
+  const grants = new Map<string, SimulationEvent>();
+  for (const event of events) if (event.type === 'buff') grants.set((event.kind || '').toLowerCase(), event);
+  for (const event of grants.values()) liveEffects.grant(event);
 
   const event: SimulationEvent = {
     type: 'action',
@@ -153,8 +144,7 @@ function calculatePreview(
   const runtime = {
     profession: professionState,
     activeWeaponSet: weaponSet,
-    boons: previewBoons,
-    buffs: previewBuffs,
+    liveEffects,
     engagement: { startTime: 0 },
     relic
   };

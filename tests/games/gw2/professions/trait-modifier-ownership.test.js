@@ -17,6 +17,7 @@ import { RANGER_TRAIT_IDS as RANGER, RANGER_SKILL_IDS as RANGER_SKILL } from '#g
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { REVENANT_TRAIT_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 
 // Patch the registered trait owner so disconnected declarations cannot satisfy these formula contracts.
 function patched(profession, balanceProfiles, skills = {}) {
@@ -283,8 +284,7 @@ test('merged Beastmastery rules preserve selection, ownership, specialization, a
                     selectedTraitIds: selected ? [RANGER.LOUD_WHISTLE, RANGER.GO_FOR_THE_THROAT] : []
                   },
                   runtime: {
-                    buffs,
-                    boons: new Map(),
+                    liveEffects: createTestLiveEffects(buffs),
                     profession: {
                       core: {},
                       specialization: { kind: specialization, state: { beastmodeActive: merged } }

@@ -12,7 +12,9 @@ import {
   remainingDurationStackSeconds,
   timedBuffApplicationsAt
 } from '#gw2/platform/combat/boons.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { assertSimulationEvent } from '#gw2/platform/events/events.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -304,14 +306,17 @@ function extend(profession, events, at) {
     return timedBuffApplicationsAt(result.events, 'fury', at);
   }
 
-  const boons = new Map();
-  for (const event of events) recordBuffApplication(boons, event);
+  const liveEffects = createLiveEffects();
+  for (const event of events) liveEffects.grant(event);
   const context = {
-    boons,
+    liveEffects,
     config: {},
-    effects: captureEffectEmissions({ submit: (event) => applyBoonExtension(boons, event) }).effects
+    effects: captureEffectEmissions({ submit: (event) => liveEffects.extend(event) }).effects
   };
-  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution(), {
+    liveEffects: context.liveEffects,
+    combo: createGw2ComboController()
+  });
 
   if (profession === 'Thief') {
     // Enter the registered strike boundary with one accepted critical hit and the real selected profile.
@@ -328,10 +333,10 @@ function extend(profession, events, at) {
       details: { hitContext: { critEligible: true, critical: { chance: 1, didCrit: true, furyActive: true } } }
     });
   } else {
-    applyBoonExtension(boons, { at, duration: 2 });
+    liveEffects.extend({ at, duration: 2 });
   }
 
-  return boons.get('fury') || [];
+  return liveEffects.queries.boonApplications('fury');
 }
 
 for (const profession of ['Thief', 'Ranger', 'Herald']) {

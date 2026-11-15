@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -38,18 +37,24 @@ test('Devastator samples Focused at its task deadline and requires a committed c
       {
         initialize(runtime) {
           if (!focused)
-            recordBuffApplication(runtime.buffs, {
-              type: 'buff',
-              kind: 'engineer-focused',
-              at: 0,
-              duration: 10,
-              stacks: 1,
-              resolvedAudience: {
-                includesSelf: true,
-                includesSummons: false,
-                alliedPlayerCount: 0,
-                companionIds: [],
-                recipientCount: 1
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'buff',
+                source: 'Fixture',
+                sourceId: 'fixture',
+                actorType: 'player',
+                kind: 'engineer-focused',
+                at: 0,
+                duration: 10,
+                stacks: 1,
+                resolvedAudience: {
+                  includesSelf: true,
+                  includesSummons: false,
+                  alliedPlayerCount: 0,
+                  companionIds: [],
+                  recipientCount: 1
+                }
               }
             });
         },
@@ -113,7 +118,7 @@ test('off-target spear casts grant no Focused window, charges, damage, or condit
     { primaryWeapon: 'Spear' }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).buffs.has('engineer-focused'), false);
+  assert.equal(observedRuntime(result).liveEffects.queries.buffApplications('engineer-focused').length > 0, false);
   assert.deepEqual(observedRuntime(result).profession.core.lightningRodChargeExpiries, []);
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'damage' || event.type === 'condition'),

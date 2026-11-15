@@ -10,7 +10,6 @@ import type {
   Gw2QueryRuntime
 } from '#gw2/platform/combat-calculation/combat-query.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2CriticalChanceContributor } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -630,7 +629,6 @@ type Gw2ModifierOperation = 'add' | 'damage-additive' | 'multiply';
 /** Modifier state observations expose profession data and boon applications without scheduler or mutation services. */
 export interface Gw2ModifierState {
   readonly profession?: object;
-  readonly boons?: ReadonlyMap<string, readonly Gw2TimedBuffApplication[]>;
 }
 
 /** Combat observations support state queries without requiring balance declarations. */

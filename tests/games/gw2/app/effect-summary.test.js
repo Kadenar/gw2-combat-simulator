@@ -4,6 +4,8 @@ import test from 'node:test';
 import { buildChartSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
@@ -376,6 +378,9 @@ test('relic proc state survives recording and refreshes replace stack counts', (
   // This reporting fixture composes its observer explicitly, just like the simulation entry point.
   const effectRecorder = new EffectRecorder();
   const context = createGw2ResolverRuntimeState({
+    liveEffects: createLiveEffects({ relic: 'Thief' }),
+    combo: createGw2ComboController(),
+
     conditions: createTestConditionResolution(),
     config: { relic: 'Thief' },
     effectRecorder,
@@ -403,6 +408,9 @@ test('relic proc state survives recording and refreshes replace stack counts', (
   // A persistent state without an expiry ends at the observation horizon and uses a fresh value on replacement.
   const thornsRecorder = new EffectRecorder();
   const thorns = createGw2ResolverRuntimeState({
+    liveEffects: createLiveEffects({ relic: 'Thorns', initialThornsStacks: 9 }),
+    combo: createGw2ComboController(),
+
     conditions: createTestConditionResolution(),
     config: { relic: 'Thorns', initialThornsStacks: 9 },
     effectRecorder: thornsRecorder,

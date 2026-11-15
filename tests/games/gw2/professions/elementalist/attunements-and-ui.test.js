@@ -190,7 +190,7 @@ test('precombat Updraft carries Fireworks into combat without resolving damage',
       const result = run('Fireworks');
       const baseline = run('');
       const owner = observedRuntime(result);
-      const buff = owner.buffs.get('relic-fireworks')?.[0];
+      const buff = owner.liveEffects.queries.buffApplications('relic-fireworks')?.[0];
 
       assert.equal(owner.engagement.startTime, observedRuntime(baseline).engagement.startTime);
       assert.ok(baseline.totalDamage > 0);

@@ -9,6 +9,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 
@@ -165,7 +166,7 @@ test('Opportune Opening applies one damage bonus for any number of impairing con
       time: 1,
       event: { actorType: 'player' },
       config: { target: { conditions } },
-      runtime: { profession: { core: {} }, buffs: new Map(), conditionState: new Map() },
+      runtime: { profession: { core: {} }, liveEffects: createTestLiveEffects(), conditionState: new Map() },
       damageInputs: {}
     };
     assert.equal(profession.calculations.modifyStrikeDamage(context, 1), Object.keys(conditions).length ? 1.05 : 1);

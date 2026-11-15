@@ -27,6 +27,7 @@ import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 import { professionUiFixture } from '#tests/helpers/presentation.js';
 
 test('shared build eligibility follows module labels for weapons, slot skills, and actions', () => {
@@ -115,8 +116,7 @@ test('target-condition queries combine assumptions and chronological runtime sta
         }
       ]
     ]),
-    boons: new Map(),
-    buffs: new Map()
+    liveEffects: createTestLiveEffects()
   };
 
   assert.equal(canonicalTargetConditionName('poisoned'), 'Poisoned');
@@ -189,7 +189,7 @@ test('same-time target-condition visibility follows runtime insertion order', ()
     profession: queryProfession,
     config: { target: { conditions: {} } }
   });
-  const runtime = { conditionState: new Map(), boons: new Map(), buffs: new Map() };
+  const runtime = { conditionState: new Map(), liveEffects: createTestLiveEffects() };
 
   assert.equal(query.targetHasCondition('Weakness', 1, runtime), false);
   runtime.conditionState.set('Weakness', {
@@ -313,7 +313,7 @@ test('effective boon and Vulnerability queries use their canonical runtime state
     },
     events
   });
-  const runtime = { boons: new Map(), buffs: new Map(), conditionState: new Map() };
+  const runtime = { liveEffects: createTestLiveEffects(), conditionState: new Map() };
   const event = {
     type: 'damage',
     at: 1,
@@ -330,8 +330,12 @@ test('effective boon and Vulnerability queries use their canonical runtime state
   assert.equal(query.furyActiveAt(1, null, event), true);
   assert.equal(query.vulnerabilityStacksAt(1, null), 1);
 
-  runtime.boons.set('might', [{ at: 1, expiresAt: 6, stacks: 5, resolvedAudience: resolvedAudience() }]);
-  runtime.boons.set('fury', [{ at: 1, expiresAt: 6, stacks: 1, resolvedAudience: resolvedAudience() }]);
+  [{ at: 1, expiresAt: 6, stacks: 5, resolvedAudience: resolvedAudience() }].forEach((application) =>
+    grantTestEffect(runtime.liveEffects, { ...application, kind: 'might' })
+  );
+  [{ at: 1, expiresAt: 6, stacks: 1, resolvedAudience: resolvedAudience() }].forEach((application) =>
+    grantTestEffect(runtime.liveEffects, { ...application, kind: 'fury' })
+  );
   runtime.conditionState.set('Vulnerability', {
     stacks: [{ at: 1, naturalExpiresAt: 6, stacks: 3 }]
   });
@@ -363,10 +367,11 @@ test('capped permanent Might skips history while uncapped and isolated summon qu
       ]
     ]);
     let reads = 0;
+    let liveEffects = createTestLiveEffects(boons);
     const runtime = {
-      get boons() {
+      get liveEffects() {
         reads++;
-        return boons;
+        return liveEffects;
       }
     };
     for (const event of [
@@ -384,13 +389,12 @@ test('capped permanent Might skips history while uncapped and isolated summon qu
     if (configured >= 25) assert.equal(reads, 0);
     else assert.ok(reads > 0);
 
-    runtime.companions = new Map([['minion:one', { boons, buffs: new Map() }]]);
     const summon = { actorType: 'summon', summonOwner: 'minion:one' };
     assert.equal(query.mightStacksAt(0, runtime, summon), 0);
     assert.equal(query.mightStacksAt(1, runtime, summon), 2);
     assert.equal(query.mightStacksAt(3, runtime, summon), 0);
     assert.equal(query.mightStacksAt(1, runtime, { ...summon, summonOwner: 'minion:two' }), 0);
-    boons.clear();
+    liveEffects = createTestLiveEffects();
     assert.equal(query.mightStacksAt(1, runtime, summon), 0);
     assert.equal(query.mightStacksAt(1, runtime), Math.min(25, configured));
   }
@@ -450,11 +454,10 @@ test('player boon sharing can exclude non-mech summons', () => {
     }
   ];
   const runtime = {
-    boons: new Map([
+    liveEffects: createTestLiveEffects([
       ['might', [{ at: 0, expiresAt: 10, stacks: 5, resolvedAudience: resolvedAudience() }]],
       ['fury', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: resolvedAudience() }]]
-    ]),
-    buffs: new Map([])
+    ])
   };
   const config = {
     attributeInputs: baseAttributeInputs({
@@ -628,10 +631,10 @@ test('summon-targeted trait boons bypass disabled player boon sharing independen
     0.3
   );
 
-  const runtime = { boons: new Map(), buffs: new Map() };
+  const runtime = { liveEffects: createTestLiveEffects() };
 
   assert.equal(query.statsAt(1, summonEvent, runtime).power, 1000);
-  runtime.boons.set('might', [
+  [
     {
       at: 0,
       expiresAt: 10,
@@ -639,8 +642,8 @@ test('summon-targeted trait boons bypass disabled player boon sharing independen
       source: 'Trait',
       resolvedAudience: resolvedAudience({ companionIds: ['fixture-minion'] })
     }
-  ]);
-  runtime.companions = new Map([['fixture-minion', { boons: runtime.boons, buffs: new Map() }]]);
+  ].forEach((application) => grantTestEffect(runtime.liveEffects, { ...application, kind: 'might' }));
+
   assert.equal(query.statsAt(1, summonEvent, runtime).power, 1060);
 });
 
@@ -665,7 +668,7 @@ test('illusion stats and critical policies follow identity independently of disp
       source: summonKind === 'clone' ? 'Clone' : 'Phantasm'
     };
     const runtime = {
-      boons: new Map([
+      liveEffects: createTestLiveEffects([
         [
           'fury',
           [
@@ -679,7 +682,7 @@ test('illusion stats and critical policies follow identity independently of disp
         ]
       ])
     };
-    runtime.companions = new Map([[event.summonOwner, { boons: runtime.boons, buffs: new Map() }]]);
+
     for (const source of [event.source, 'Renamed illusion', 'Player', undefined]) {
       const renamed = { ...event, source };
       assert.equal(query.statsAt(1, renamed).power, summonKind === 'phantasm' ? 1750 : 1000);

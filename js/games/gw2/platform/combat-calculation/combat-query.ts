@@ -5,7 +5,7 @@ import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.
 import type { Gw2QueryProfession } from '#gw2/platform/combat-calculation/profession-contract.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { MIGHT_ATTRIBUTE_BONUS_PER_STACK, type Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import { roundEffectDuration } from '#gw2/platform/combat/effect-timing.js';
 import {
   BASE_CRITICAL_DAMAGE_MULTIPLIER,
@@ -14,9 +14,9 @@ import {
   criticalDamageMultiplier,
   gw2ConditionDurationMultiplier
 } from '#gw2/platform/combat/formulas.js';
+import type { LiveEffectQueries } from '#gw2/platform/combat/live-effects.js';
 import type { Gw2DamageInputs, Gw2ModifierContext, Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import { appliedEffectStacks } from '#gw2/platform/combat/query/effect-stacks.js';
-import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import {
   conditionOwnerEvent,
   gw2EventActorType,
@@ -747,10 +747,7 @@ export function createGw2CombatQuery({
 
 export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
   readonly output?: 'detailed' | 'score' | 'damage' | 'observations';
-  readonly companions?: ReadonlyMap<string, CompanionEffects>;
-  readonly retiredCompanions?: ReadonlyMap<string, number>;
-  readonly boons?: Map<string, Gw2TimedBuffApplication[]>;
-  readonly buffs?: Map<string, Gw2TimedBuffApplication[]>;
+  readonly liveEffects?: { readonly queries: LiveEffectQueries };
   readonly activeWeaponSet?: number;
   readonly relic?: Gw2RelicQueryOwner;
   readonly profession?: object | null;

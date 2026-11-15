@@ -1,5 +1,4 @@
 import type { Gw2QueryRuntime } from '#gw2/platform/combat-calculation/combat-query.js';
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
@@ -29,7 +28,7 @@ export function severanceCriticalContribution(
   at: number
 ): Readonly<SeveranceCriticalContribution> {
   // Query recorded windows so refreshes and historical observations share the canonical buff state.
-  if (!buffApplicationStacks(runtime?.buffs?.get('sigil-severance') || [], 'sigil-severance', at, 1)) {
+  if (!runtime?.liveEffects?.queries.stacks('sigil-severance', at, 1)) {
     return NO_CRITICAL_CONTRIBUTION;
   }
 
@@ -40,7 +39,7 @@ export function severanceCriticalContribution(
     damage: (severance.procFerocity || 0) / FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
     // Scores and batch observations consume the numeric grant without allocating presentation labels.
     chanceContributors:
-      runtime?.output === 'score' || runtime?.output === 'observations'
+      runtime.output === 'score' || runtime.output === 'observations'
         ? NO_CRITICAL_CONTRIBUTION.chanceContributors
         : [
             {

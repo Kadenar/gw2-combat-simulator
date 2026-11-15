@@ -83,7 +83,7 @@ test('Bloodstone refreshes Volatility until the fourth blast consumes it and blo
   combo(19, 'Leap');
   assert.equal(stackReport(context)?.effectState.stacks ?? 0, 3);
   combo(20);
-  assert.equal(context.buffs.get('bloodstone-fervor').at(-1).expiresAt, 28);
+  assert.equal(context.liveEffects.queries.buffApplications('bloodstone-fervor').at(-1).expiresAt, 28);
   const consumption = context.announcements.at(-2).announcement;
   assert.equal(consumption.name, 'Bloodstone Volatility');
   assert.equal(consumption.expiresAt, 20);

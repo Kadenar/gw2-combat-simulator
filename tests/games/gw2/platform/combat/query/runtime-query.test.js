@@ -21,6 +21,7 @@ import {
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Query fixtures need a canonical catalog even when no skill-specific behavior is exercised.
@@ -48,10 +49,10 @@ test('condition damage consumes supplied Vulnerability while standalone queries 
 
 test('configured duration stacks bypass history and retain output caps without changing additive buffs', () => {
   // Fixed duration presence needs no live or scheduler history, but additive buffs still include active stacks.
-  const boons = new Proxy(new Map(), { get: () => assert.fail('Configured duration boons must not read history') });
+  const liveEffects = { queries: { stacks: () => assert.fail('Configured duration boons must not read history') } };
   for (const stateKey of ['runtime']) {
     for (const permanent of [true, 3]) {
-      const current = context({ config: { boons: { vigor: permanent } }, [stateKey]: { boons } });
+      const current = context({ config: { boons: { vigor: permanent } }, [stateKey]: { liveEffects } });
       for (const maximum of [0, 0.5, 1, 25]) {
         assert.equal(activeBoonStacks(current, 'vigor', maximum), Math.min(1, maximum));
       }
@@ -62,7 +63,9 @@ test('configured duration stacks bypass history and retain output caps without c
     const current = context({
       config: { boons: { [kind]: 3 } },
       runtime: {
-        boons: new Map([[kind, [{ at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } }]]])
+        liveEffects: createTestLiveEffects([
+          [kind, [{ at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } }]]
+        ])
       }
     });
     assert.equal(activeBoonStacks(current, kind), 5);
@@ -87,7 +90,7 @@ test('duration boon stacks use capped presence in live state', () => {
     }
 
     for (const stateKey of ['runtime']) {
-      const current = context({ [stateKey]: { boons } });
+      const current = context({ [stateKey]: { liveEffects: createTestLiveEffects(boons) } });
       assert.equal(activeBoonStacks({ ...current, time: -1 }, kind), 0);
       assert.equal(activeBoonStacks({ ...current, time: 1 }, kind), 1);
       assert.equal(activeBoonStacks({ ...current, time: 7 }, kind), 1);
@@ -106,8 +109,14 @@ test('duration boon stacks use capped presence in live state', () => {
       stacks: 1,
       resolvedAudience: { includesSelf: true }
     });
-    assert.equal(activeBoonStacks(context({ time: 2 + cap - 1, runtime: { boons } }), kind), 1);
-    assert.equal(activeBoonStacks(context({ time: 2 + cap, runtime: { boons } }), kind), 0);
+    assert.equal(
+      activeBoonStacks(context({ time: 2 + cap - 1, runtime: { liveEffects: createTestLiveEffects(boons) } }), kind),
+      1
+    );
+    assert.equal(
+      activeBoonStacks(context({ time: 2 + cap, runtime: { liveEffects: createTestLiveEffects(boons) } }), kind),
+      0
+    );
   }
 });
 
@@ -128,7 +137,7 @@ test('player boon stacks exclude summon copies in live state', () => {
     }
 
     for (const stateKey of ['runtime']) {
-      const current = context({ time: 1, [stateKey]: { boons } });
+      const current = context({ time: 1, [stateKey]: { liveEffects: createTestLiveEffects(boons) } });
       assert.equal(activeBoonStacks(current, kind), stacks);
       assert.equal(activeBoonStacks({ ...current, time: 6 }, kind), 0);
     }
@@ -137,22 +146,31 @@ test('player boon stacks exclude summon copies in live state', () => {
 
 test('duration stack queries retain player audience filtering and live insertion order', () => {
   const state = {
-    boons: new Map([['fury', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]]]),
-    buffs: new Map([])
+    liveEffects: createTestLiveEffects([
+      ['fury', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]]
+    ])
   };
-  const runtime = { boons: new Map(), buffs: new Map() };
+  const runtime = { liveEffects: createTestLiveEffects() };
   const current = context({ time: 0, state, runtime });
   assert.equal(activeBoonStacks(current, 'fury'), 0);
-  runtime.boons.set('fury', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: false } }]);
+  [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: false } }].forEach((application) =>
+    grantTestEffect(runtime.liveEffects, { ...application, kind: 'fury' })
+  );
   assert.equal(activeBoonStacks(current, 'fury'), 0);
   assert.equal(boonActive(current, 'fury'), false);
-  runtime.boons.get('fury').push({ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } });
+  grantTestEffect(runtime.liveEffects, {
+    kind: 'fury',
+    at: 0,
+    expiresAt: 10,
+    stacks: 1,
+    resolvedAudience: { includesSelf: true }
+  });
   assert.equal(activeBoonStacks(current, 'fury'), 1);
   assert.equal(boonActive(current, 'fury'), true);
-  runtime.buffs.set('custom', [
+  [
     { at: 0, expiresAt: 10, stacks: 3, resolvedAudience: { includesSelf: true } },
     { at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } }
-  ]);
+  ].forEach((application) => grantTestEffect(runtime.liveEffects, { ...application, kind: 'custom' }));
   assert.equal(activeBuffStacks(current, 'custom'), 5);
   assert.equal(activeBuffStacks({ ...current, time: 10 }, 'custom'), 0);
 });
@@ -355,14 +373,16 @@ test('boon-dependent damage sees same-time buffs only after their live applicati
     }),
     events: [hit, buff]
   });
-  const runtime = { boons: new Map(), buffs: new Map() };
+  const runtime = { liveEffects: createTestLiveEffects() };
 
   // A completed timeline contains the buff even while the live hit precedes it.
   assert.equal(query.strikeMultiplier(hit, hit.at, runtime), 1);
   assert.equal(query.strikeMultiplier(hit, hit.at, {}), 1);
   assert.equal(query.strikeMultiplier(hit, hit.at), 1.1);
   assert.equal(boonActive(context({ runtime, config: { boons: { fury: true } } }), 'fury'), true);
-  runtime.boons.set('fury', [{ ...buff, expiresAt: 10 }]);
+  [{ ...buff, expiresAt: 10 }].forEach((application) =>
+    grantTestEffect(runtime.liveEffects, { ...application, kind: 'fury' })
+  );
   assert.equal(query.strikeMultiplier(hit, hit.at, runtime), 1.1);
   assert.equal(query.strikeMultiplier(hit, 10, runtime), 1);
 });
@@ -376,11 +396,10 @@ test('live boon presence respects duration pools, audience, and application wind
   }));
   const modifierContext = context({
     runtime: {
-      boons: new Map([
+      liveEffects: createTestLiveEffects([
         ['fury', applications],
         ['might', applications]
-      ]),
-      buffs: new Map([])
+      ])
     }
   });
 
@@ -391,6 +410,7 @@ test('live boon presence respects duration pools, audience, and application wind
   assert.equal(boonActive({ ...modifierContext, time: -1 }, 'might'), false);
   assert.equal(boonActive({ ...modifierContext, time: 0 }, 'might'), true);
   applications[1].resolvedAudience.includesSelf = false;
+  modifierContext.runtime.liveEffects = createTestLiveEffects([['fury', applications]]);
   assert.equal(boonActive(modifierContext, 'fury'), false);
 });
 
@@ -488,8 +508,8 @@ test('boon queries retain configured stacks and prefer live applications over sc
   const runtimeApplication = { at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } };
   const modifierContext = context({
     config: { boons: { might: 3 } },
-    state: { boons: new Map([['might', [schedulerApplication]]]), buffs: new Map([]) },
-    runtime: { boons: new Map([['might', [runtimeApplication]]]), buffs: new Map([]) }
+    state: { liveEffects: createTestLiveEffects([['might', [schedulerApplication]]]) },
+    runtime: { liveEffects: createTestLiveEffects([['might', [runtimeApplication]]]) }
   });
 
   assert.equal(activeBoonStacks(modifierContext, 'might'), 5);
@@ -498,7 +518,7 @@ test('boon queries retain configured stacks and prefer live applications over sc
     boonActive(
       context({
         runtime: {
-          boons: new Map([
+          liveEffects: createTestLiveEffects([
             [
               'fury',
               [
@@ -516,8 +536,7 @@ test('boon queries retain configured stacks and prefer live applications over sc
                 }
               ]
             ]
-          ]),
-          buffs: new Map([])
+          ])
         }
       }),
       'fury'

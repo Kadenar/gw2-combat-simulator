@@ -1,9 +1,11 @@
 ﻿import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
 import { remainingTargetHealthFraction, targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { runtimeTargetConditionStacks, targetHasCondition } from '#gw2/platform/combat/state/targets.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
@@ -120,21 +122,24 @@ test('encounter hitbox classification uses the measured 700-unit large golem bou
       [700, 'large'],
       [1000, 'large']
     ]) {
-      const combat = createMechanicCombatServices(
-        {
-          config: { professionAssumptions: { hitboxSize } },
-          encounter: { hitboxWidth }
-        },
-        createTestConditionResolution()
-      );
+      const combatRuntime = {
+        config: { professionAssumptions: { hitboxSize } },
+        liveEffects: createLiveEffects(),
+        encounter: { hitboxWidth }
+      };
+      const combat = createMechanicCombatServices(combatRuntime, createTestConditionResolution(), {
+        liveEffects: combatRuntime.liveEffects,
+        combo: createGw2ComboController()
+      });
       assert.equal(combat.targetHitboxSize(), expected);
     }
 
+    const combatRuntime2 = { config: { professionAssumptions: { hitboxSize } }, liveEffects: createLiveEffects() };
     assert.equal(
-      createMechanicCombatServices(
-        { config: { professionAssumptions: { hitboxSize } } },
-        createTestConditionResolution()
-      ).targetHitboxSize(),
+      createMechanicCombatServices(combatRuntime2, createTestConditionResolution(), {
+        liveEffects: combatRuntime2.liveEffects,
+        combo: createGw2ComboController()
+      }).targetHitboxSize(),
       hitboxSize
     );
   }

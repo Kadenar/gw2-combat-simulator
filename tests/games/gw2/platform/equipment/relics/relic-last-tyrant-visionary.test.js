@@ -3,7 +3,9 @@ import test from 'node:test';
 
 import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { comboDefinition } from '#gw2/platform/combos/definitions.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
@@ -70,6 +72,9 @@ function conditionResolver() {
     reactions
   });
   const ctx = createGw2ResolverRuntimeState({
+    liveEffects: createLiveEffects(config),
+    combo: createGw2ComboController(),
+
     conditions,
     config,
     horizon: 20,

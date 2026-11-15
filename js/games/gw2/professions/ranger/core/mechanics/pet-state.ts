@@ -1,6 +1,5 @@
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import { createCompanionEffects, type CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import {
   createRangerActorProcState,
   type RangerActorProcState
@@ -21,7 +20,6 @@ export function isRangerPetInstanceId(id: unknown): id is string {
 /** Every activation owns fresh combat state; cooldowns and immutable selection remain outside its lifetime. */
 export interface RangerPetState extends RangerActorProcState {
   readonly id: string;
-  readonly effects: CompanionEffects;
   paralyzingVenom: ChargeGrant;
   sharpenSpines: ChargeGrant;
   ferociousSymbiosis: RefreshedStacks;
@@ -41,7 +39,6 @@ export function createRangerPetState(id: string): RangerPetState {
   return {
     ...createRangerActorProcState(),
     id,
-    effects: createCompanionEffects(),
     paralyzingVenom: grantCharges(0, 0),
     sharpenSpines: grantCharges(0, 0),
     ferociousSymbiosis: { stacks: 0, expiresAt: 0 },

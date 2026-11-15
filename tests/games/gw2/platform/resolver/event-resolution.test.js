@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
@@ -11,6 +12,7 @@ import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -67,7 +69,22 @@ test('resolver setup shares reactions and creates fresh profession state for eac
 // Generic event resolution preserves recipient, strike, and profession-state contracts.
 test('shared buff handling records allied recipient scope before reactions run', () => {
   const seen = [];
+  const context = {
+    output: 'detailed',
+    retainsResolved: () => true,
+    resolved: [],
+    config: {
+      allies: { count: 4, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true
+    },
+    liveEffects: createTestLiveEffects([], {
+      allies: { count: 4, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true
+    })
+  };
   const handlers = createGw2ResolverEventHandlers({
+    liveEffects: context.liveEffects,
+    combo: createGw2ComboController(),
     hitResolution: {
       buildHitResolutionContext: () => ({}),
       applyResolvedHit: () => {}
@@ -82,7 +99,7 @@ test('shared buff handling records allied recipient scope before reactions run',
       professionReactions: {
         'buff.applied': (ctx, event) => {
           // Reactions must see the new application and its resolved recipients immediately.
-          assert.deepEqual(ctx.boons.get(event.kind), [
+          assert.deepEqual(ctx.liveEffects.queries.boonApplications(event.kind), [
             {
               event,
               at: event.at,
@@ -98,17 +115,6 @@ test('shared buff handling records allied recipient scope before reactions run',
       }
     })
   });
-  const context = {
-    output: 'detailed',
-    retainsResolved: () => true,
-    resolved: [],
-    config: {
-      allies: { count: 4, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true
-    },
-    boons: new Map(),
-    buffs: new Map()
-  };
   const application = {
     type: 'buff',
     at: 0,

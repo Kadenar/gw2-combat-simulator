@@ -1,5 +1,4 @@
 /** Helpers shared by more than one relic rule module. */
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -72,7 +71,7 @@ export function recordTimedBuffProc(
   const wasActive = relicBuffActive(ctx, kind, event.at);
   const expiresAt = Math.max(
     gw2EffectExpiresAt(event.at, duration),
-    ...(ctx.buffs?.get(kind) ?? [])
+    ...(ctx.liveEffects?.queries.buffApplications(kind) ?? [])
       .filter((application) => application.at <= event.at && application.resolvedAudience.includesSelf)
       .map((application) => application.expiresAt)
   );
@@ -112,8 +111,8 @@ export function recordTimedBuffProc(
 }
 
 /** Relic modifiers query only accepted self applications, including historical intervals. */
-export function relicBuffActive(ctx: Pick<Gw2RelicContext, 'buffs'>, kind: string, at: number): boolean {
-  return buffApplicationStacks(ctx.buffs?.get(kind) ?? [], kind, at, 1) > 0;
+export function relicBuffActive(ctx: Pick<Gw2RelicContext, 'liveEffects'>, kind: string, at: number): boolean {
+  return (ctx.liveEffects?.queries.stacks(kind, at, 1) ?? 0) > 0;
 }
 
 /** Actor eligibility is independent of the accepted non-boon lifetime. */

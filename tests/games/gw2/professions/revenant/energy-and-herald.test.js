@@ -34,6 +34,7 @@ import { vindicatorState } from '#gw2/professions/revenant/specializations/vindi
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import {
   createObservedProfessionSimulator,
   observedRuntime,
@@ -805,7 +806,7 @@ test('Notoriety applies its Might conversion at runtime without negative UI attr
         boons: { might: 25 }
       },
       time: 0,
-      runtime: { boons: new Map(), buffs: new Map(), profession: {} }
+      runtime: { liveEffects: createTestLiveEffects(), profession: {} }
     },
     {
       power: 1000,
@@ -934,8 +935,9 @@ test('Devastation boon procs respect combat intervals and skill categories', () 
       time: 1,
       runtime: {
         // These Might stacks belong to the player, so Notoriety converts their attributes.
-        boons: new Map([['might', [{ at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } }]]]),
-        buffs: new Map([])
+        liveEffects: createTestLiveEffects([
+          ['might', [{ at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } }]]
+        ])
       }
     },
     { power: 1000, conditionDamage: 1000 }
@@ -1562,10 +1564,10 @@ test('Herald consume skills apply their full outgoing profiles', () => {
     time: 5,
     event: { actorType: 'player', skillName: 'Chilling Isolation' },
     runtime: {
-      boons: new Map([]),
-      buffs: new Map([
+      liveEffects: createTestLiveEffects([
         ['burst-of-strength', [{ resolvedAudience: { includesSelf: true }, at: 1, expiresAt: 11, stacks: 1 }]]
       ]),
+
       profession: {}
     }
   };
@@ -1591,7 +1593,7 @@ test('Herald consume skills apply their full outgoing profiles', () => {
     },
     time: 5,
     event: { actorType: 'player' },
-    runtime: { boons: new Map(), buffs: new Map(), profession: {} }
+    runtime: { liveEffects: createTestLiveEffects(), profession: {} }
   };
 
   assert.equal(revenantModifiers.modifyStrikeDamage(reinforcedPotencyContext, 1), 1.1);

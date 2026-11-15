@@ -20,6 +20,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 
@@ -164,8 +165,7 @@ test("Assassin's Presence pulses during idle combat and attacks cannot move the 
         config: { ...config, selectedTraitIds: [...config.selectedTraitIds, TRAIT.ROILING_MISTS] },
         time: 1,
         event: { actorType: 'player' },
-        boons: new Map(),
-        buffs: new Map()
+        liveEffects: createTestLiveEffects()
       },
       0.05
     ),

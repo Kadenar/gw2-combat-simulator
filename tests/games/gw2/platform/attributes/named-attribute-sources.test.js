@@ -10,6 +10,7 @@ import { catalystAttributePool } from '#gw2/professions/elementalist/specializat
 import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { mechanistAttributes } from '#gw2/professions/engineer/specializations/mechanist/attributes.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 
 // Named sources retain build facts across samples while observing weapon changes and live grants separately.
 function facts(family, specialization, names, options = {}) {
@@ -56,14 +57,20 @@ test('mech inheritance stays boon-free while copied Might gains, expiry and weap
   );
   context.event = { type: 'damage', actorType: 'summon', metadata: { engineerMech: true } };
   const grants = [];
-  context.runtime = { activeWeaponSet: 1, boons: new Map([['might', grants]]) };
+  context.runtime = { activeWeaponSet: 1, liveEffects: createTestLiveEffects([['might', grants]]) };
   const sample = (input = context) => mechanistAttributes(input)[0].transforms[0].attributes;
   const base = sample();
   assert.equal(base.power, 1500);
   assert.equal(base.conditionDamage, 1120);
   assert.equal(base.ferocity, 0);
   assert.equal(base.healingPower, 0);
-  grants.push({ at: 0, expiresAt: 2, stacks: 3, resolvedAudience: { includesSelf: true } });
+  grantTestEffect(context.runtime.liveEffects, {
+    kind: 'might',
+    at: 0,
+    expiresAt: 2,
+    stacks: 3,
+    resolvedAudience: { includesSelf: true }
+  });
   assert.equal(sample().conditionDamage, 1210);
   assert.equal(sample().power, 1590);
   context.time = 2;

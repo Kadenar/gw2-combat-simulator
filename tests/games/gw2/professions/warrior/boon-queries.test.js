@@ -11,6 +11,7 @@ import {
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { fierceAsFire } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
+import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Warrior's modifiers share duration semantics without gaining visibility into future timeline applications.
@@ -26,11 +27,10 @@ test('Warrior Fury modifiers and boon counts survive individual packet expiry', 
     config: {},
     traits: new Set([TRAIT.DEEP_STRIKES, TRAIT.FURIOUS_BURST]),
     runtime: {
-      boons: new Map([
+      liveEffects: createTestLiveEffects([
         ['fury', applications],
         ['swiftness', applications]
-      ]),
-      buffs: new Map([])
+      ])
     },
     timeline: { buffStacksAt: () => 1 }
   };
@@ -47,6 +47,7 @@ test('Warrior Fury modifiers and boon counts survive individual packet expiry', 
   assert.equal(warriorBoonActive({ ...context, runtime: undefined }, 'fury'), false);
   assert.equal(warriorBoonActive({ ...context, runtime: undefined, config: { boons: { fury: true } } }, 'fury'), true);
   applications[1].resolvedAudience.includesSelf = false;
+  context.runtime.liveEffects = createTestLiveEffects([['fury', applications]]);
   assert.equal(warriorBoonActive(context, 'fury'), false);
 });
 
@@ -121,18 +122,30 @@ test('Warrior and Bladesworn stacks preserve self audience, caps, expiry, and sa
     catalog: warriorCatalog,
     config: { boons: { 'fierce-as-fire': 25 } },
     timeline: { buffStacksAt: () => 25 },
-    runtime: { boons: new Map([]), buffs: new Map([['fierce-as-fire', applications]]) }
+    runtime: { liveEffects: createTestLiveEffects([['fierce-as-fire', applications]]) }
   };
   const rule = fierceAsFire.modifierRules.find(({ id }) => id === 'warrior.fierce-as-fire');
   assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 10), 4);
   assert.equal(rule.amount(context), 0.04);
   assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 3), 3);
 
-  applications.push({ at: 5, expiresAt: 10, stacks: 8, resolvedAudience: { includesSelf: true } });
+  grantTestEffect(context.runtime.liveEffects, {
+    kind: 'fierce-as-fire',
+    at: 5,
+    expiresAt: 10,
+    stacks: 8,
+    resolvedAudience: { includesSelf: true }
+  });
   assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 10), 10);
   assert.equal(rule.amount(context), 0.1);
   // Accepted runtime grants arrive chronologically; uncapped queries also exclude later applications.
-  applications.push({ at: 6, expiresAt: 10, stacks: 10, resolvedAudience: { includesSelf: true } });
+  grantTestEffect(context.runtime.liveEffects, {
+    kind: 'fierce-as-fire',
+    at: 6,
+    expiresAt: 10,
+    stacks: 10,
+    resolvedAudience: { includesSelf: true }
+  });
   assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 25), 12);
   assert.equal(warriorActiveBuffStacks({ ...context, time: 6 }, 'fierce-as-fire', 25), 22);
   assert.equal(rule.amount({ ...context, time: 10 }), 0);
