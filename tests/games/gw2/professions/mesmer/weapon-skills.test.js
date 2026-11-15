@@ -357,7 +357,11 @@ test('Abstraction replaces boons with damage and conditions and blasts only its 
       result.events.some((event) => event.type === 'buff' && event.skillId === ID.INSPIRING_IMAGERY),
       false
     );
-    assert.equal(observedRuntime(result).combo.fieldFor(field.skillId, field.at).expiresAt, cast.start / 1000);
+    // Verify the selected observation is the exact image whose lifetime Abstraction consumes.
+    const consumedField = observedRuntime(result).combo.fieldFor(field.skillId, field.at);
+    assert.equal(consumedField.fieldId, field.fieldId);
+    assert.equal(consumedField.ownerId, field.ownerId);
+    assert.equal(consumedField.expiresAt, cast.start / 1000);
     const combo = result.resolvedEvents.find((event) => event.type === 'combo' && event.skillId === ID.ABSTRACTION);
     assert.equal(combo.fieldId, field.fieldId);
     assert.equal(combo.finisherType, 'Blast');

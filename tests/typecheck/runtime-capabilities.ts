@@ -129,22 +129,12 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
 composeRuntimeHooks([hooks]);
 
 function castStores(runtime: Gw2Runtime<WarriorRuntimeState, WarriorSkill>) {
-  // Combo observations do not grant access to stored fields or attempt claims.
-  const field = runtime.combo.fieldFor(1, 0);
-
-  if (field) {
-    // @ts-expect-error Field lifetime changes require the owner's expiry operation.
-    field.expiresAt = 0;
-  }
-
-  // @ts-expect-error Field storage is private to the combo owner.
+  // @ts-expect-error Field storage is private to the combo controller.
   runtime.combo.fields.clear();
   // @ts-expect-error Attempt claims cannot be reset by delivery callers.
   runtime.combo.handledAttemptIds.clear();
-  // @ts-expect-error Warning deduplication is private to the combo owner.
+  // @ts-expect-error Warning deduplication is private to the combo controller.
   runtime.combo.warningKeys.clear();
-  // @ts-expect-error Active-field observations are read-only collections.
-  runtime.combo.activeFields('fixture', 0).push(field!);
   runtime.mechanics.autoattackController.read(1);
   runtime.mechanics.autoattackController.reset([1]);
   // @ts-expect-error Advancement belongs to execution, not mechanic callbacks.

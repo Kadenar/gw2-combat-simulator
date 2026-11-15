@@ -7,11 +7,6 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import { timeKey } from '#kernel/core/clock.js';
 import { cloneData } from '#kernel/core/clone.js';
 
-/**
- * Combo resolution rules: per-run field state, the shared field-window rule, field selection for a finisher, and
- * turning one bound attempt into combos. resolver/combo-resolution.ts registers these as resolver event handlers.
- */
-
 /** Combo chance rolls use their own random streams, so isolated previews can recognize them without owning them. */
 export const COMBO_RANDOM_STREAM_PREFIX = 'gw2.combo:';
 
@@ -86,7 +81,7 @@ export function createGw2ComboController() {
 
 export type Gw2ComboController = ReturnType<typeof createGw2ComboController>;
 
-/** Applies one canonical field-window rule to scheduler selection and resolver validation. */
+/** Applies the same field lifetime rule to binding, active-field queries, and bound-attempt validation. */
 function isComboFieldActiveAt(
   field: ComboFieldEvent,
   at: number,

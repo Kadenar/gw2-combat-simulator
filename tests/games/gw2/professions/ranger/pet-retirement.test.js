@@ -356,22 +356,27 @@ test('swap cancellation follows causal order for same-time packets and pending f
             ...pet
           }
         });
-      runtime.effects.emit({
-        kind: 'packet',
-        event: {
-          type: 'combo_field',
-          at: 2,
-          source: 'ranger-pet',
-          sourceId: 'uncreated-field',
-          actorType: 'summon',
-          fieldId: 'uncreated-field',
-          fieldType: 'Smoke',
-          ownerId: 'ranger',
-          ownerActorType: 'summon',
-          expiresAt: 8,
-          ...pet
-        }
-      });
+      // A pre-swap control proves accepted fields appear in history even after their own expiry.
+      for (const [at, fieldId, expiresAt] of [
+        [0.5, 'created-field', 0.75],
+        [2, 'uncreated-field', 8]
+      ])
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'combo_field',
+            at,
+            source: 'ranger-pet',
+            sourceId: fieldId,
+            actorType: 'summon',
+            fieldId,
+            fieldType: 'Smoke',
+            ownerId: 'ranger',
+            ownerActorType: 'summon',
+            expiresAt,
+            ...pet
+          }
+        });
     }
   });
   assert.deepEqual(result.warnings, []);
@@ -380,10 +385,9 @@ test('swap cancellation follows causal order for same-time packets and pending f
     result.resolvedEvents.some((event) => event.sourceId === 'retired-hit'),
     false
   );
+  assert.ok(result.events.some((event) => event.type === 'combo_field' && event.fieldId === 'created-field'));
   assert.equal(
-    observedRuntime(result)
-      .combo.activeFields('ranger', 2)
-      .some((field) => field.fieldId === 'uncreated-field'),
+    result.events.some((event) => event.type === 'combo_field' && event.fieldId === 'uncreated-field'),
     false
   );
 });

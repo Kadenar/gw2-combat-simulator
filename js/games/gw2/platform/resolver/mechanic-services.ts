@@ -16,7 +16,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** Query views observe accepted combat facts without granting mutation. */
 export interface MechanicCombatQueries {
-  /** Detached observations retain the combo owner's eligibility rules without exposing its field storage. */
+  /** Detached observations retain the combo controller's eligibility rules without exposing its field storage. */
   activeComboFields(ownerId: string, at: number): readonly Readonly<ComboFieldEvent>[];
   activeBoonStacks(kind: string, at: number, maximum?: number, recipient?: EffectRecipient): number;
   activeBuffStacks(kind: string, at: number, maximum?: number, recipient?: EffectRecipient): number;

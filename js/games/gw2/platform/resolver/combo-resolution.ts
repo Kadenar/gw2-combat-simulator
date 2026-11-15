@@ -4,7 +4,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEventHandlers, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
 
-/** Dispatch combo operations at their existing phases while the combo owner retains fields and attempt claims. */
+/** Dispatch combo operations at their existing phases while the combo controller retains fields and attempt claims. */
 export function createGw2ComboResolution({
   reactions
 }: {

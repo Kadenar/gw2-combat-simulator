@@ -448,7 +448,7 @@ export function createEffectDelivery<T extends object>(
       return;
     }
 
-    // Keep the owner's selected binding on the packet that gameplay history records after resolution.
+    // Keep the combo controller's selected binding on the packet that gameplay history records after resolution.
     event = runtime.combo.bind(event);
 
     // A grant precedes its synchronous buff reactions in gameplay; record that order before nested delivery runs.
