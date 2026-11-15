@@ -51,7 +51,7 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
       // Ordinary repeatable attack; excluded from player-input metrics.
       castTimeMs: 600,
       // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
-      interruptCommitMs: 480,
+      interruptCommitMs: 440,
       retainsCastLockoutAfterInterrupt: true,
       // Share this impact's timing while preserving independent payloads and declaration order.
       effects: impactEffects(

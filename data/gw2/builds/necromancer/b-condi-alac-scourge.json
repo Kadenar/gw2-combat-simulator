@@ -2,22 +2,22 @@
   "schemaVersion": 4,
   "profession": "necromancer",
   "gear": {
-    "Helm": "Ritualist's",
-    "Shoulders": "Ritualist's",
+    "Helm": "Viper's",
+    "Shoulders": "Viper's",
     "Chest": "Ritualist's",
-    "Gloves": "Ritualist's",
-    "Leggins": "Ritualist's",
-    "Boots": "Ritualist's",
-    "Amulet": "Ritualist's",
+    "Gloves": "Viper's",
+    "Leggins": "Viper's",
+    "Boots": "Viper's",
+    "Amulet": "Viper's",
     "Ring1": "Ritualist's",
-    "Ring2": "Ritualist's",
-    "Accessory1": "Ritualist's",
-    "Accessory2": "Ritualist's",
+    "Ring2": "Viper's",
+    "Accessory1": "Viper's",
+    "Accessory2": "Viper's",
     "Back": "Ritualist's",
-    "Weapon1": "Ritualist's",
-    "Weapon2": "Ritualist's"
+    "Weapon1": "Viper's",
+    "Weapon2": "Viper's"
   },
-  "alternateWeaponPrefixes": ["Ritualist's", "Ritualist's"],
+  "alternateWeaponPrefixes": ["Viper's", "Viper's"],
   "weapons": ["Pistol", "Torch"],
   "alternateWeapons": ["Scepter", "Torch"],
   "rune": "Trapper",
@@ -54,7 +54,7 @@
     }
   ],
   "selectedSkillIds": {
-    "Heal": 43148,
+    "Heal": 21762,
     "Utility1": 10544,
     "Utility2": 10622,
     "Utility3": 10611,
@@ -62,7 +62,14 @@
   },
   "assumptions": {
     "simulationMode": "deterministic",
+    "simulationSeed": 1,
+    "criticalDamageMode": "rolled",
     "permanentComboField": "none",
+    "fractal": {
+      "enabled": false,
+      "agonyResistance": 150,
+      "augmentation": "none"
+    },
     "might": 25,
     "fury": true,
     "quickness": true,
@@ -95,5 +102,6 @@
   "initialResource": 100,
   "initialBlight": 0,
   "initialCascadingCorruptionStacks": 0,
-  "precastRelics": []
+  "precastRelics": [],
+  "initialThornsStacks": 0
 }

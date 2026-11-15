@@ -109,8 +109,8 @@ test('dead-time column renders its local icon and cancelled durations', () => {
   assert.equal(column.format(250), '250ms');
   assert.equal(column.format(1500), '1.5s');
   const rows = [
-    { name: 'Short', deadTimeMs: 250 },
-    { name: 'Long', deadTimeMs: 1500 }
+    { name: 'Short', group: 'Player', deadTimeMs: 250 },
+    { name: 'Long', group: 'Player', deadTimeMs: 1500 }
   ];
   assert.deepEqual(
     sortResultRows(rows, SKILL_COLS, column.key, 'desc').map((row) => row.name),
@@ -123,6 +123,11 @@ test('dead-time column renders its local icon and cancelled durations', () => {
     /aria-label="Dead Time" title="Dead Time"><img[^>]+out-of-health-potions\.png" width="14" height="14" alt="" \/><\/button>/
   );
   assert.match(container.innerHTML, /Excludes idle gaps and waits/);
+  // The group total uses the same duration formatter as individual skills.
+  assert.match(
+    container.innerHTML,
+    /data-result-column="deadTimeMs" aria-label="Player Dead Time: 1\.75s">1\.75s<\/span>/
+  );
 });
 
 test('shared results render summaries, totals, contributions, and icons', () => {

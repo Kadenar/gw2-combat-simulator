@@ -14,9 +14,8 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
     slot: 'Weapon_1',
     cooldown: 0,
     autoattack: true,
-    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
-    interruptMode: 'per-packet',
+    interruptCommitMs: 440,
     comboFinishers: [
       {
         ownerId: 'necromancer',

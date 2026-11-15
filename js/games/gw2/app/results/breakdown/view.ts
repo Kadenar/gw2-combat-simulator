@@ -90,7 +90,7 @@ function skillRowsHtml(
   const groupNames = [...grouped.keys()].sort(
     (left, right) => (preferredOrder.get(left) ?? 3) - (preferredOrder.get(right) ?? 3)
   );
-  const summaryColumns = new Set(['strike', 'condition', 'total', 'damagePercent', 'dps']);
+  const summaryColumns = new Set(['strike', 'condition', 'total', 'damagePercent', 'dps', 'deadTimeMs']);
   const headingHtml = (group: string, groupRows: readonly ResultRow[], entity = false): string => {
     // Namespace entity identities so a named summon cannot share the player's disclosure state.
     const ownerKey = entity ? `Entities|${group}` : group;
@@ -101,7 +101,11 @@ function skillRowsHtml(
             return `<span role="rowheader" class="res-skill-group-name" data-result-column="name">${escapeHtml(group)}</span>`;
           }
 
-          if (!summaryColumns.has(column.key)) {
+          // Sum cancelled time beside damage totals; leave groups without cast timing empty.
+          if (
+            !summaryColumns.has(column.key) ||
+            (column.key === 'deadTimeMs' && !groupRows.some((row) => row.deadTimeMs != null))
+          ) {
             return '<span role="cell"></span>';
           }
 
