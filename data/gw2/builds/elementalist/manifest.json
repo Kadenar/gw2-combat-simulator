@@ -666,6 +666,21 @@
         }
       },
       {
+        "label": "Condition Alacrity Toad (Pistol/Dagger) - EB",
+        "build": "data/gw2/builds/elementalist/b-condi-alac-evoker-pistol-dagger.json",
+        "rotation": "data/gw2/rotations/elementalist/r-condi-alac-evoker-pistol-dagger.json",
+        "benchmarkDps": 39759,
+        "upToDate": true,
+        "benchmarkApm": 147.3,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 34196, "phase": 34196 },
+          "80-60": { "cumulative": 37535, "phase": 41753 },
+          "60-40": { "cumulative": 38963, "phase": 42193 },
+          "40-20": { "cumulative": 39450, "phase": 41039 },
+          "20-0": { "cumulative": 39759, "phase": 41084 }
+        }
+      },
+      {
         "label": "Inferno Fox SE (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-evoker-se.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-evoker-se.json",
