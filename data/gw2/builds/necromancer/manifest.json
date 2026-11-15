@@ -22,16 +22,16 @@
         "label": "Condition Alacrity (Pistol / Torch + Scepter / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-alac-scourge.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-alac-scourge-bench.json",
-        "benchmarkDps": 32318,
+        "benchmarkDps": 32403,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-alacrity-scourge-scepter-torch-pistol",
-        "benchmarkApm": 73.1,
+        "benchmarkApm": 73.2,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 31852, "phase": 31852 },
-          "80-60": { "cumulative": 31844, "phase": 31836 },
-          "60-40": { "cumulative": 32518, "phase": 33975 },
-          "40-20": { "cumulative": 32258, "phase": 31523 },
-          "20-0": { "cumulative": 32318, "phase": 32318 }
+          "80-60": { "cumulative": 31955, "phase": 32058 },
+          "60-40": { "cumulative": 32647, "phase": 34151 },
+          "40-20": { "cumulative": 32356, "phase": 31507 },
+          "20-0": { "cumulative": 32403, "phase": 32403 }
         }
       }
     ]
