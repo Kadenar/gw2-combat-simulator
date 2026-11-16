@@ -49,7 +49,7 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
       native.onCastStart(runtime, cast);
 
       if (cast.skill.id === ID.GHASTLY_CLAWS)
-        seen.push([runtime.activeWeaponSet, owner.sigil.doomPending, runtime.time]);
+        seen.push([runtime.activeWeaponSet, owner.procs.deadline(`sigil.${SIGIL_IDS.DOOM}`) > runtime.time]);
     }
   };
   const result = simulate(
@@ -69,7 +69,7 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
   assert.equal(result.steps.at(-1).invalid, true);
   assert.equal(result.warnings.length, 2);
   assert.ok(result.warnings.every(({ message: warning }) => warning.includes('required weapon is not equipped')));
-  assert.deepEqual(seen, [[2, true, 0.12]]);
+  assert.deepEqual(seen, [[2, true]]);
   assert.equal(result.planningState.activeWeaponSet, 2);
   assert.deepEqual(result.planningState.profession[STATE.AUTOATTACK_CHAINS], resetChains);
   assert.equal(result.events.filter((event) => event.type === 'weapon_set').length, 1);

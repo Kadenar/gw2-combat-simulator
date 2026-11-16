@@ -3,10 +3,12 @@ import test from 'node:test';
 
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createSigilRuntime } from '#gw2/platform/equipment/sigils/runtime.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
 
 // The real acceptance boundary reuses one context, reads replaced state, and keeps cached patch selections per run.
@@ -462,11 +464,12 @@ test('an occurrence beyond the finite guard fails instead of returning a partial
 test('equipment producers bind swap and reaction capabilities independently for each run', () => {
   const execution = createCombatExecution(fixture().runtimeFor(config), []);
   const createOwner = () => ({
+    ...captureEffectEmissions(),
     config: { sigilSets: [{ names: [] }, { names: ['Doom'] }] },
     engagement: enteredCombat(),
     activeWeaponSet: 1,
     firstHitTime: null,
-    sigil: { doomPending: false },
+    sigil: createSigilRuntime(),
     procs: { claimCooldown: () => true }
   });
   let first = createOwner();
@@ -474,12 +477,29 @@ test('equipment producers bind swap and reaction capabilities independently for 
   const boundFirst = execution.bindProducers(() => first);
   const boundSecond = execution.bindProducers(() => second);
   const event = { type: 'sigil_swap', at: 0, weaponSet: 2 };
+  const hit = { type: 'damage', at: 1, actorType: 'player', coefficient: 1 };
+  const strike = (bound) =>
+    bound.contributions['damage.resolved'].find(({ id }) => id === 'sigil.actual-strike').handler(null, hit);
   boundFirst.weaponSwap(event);
-  assert.equal(first.sigil.doomPending, true);
-  assert.equal(second.sigil.doomPending, false);
+  strike(boundSecond);
+  assert.deepEqual(second.events, []);
+  strike(boundFirst);
+  assert.equal(first.events.length, 1);
+  assert.equal(first.events[0].condition, 'Poisoned');
+  strike(boundFirst);
+  assert.equal(first.events.length, 1);
   boundSecond.weaponSwap(event);
-  assert.equal(second.sigil.doomPending, true);
+  strike(boundSecond);
+  assert.equal(second.events.length, 1);
   first = createOwner();
+  strike(boundFirst);
+  assert.deepEqual(first.events, []);
   boundFirst.weaponSwap(event);
-  assert.equal(first.sigil.doomPending, true);
+  // Bound capabilities must observe a replacement emitter as well as a replacement owner.
+  const replacement = captureEffectEmissions();
+  first.effects = replacement.effects;
+  strike(boundFirst);
+  assert.deepEqual(first.events, []);
+  assert.equal(replacement.events.length, 1);
+  assert.equal(replacement.events[0].condition, 'Poisoned');
 });

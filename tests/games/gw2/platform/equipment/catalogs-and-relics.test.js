@@ -343,10 +343,21 @@ test('resolver runtimes own isolated relic and equipment state', () => {
   // Equipment deadlines and armed effects belong to one run, independently of shared rule definitions.
   thief.procs.claimCooldown(`sigil.${SIGIL_IDS.AIR}`, 0, 5);
   thief.procs.claimCooldown('food.critical-strike', 0, 0.5);
-  thief.sigil.doomPending = true;
   assert.equal(anotherThief.procs.deadline(`sigil.${SIGIL_IDS.AIR}`), 0);
   assert.equal(anotherThief.procs.deadline('food.critical-strike'), 0);
-  assert.equal(anotherThief.sigil.doomPending, false);
+  const firstEffects = captureEffectEmissions();
+  const secondEffects = captureEffectEmissions();
+  thief.effects = firstEffects.effects;
+  anotherThief.effects = secondEffects.effects;
+  thief.config.sigilSets = [{ names: ['Doom'] }];
+  thief.engagement = enteredCombat();
+  thief.sigil.swap(thief, { type: 'weapon_set', at: 0, weaponSet: 1 });
+  const hit = { type: 'damage', at: 1, actorType: 'player', coefficient: 1 };
+  anotherThief.sigil.strike(anotherThief, hit);
+  assert.deepEqual(secondEffects.events, []);
+  thief.sigil.strike(thief, hit);
+  assert.equal(firstEffects.events.length, 1);
+  assert.equal(firstEffects.events[0].condition, 'Poisoned');
 });
 
 test('Severance critical contributions are data-driven and expire exactly', () => {

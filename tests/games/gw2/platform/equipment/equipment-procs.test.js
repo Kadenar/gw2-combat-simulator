@@ -8,7 +8,6 @@ import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
-import { applyRuntimeSigils } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
@@ -40,26 +39,26 @@ test('Mischief shares its nine-second cooldown across equipped copies', () => {
     }).effects
   };
   const swap = { type: 'weapon_set', at: 1, weaponSet: 1, skillName: 'Swap Weapons' };
-  applyRuntimeSigils(runtime, 'swap', swap);
+  runtime.sigil.swap(runtime, swap);
   assert.equal(emitted.length, 0);
   assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.MISCHIEF}`), 0);
 
   engagement.acceptEntry(1);
-  applyRuntimeSigils(runtime, 'swap', { ...swap, weaponSet: 2 });
+  runtime.sigil.swap(runtime, { ...swap, weaponSet: 2 });
   assert.equal(emitted.length, 0);
   assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.MISCHIEF}`), 0);
 
   runtime.config.sigilSets[1].names = ['Mischief', 'Mischief'];
-  applyRuntimeSigils(runtime, 'swap', { ...swap, weaponSet: 2 });
+  runtime.sigil.swap(runtime, { ...swap, weaponSet: 2 });
   assert.equal(procs.length, 1);
   assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.MISCHIEF}`), 10);
   const firstProcPackets = emitted.length;
   assert.ok(firstProcPackets > 0);
 
-  for (const at of [2, 9.999, 10]) applyRuntimeSigils(runtime, 'swap', { ...swap, at });
+  for (const at of [2, 9.999, 10]) runtime.sigil.swap(runtime, { ...swap, at });
   assert.equal(emitted.length, firstProcPackets);
   assert.equal(procs.length, 1);
-  applyRuntimeSigils(runtime, 'swap', { ...swap, at: 10.001 });
+  runtime.sigil.swap(runtime, { ...swap, at: 10.001 });
   assert.equal(emitted.length, firstProcPackets * 2);
   assert.equal(procs.length, 2);
   assert.ok(Math.abs(runtime.procs.deadline(`sigil.${SIGIL_IDS.MISCHIEF}`) - 19.001) < 1e-9);
@@ -82,21 +81,21 @@ test('Ice rejects non-defiant hits without consuming its shared cooldown', () =>
       effects: captureEffectEmissions({ submit: (event) => emitted.push(event) }).effects
     };
     const hit = { type: 'damage', at: 1, actorType: 'player', coefficient: 1, didCrit };
-    applyRuntimeSigils(runtime, 'strike', hit);
+    runtime.sigil.strike(runtime, hit);
     assert.equal(emitted.length, 0);
     assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.ICE}`), 0);
 
     runtime.config.target.defiant = true;
-    applyRuntimeSigils(runtime, 'strike', { ...hit, at: 2 });
+    runtime.sigil.strike(runtime, { ...hit, at: 2 });
     assert.equal(emitted.length, 1);
     assert.equal(emitted[0].condition, 'Chilled');
     assert.equal(emitted[0].stacks, 1);
     assert.equal(emitted[0].duration, 2);
     assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.ICE}`), 12);
 
-    applyRuntimeSigils(runtime, 'strike', { ...hit, at: 12 });
+    runtime.sigil.strike(runtime, { ...hit, at: 12 });
     assert.equal(emitted.length, 1);
-    applyRuntimeSigils(runtime, 'strike', { ...hit, at: 12.001 });
+    runtime.sigil.strike(runtime, { ...hit, at: 12.001 });
     assert.equal(emitted.length, 2);
   }
 });
@@ -179,6 +178,49 @@ test('a damage packet removed before resolution cannot trigger critical sigils',
     false
   );
   assert.deepEqual(result.procSteps, []);
+});
+
+// Accepted strike effects and critical transactions must precede the later equipment and profession observations.
+test('Doom and critical sigils execute in order before relic and profession damage reactions', () => {
+  const trace = [];
+  const owner = { source: 'Fixture', sourceId: 'hit', actorType: 'player' };
+  resolveTestGw2Events({
+    combatStartTime: 0,
+    endTime: 2,
+    config: { sigilSets: [{ names: [] }, { names: ['Doom', 'Earth'] }] },
+    events: [
+      { ...owner, type: 'weapon_set', at: 0, weaponSet: 2 },
+      { ...owner, type: 'damage', at: 1, coefficient: 1, weaponStrength: 1000, forceCrit: true }
+    ],
+    engineInitialize(runtime) {
+      const effects = runtime.effects;
+      runtime.effects = {
+        ...effects,
+        emit(request) {
+          if (request.kind === 'packet' && request.event.source === 'Sigil') trace.push(request.event.skillName);
+
+          return effects.emit(request);
+        }
+      };
+      const relic = runtime.relic;
+      runtime.relic = {
+        ...relic,
+        damageResolved(context, event) {
+          trace.push('relic damage');
+          relic.damageResolved(context, event);
+        },
+        afterHit() {
+          trace.push('relic after-hit');
+        }
+      };
+    },
+    engineReactions: {
+      'damage.resolved'() {
+        trace.push('profession');
+      }
+    }
+  });
+  assert.deepEqual(trace, ['Sigil of Doom', 'Sigil of Earth', 'relic damage', 'profession', 'relic after-hit']);
 });
 
 test('critical sigils enqueue and resolve their own proc event', () => {

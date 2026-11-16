@@ -4,7 +4,6 @@ import test from 'node:test';
 import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
-import { applyRuntimeSigils } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
@@ -33,7 +32,7 @@ function fixture(chance, mode = 'deterministic') {
   });
   runtime.engagement = enteredCombat();
   runtime.effects = capture.effects;
-  const trigger = (at) => applyRuntimeSigils(runtime, 'control', { type: 'control', at, skillName: 'Control' });
+  const trigger = (at) => runtime.sigil.control(runtime, { type: 'control', at, skillName: 'Control' });
   return { runtime, trigger, ...capture };
 }
 

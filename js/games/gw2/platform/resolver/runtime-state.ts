@@ -9,8 +9,7 @@ import type { Gw2ComboController } from '#gw2/platform/combos/resolution.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
-import { createSigilRuntimeState } from '#gw2/platform/equipment/sigils/runtime.js';
-import type { Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
+import { createSigilRuntime, type SigilRuntime } from '#gw2/platform/equipment/sigils/runtime.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ConditionResolution, Gw2ResolverConditionState } from '#gw2/platform/resolver/condition-resolution.js';
 import { createMechanicCombatServices, type MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -98,7 +97,7 @@ export function createGw2ResolverRuntimeState({
     // Equipment state belongs to this resolution pass, including repeated runs with the same configuration.
     relic: createRelicRuntime(config.relic, config.precastRelics),
     profession: professionState,
-    sigil: createSigilRuntimeState(),
+    sigil: createSigilRuntime(),
     random,
     weaponStrengthRolls: new Map(),
     weaponStrengthActivationOrder: 0,
@@ -163,7 +162,7 @@ export interface Gw2ResolverRuntime {
   readonly combo: Pick<Gw2ComboController, 'activeFields' | 'fieldFor'>;
   relic: Gw2RelicRuntime;
   profession: object;
-  sigil: Gw2SigilRuntimeState;
+  readonly sigil: Readonly<SigilRuntime>;
   random: Readonly<SimulationRandom>;
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;

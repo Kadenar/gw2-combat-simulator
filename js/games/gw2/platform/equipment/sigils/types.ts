@@ -1,9 +1,4 @@
-/** Doom remains armed until an eligible hit consumes it, independently of its swap cooldown. */
 import type { BoonId } from '#gw2/platform/constants.js';
-
-export interface Gw2SigilRuntimeState {
-  doomPending: boolean;
-}
 
 export interface Gw2SigilSet {
   readonly names?: readonly string[];

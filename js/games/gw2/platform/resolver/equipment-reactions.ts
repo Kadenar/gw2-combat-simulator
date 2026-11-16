@@ -1,12 +1,9 @@
+/** Equipment owners execute item rules at the resolver's ordered reaction stages. */
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { createCriticalFoodEffect, criticalFoodProc } from '#gw2/platform/equipment/consumables/food-procs.js';
 import type { Gw2ConditionHelpers } from '#gw2/platform/equipment/relics/types.js';
-import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
-import { SIGIL_BY_ID, SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
-import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createCriticalSigilRequest } from '#gw2/platform/equipment/sigils/proc-events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -30,37 +27,8 @@ function conditionHelpers(
   };
 }
 
-/** Accepted hits claim critical sigils from the shared sampled outcome and live ICD map. */
-function createResolvedCriticalSigilEffects(
-  ctx: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-  details: NativeResolvedDamageDetails
-): void {
-  const critical = details.hitContext.critical;
-
-  const decision = decideCriticalSigils(event, gw2SigilIds(ctx.config, ctx.activeWeaponSet), critical, ctx.procs);
-  const sourceSkill = event.skillName || '';
-  for (const { id, readyAt } of decision.procs) {
-    const proc = SIGIL_PROCS[id];
-    // Decisions are synchronous; commit their deadlines before queueing any derived effects.
-    ctx.procs.setDeadline(`sigil.${id}`, readyAt);
-    ctx.effects.emit(createCriticalSigilRequest(id, proc, event));
-    ctx.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'sigil',
-        name: `Sigil of ${SIGIL_BY_ID[id].name}`,
-        at: event.at,
-        sourceSkill: sourceSkill,
-        detail: '',
-        icon: proc.icon || ''
-      }
-    });
-  }
-}
-
 /**
- * Resolver stages preserve reaction order while the relic owner dispatches each observation. Optional relic hooks
+ * Resolver stages preserve reaction order while equipment owners dispatch each observation. Optional relic hooks
  * let a stage skip deriving inputs for relics that ignore that observation.
  */
 export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionContributions {
@@ -109,7 +77,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'sigil.critical-strike',
         order: GW2_REACTION_ORDER.EARLY_COMMON,
         handler(ctx, event, details) {
-          createResolvedCriticalSigilEffects(ctx, event, details);
+          ctx.sigil.criticalHit(ctx, event, details.hitContext.critical);
         }
       },
       {

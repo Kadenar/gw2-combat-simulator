@@ -1,10 +1,5 @@
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { CONDITION } from '#gw2/platform/constants.js';
-import {
-  applyRuntimeSigils,
-  applyRuntimeSigilStrike,
-  type SigilRuntimeContext
-} from '#gw2/platform/equipment/sigils/runtime.js';
 import { createRotationDriver } from '#gw2/platform/execution/rotation-driver.js';
 import { spendSkillCost } from '#gw2/platform/execution/skill-cost.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
@@ -26,39 +21,13 @@ export function createCombatExecution<T extends object>(
       profession.onCombatStart?.(runtime.mechanics);
     },
     bindProducers(getRuntime) {
-      // Construct the shared capability before publishing any handler, preserving live service replacement.
-      const sigils: SigilRuntimeContext = Object.freeze({
-        get config() {
-          return getRuntime().config;
-        },
-        get effects() {
-          return getRuntime().effects;
-        },
-        get engagement() {
-          return getRuntime().engagement;
-        },
-        get activeWeaponSet() {
-          return getRuntime().activeWeaponSet;
-        },
-        get firstHitTime() {
-          return getRuntime().firstHitTime;
-        },
-        get sigil() {
-          return getRuntime().sigil;
-        },
-        get random() {
-          return getRuntime().random;
-        },
-        procs: Object.freeze({
-          deadline: (key: string | number) => getRuntime().procs.deadline(key),
-          claimCooldown: (key: string | number, at: number, duration: number) =>
-            getRuntime().procs.claimCooldown(key, at, duration)
-        }),
-        endurance: Object.freeze({ grant: (amount: number) => getRuntime().endurance.grant(amount) })
-      });
       const equipment = createGw2EquipmentReactionContributions();
+      // Handlers read the current runtime for each observation so replacement owners remain visible.
       return {
-        weaponSwap: (event) => applyRuntimeSigils(sigils, 'swap', event),
+        weaponSwap(event) {
+          const runtime = getRuntime();
+          runtime.sigil.swap(runtime, event);
+        },
         contributions: {
           ...equipment,
           'condition.applied': [
@@ -68,7 +37,10 @@ export function createCombatExecution<T extends object>(
               order: -300,
               handler: (_context, event) => {
                 // Fear qualifies for disable procs through its accepted condition application.
-                if (event.condition === CONDITION.FEAR) applyRuntimeSigils(sigils, 'control', event);
+                if (event.condition === CONDITION.FEAR) {
+                  const runtime = getRuntime();
+                  runtime.sigil.control(runtime, event);
+                }
               }
             }
           ],
@@ -77,7 +49,10 @@ export function createCombatExecution<T extends object>(
             {
               id: 'sigil.actual-strike',
               order: -300,
-              handler: (_context, event) => applyRuntimeSigilStrike(sigils, event)
+              handler(_context, event) {
+                const runtime = getRuntime();
+                runtime.sigil.strike(runtime, event);
+              }
             }
           ],
           'control.resolved': [
@@ -85,7 +60,10 @@ export function createCombatExecution<T extends object>(
             {
               id: 'sigil.actual-control',
               order: -300,
-              handler: (_context, event) => applyRuntimeSigils(sigils, 'control', event)
+              handler(_context, event) {
+                const runtime = getRuntime();
+                runtime.sigil.control(runtime, event);
+              }
             }
           ]
         }

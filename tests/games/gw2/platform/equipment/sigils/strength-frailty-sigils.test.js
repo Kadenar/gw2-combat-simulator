@@ -6,7 +6,6 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
-import { applyRuntimeSigilStrike } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -122,11 +121,11 @@ test('Frailty rejects non-defiant hits without spending its cooldown', () => {
     config: { target: { defiant: false }, sigilSets: [{ names: ['Frailty'] }] },
     effects: captured.effects
   };
-  applyRuntimeSigilStrike(runtime, strike(1));
+  runtime.sigil.strike(runtime, strike(1));
   assert.deepEqual(captured.events, []);
   assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.FRAILTY}`), 0);
   runtime.config.target.defiant = true;
-  applyRuntimeSigilStrike(runtime, strike(1.1, { canCrit: false }));
+  runtime.sigil.strike(runtime, strike(1.1, { canCrit: false }));
   assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.FRAILTY}`), 3.1);
   assert.equal(captured.events[0].condition, 'Vulnerability');
   assert.equal(captured.events[0].stacks, 2);

@@ -2,65 +2,115 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
+import { createProcRegistry, isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { createCriticalSigilRequest } from '#gw2/platform/equipment/sigils/proc-events.js';
-import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
+import { createSigilRuntime } from '#gw2/platform/equipment/sigils/runtime.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
-test('critical sigil decisions use sampled outcomes and strict deadlines without mutating inputs', () => {
-  const hit = { type: 'damage', at: 2, source: 'fixture', sourceId: 1, actorType: 'player', coefficient: 1 };
-  // Read shared namespaced deadlines without claiming them during the pure decision step.
-  const { procs } = createGw2ResolverRuntimeState({
-    liveEffects: createLiveEffects({}),
-    combo: createGw2ComboController(),
-    conditions: createTestConditionResolution(),
-    config: {}
-  });
-  // Seed deadlines through the registry and compare its detached observations below.
+// Exercise complete transactions through the owner without constructing unrelated resolver stores.
+function criticalFixture(names = ['Earth', 'Air', 'Earth']) {
+  const captured = captureEffectEmissions();
+  const context = {
+    config: { sigilSets: [{ names }, { names }] },
+    activeWeaponSet: 1,
+    procs: createProcRegistry(() => ({})),
+    effects: captured.effects
+  };
+  return { sigil: createSigilRuntime(), context, ...captured };
+}
+
+const criticalHit = { type: 'damage', at: 2, source: 'fixture', sourceId: 1, actorType: 'player', coefficient: 1 };
+
+test('critical sigils commit deduplicated procs and preserve strict cooldowns across weapon sets', () => {
+  const { sigil, context, events, announcements } = criticalFixture();
+  const { procs } = context;
   procs.setDeadline(`sigil.${SIGIL_IDS.EARTH}`, 2);
   procs.setDeadline(`sigil.${SIGIL_IDS.AIR}`, 3);
   procs.setDeadline(`sigil.${SIGIL_IDS.DOOM}`, 9);
-  const decide = (event = hit, chance = 0.5, didCrit = true) =>
-    decideCriticalSigils(event, [SIGIL_IDS.EARTH, SIGIL_IDS.AIR, SIGIL_IDS.EARTH], { chance, didCrit }, procs);
-  assert.deepEqual(decide(), { procs: [] });
-  assert.deepEqual(decide({ ...hit, at: 2.000001 }), { procs: [{ id: SIGIL_IDS.EARTH, readyAt: 4.000001 }] });
-  assert.deepEqual(decide({ ...hit, at: 3 }), { procs: [{ id: SIGIL_IDS.EARTH, readyAt: 5 }] });
-  assert.deepEqual(decide({ ...hit, at: 3.000001 }), {
-    procs: [
-      { id: SIGIL_IDS.EARTH, readyAt: 5.000001 },
-      { id: SIGIL_IDS.AIR, readyAt: 6.000001 }
-    ]
-  });
+  const trigger = (at) => sigil.criticalHit(context, { ...criticalHit, at }, { chance: 0.5, didCrit: true });
+  trigger(2);
+  assert.deepEqual(events, []);
+  trigger(2.000001);
+  assert.deepEqual(
+    events.map(({ sourceId }) => sourceId),
+    [`sigil.${SIGIL_IDS.EARTH}`]
+  );
+  assert.equal(procs.deadline(`sigil.${SIGIL_IDS.EARTH}`), 4.000001);
+  context.activeWeaponSet = 2;
+  trigger(3);
+  assert.equal(events.length, 1);
+  trigger(3.000001);
+  assert.deepEqual(
+    events.map(({ sourceId }) => sourceId),
+    [`sigil.${SIGIL_IDS.EARTH}`, `sigil.${SIGIL_IDS.AIR}`]
+  );
+  assert.equal(procs.deadline(`sigil.${SIGIL_IDS.AIR}`), 6.000001);
+  assert.equal(procs.deadline(`sigil.${SIGIL_IDS.DOOM}`), 9);
+  assert.equal(announcements.length, 2);
+});
+
+test('critical sigils reject ineligible hits without emissions or cooldown claims', () => {
+  const { sigil, context, events, announcements } = criticalFixture();
   for (const change of [
+    { type: 'marker' },
     { offTarget: true },
     { cancelled: true },
     { canCrit: false },
     { flatDamage: 10 },
+    { flatStrikeBase: 10 },
+    { flatStrikePowerCoeff: 1 },
     { coefficient: 0 },
     { actorType: 'summon' }
   ])
-    assert.deepEqual(decide({ ...hit, at: 4, ...change }), { procs: [] });
-  assert.deepEqual(decide({ ...hit, at: 4 }, 0), { procs: [] });
-  assert.deepEqual(decide({ ...hit, at: 4 }, 0.5, false), { procs: [] });
-  assert.equal(decide({ ...hit, at: 4, actorType: 'effect', canTriggerCriticalSigils: true }).procs.length, 2);
-  assert.deepEqual(
-    [SIGIL_IDS.EARTH, SIGIL_IDS.AIR, SIGIL_IDS.DOOM].map((id) => [`sigil.${id}`, procs.deadline(`sigil.${id}`)]),
-    [
-      [`sigil.${SIGIL_IDS.EARTH}`, 2],
-      [`sigil.${SIGIL_IDS.AIR}`, 3],
-      [`sigil.${SIGIL_IDS.DOOM}`, 9]
-    ]
+    sigil.criticalHit(context, { ...criticalHit, ...change }, { chance: 1, didCrit: true });
+  for (const critical of [{ chance: 0, didCrit: true }, { chance: 0.5, didCrit: false }, { chance: 1 }])
+    sigil.criticalHit(context, criticalHit, critical);
+  assert.deepEqual(events, []);
+  assert.deepEqual(announcements, []);
+  assert.equal(context.procs.deadline(`sigil.${SIGIL_IDS.EARTH}`), 0);
+  assert.equal(context.procs.deadline(`sigil.${SIGIL_IDS.AIR}`), 0);
+  sigil.criticalHit(
+    context,
+    { ...criticalHit, actorType: 'effect', canTriggerCriticalSigils: true },
+    { chance: 0.5, didCrit: true }
   );
+  assert.equal(events.length, 2);
+  assert.equal(announcements.length, 2);
+});
+
+// Reentry during packet, profile or announcement delivery must find every selected proc already reserved.
+test('critical sigils reserve all selected cooldowns before reentrant delivery', () => {
+  for (const names of [
+    ['Earth', 'Air'],
+    ['Strength', 'Air']
+  ]) {
+    const { sigil, context } = criticalFixture(names);
+    const trigger = () => sigil.criticalHit(context, criticalHit, { chance: 1, didCrit: true });
+    const captured = captureEffectEmissions({
+      submit: trigger,
+      announce: trigger
+    });
+    context.effects = captured.effects;
+    trigger();
+    assert.deepEqual(
+      captured.events.map(({ sourceId }) => sourceId),
+      names.map((name) => `sigil.${SIGIL_IDS[name.toUpperCase()]}`)
+    );
+    assert.deepEqual(
+      captured.announcements.map(({ announcement }) => announcement.name),
+      names.map((name) => `Sigil of ${name}`)
+    );
+  }
+});
+
+test('critical sigil materialization rejects unsupported effects', () => {
   assert.throws(
     () => createCriticalSigilRequest(999999, { effect: 'unsupported' }, { at: 0 }),
     /Unsupported critical sigil effect/

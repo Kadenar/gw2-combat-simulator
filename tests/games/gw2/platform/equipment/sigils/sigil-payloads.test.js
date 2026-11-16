@@ -5,7 +5,6 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
-import { applyRuntimeSigils, applyRuntimeSigilStrike } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
@@ -41,20 +40,17 @@ function liveFixture(name) {
 // Doom's payload is earned by an eligible player hit, never by arming it or by a companion hit.
 test('Doom remains armed through ineligible hits and is consumed only once', () => {
   const { runtime, captured } = liveFixture('Doom');
-  applyRuntimeSigils(runtime, 'swap', { type: 'weapon_set', at: 0, weaponSet: 1 });
-  assert.equal(runtime.sigil.doomPending, true);
+  runtime.sigil.swap(runtime, { type: 'weapon_set', at: 0, weaponSet: 1 });
   assert.deepEqual(captured.events, []);
   assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.DOOM}`), 9);
   const hit = { type: 'damage', at: 1, actorType: 'player', coefficient: 1, skillName: 'Trigger' };
-  applyRuntimeSigilStrike(runtime, { ...hit, actorType: 'summon' });
-  applyRuntimeSigilStrike(runtime, { ...hit, coefficient: 0 });
-  assert.equal(runtime.sigil.doomPending, true);
+  runtime.sigil.strike(runtime, { ...hit, actorType: 'summon' });
+  runtime.sigil.strike(runtime, { ...hit, coefficient: 0 });
   assert.deepEqual(captured.events, []);
-  applyRuntimeSigilStrike(runtime, hit);
-  assert.equal(runtime.sigil.doomPending, false);
+  runtime.sigil.strike(runtime, hit);
   assert.ok(captured.events.some((event) => event.condition === 'Poisoned' && event.ownerActorType === 'player'));
   const consumed = [...captured.events];
-  applyRuntimeSigilStrike(runtime, { ...hit, at: 2 });
+  runtime.sigil.strike(runtime, { ...hit, at: 2 });
   assert.deepEqual(captured.events, consumed, 'an unarmed hit cannot repeat the earned payload');
 });
 
@@ -63,10 +59,9 @@ for (const name of ['Geomancy', 'Hydromancy', 'Doom']) {
   test(`${name} isolated damage matches an earned live payload`, () => {
     const { runtime, config, captured } = liveFixture(name);
     const profession = defineTestProfession({ id: 'sigil-payload-fixture', name: 'Sigil payload fixture' });
-    applyRuntimeSigils(runtime, 'swap', { type: 'weapon_set', at: 0, weaponSet: 1 });
+    runtime.sigil.swap(runtime, { type: 'weapon_set', at: 0, weaponSet: 1 });
 
-    if (name === 'Doom')
-      applyRuntimeSigilStrike(runtime, { type: 'damage', at: 0, actorType: 'player', coefficient: 1 });
+    if (name === 'Doom') runtime.sigil.strike(runtime, { type: 'damage', at: 0, actorType: 'player', coefficient: 1 });
 
     const live = resolveTestGw2Events({ profession, config, events: captured.events, endTime: 10 });
     const {

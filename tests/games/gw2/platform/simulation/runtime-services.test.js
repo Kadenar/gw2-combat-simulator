@@ -485,7 +485,6 @@ test('Doom survives an off-target hit and is consumed once by the next actual hi
     3
   );
   assert.ok(poison.every((event) => event.at === 0.2));
-  assert.equal(observedRuntime(result).sigil.doomPending, false);
 });
 
 test('resource grants, capacity limits and recovery use the one live pool at readiness boundaries', () => {
