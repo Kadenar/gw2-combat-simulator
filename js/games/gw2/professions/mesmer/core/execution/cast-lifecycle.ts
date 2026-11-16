@@ -42,7 +42,7 @@ export function isCommittedInterruptedPhantasm(
   return canonicalTime(cast.effectiveEnd) >= summonAt;
 }
 
-/** Registers phantasm packets at cast start so observers see their authored timeline in order. */
+/** Prepare summon work at acceptance with its own lifetime; shared cast delivery owns the player's effects. */
 export function scheduleMesmerPhantasmEffects(
   context: MesmerRuntime,
   cast: RuntimeCast<MesmerSkill>,
@@ -50,10 +50,10 @@ export function scheduleMesmerPhantasmEffects(
 ): void {
   const details = context.profession.core.castDetails.get(cast.id) || {};
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(cast, skill);
-  createMesmerSkillEffects(context).schedule(skill, cast.fullEnd, cast.start, {
+  const summonAt = completedInterruptedPhantasm ? cast.effectiveEnd : cast.fullEnd;
+  createMesmerSkillEffects(context).schedule(skill, summonAt, cast.start, {
     clarityConsumed: Boolean(details.clarityConsumed),
-    delivery: mesmerCastDelivery(cast, skill, completedInterruptedPhantasm ? Infinity : cast.effectiveEnd),
-    ...(completedInterruptedPhantasm ? { phantasmSummonAt: cast.effectiveEnd, playerEffectEnd: cast.effectiveEnd } : {})
+    delivery: mesmerCastDelivery(cast, skill, completedInterruptedPhantasm ? Infinity : cast.effectiveEnd)
   });
 }
 

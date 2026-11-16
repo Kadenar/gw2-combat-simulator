@@ -312,19 +312,19 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDe
     },
     castTimeMs: 760,
     effects: [
-      // Record the taunt's control trigger and three-second target condition at cast completion.
+      // Apply Taunt before its control trigger so disable reactions observe the target condition.
       ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-        {
-          type: 'control',
-          controlKind: CONTROL.TAUNT,
-          source: 'Player',
-          actorType: ACTOR.PLAYER
-        },
         {
           type: 'condition',
           condition: CONDITION.TAUNT,
           stacks: 1,
           duration: 3,
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'control',
+          controlKind: CONTROL.TAUNT,
+          source: 'Player',
           actorType: ACTOR.PLAYER
         }
       ]),

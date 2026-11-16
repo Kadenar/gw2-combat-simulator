@@ -34,6 +34,8 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
+        // The released player burst finishes independently of the remaining cast animation.
+        persistsAfterInterrupt: true,
         ticks: [
           {
             atMs: 360,

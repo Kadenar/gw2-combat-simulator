@@ -59,14 +59,25 @@ export const mesmerIllusionHooks = {
   modifyEffects(runtime, cast, effects) {
     const skill = cast.skill;
 
-    // Summon execution owns phantasm attacks; only the caster's separate control effects remain on the ordinary path.
-    if (skill.phantasm)
-      return effects.filter((effect) => effect.type === 'control' && effect.summonKind !== 'phantasm');
-
     // Shatter execution builds packets from the illusions actually consumed, rather than emitting the templates directly.
     if (mesmerShatterDefinition(runtime, skill.id)) return [];
 
-    return effects.filter((effect) => !(effect.type === 'buff' && effect.kind === 'clarity'));
+    // Shared delivery owns the caster's effects; summon preparation and Clarity rewards retain their own lifetimes.
+    return effects
+      .filter(
+        (effect) =>
+          !(effect.type === 'buff' && effect.kind === 'clarity') &&
+          !(skill.phantasm && effect.summonKind === 'phantasm')
+      )
+      .map((effect) =>
+        skill.phantasm && (effect.type === 'strike' || effect.type === 'condition')
+          ? {
+              ...effect,
+              // Preserve the existing report label while moving these effects to shared delivery.
+              source: effect.source ?? 'Player'
+            }
+          : effect
+      );
   },
   onCastStart(runtime, cast) {
     const skill = cast.skill;
