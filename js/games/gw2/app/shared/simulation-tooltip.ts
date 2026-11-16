@@ -661,8 +661,9 @@ export function describeSimulationSkill(
     ...(skill.effects || []).flatMap((effect) => effect.comboFields || [])
   ];
   for (const field of new Map(comboFields.map((field) => [JSON.stringify(field), field])).values()) {
-    // Tab-specific fields own their durations so the base descriptor cannot contradict the selected variant.
+    // Custom field facts own their durations so base facts cannot contradict a selected trait or variant.
     if (
+      model.facts.some((fact) => fact.name === 'Combo field' && fact.detail.split(' · ')[0] === field.fieldType) ||
       model.factTabs?.some((tab) =>
         tab.facts.some((fact) => fact.name === 'Combo field' && fact.detail.split(' · ')[0] === field.fieldType)
       )

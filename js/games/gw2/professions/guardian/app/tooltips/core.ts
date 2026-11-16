@@ -10,7 +10,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { guardianHonorTooltips } from '#gw2/professions/guardian/app/tooltips/honor.js';
 import { guardianRadianceTooltips } from '#gw2/professions/guardian/app/tooltips/radiance.js';
@@ -18,7 +18,9 @@ import { virtueTooltip } from '#gw2/professions/guardian/app/tooltips/shared.js'
 import { guardianValorTooltips } from '#gw2/professions/guardian/app/tooltips/valor.js';
 import { guardianVirtuesTooltips } from '#gw2/professions/guardian/app/tooltips/virtues.js';
 import { guardianZealTooltips } from '#gw2/professions/guardian/app/tooltips/zeal.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { masterOfConsecrationsEffects } from '#gw2/professions/guardian/core/traits/virtues/index.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 
 const renewedFocusTooltip: DescribeSimulationTooltip = skillTooltip(
   'Complete the channel to refresh virtue recharges, restore virtue ammunition, and ready virtue passives. Invulnerability is outside combat simulation scope.'
@@ -31,6 +33,28 @@ const weaponSwapTooltip: DescribeSimulationTooltip = skillTooltip(
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const guardianCoreTooltips = {
   skills: {
+    // Use the selected trait's live multiplier and combat pulse extension for the displayed field and payloads.
+    [ID.PURGING_FLAMES]: (context, skill, _specialization, build) => {
+      const selected = selectedTraits(context.catalog, build?.specializations).some(
+        (trait) => trait.id === TRAIT.MASTER_OF_CONSECRATIONS
+      );
+      const multiplier = selected
+        ? balanceNumber(context.catalog, TRAIT.MASTER_OF_CONSECRATIONS, 'durationMultiplier')
+        : 1;
+      const effects = simulationEffectFacts(masterOfConsecrationsEffects(skill, skill.effects ?? [], multiplier));
+      return {
+        ...effects,
+        description:
+          'Create a fire field that repeatedly strikes and burns the target. Master of Consecrations extends the field and its pulses.',
+        facts: [
+          ...effects.facts,
+          ...(skill.comboFields ?? []).map((field) => ({
+            name: 'Combo field',
+            detail: `${field.fieldType} · ${tooltipSeconds(Number(field.duration) * multiplier)}`
+          }))
+        ]
+      };
+    },
     [ID.RENEWED_FOCUS]: renewedFocusTooltip,
     ...Object.fromEntries([ID.COURAGE, ID.RESOLVE].map((id) => [id, virtueTooltip])),
     [SHARED_SKILL_IDS.SWAP_WEAPONS]: weaponSwapTooltip,

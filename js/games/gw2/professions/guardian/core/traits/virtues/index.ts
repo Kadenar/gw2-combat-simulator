@@ -149,7 +149,7 @@ export const masterOfConsecrations = defineTrait({
   // Field duration is multiplied by Core after its weapon-field selection; see guardian core hooks.
   hooks: {
     modifyEffects: (runtime: MechanicQueriesOf<GuardianRuntime>, cast, effects) =>
-      masterOfConsecrationsEffects(runtime, cast.skill, effects)
+      masterOfConsecrationsEffects(cast.skill, effects, consecrationMultiplier(runtime, cast.skill))
   }
 });
 
@@ -262,12 +262,11 @@ export function masterOfConsecrationsFields(
 }
 
 /** The added field lifetime holds whole extra pulses of each repeated consecration payload. */
-function masterOfConsecrationsEffects(
-  runtime: MechanicQueriesOf<GuardianRuntime>,
+export function masterOfConsecrationsEffects(
   skill: Skill,
-  effects: readonly SkillEffect[]
+  effects: readonly SkillEffect[],
+  multiplier: number
 ): readonly SkillEffect[] {
-  const multiplier = consecrationMultiplier(runtime, skill);
   const duration = Number(skill.comboFields?.[0]?.duration ?? 0);
   return multiplier > 1 ? extendPeriodicEffects(effects, Math.round(duration * (multiplier - 1) * 1000)) : effects;
 }
