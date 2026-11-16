@@ -294,9 +294,8 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     weapon: 'Pistol',
     slot: 'Weapon_4',
     cost: { resource: 'initiative', amount: 4 },
-
     cooldown: 0,
-    castTimeMs: 0,
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
