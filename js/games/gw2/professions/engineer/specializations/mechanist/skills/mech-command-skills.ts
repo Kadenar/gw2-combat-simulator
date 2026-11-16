@@ -30,9 +30,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
     slot: 'Profession_3',
 
     ...mechCommand({
-      // Issuing the command starts recharge even though the mech remains busy
-      // on its independent lane for the measured animation.
-      rechargeAnchor: 'castStart',
       cooldown: 20,
       mechanicSlot: 3,
       quicknessCastTimeMs: 1080,
@@ -113,7 +110,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
     slot: 'Profession_1',
 
     ...mechCommand({
-      rechargeAnchor: 'castStart',
       cooldown: 20,
       mechanicSlot: 1,
       castTimeMs: 2040,
@@ -245,7 +241,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
     slot: 'Profession_2',
 
     ...mechCommand({
-      rechargeAnchor: 'castStart',
       cooldown: 25,
       mechanicSlot: 2,
       castTimeMs: 1440,

@@ -54,6 +54,26 @@ function mechanic(name) {
   return engineerCatalog.skills.find((candidate) => candidate.name === name);
 }
 
+// Command recharge waits for the mech's cast completion, including Jade Dynamo's reduction.
+test('non-instant mech commands recharge after their independent cast completes', () => {
+  for (const [name, rechargeMs] of [
+    ['Jade Mortar', 12800],
+    ['Spark Revolver', 12800],
+    ['Core Reactor Shot', 16000]
+  ]) {
+    const result = simulate('Mechanist', [name, name], {
+      selectedTraitIds: [
+        TRAIT.MECH_ARMS_JADE_CANNONS,
+        TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
+        TRAIT.MECH_CORE_JADE_DYNAMO
+      ]
+    });
+    assert.deepEqual(result.warnings, []);
+    const [first, second] = result.steps.filter((step) => step.skillName === name);
+    assert.equal(second.start - first.end, rechargeMs);
+  }
+});
+
 for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
   ['Force Signet', ID.FORCE_SIGNET, 'modifyStrikeDamage', 0.15, 0.18],
   ['Superconducting Signet', ID.SUPERCONDUCTING_SIGNET, 'modifyConditionDamage', 0.1, 0.12]
@@ -654,7 +674,7 @@ describe('Mechanist grandmaster active effects', () => {
       target: { conditions: {} }
     });
     const mortarSteps = dynamo.steps.filter((step) => step.skillName === 'Jade Mortar');
-    assert.equal(mortarSteps[1].start - mortarSteps[0].start, 12800);
+    assert.equal(mortarSteps[1].start - mortarSteps[0].end, 12800);
     assert.equal(
       dynamo.events.filter((event) => event.type === 'buff' && event.kind === 'quickness' && event.duration === 2.5)
         .length,

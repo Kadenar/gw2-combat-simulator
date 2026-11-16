@@ -255,16 +255,16 @@
         "label": "Condition Spear (1 Kit)",
         "build": "data/gw2/builds/engineer/b-condi-mechanist-spear-1kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-mechanist-spear-1kit-bench.json",
-        "benchmarkDps": 40107,
+        "benchmarkDps": 40532,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-mechanist-one-kit-spear",
         "benchmarkApm": 86.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38662, "phase": 38662 },
-          "80-60": { "cumulative": 38301, "phase": 37932 },
-          "60-40": { "cumulative": 39134, "phase": 40909 },
-          "40-20": { "cumulative": 39919, "phase": 42439 },
-          "20-0": { "cumulative": 40107, "phase": 40107 }
+          "100-80": { "cumulative": 38612, "phase": 38612 },
+          "80-60": { "cumulative": 39467, "phase": 40366 },
+          "60-40": { "cumulative": 39779, "phase": 40453 },
+          "40-20": { "cumulative": 40291, "phase": 41907 },
+          "20-0": { "cumulative": 40532, "phase": 41534 }
         }
       },
       {
@@ -310,9 +310,9 @@
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 40857, "phase": 40857 },
           "80-60": { "cumulative": 40548, "phase": 40241 },
-          "60-40": { "cumulative": 40661, "phase": 40887 },
-          "40-20": { "cumulative": 40901, "phase": 41639 },
-          "20-0": { "cumulative": 41154, "phase": 42195 }
+          "60-40": { "cumulative": 40659, "phase": 40883 },
+          "40-20": { "cumulative": 40901, "phase": 41642 },
+          "20-0": { "cumulative": 41154, "phase": 42196 }
         }
       }
     ]
