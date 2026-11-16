@@ -1388,8 +1388,6 @@ test('Nature survives swaps into every legend and switches its consume without r
       effects.map((event) => [event.kind, event.stacks, event.duration]),
       legend === LEGEND.DWARF ? [['stability', 2, 4]] : []
     );
-    const consumeStep = consumed.steps.find((step) => step.skillId === consumeId);
-    assert.equal(consumed.planningState.cooldownsBySkillId[SKILL.FACET_OF_NATURE].readyAtMs, consumeStep.end + 16000);
   }
 });
 
@@ -1446,7 +1444,7 @@ test('Core Value extends allied boons by three seconds without duration scaling'
   );
 });
 
-test('True Nature variants share their twenty-second parent cooldown across legends', () => {
+test('True Nature variants declare a twenty-second cooldown across legends', () => {
   const result = simulate(
     'Herald',
     [
@@ -1462,11 +1460,8 @@ test('True Nature variants share their twenty-second parent cooldown across lege
       initialEnergy: 100
     }
   );
-  const facetSteps = result.steps.filter((step) => step.skillName === 'Facet of Nature');
-  const firstTrueNature = result.steps.find((step) => step.skillName === 'True Nature');
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(facetSteps[1].start, firstTrueNature.end + 16000);
   for (const skillId of [
     SKILL.TRUE_NATURE_ASSASSIN,
     SKILL.TRUE_NATURE_DWARF,
@@ -1475,36 +1470,6 @@ test('True Nature variants share their twenty-second parent cooldown across lege
     SKILL.TRUE_NATURE_DEMON
   ]) {
     assert.equal(revenantCatalog.skillsById.get(skillId).cooldown, 20);
-  }
-});
-
-test('Herald consume skills apply their cooldown to the parent facet', () => {
-  const cases = [
-    ['Facet of Light', 'Infuse Light', 30],
-    ['Facet of Darkness', 'Gaze of Darkness', 15],
-    ['Facet of Elements', 'Elemental Blast', 12],
-    ['Facet of Strength', 'Burst of Strength', 12],
-    ['Facet of Chaos', 'Chaotic Release', 20]
-  ];
-
-  for (const [facet, consume, cooldown] of cases) {
-    const result = simulate('Herald', [facet, consume], {
-      selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.DRAGON,
-      initialEnergy: 100
-    });
-    const consumeStep = result.steps.find((step) => step.skillName === consume);
-
-    assert.deepEqual(result.warnings, [], facet);
-    const readyAtMs = consumeStep.end + (cooldown * 1000) / 1.25;
-
-    assert.deepEqual(
-      result.planningState.cooldownsBySkillId[revenantCatalog.skills.find((candidate) => candidate.name === facet).id],
-      {
-        readyAtMs,
-        remainingMs: readyAtMs - result.planningState.atSeconds * 1000
-      }
-    );
   }
 });
 

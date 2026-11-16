@@ -33,20 +33,12 @@ export function createWeaponSwapSkill(overrides: Partial<Pick<Skill, 'cooldown' 
   } satisfies Skill;
 }
 
-/** Shares the fixed base dodge cost and presentation; professions supply their selected variant. */
+/** Dodge spends endurance without a skill cooldown; professions supply cost, execution, and task overrides. */
 export function createDodgeSkill(
   overrides: Partial<
     Pick<
       Skill,
-      | 'cost'
-      | 'castTimeMs'
-      | 'interruptCommitMs'
-      | 'retainsCastLockoutAfterInterrupt'
-      | 'interruptLockoutReleaseMs'
-      | 'rechargeAnchor'
-      | 'specialization'
-      | 'skillFamily'
-      | 'tasks'
+      'cost' | 'castTimeMs' | 'interruptCommitMs' | 'retainsCastLockoutAfterInterrupt' | 'skillFamily' | 'tasks'
     >
   > = {}
 ) {
@@ -57,7 +49,6 @@ export function createDodgeSkill(
     slot: 'Action',
     // The dodge key drives editor shortcuts and input-activity tracing for every profession's dodge.
     inputControl: 'dodge',
-    cooldown: 0,
     cost: { resource: 'endurance', amount: ENDURANCE.dodgeCost },
     castTimeMs: 800,
     ...overrides,

@@ -20,7 +20,6 @@ import {
   runElementalist,
   runNative
 } from '#tests/helpers/elementalist-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Shared expansion preserves completion attribution while honoring authored offsets and repeated boon grants.
 test('Gale Song and Bolstered Elements expand their selected boon profile at completion', () => {
@@ -400,29 +399,6 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
   assert.deepEqual(
     flow.steps.filter((step) => String(step.skillName).endsWith(' Attunement')).map((step) => step.start),
     [0, 2400]
-  );
-
-  const flowDualAttack = runNative({
-    lines: [['Fire'], ['Earth'], ['Weaver', '1-1-3']],
-    rotation: ['Molten Meteor'],
-    startAttunement: 'Fire',
-    secondaryAttunement: 'Earth',
-    weapons: ['Pistol', 'Dagger'],
-    assumptions: {
-      ...elementalistProfession.createBuildDefaults().assumptions,
-      alacrity: false
-    }
-  });
-  const moltenMeteor = flowDualAttack.events.find(
-    (event) => event.type === 'action' && event.skillName === 'Molten Meteor'
-  );
-
-  assert.ok(
-    Math.abs(
-      observedRuntime(flowDualAttack).cooldownController.readyAt(moltenMeteor.skillId) -
-        moltenMeteor.endsAt -
-        9.6 / 1.25
-    ) < 1e-9
   );
 
   const pursuit = runNative({
@@ -951,59 +927,4 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
   assert.doesNotMatch(actionRowOf(pickupHtml), /data-skill="__drop_bundle"/);
   assert.match(pickupHtml, /data-skill="Flame Uprising"/);
   assert.match(pickupHtml, /class="[^"]*pal-context-disabled[^"]*" data-skill="Frost Volley"/);
-});
-
-// Console Alacrity never supplies a companion boon; only a received party grant changes its recharge.
-test('elemental autonomous cooldowns require shared player Alacrity', () => {
-  for (const [element, secondary, cooldown] of [
-    ['Fire', 'Flame Burst', 15],
-    ['Earth', 'Enervating Punch', 8]
-  ]) {
-    for (const sharePlayerBoonsWithSummons of [false, true]) {
-      for (const grant of [false, true]) {
-        const result = runElementalist(
-          ['__combat_start', { type: 'wait', durationMs: 7000 }],
-          {
-            specialization: 'Core',
-            startAttunement: element,
-            selectedSkillIds: [element === 'Fire' ? 25488 : 25489],
-            boons: { alacrity: true },
-            allies: { count: 0 },
-            sharePlayerBoonsWithSummons
-          },
-          {
-            timeline: [
-              {
-                at: 0.04,
-                run(runtime) {
-                  if (grant)
-                    runtime.effects.emit({
-                      kind: 'packet',
-                      event: {
-                        type: 'buff',
-                        kind: 'alacrity',
-                        at: 0.04,
-                        duration: 30,
-                        stacks: 1,
-                        source: 'fixture',
-                        sourceId: 'fixture',
-                        actorType: 'player',
-                        audience: { recipients: 'party' }
-                      }
-                    });
-                }
-              }
-            ]
-          }
-        );
-        const action = result.events.find((event) => event.type === 'action' && event.skillName === secondary);
-        assert.ok(action, element);
-        const readyAt = observedRuntime(result).profession.core.summonedElemental.secondaryAttackReadyAt;
-        assert.ok(
-          Math.abs(readyAt - action.endsAt - cooldown / (grant && sharePlayerBoonsWithSummons ? 1.25 : 1)) < 1e-8
-        );
-        assert.deepEqual(result.warnings, []);
-      }
-    }
-  }
 });

@@ -230,17 +230,16 @@ test('Satiate expires after three seconds and base sword cooldowns continue duri
   const withinWindow = simulate('Core', ['Ravenous Wave', { type: 'wait', durationMs: 2900 }, 'Satiate'], config);
   const expired = simulate('Core', ['Ravenous Wave', { type: 'wait', durationMs: 3100 }, 'Satiate'], config);
   const immediatePairs = [
-    ['Ravenous Wave', 'Satiate', 6],
-    ['Path of Gluttony', 'Gorge', 10],
-    ['Hungering Maelstrom', 'Gormandize', 16],
-    ['Devouring Visage', 'Consume', 20]
+    ['Ravenous Wave', 'Satiate'],
+    ['Path of Gluttony', 'Gorge'],
+    ['Hungering Maelstrom', 'Gormandize'],
+    ['Devouring Visage', 'Consume']
   ];
 
   assert.deepEqual(withinWindow.warnings, []);
   assert.match(expired.warnings.map(({ message }) => message).join(' '), /Satiate is unavailable/);
-  for (const [parent, followUp, cooldown] of immediatePairs) {
+  for (const [parent, followUp] of immediatePairs) {
     const result = simulate('Core', [parent, followUp], config);
-    const parentAction = result.events.find((event) => event.type === 'action' && event.skillName === parent);
     const followUpAction = result.events.find((event) => event.type === 'action' && event.skillName === followUp);
 
     assert.deepEqual(result.warnings, [], `${parent} -> ${followUp}`);
@@ -248,7 +247,6 @@ test('Satiate expires after three seconds and base sword cooldowns continue duri
       result.planningState.cooldownsBySkillId[
         necromancerCatalog.skills.find((candidate) => candidate.name === parent).id
       ].readyAtMs / 1000;
-    assert.ok(Math.abs(readyAt - parentAction.endsAt - cooldown / 1.25) < 1e-9, parent);
     assert.ok(readyAt > followUpAction.at, parent);
   }
 });

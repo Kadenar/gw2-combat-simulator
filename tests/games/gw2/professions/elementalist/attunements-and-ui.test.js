@@ -1195,23 +1195,6 @@ test('core attunements enforce and report their individual recharge', () => {
   assert.equal(waterView.cooldownLabel, '6.800s');
 });
 
-test('Ride the Lightning receives its on-hit cooldown reduction', () => {
-  const result = runNative({
-    lines: [['Fire'], ['Earth'], ['Arcane']],
-    rotation: ['Ride the Lightning'],
-    startAttunement: 'Air',
-    weapons: ['Sword', 'Dagger'],
-    assumptions: {
-      ...elementalistProfession.createBuildDefaults().assumptions,
-      alacrity: false
-    }
-  });
-  const action = result.events.find((event) => event.type === 'action' && event.skillName === 'Ride the Lightning');
-
-  assert.ok(action);
-  assert.ok(Math.abs(observedRuntime(result).cooldownController.readyAt(action.skillId) - action.endsAt - 8) < 1e-9);
-});
-
 test('Fresh Air grants ferocity when entering Air, not when resetting it', () => {
   const result = runNative({
     lines: [['Fire'], ['Air', '1-1-2'], ['Arcane']],

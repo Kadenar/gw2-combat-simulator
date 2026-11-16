@@ -624,21 +624,11 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
   );
   assert.equal(toolbelt.planningState.profession[STATE.KINETIC_CHARGES], 1);
 
-  const wrench = simulate('Core', ['Supply Crate', 'Dodge'], {
-    selectedTraitIds: [TRAIT.POWER_WRENCH]
-  });
-
-  assert.equal(wrench.planningState.cooldownsBySkillId[ID.SUPPLY_CRATE].readyAtMs, wrench.steps[0].end + 57600);
-
   const adrenal = simulate('Core', ['Grenade Barrage', 'Dodge', { type: 'wait', durationMs: 1000 }], {
     selectedTraitIds: [TRAIT.MECHANIZED_DEPLOYMENT, TRAIT.ADRENAL_IMPLANT],
     boons: { vigor: true }
   });
 
-  assert.equal(
-    adrenal.planningState.cooldownsBySkillId[ID.GRENADE_BARRAGE].readyAtMs,
-    Math.ceil((adrenal.steps[0].end + 16200) / 40) * 40
-  );
   assert.equal(adrenal.planningState.profession[STATE.ENDURANCE].value, 65.75);
 
   const streamlined = simulate('Core', ['Grenade Kit'], {

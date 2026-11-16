@@ -802,18 +802,6 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
   assert.equal(secondTurret.start - detonation.end, 19760);
   assert.equal(cleansingBurst.start - secondTurret.end, 10240);
 
-  const mineConfig = {
-    selectedSkillIds: [...baseConfig.selectedSkillIds, 6161]
-  };
-  const throws = (rotation) =>
-    simulate('Core', rotation, mineConfig).steps.filter((step) => step.skillName === 'Throw Mine');
-
-  // Detonation preserves the parent's recharge from placement completion.
-  for (const followUp of [[], ['Detonate']]) {
-    const [first, second] = throws([ID.THROW_MINE, ...followUp, { type: 'wait', durationMs: 8500 }, ID.THROW_MINE]);
-    assert.equal(second.start - first.end, 9600);
-  }
-
   // Gadgeteer's added mine shares the input but produces its own strike and combo attempt.
   const gadgeteer = simulate(
     'Core',

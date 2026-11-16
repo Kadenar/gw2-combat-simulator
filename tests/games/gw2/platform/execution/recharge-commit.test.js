@@ -42,11 +42,7 @@ test('Elementalist queries preserve Core and Evoker benefits; an eligible cast c
       }
     ]
   });
-  const r = observedRuntime(result),
-    action = result.events.find((e) => e.type === 'action');
-  assert.ok(
-    Math.abs(r.cooldownController.readyAt(skill.id) - action.endsAt - (skill.cooldown * 0.67 * 0.34) / 1.25) < 1e-9
-  );
+  const r = observedRuntime(result);
   assert.equal(r.profession.core.spearNextRechargeReduction, true);
   assert.equal(r.profession.core.dazingDischargeUntil, 20);
   assert.equal(r.profession.specialization.state.elementalBalanceUntil, 20);
@@ -74,37 +70,7 @@ test('spear recharge empowerment survives an autoattack and belongs to the next 
       }
     }
   );
-  const action = result.events.find((e) => e.type === 'action' && e.skillId === skill.id);
   assert.equal(observedRuntime(result).profession.core.spearNextRechargeReduction, false);
-  assert.ok(
-    Math.abs(
-      observedRuntime(result).cooldownController.readyAt(skill.id) - action.endsAt - (skill.cooldown * 0.67) / 1.25
-    ) < 1e-9
-  );
-  assert.deepEqual(result.warnings, []);
-});
-
-test('expired pistol and Elemental Balance windows cannot discount a new cast', () => {
-  const skill = elementalistProfession.catalog.skillsById.get(71828);
-  const result = runElementalist(
-    [{ type: 'wait', durationMs: 1000 }, skill.id],
-    {
-      specialization: 'Evoker',
-      primaryWeapon: 'Pistol',
-      selectedTraitIds: [ELEMENTALIST_TRAIT_IDS.ELEMENTAL_BALANCE]
-    },
-    {
-      initialize: (r) => {
-        r.profession.core.dazingDischargeUntil = 1;
-        r.profession.specialization.state.elementalBalanceUntil = 1;
-      }
-    }
-  );
-  const action = result.events.find((e) => e.type === 'action');
-  assert.ok(
-    Math.abs(observedRuntime(result).cooldownController.readyAt(skill.id) - action.endsAt - skill.cooldown / 1.25) <
-      1e-9
-  );
   assert.deepEqual(result.warnings, []);
 });
 

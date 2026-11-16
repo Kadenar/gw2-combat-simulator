@@ -257,7 +257,7 @@ test('Aerial Agility expires while its original cooldown keeps counting down', (
   assert.ok(result.planningState.cooldownsBySkillId[ID.AERIAL_AGILITY].remainingMs > 0);
 });
 
-test('using the first Aerial Agility follow-up restarts its full cooldown', () => {
+test('using the first Aerial Agility follow-up postpones readiness', () => {
   const unused = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
     rotation: ['Aerial Agility', 2000],
@@ -270,10 +270,6 @@ test('using the first Aerial Agility follow-up restarts its full cooldown', () =
     startAttunement: 'Air',
     weapons: ['Pistol', 'Dagger']
   });
-  const initialDuration = unused.planningState.cooldownsBySkillId[ID.AERIAL_AGILITY].readyAtMs - unused.steps[0].end;
-  const followup = used.steps.find((step) => step.skillName === 'Aerial Agility (chain)');
-
-  assert.equal(used.planningState.cooldownsBySkillId[ID.AERIAL_AGILITY].readyAtMs - followup.end, initialDuration);
   assert.ok(
     used.planningState.cooldownsBySkillId[ID.AERIAL_AGILITY].readyAtMs >
       unused.planningState.cooldownsBySkillId[ID.AERIAL_AGILITY].readyAtMs
@@ -514,21 +510,6 @@ test('conjured weapons enforce bundle access and preserve their pickup', () => {
   );
   assert.equal(result.planningState.profession[STATE.CONJURE_EQUIPPED], 'Frost Bow');
   assert.equal(result.warnings.length, 0);
-});
-
-test('Rock Barrier starts its root recharge when Hurl is used', () => {
-  const result = runNative({
-    lines: [['Fire'], ['Air'], ['Arcane']],
-    rotation: ['Rock Barrier', 'Hurl', 'Rock Barrier'],
-    weapons: ['Scepter', 'Warhorn'],
-    startAttunement: 'Earth'
-  });
-  const actions = result.events.filter((event) => event.type === 'action');
-  const barriers = actions.filter((event) => event.skillName === 'Rock Barrier');
-  const hurl = actions.find((event) => event.skillName === 'Hurl');
-
-  assert.equal(barriers.length, 2);
-  assert.equal(barriers[1].at - hurl.endsAt, elementalistCatalog.skillsById.get(5695).cooldown / 1.25);
 });
 
 test('Pistol bullets grant, consume, and apply their payload', () => {

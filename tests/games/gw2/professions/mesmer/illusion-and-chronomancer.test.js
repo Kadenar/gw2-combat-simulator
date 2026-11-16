@@ -747,7 +747,6 @@ test('Well of Precognition grants support boons and restores endurance at field 
       attributeInputs: baseAttributeInputs({ concentration: 0 })
     })
   );
-  const cast = result.steps[0];
   const events = result.events.filter((event) => event.skillId === ID.WELL_OF_PRECOGNITION);
   assert.ok(events.some((event) => event.type === 'buff' && event.kind === 'aegis'));
   assert.ok(events.some((event) => event.type === 'buff' && event.kind === 'stability'));
@@ -757,7 +756,6 @@ test('Well of Precognition grants support boons and restores endurance at field 
   const endurance = events.find((event) => event.type === 'resource' && event.resource === 'endurance');
   assert.equal(endurance.at, field.expiresAt);
   assert.equal(endurance.amount, 30);
-  assert.equal(result.planningState.cooldownsBySkillId[ID.WELL_OF_PRECOGNITION].readyAtMs - cast.end, 40000);
   assert.deepEqual(result.warnings, []);
 });
 

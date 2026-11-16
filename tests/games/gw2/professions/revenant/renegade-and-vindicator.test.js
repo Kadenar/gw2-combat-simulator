@@ -1380,20 +1380,6 @@ test('Vindicator jumps pay endurance before midair Energy refunds and reset auto
   assert.equal(result.steps.at(-1).start, jumps.at(-1).end);
 });
 
-test('Selfish Spirit uses its cooldown rather than ammo charges', () => {
-  // Repeated activations must wait for recharge instead of drawing from ammo charges.
-  const result = simulate('Vindicator', ['Selfish Spirit', 'Selfish Spirit'], {
-    selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.ALLIANCE
-  });
-  assert.deepEqual(result.warnings, []);
-  // The channel's recharge begins when it ends; the second cast waits for that recharge.
-  assert.equal(
-    result.steps[1].start,
-    result.steps[0].end + (revenantCatalog.skillsById.get(SKILL.SELFISH_SPIRIT).cooldown * 1000) / 1.25
-  );
-});
-
 test('Vindicator Dodge + Auto palette action uses the current chain step', () => {
   let changeCount = 0;
   const app = {

@@ -395,6 +395,11 @@ export function createCatalogNormalizer(vocabulary: CatalogVocabulary) {
       throw new TypeError(`Skill ${id} has invalid rechargeAnchor ` + `"${source.rechargeAnchor}".`);
     }
 
+    // Cast-start recharge requires an explicit offset so omitted timing cannot silently become zero.
+    if (source.rechargeAnchor === 'castStart' && source.rechargeOffsetMs == null) {
+      throw new TypeError(`Skill ${id} requires rechargeOffsetMs when rechargeAnchor is castStart.`);
+    }
+
     // A cast-scaled recharge boundary must stay inside the selected interval.
     if (
       source.rechargeProgress != null &&

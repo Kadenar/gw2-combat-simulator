@@ -195,7 +195,9 @@ const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinition<Me
     slot: 'Utility',
     skillFamily: 'Deception',
     cooldown: 20,
+    // Recharge starts immediately while the backward evade occupies the cast.
     rechargeAnchor: 'castStart',
+    rechargeOffsetMs: 0,
     // Grant Mirage Cloak after the backward evade finishes, opening the ambush window.
     tasks: [
       {

@@ -4,6 +4,30 @@ import test from 'node:test';
 import { indexAutoattackChains, resolveAutoattackChainStep } from '#gw2/platform/skills/autoattack-chain-index.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 
+// Cast-start recharge must declare its offset; zero is a deliberate timing choice.
+test('cast-start recharge requires an explicit finite offset', () => {
+  const load = (timing) =>
+    createCanonicalCatalog({ skills: [{ id: 1, name: 'Recharge', ...timing }] }).skillsById.get(1);
+
+  for (const timing of [{}, { rechargeOffsetMs: undefined }, { rechargeOffsetMs: null }]) {
+    assert.throws(() => load({ rechargeAnchor: 'castStart', ...timing }), {
+      name: 'TypeError',
+      message: 'Skill 1 requires rechargeOffsetMs when rechargeAnchor is castStart.'
+    });
+  }
+
+  for (const rechargeOffsetMs of [0, 40, -80]) {
+    assert.equal(load({ rechargeAnchor: 'castStart', rechargeOffsetMs }).rechargeOffsetMs, rechargeOffsetMs);
+  }
+
+  for (const rechargeOffsetMs of [NaN, Infinity, -Infinity]) {
+    assert.throws(() => load({ rechargeAnchor: 'castStart', rechargeOffsetMs }), /finite rechargeOffsetMs/);
+  }
+
+  assert.doesNotThrow(() => load({}));
+  assert.doesNotThrow(() => load({ rechargeAnchor: 'castEnd' }));
+});
+
 test('costs require one nonnegative finite amount and reject other amount sources', () => {
   // A cost must resolve unambiguously before a runtime can admit or spend it.
   const load = (amount, extra = {}) =>
