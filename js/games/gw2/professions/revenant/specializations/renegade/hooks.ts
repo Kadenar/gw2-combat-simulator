@@ -1,19 +1,14 @@
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
-import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import {
   renegadeBuffPolicies,
   renegadeEffectStates
 } from '#gw2/professions/revenant/specializations/renegade/effect-state.js';
-import {
-  activeKallasFervorStacks,
-  bandTogetherReady
-} from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import { bandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import {
   renegadeBoonApplied,
   renegadeCastCompleted,
@@ -32,10 +27,6 @@ import {
   razorclawsRage
 } from '#gw2/professions/revenant/specializations/renegade/skills/warband.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import {
-  fervorMaximumStacks,
-  fervorProfile
-} from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Renegade owns Fervor, warband summons, Kalla's commands, and their actual hit/boon reactions. */
@@ -103,25 +94,6 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
   // Only Bombardment's first resolved hit emits Vindication's control packet.
 
   reactions: {
-    'damage.resolving'(runtime, event) {
-      // Core already applied its additive bonus; Fervor joins the same additive life-steal sum.
-      const core = revenantLifeSiphonBonus(runtime, event);
-
-      if (core == null) return;
-
-      const stacks = activeKallasFervorStacks(
-        renegadeState.from(runtime.profession),
-        runtime.time,
-        fervorMaximumStacks(runtime.helpers, runtime)
-      );
-
-      if (!stacks) return;
-
-      const perStack = balanceProfileNumber(fervorProfile(runtime.helpers, runtime), 'lifeSiphonDamagePerStack');
-      return {
-        flatStrikeMultiplier: ((event.flatStrikeMultiplier ?? 1) * (1 + core + stacks * perStack)) / (1 + core)
-      };
-    },
     'damage.resolved'(runtime, event, details) {
       if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 

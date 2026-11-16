@@ -1,16 +1,13 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { BOON } from '#gw2/platform/constants.js';
-import { isFlatLifeStealPacket } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantResolverContext } from '#gw2/professions/revenant/types.js';
 
-/** Explicit life-steal packets bypass ordinary strike modifiers; labels never decide their Core bonus. */
-export function revenantLifeSiphonBonus(context: RevenantResolverContext, event: Gw2ResolverEvent): number | null {
-  if (!isFlatLifeStealPacket(event)) return null;
-
+/** Query Invocation's contribution at the packet time; the family owner decides life-siphon eligibility. */
+export function revenantLifeSiphonBonus(context: RevenantResolverContext, event: Gw2ResolverEvent): number {
   return hasTrait(context.traits, TRAIT.FEROCIOUS_AGGRESSION) &&
     boonActive({ config: context.config, runtime: context, time: event.at, event }, BOON.FURY)
     ? balanceNumber(context.helpers, TRAIT.FEROCIOUS_AGGRESSION, 'damageIncrease')

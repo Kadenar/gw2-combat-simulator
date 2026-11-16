@@ -8,7 +8,10 @@ import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import { fervorProfile } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
+import {
+  fervorMaximumStacks,
+  fervorProfile
+} from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
 
 /** Counts started, unexpired Fervor applications consistently for grants, modifiers, and siphons. */
 export function activeKallasFervorStacks(
@@ -24,6 +27,19 @@ export function activeKallasFervorStacks(
     if ((application.at || 0) <= at && (application.expiresAt || 0) > at) count++;
 
   return Math.min(Math.max(1, maximumStacks), count);
+}
+
+/** Read Fervor's live contribution from its selected profile without applying or undoing another owner's bonus. */
+export function renegadeLifeSiphonBonus(context: RevenantRuntime): number {
+  const stacks = activeKallasFervorStacks(
+    renegadeState.from(context.profession),
+    context.time,
+    fervorMaximumStacks(context.helpers, context)
+  );
+
+  if (!stacks) return 0;
+
+  return stacks * balanceProfileNumber(fervorProfile(context.helpers, context), 'lifeSiphonDamagePerStack');
 }
 
 /** Eligible summons consume the shared timed buff; natural expiry uses the same combat query. */

@@ -29,11 +29,11 @@ import { empowerRevenantEmbrace, startRevenantEmbrace } from '#gw2/professions/r
 import { greatswordLifecycle } from '#gw2/professions/revenant/core/skills/weapons/greatsword.js';
 import { scepterLifecycle } from '#gw2/professions/revenant/core/skills/weapons/scepter.js';
 import { spearLifecycle } from '#gw2/professions/revenant/core/skills/weapons/spear.js';
-import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
-import type { RevenantResolverContext, RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { modifyRevenantLifeSiphon } from '#gw2/professions/revenant/life-siphon.js';
+import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Core hooks: Energy, upkeeps, legends, weapon follow-ups, and actual hit/application trait reactions. */
 
@@ -141,15 +141,6 @@ export const revenantCoreHooks = composeRuntimeHooks<RevenantRuntimeState, Reven
   greatswordLifecycle,
   enchantedDaggersLifecycle
 ]);
-
-/** Applies Fury's life-steal bonus to Core and elite specializations without using ordinary strike scaling. */
-function modifyRevenantLifeSiphon(context: RevenantResolverContext, event: Gw2ResolverEvent) {
-  const bonus = revenantLifeSiphonBonus(context, event);
-
-  if (bonus == null) return;
-
-  return { flatStrikeMultiplier: (event.flatStrikeMultiplier ?? 1) * (1 + bonus) };
-}
 
 /** Landed player strikes interleave trait rewards, Battle Scars, and Enchanted Daggers in their established order. */
 function reactRevenantPlayerStrike(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
