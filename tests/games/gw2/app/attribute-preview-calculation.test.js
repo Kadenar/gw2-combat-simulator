@@ -4,7 +4,7 @@ import test from 'node:test';
 import { calculateAttributePreview } from '#gw2/app/build/attribute-preview-calculation.js';
 import { attributePreviewControls, normalizeAttributePreview } from '#gw2/app/build/attribute-preview-controls.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
-import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
+import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
 import { fractalPotionBonus } from '#gw2/platform/builds/fractal-buffs.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
@@ -178,16 +178,15 @@ test('Amalgam previews Titanic Might scaling and both Evolve variants without ch
   for (const doubleHelix of [false, true]) {
     const app = previewApp('engineer', doubleHelix ? ['Double Helix'] : [], 'Amalgam');
     const saved = structuredClone({ build: app.build, attributes: app.attributeData });
-    const pool = attributeSourcePool(
+    const pool = attributeSeed(
       app.adapter
         .createBuildContext({
           build: app.build,
           transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
           patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
         })
-        .simulationConfig(),
-      'common'
-    );
+        .simulationConfig()
+    ).conversionPool;
     const base = stats(app);
     for (const might of [0, 10, 25]) {
       const titanic = stats(app, { might, titanic: 1 });
@@ -218,7 +217,7 @@ test('Fortissimo rounds eligible attributes without scaling Might or signet pass
     patch: app.patch
   });
   app.attributeData = context.attributes(1);
-  const pool = attributeSourcePool(context.simulationConfig(), 'common');
+  const pool = attributeSeed(context.simulationConfig()).conversionPool;
   const base = stats(app, { regeneration: 1 });
   for (const instruments of [1, 2, 4]) {
     const multiplier = instruments * 0.04;

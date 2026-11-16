@@ -43,6 +43,42 @@ test('Catalyst source follows weapon sets and isolates each query and detached p
   assert.equal(catalystAttributePool(preview).conditionDamage, 1000);
   preview.traits = new Set(context.config.selectedTraitIds);
   assert.equal(catalystAttributePool(preview).conditionDamage, 1280);
+  preview.config = { ...preview.config, startingWeaponSet: 2 };
+  assert.equal(catalystAttributePool(preview).conditionDamage, 880);
+  preview.config.attributeInputs = baseAttributeInputs({ conditionDamage: 200 }, { conditionDamage: 300 });
+  assert.equal(catalystAttributePool(preview).conditionDamage, 580);
+});
+
+// Equipment source admission excludes sigils and computed bonuses; only Condition Damage admits utility output.
+test('Catalyst selects equipment sources without scaling excluded or already-computed bonuses', () => {
+  const attributeInputs = baseAttributeInputs();
+  const sources = {
+    base: 1000,
+    gear: 200,
+    runes: 30,
+    infusions: 4,
+    food: 50,
+    jadeBotCore: 60,
+    utility: 70,
+    traits: 800,
+    sigils: 900,
+    reinforcedArmor: 100,
+    fractalPotions: 110,
+    final: 3324
+  };
+  attributeInputs.weaponSets[0].sources = {
+    Power: { ...sources },
+    'Condition Damage': { ...sources },
+    Vitality: { ...sources }
+  };
+  const context = facts(elementalistProfession, 'Catalyst', [], { attributeInputs });
+  const pool = catalystAttributePool(context);
+  assert.equal(pool.power, 1344);
+  assert.equal(pool.conditionDamage, 1414);
+  assert.equal(pool.vitality, 1344);
+  pool.power = 0;
+  assert.equal(catalystAttributePool(context).power, 1344);
+  assert.deepEqual(attributeInputs.weaponSets[0].sources.Power, sources);
 });
 
 test('mech inheritance stays boon-free while copied Might gains, expiry and weapon changes remain live', () => {
@@ -115,6 +151,8 @@ for (const [family, profession, specialization, traitName, amount, read] of [
 
     const current = sample('current');
     const preview = sample('source-preview');
+    // Identical equipment seeds must not cause cached sources to reuse another patch's trait values.
+    preview.config.attributeInputs = current.config.attributeInputs;
     const base = read(current).conditionDamage;
     assert.equal(read(preview).conditionDamage - base, specialization === 'Mechanist' ? amount / 2 : amount);
     assert.equal(read(current).conditionDamage, base);

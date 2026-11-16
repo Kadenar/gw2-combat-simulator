@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { attributeSourcePool, baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { attributeSeed, baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
@@ -818,8 +818,8 @@ test('Amalgam app config excludes temporary attributes from Evolve', () => {
     })
     .simulationConfig();
 
-  assert.deepEqual(attributeSourcePool(config, 'common'), app.attributeData.attributeSeed.conversionPool);
-  assert.equal(app.attributeData.attributes.Ferocity.final - attributeSourcePool(config, 'common').Ferocity, 150);
+  assert.deepEqual(attributeSeed(config).conversionPool, app.attributeData.attributeSeed.conversionPool);
+  assert.equal(app.attributeData.attributes.Ferocity.final - attributeSeed(config).conversionPool.Ferocity, 150);
 });
 
 test('Amalgam food comparisons use the recalculated Evolve attribute pool', () => {
@@ -849,12 +849,11 @@ test('Amalgam food comparisons use the recalculated Evolve attribute pool', () =
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const request = modifierComparisonRequest(app, engineerAppAdapter);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === `Food:${canonical.food}`);
-  const baseline = attributeSourcePool(
+  const baseline = attributeSeed(
     captureAnalysisFixture(app, engineerAppAdapter).baseline({ collectChartData: false, comparePatch: false })
-      .baseConfig,
-    'common'
-  );
-  const removed = attributeSourcePool(comparison.config, 'common');
+      .baseConfig
+  ).conversionPool;
+  const removed = attributeSeed(comparison.config).conversionPool;
 
   assert.equal(baseline.Power - removed.Power, 100);
   assert.equal(baseline.Precision - removed.Precision, 70);

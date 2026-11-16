@@ -1,6 +1,10 @@
 import { attributeContext, resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
-import { ATTRIBUTE_NAMES, attributeSeed, attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
-import type { Gw2AttributeContributions, Gw2NumericAttributes } from '#gw2/platform/attributes/types.js';
+import { ATTRIBUTE_NAMES, attributeSeed } from '#gw2/platform/attributes/inputs.js';
+import type {
+  Gw2AttributeContributions,
+  Gw2AttributeSeed,
+  Gw2NumericAttributes
+} from '#gw2/platform/attributes/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -146,17 +150,44 @@ function empowermentAttributeMultiplier(
     : stacks * balanceProfileNumber(profile, 'attributePerStack');
 }
 
+const equipmentPools = new WeakMap<Gw2AttributeSeed, Readonly<Gw2NumericAttributes>>();
+
+/** Cache only equipment eligibility; selected trait contributions must remain live for each query. */
+function empowermentEquipmentPool(seed: Gw2AttributeSeed): Readonly<Gw2NumericAttributes> {
+  const cached = equipmentPools.get(seed);
+
+  if (cached) return cached;
+
+  const pool = Object.freeze(
+    Object.fromEntries(
+      Object.entries(ATTRIBUTE_NAMES).map(([key, name]) => {
+        const source = seed.sources[name];
+        const amount = source
+          ? ['base', 'gear', 'runes', 'infusions', 'food', 'jadeBotCore'].reduce(
+              (sum, part) => sum + (source[part as keyof typeof source] ?? 0),
+              0
+            ) + (key === 'conditionDamage' ? source.utility : 0)
+          : (seed.conversionPool[name] ?? 0);
+        return [key, amount];
+      })
+    )
+  );
+  equipmentPools.set(seed, pool);
+  return pool;
+}
+
 /** Empowerment reads common sources plus declared trait Condition Damage, excluding temporary buffs and passives. */
 export function catalystAttributePool(context: ElementalistModifierContext): Gw2NumericAttributes {
-  const pool = attributeSourcePool(context.config ?? {}, 'catalyst', context.runtime?.activeWeaponSet);
   const facts = attributeContext(context, {
     catalog: context.catalog,
     modifierRulesById: new Map()
   });
+  const seed = attributeSeed(context.config ?? {}, facts.weaponSet);
+  const pool = empowermentEquipmentPool(seed);
   const traits = [burningRage, strengthOfStone].filter((trait) => hasTrait(context, trait.id));
   // Trait bonuses remain live and never alter the shared equipment source.
   const resolved = resolveAttributeContributions(
-    attributeSeed(context.config ?? {}, facts.weaponSet),
+    seed,
     traits.map((trait) => trait.attributes!(facts))
   );
   const conditionDamage =

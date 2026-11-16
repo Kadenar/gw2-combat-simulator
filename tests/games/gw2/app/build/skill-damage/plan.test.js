@@ -11,7 +11,7 @@ import {
 } from '#gw2/app/build/skill-damage/plan.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
 import { createSkillDamageViewModel } from '#gw2/app/build/skill-damage/view-model.js';
-import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
+import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import { firstPresetBuildPath, headlessApp } from '#tests/helpers/skill-damage.js';
@@ -216,7 +216,7 @@ test('Amalgam damage previews apply Willing Host, Evolve and Titanic Strain inde
     const values = { ...baseValues, ...bonuses };
     const { request } = createSkillDamagePlan(app, controls, values);
     const strip = calculateSkillDamageAttributes(app, values, controls).attributes;
-    const pool = attributeSourcePool(request.config, 'common');
+    const pool = attributeSeed(request.config).conversionPool;
     for (const name of ['Power', 'Condition Damage'])
       assert.equal(
         strip[name].final,
