@@ -1,5 +1,4 @@
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -152,12 +151,9 @@ function queueStanceProc(
   queueVultureStanceEffects(context, event, profile, poison, might);
 }
 
-/**
- * One cooldown boundary per stance for every recipient. One Wolf Pack admits a strike exactly at its deadline: observed
- * Frost Trap pulses echo at its 1 s cadence, which the strict boundary would halve. Vulture Stance blocks its deadline.
- */
-function stanceCooldownReady(wolfPack: boolean, at: number, deadline: number): boolean {
-  return wolfPack ? canonicalTime(at) >= canonicalTime(deadline) : isInternalCooldownReady(at, deadline);
+/** Both stances admit hits at the cooldown deadline for the player and each allied recipient. */
+function stanceCooldownReady(at: number, deadline: number): boolean {
+  return canonicalTime(at) >= canonicalTime(deadline);
 }
 
 /** Each ally keeps independent stance cooldowns across overlapping applications, under the player's boundaries. */
@@ -169,7 +165,7 @@ export function handleSharedStanceHit(context: RangerResolverContext, event: Gw2
   const key = `${event.kind}:${allyIndex}`;
   const wolfPack = event.kind === 'one-wolf-pack';
 
-  if (!stanceCooldownReady(wolfPack, event.at, context.procs.deadline(`ranger.soulbeast.alliedStance:${key}`))) return;
+  if (!stanceCooldownReady(event.at, context.procs.deadline(`ranger.soulbeast.alliedStance:${key}`))) return;
 
   queueStanceProc(context, event, wolfPack, (internalCooldown) => {
     context.procs.setDeadline(`ranger.soulbeast.alliedStance:${key}`, event.at + internalCooldown);
@@ -187,7 +183,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     isPlayerStrike(event) &&
     event.sourceId !== ID.ONE_WOLF_PACK_STRIKE &&
     activeSoulbeastBuff(context, 'one-wolf-pack', event.at) &&
-    stanceCooldownReady(true, event.at, context.procs.deadline('ranger.soulbeast.oneWolfPack'))
+    stanceCooldownReady(event.at, context.procs.deadline('ranger.soulbeast.oneWolfPack'))
   ) {
     // 1-second ICD between echoes even within a single multi-hit skill.
     queueStanceProc(context, event, true, (internalCooldown) => {
@@ -195,10 +191,10 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     });
   }
 
-  // Vulture Stance procs per player hit with a 0.25 s ICD; effect-sourced hits (e.g. OWP echoes) are excluded.
+  // Vulture Stance uses its inclusive cooldown; effect-sourced hits cannot trigger it.
   if (
     activeSoulbeastBuff(context, 'vulture-stance', event.at) &&
-    stanceCooldownReady(false, event.at, context.procs.deadline('ranger.soulbeast.vultureStance')) &&
+    stanceCooldownReady(event.at, context.procs.deadline('ranger.soulbeast.vultureStance')) &&
     isPlayerStrike(event)
   ) {
     queueStanceProc(context, event, false, (internalCooldown) => {
@@ -222,7 +218,7 @@ export function reactToSoulbeastBuff(context: RangerResolverContext, event: Gw2R
 
 /** A delayed engagement keeps the original stance expiry. */
 function scheduleSharedStance(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  // Shared windows use the existing ally attack assumptions and end at half the personal duration.
+  // Shared windows use the existing ally attack assumptions and end at half the base duration.
   if (event.kind !== 'one-wolf-pack' && event.kind !== 'vulture-stance') return;
 
   const maximumAllies = event.resolvedAudience?.alliedPlayerCount ?? 0;

@@ -305,7 +305,7 @@ function triggerApexPredator(runtime: RangerResolverContext, event: Gw2ResolverE
   });
 }
 
-/** Leader of the Pack extends the personal stance and shares half of that extended window. */
+/** Leader of the Pack extends only the personal stance; sharing uses the base duration. */
 export function leaderOfThePackStance(
   context: RangerRuntime,
   baseDuration: number
@@ -315,7 +315,7 @@ export function leaderOfThePackStance(
   const duration = baseDuration * balanceNumber(context.helpers, TRAIT.LEADER_OF_THE_PACK, 'durationMultiplier');
   return {
     duration,
-    sharedDuration: duration * balanceNumber(context.helpers, TRAIT.LEADER_OF_THE_PACK, 'sharedDurationMultiplier')
+    sharedDuration: baseDuration * balanceNumber(context.helpers, TRAIT.LEADER_OF_THE_PACK, 'sharedDurationMultiplier')
   };
 }
 

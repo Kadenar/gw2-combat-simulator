@@ -21,7 +21,7 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     skillFamily: 'Stance',
     cooldown: 30,
     duration: 6,
-    internalCooldown: 0.25,
+    internalCooldown: 0.28,
     castTimeMs: 0,
     effects: [],
     // Activation opens the personal and trait-shared windows without waiting for recovery.

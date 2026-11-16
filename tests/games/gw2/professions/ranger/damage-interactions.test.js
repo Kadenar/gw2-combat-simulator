@@ -194,7 +194,7 @@ test('One Wolf Pack echoes eligible Frost Trap hits using its own weapon strengt
   assert.equal(echo.damage, echoes[0].damage);
 });
 
-test('Leader of the Pack shares half the extended stance window with independent allied triggers', () => {
+test('Leader of the Pack shares half the base stance window with independent allied triggers', () => {
   // An idle caster isolates allied triggers, duration boundaries, and each recipient's cooldown.
   const config = {
     selectedTraitIds: [TRAIT.LEADER_OF_THE_PACK],
@@ -213,7 +213,7 @@ test('Leader of the Pack shares half the extended stance window with independent
     assert.equal(shared.boonGeneration.activationId, personal.boonGeneration.activationId);
     assert.equal(shared.sourceId, personal.sourceId);
     assert.ok(Math.abs(personal.duration - 7.2) < 1e-9);
-    assert.equal(shared.duration, personal.duration * 0.5);
+    assert.equal(shared.duration, 3);
     assert.equal(shared.resolvedAudience.alliedPlayerCount, 2);
     const procs = result.resolvedEvents.filter(
       (event) =>
@@ -221,7 +221,7 @@ test('Leader of the Pack shares half the extended stance window with independent
         event.metadata?.triggeredByAlly &&
         event.type === (skillId === ID.ONE_WOLF_PACK ? 'damage' : 'condition')
     );
-    // One Wolf Pack admits the strike exactly at its 1 s deadline, as for the player; Vulture blocks its deadline.
+    // At four attacks per second, Vulture's 280 ms cooldown admits every other attack.
     const procInterval = skillId === ID.ONE_WOLF_PACK ? 1 : 0.5;
     const delay = skillId === ID.ONE_WOLF_PACK ? 0.28 : 0;
     for (const allyIndex of [1, 2]) {
@@ -267,7 +267,7 @@ test('shared Vulture might preserves live recipients while reporting one hypothe
     const might = result.resolvedEvents.filter((event) => event.kind === 'might' && event.metadata?.triggeredByAlly);
     assert.ok(might.every((event) => event.resolvedAudience.alliedPlayerIndex === event.metadata.triggeredByAlly));
     const generation = buildBoonGeneration(result.resolvedEvents, 0, 8);
-    assert.equal(buffApplicationStacks(generation.allyApplications.get('might') || [], 'might', 3.5, 25), 7);
+    assert.equal(buffApplicationStacks(generation.allyApplications.get('might') || [], 'might', 3.5, 25), 6);
     totals.push(generation.boons.get('might').ally.generatedStackSeconds);
   }
 
@@ -303,15 +303,15 @@ test('precast shared stances start allied attacks in combat without extending ex
 
 test('shared One Wolf Pack preserves personal triggers and resolves echoes after the shared window expires', () => {
   // The allied hit lands at shared expiry; its delayed echo must survive without consuming the player's ICD.
-  const activationDelay = rangerCatalog.skillsById.get(ID.ONE_WOLF_PACK).interruptCommitMs / 1000;
+  const rotation = [ID.ONE_WOLF_PACK, ID.FROST_TRAP, wait(8000)];
+  const solo = simulate('Soulbeast', rotation, { selectedTraitIds: [TRAIT.LEADER_OF_THE_PACK], allies: { count: 0 } });
+  const stance = solo.events.find((event) => event.kind === 'one-wolf-pack' && event.resolvedAudience.includesSelf);
   const config = {
     selectedTraitIds: [TRAIT.LEADER_OF_THE_PACK],
     // Place the independent allied attack at the shared expiry, regardless of the stance's activation offset.
-    allies: { count: 1, strikesPerSecond: 1 / (activationDelay + 3.6) }
+    allies: { count: 1, strikesPerSecond: 1 / (stance.at + 3) }
   };
-  const rotation = [ID.ONE_WOLF_PACK, ID.FROST_TRAP, wait(8000)];
   const shared = simulate('Soulbeast', rotation, config);
-  const solo = simulate('Soulbeast', rotation, { ...config, allies: { count: 0 } });
   const echoes = hits(shared, ID.ONE_WOLF_PACK);
   assert.deepEqual(
     echoes.filter((event) => !event.metadata?.triggeredByAlly).map((event) => event.at),
@@ -324,7 +324,7 @@ test('shared One Wolf Pack preserves personal triggers and resolves echoes after
     echoes
       .filter((event) => event.metadata?.triggeredByAlly)
       .map((event) => Number((event.at - application.at).toFixed(6))),
-    [3.88]
+    [3.28]
   );
 });
 

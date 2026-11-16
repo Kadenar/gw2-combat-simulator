@@ -25,7 +25,7 @@ export const soulbeastTooltips = {
       "Leave Beastmode, restore your pet's independent actions and command skills, and remove the merged archetype attributes. Trigger applicable Beastmode traits."
     ),
     [ID.ONE_WOLF_PACK]: skillTooltip(
-      'During the stance, qualifying player strikes trigger an extra strike after a delay. This extra strike cannot trigger itself. Leader of the Pack extends the stance and shares it with the allies set in your build for half your duration.',
+      'During the stance, qualifying player strikes trigger an extra strike after a delay. This extra strike cannot trigger itself. Leader of the Pack extends your stance and shares half its base duration with the allies set in your build.',
       (balanceContext) => [
         skillFact(balanceContext, ID.ONE_WOLF_PACK, 'duration', 'Base stance duration', tooltipSeconds),
         skillFact(balanceContext, ID.ONE_WOLF_PACK, 'internalCooldown', 'Minimum echo interval', tooltipSeconds),
@@ -36,7 +36,7 @@ export const soulbeastTooltips = {
       ]
     ),
     [ID.VULTURE_STANCE]: skillTooltip(
-      'During the stance, qualifying player strikes inflict poison and grant might, limited by the trigger interval. Leader of the Pack extends the stance and shares it with the allies set in your build for half your duration.',
+      'During the stance, qualifying player strikes inflict poison and grant might, limited by the trigger interval. Leader of the Pack extends your stance and shares half its base duration with the allies set in your build.',
       (balanceContext) => [
         skillFact(balanceContext, ID.VULTURE_STANCE, 'duration', 'Base stance duration', tooltipSeconds),
         skillFact(balanceContext, ID.VULTURE_STANCE, 'internalCooldown', 'Trigger interval', tooltipSeconds),
@@ -72,7 +72,7 @@ export const soulbeastTooltips = {
     [TRAIT.ETERNAL_BOND]: outsideScopeTooltip,
     // Explain how the shared stance benefits allies as well as showing its reduced duration.
     [TRAIT.LEADER_OF_THE_PACK]: traitTooltip(
-      'Stances last longer and share a fraction of their extended duration with nearby allies. Allied hits trigger One Wolf Pack follow-up strikes and Vulture Stance effects, with a separate trigger cooldown for each ally.',
+      'Stances last longer on you and share a fraction of their base duration with nearby allies. Allied hits trigger One Wolf Pack follow-up strikes and Vulture Stance effects, with a separate trigger cooldown for each ally.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'durationMultiplier', 'Stance duration', tooltipFactorChange),
         profileFact(
@@ -80,7 +80,7 @@ export const soulbeastTooltips = {
           id,
           'sharedDurationMultiplier',
           'Allied stance duration',
-          (value) => `${tooltipPercent(value)} of your extended duration`
+          (value) => `${tooltipPercent(value)} of base duration`
         )
       ]
     ),
