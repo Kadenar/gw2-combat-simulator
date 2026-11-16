@@ -304,7 +304,9 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
     slot: 'Profession_1',
     virtue: 'justice',
     cooldown: 12,
+    // Recharge begins when the melee dash ends, before the strike animation finishes.
     rechargeAnchor: 'castStart',
+    rechargeOffsetMs: 40,
     castTimeMs: 480,
     // Both impact packets retain the impact identity; the strike uses mechanic weapon strength.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
