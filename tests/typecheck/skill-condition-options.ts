@@ -17,7 +17,7 @@ export function checkConditionOptions(): void {
   condition({
     ...options,
     summonOwner: 'mesmer.clone:1',
-    metadata: { cloneId: 1, blade: false, triggeredByAlly: 0, venomProcEffectIndex: 0 }
+    metadata: { cloneId: 1, blade: false, triggeredByAlly: 0 }
   });
   // @ts-expect-error Migrated annotations belong to validated metadata, not shared controls.
   condition({ ...options, cloneId: 1 });

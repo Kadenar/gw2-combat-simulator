@@ -11,12 +11,15 @@ import {
   MAX_EFFECT_EXPANSION
 } from '#gw2/platform/effects/expansion-budget.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createCatalogNormalizer } from '#gw2/platform/skills/validation.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+
+const { normalizeSkillEffects } = createCatalogNormalizer(createCanonicalCatalog());
 
 const attribution = { source: 'Expansion probe', sourceId: 42, actorType: 'player' };
 const strike = (hits) => ({ type: 'strike', coefficient: 6, hits, atMs: 0 });

@@ -18,6 +18,7 @@ import { type AnnouncementEmission, type EffectDelivery } from '#gw2/platform/ef
 import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
 import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { PacketIdentity } from '#gw2/platform/events/identity.js';
+import { normalizeEffectMetadata } from '#gw2/platform/events/metadata.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   createEffectOwnershipContext,
@@ -101,6 +102,13 @@ export function createEffectDelivery<T extends object>(
   let announcementOrder = 0;
   let derivedActivationOrder = 0;
   let lethalActivation: string | undefined;
+  // Validate final annotations once, after preparation has selected the packet payload.
+  function withValidatedMetadata(event: SimulationEventBase): SimulationEventBase {
+    if (event.metadata === undefined) return event;
+
+    return { ...event, metadata: normalizeEffectMetadata(event.metadata, profession.catalog.metadataFields) };
+  }
+
   const handlers = new HandlerRegistry<Gw2Runtime<T>, Gw2ResolverEvent>()
     .registerAll(
       createGw2ResolverEventHandlers({
@@ -203,7 +211,8 @@ export function createEffectDelivery<T extends object>(
         : profession.prepareEvent
           ? profession.prepareEvent(runtime.mechanics, event)
           : event;
-    event = prepareGw2ComboEvent(prepared ?? event);
+    // Deferred packets are validated after their live preparation at dispatch.
+    event = prepareGw2ComboEvent(deferPreparation ? event : withValidatedMetadata(prepared ?? event));
 
     if (event.kind === 'internal') throw new TypeError('Internal work must use the work factory.');
 
@@ -269,26 +278,28 @@ export function createEffectDelivery<T extends object>(
     // Retrospective timeline annotations describe completed combat; visible activations must respect the live clock.
     if (at < runtime.time && request.log) throw new RangeError('Visible announcements cannot backdate the live clock.');
 
-    const event = assertSimulationEvent({
-      ...(request.cast ? { activationId: request.cast.activationId, offTarget: request.cast.offTarget } : {}),
-      ...request.attribution,
-      source: request.attribution?.source ?? announcement.type,
-      sourceId: request.attribution?.sourceId ?? announcement.name,
-      actorType: request.attribution?.actorType ?? ACTOR.EFFECT,
-      type: 'proc',
-      procType: announcement.type,
-      name: announcement.name,
-      at,
-      sourceSkill: announcement.sourceSkill,
-      detail: announcement.detail,
-      icon: announcement.icon,
-      cooldownReduction: announcement.cooldownReduction ?? undefined,
-      eventOrder: --announcementOrder,
-      causalOrder: request.cause?.causalOrder ?? queue.currentCausalOrder ?? host.eventOrder(),
-      ...((request.cause?.eventOrder ?? reactionParent({ type: 'proc', ...request.attribution })) != null
-        ? { parentEventOrder: request.cause?.eventOrder ?? reactionParent({ type: 'proc', ...request.attribution }) }
-        : {})
-    });
+    const event = assertSimulationEvent(
+      withValidatedMetadata({
+        ...(request.cast ? { activationId: request.cast.activationId, offTarget: request.cast.offTarget } : {}),
+        ...request.attribution,
+        source: request.attribution?.source ?? announcement.type,
+        sourceId: request.attribution?.sourceId ?? announcement.name,
+        actorType: request.attribution?.actorType ?? ACTOR.EFFECT,
+        type: 'proc',
+        procType: announcement.type,
+        name: announcement.name,
+        at,
+        sourceSkill: announcement.sourceSkill,
+        detail: announcement.detail,
+        icon: announcement.icon,
+        cooldownReduction: announcement.cooldownReduction ?? undefined,
+        eventOrder: --announcementOrder,
+        causalOrder: request.cause?.causalOrder ?? queue.currentCausalOrder ?? host.eventOrder(),
+        ...((request.cause?.eventOrder ?? reactionParent({ type: 'proc', ...request.attribution })) != null
+          ? { parentEventOrder: request.cause?.eventOrder ?? reactionParent({ type: 'proc', ...request.attribution }) }
+          : {})
+      })
+    );
     const cancelled =
       request.cast?.effectiveEnd != null &&
       request.cast.effectiveEnd !== Infinity &&
@@ -319,6 +330,7 @@ export function createEffectDelivery<T extends object>(
     if (request.log) recordExecuted(event);
   }
 
+  // Both callers supply admitted packets: reaction settlement and the queued condition handler.
   function applyConditionNow(event: SimulationEventBase) {
     // Immediate derived applications obey the same live clock and target gates as queued applications.
     if (canonicalTime(event.at) !== runtime.time)
@@ -359,7 +371,7 @@ export function createEffectDelivery<T extends object>(
           : null;
       // Preparation cannot reserve another queue position or detach the packet from its original cause.
       event = assertSimulationEvent({
-        ...prepareGw2ComboEvent(prepared),
+        ...prepareGw2ComboEvent(withValidatedMetadata(prepared)),
         ...(equippedProfileId ? { weaponStrengthProfileId: equippedProfileId } : {}),
         eventOrder: reserved.eventOrder,
         causalOrder: reserved.causalOrder

@@ -85,7 +85,7 @@ test('Mechanist keeps its mech present and exposes only trait-selected commands'
   });
   assert.deepEqual(result.warnings, []);
   assert.ok(result.events.some((event) => event.type === 'damage' && event.skillId === ID.JADE_BUSTER_CANNON));
-  assert.ok(result.events.some((event) => event.type === 'damage' && event.mechBasicAttack));
+  assert.ok(result.events.some((event) => event.type === 'damage' && event.metadata?.mechBasicAttack));
 
   const groups = engineerProfession.ui.paletteGroups({
     catalog: engineerCatalog,

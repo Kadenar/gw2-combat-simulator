@@ -3,6 +3,7 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import { isCustomSideEffectAction, type SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
+import { normalizeEffectMetadata } from '#gw2/platform/events/metadata.js';
 import { fieldValue } from '#gw2/platform/skills/field-specs.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
@@ -116,6 +117,9 @@ export function validateSideEffectAction(
 
       if (action.attribution != null && (typeof action.attribution !== 'object' || Array.isArray(action.attribution)))
         throw new TypeError(`${label} attribution must be an object.`);
+
+      // Snapshot reuse proves detachment, but each catalog must admit the annotation vocabulary independently.
+      normalizeEffectMetadata(action.attribution?.metadata, catalog.metadataFields);
 
       break;
     default:

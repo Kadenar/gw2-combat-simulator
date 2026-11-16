@@ -10,6 +10,7 @@ import {
 import type { EffectReactionRef } from '#gw2/platform/effects/reactions.js';
 import type { StrikePayloadFields } from '#gw2/platform/effects/strike-payload.js';
 import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
+import type { MetadataFromFields, SHARED_METADATA_FIELDS } from '#gw2/platform/events/metadata.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { timeKey } from '#kernel/core/clock.js';
 
@@ -197,57 +198,10 @@ export interface ResolvedEffectAudience {
   readonly recipientCount: number;
 }
 
-/** Closed vocabulary of subsystem-owned annotations preserved as one nested object. */
-export interface EffectMetadata {
-  // Combat annotations stay nested so profession reactions do not expand emitter controls.
-  readonly cloneId?: number;
-  /** Includes procedural blade attacks whose event identity has no canonical skill classification. */
-  readonly blade?: boolean;
-  /** Packet-specific eligibility excludes repeated shatter strikes and unrelated triggered damage. */
-  readonly shatterTraitEligible?: boolean;
-  readonly triggeredByAlly?: number;
-  readonly venomProcEffectIndex?: number;
-  /** A returned thief axe retains its projectile attribution while the recall owns malice and dual-wield procs. */
-  readonly recallSkillId?: SkillId;
-  /** Essence Blast retains the spirit count accepted at activation even if spirit lifetimes change before impact. */
-  readonly activeSpirits?: number;
-  readonly dhuumfireDuration?: number;
-  readonly dhuumfireInterval?: number;
-  readonly engineerMech?: boolean;
-  /** Guardian symbol damage is authored independently of skill names and descriptive text. */
-  readonly guardianSymbol?: boolean;
-  /** Only the Gleaming Blade cast that consumed Radiant Courage receives its damage multiplier. */
-  readonly guardianRadiantCourage?: boolean;
-  /** Falling Spider retains the factor earned by its predecessor at cast acceptance. */
-  readonly thiefFallingSpiderDamageFactor?: number;
-  /** Malicious Ashen Assault's final strike retains its accepted marked-malice factor. */
-  readonly thiefMaliciousAshenDamageFactor?: number;
-  /** Skill-owned bonuses retain their impact, detonation, or acceptance sample through damage resolution. */
-  readonly revenantAbyssalRazeDamageFactor?: number;
-  readonly revenantBlossomingAuraDamageFactor?: number;
-  readonly revenantReleaseConditionDurationFactor?: number;
-  readonly thiefMaliciousPoisonDurationFactor?: number;
-  /** Captured skill bonuses survive cast cleanup and resource consumption until their packets resolve. */
-  readonly elementalistSeetheDamageFactor?: number;
-  readonly thiefMaliciousSneakDurationFactor?: number;
-  readonly hitboxIndex?: number;
-  readonly largeHitboxOnly?: boolean;
-  readonly legendId?: string;
-  readonly necromancerBlight?: number;
-  /** Immutable burst inputs captured before resource spending; later hits cannot change the selected tier. */
-  readonly warriorAdrenalineSpent?: number;
-  readonly warriorBurstTier?: number;
-  /** Shares Devouring Darkness's pre-application observation between its independent impact packets. */
-  readonly necromancerConditionCount?: number;
-  /** Addle retains only its activation-time shard gate while later impacts use live resource state. */
-  readonly necromancerAddleImmobilize?: boolean;
-  readonly necromancerShroudSkillOne?: boolean;
-  readonly packetKind?: string;
-  readonly radiantWeapon?: string;
-  readonly smallHitboxCap?: number;
-  readonly spiritAttackType?: string;
-  readonly trigger?: string;
-}
+type SharedEffectMetadata = MetadataFromFields<typeof SHARED_METADATA_FIELDS>;
+
+/** All profession declarations merge here. Types are program-wide; catalog admission enforces family scope. */
+export interface EffectMetadata extends SharedEffectMetadata {}
 
 /** Derive the shared vocabulary while keeping damage and condition payloads discriminated. */
 type CommonSimulationEventType = Exclude<(typeof COMMON_EVENT_TYPES)[number], 'damage' | 'condition'>;

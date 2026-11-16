@@ -3,6 +3,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
 import { vindicatorHooks } from '#gw2/professions/revenant/specializations/vindicator/hooks.js';
+import { VINDICATOR_METADATA_FIELDS } from '#gw2/professions/revenant/specializations/vindicator/metadata.js';
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
 import { VINDICATOR_SKILLS } from '#gw2/professions/revenant/specializations/vindicator/skills/index.js';
 import {
@@ -16,6 +17,7 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 export const vindicatorModule = defineNativeModule({
   id: 'Vindicator',
   data: createNativeModuleData<RevenantSkill>({
+    metadataFields: VINDICATOR_METADATA_FIELDS,
     id: 'Vindicator',
     traitLines: TRAIT_LINES,
     skillFlips: [{ parentId: ID.URN_OF_SAINT_VIKTOR, followUpId: ID.DROP_URN_OF_SAINT_VIKTOR }],

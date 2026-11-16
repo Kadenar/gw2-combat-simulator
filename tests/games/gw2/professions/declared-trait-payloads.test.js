@@ -37,7 +37,7 @@ for (const [name, profession, specialization, trait, profile, effect, fields] of
     GUARDIAN.SEARING_PACT,
     GUARDIAN.SEARING_PACT,
     { type: 'condition', name: 'Burning' },
-    { willbenderFlames: true }
+    { metadata: { willbenderFlames: true } }
   ],
   [
     'Endless Enmity',

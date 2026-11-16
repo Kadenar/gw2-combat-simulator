@@ -3,11 +3,13 @@ import test from 'node:test';
 
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createCatalogNormalizer } from '#gw2/platform/skills/validation.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
+
+const { normalizeSkillEffects } = createCatalogNormalizer(createCanonicalCatalog());
 
 // Complete callbacks keep these tests about declaration admission rather than live resource tuning.
 const energy = {
@@ -143,9 +145,10 @@ test('raw catalog grants are re-read before each run', () => {
 // Immutable declarations may be reused across patched catalogs; opaque payload ownership remains with the author.
 test('declaration snapshots reuse immutable inputs and isolate keys around opaque payloads', () => {
   const action = { type: 'resourceGrant', resource: 'energy', amount: 1 };
-  const snapshot = snapshotActionDeclaration(action, normalizeSkillEffects);
+  const normalize = (effects, label) => normalizeSkillEffects(effects, label);
+  const snapshot = snapshotActionDeclaration(action, normalize);
   assert.notEqual(snapshot, action);
-  assert.equal(snapshotActionDeclaration(snapshot, normalizeSkillEffects), snapshot);
+  assert.equal(snapshotActionDeclaration(snapshot, normalize), snapshot);
   const payload = new Map([['value', 1]]);
   const withPayload = { ...action, payload };
   const catalog = createCanonicalCatalog({

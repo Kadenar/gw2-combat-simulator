@@ -15,6 +15,7 @@ import { signetActiveAttributeEffects } from '#gw2/professions/warrior/core/skil
 import { createWarriorCoreState, projectWarriorCorePlanningState } from '#gw2/professions/warrior/core/state.js';
 import { warriorCoreTraits } from '#gw2/professions/warrior/core/traits/index.js';
 import { TRAIT_LINES } from '#gw2/professions/warrior/data/trait-lines.js';
+import { WARRIOR_METADATA_FIELDS } from '#gw2/professions/warrior/metadata.js';
 import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 // Core owns the profession-wide weapon equipment choices.
@@ -45,6 +46,7 @@ export const warriorCoreModule = defineNativeModule({
     autoattackChains: WARRIOR_CORE_AUTOATTACK_CHAINS,
     profileFields: WARRIOR_CORE_PROFILE_FIELDS,
     skillFields: WARRIOR_CORE_SKILL_FIELDS,
+    metadataFields: WARRIOR_METADATA_FIELDS,
     skills: WARRIOR_CORE_SKILLS
   }),
   state: {

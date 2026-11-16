@@ -12,6 +12,7 @@ import { createMesmerCoreState, projectMesmerCorePlanningState } from '#gw2/prof
 import { mesmerCoreTraits } from '#gw2/professions/mesmer/core/traits/index.js';
 import { TRAIT_LINES } from '#gw2/professions/mesmer/data/trait-lines.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { MESMER_METADATA_FIELDS } from '#gw2/professions/mesmer/metadata.js';
 import { defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
 
 // Core owns the profession-wide weapon equipment choices.
@@ -40,6 +41,7 @@ export const mesmerCoreModule = defineNativeModule({
     autoattackChains: MESMER_CORE_AUTOATTACK_CHAINS,
     profileFields: MESMER_CORE_PROFILE_FIELDS,
     skillFields: MESMER_CORE_SKILL_FIELDS,
+    metadataFields: MESMER_METADATA_FIELDS,
     skills: MESMER_CORE_SKILLS
   }),
   state: {

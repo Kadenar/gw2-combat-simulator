@@ -7,7 +7,6 @@ import {
   numberField,
   type FieldSpecs
 } from '#gw2/platform/skills/field-specs.js';
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 /**
  * Defines numeric skill fields read by platform, application, or integration code, including bounds, units, and patch tiers.
@@ -93,9 +92,4 @@ export function professionSkillFields(professionFields: FieldSpecs | undefined):
   assertFieldGroups(fields);
   assertSkillDataFieldsAreGroups(fields);
   return fields;
-}
-
-/** A catalog built without profession declarations validates and patches against the shared declarations. */
-export function catalogSkillFields(catalog: Pick<CanonicalCatalog, 'skillFields'> | null | undefined): FieldSpecs {
-  return catalog?.skillFields ?? SHARED_SKILL_FIELDS;
 }

@@ -17,7 +17,7 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   holosmithEventConditionBaseDurationFactor,
-  holosmithEventMetadata,
+  holosmithEventFields,
   holosmithEventStrikeFactor,
   type HolosmithResolverEvent
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
@@ -186,7 +186,7 @@ export const solarFocusingLens = defineTrait({
       operation: 'damage-additive',
       amount: (context) => balanceNumber(context.catalog, TRAIT.SOLAR_FOCUSING_LENS, 'damageIncrease'),
       when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) && holosmithEventMetadata(context.event).solarFocusingLens === true
+        isGw2PlayerModifierOwnedEvent(context.event) && holosmithEventFields(context.event).solarFocusingLens === true
     }
   ],
   triggers: [onTriggerPoint(photonForgeTransitioned, { run: grantSolarFocusingLens })],
@@ -309,7 +309,7 @@ function emitPhotonicBlastingModuleEffects(
             ...event,
             name: 'Photonic Blasting Module',
             canCrit: undefined,
-            explosion: true,
+            damageKind: 'explosion',
             comboFinishers: [{ ownerId: 'engineer', finisherType: COMBO_FINISHER.BLAST }]
           }
         : {

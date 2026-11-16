@@ -208,7 +208,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
         label: 'Falling Spider',
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'multiply',
-        factor: (context) => Number(context.event?.metadata?.thiefFallingSpiderDamageFactor),
+        factor: (context) => context.event?.metadata?.thiefFallingSpiderDamageFactor ?? 1,
         when: (context) => context.event?.metadata?.thiefFallingSpiderDamageFactor != null
       }
     ],

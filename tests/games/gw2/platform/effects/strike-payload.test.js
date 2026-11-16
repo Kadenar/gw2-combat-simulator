@@ -6,8 +6,11 @@ import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { copyStrikePayload, strikePayloadNumericKeys } from '#gw2/platform/effects/strike-payload.js';
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import { assertSimulationEvent } from '#gw2/platform/events/events.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createCatalogNormalizer } from '#gw2/platform/skills/validation.js';
+
+const { normalizeSkillEffects } = createCatalogNormalizer(createCanonicalCatalog());
 
 const attribution = { source: 'Fixture', sourceId: 1, actorType: 'player' };
 const materialize = (effect) =>
@@ -106,7 +109,7 @@ test('authored numeric validation still visits every variant and tick while proc
   );
 });
 
-test('profile emissions detach nested caller metadata, authored declarations, and sibling packets', () => {
+test('profile emissions detach caller metadata, authored declarations, and sibling packets', () => {
   const submitted = [];
   const service = createEffectEmissionService({
     collectBoonLineage: false,
@@ -125,19 +128,19 @@ test('profile emissions detach nested caller metadata, authored declarations, an
   const effect = {
     type: 'strike',
     coefficient: 1,
-    metadata: { authored: { values: [1] } },
+    metadata: { spiritAttackType: 'fixture' },
     comboFinishers: [{ type: 'projectile', owner: 'player', chance: 1 }]
   };
   const profile = { id: 1, name: 'Fixture', effects: [effect] };
-  const caller = { ...attribution, metadata: { caller: { values: [2] } } };
+  const caller = { ...attribution, metadata: { triggeredByAlly: 2 } };
   service.emit({ kind: 'profile', profile, attribution: caller });
   service.emit({ kind: 'profile', profile, attribution: caller });
-  caller.metadata.caller.values[0] = 99;
-  submitted[0].metadata.authored.values[0] = 88;
-  submitted[0].metadata.caller.values[0] = 77;
+  caller.metadata.triggeredByAlly = 4;
+  submitted[0].metadata.spiritAttackType = 'changed';
+  submitted[0].metadata.triggeredByAlly = 3;
   submitted[0].comboFinishers[0].chance = 0;
-  assert.deepEqual(submitted[1].metadata, { authored: { values: [1] }, caller: { values: [2] } });
+  assert.deepEqual(submitted[1].metadata, { spiritAttackType: 'fixture', triggeredByAlly: 2 });
   assert.equal(submitted[1].comboFinishers[0].chance, 1);
-  assert.deepEqual(effect.metadata, { authored: { values: [1] } });
+  assert.deepEqual(effect.metadata, { spiritAttackType: 'fixture' });
   assert.equal(effect.comboFinishers[0].chance, 1);
 });

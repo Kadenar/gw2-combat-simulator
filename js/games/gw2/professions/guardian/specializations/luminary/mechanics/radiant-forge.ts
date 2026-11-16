@@ -69,7 +69,7 @@ function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>):
       weaponSet: runtime.activeWeaponSet,
       weaponLine: exit.name,
       activationId: cast?.id,
-      automatic: !cast
+      metadata: { guardianAutomaticForgeExit: !cast }
     }
   });
   lockTransitionInput(runtime, 'forgeExitMs', exit);

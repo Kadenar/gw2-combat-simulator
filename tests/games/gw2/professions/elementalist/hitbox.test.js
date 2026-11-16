@@ -18,7 +18,7 @@ test('small-hitbox caps pair offensive packets by timestamp and occurrence while
             condition: 'Bleeding',
             stacks: 1,
             duration: 3,
-            metadata: { original: true }
+            metadata: { packetKind: 'original' }
           }))
         },
         ...[100, 100, 200].map((atMs) => ({ type: 'condition', condition: 'Blindness', stacks: 1, duration: 3, atMs })),
@@ -38,7 +38,7 @@ test('small-hitbox caps pair offensive packets by timestamp and occurrence while
     packets.map((packet) => packet.metadata?.hitboxIndex),
     [1, 2, 3, 5, 2, 3, 5, 2, 3, 5, undefined, undefined, undefined, 4, 4]
   );
-  assert.ok(skill.effects[1].ticks.every((tick) => tick.metadata.original));
+  assert.ok(skill.effects[1].ticks.every((tick) => tick.metadata.packetKind === 'original'));
 
   for (const hitboxSize of ['small', 'large']) {
     const events = packets.map((packet) =>

@@ -14,6 +14,7 @@ import { NECROMANCER_CORE_SKILL_FLIPS } from '#gw2/professions/necromancer/core/
 import { projectNecromancerPlanningState } from '#gw2/professions/necromancer/core/state.js';
 import { necromancerCoreTraits } from '#gw2/professions/necromancer/core/traits/index.js';
 import { TRAIT_LINES } from '#gw2/professions/necromancer/data/trait-lines.js';
+import { NECROMANCER_METADATA_FIELDS } from '#gw2/professions/necromancer/metadata.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import { defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
 
@@ -41,6 +42,7 @@ export const necromancerCoreModule = defineNativeModule({
     skillFlips: NECROMANCER_CORE_SKILL_FLIPS,
     profileFields: NECROMANCER_CORE_PROFILE_FIELDS,
     skillFields: NECROMANCER_CORE_SKILL_FIELDS,
+    metadataFields: NECROMANCER_METADATA_FIELDS,
     skills: NECROMANCER_CORE_SKILLS,
 
     autoattackChains: NECROMANCER_CORE_AUTOATTACK_CHAINS

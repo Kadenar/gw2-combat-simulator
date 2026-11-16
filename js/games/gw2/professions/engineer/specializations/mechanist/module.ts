@@ -8,6 +8,7 @@ import {
   MECHANIST_SKILL_FIELDS
 } from '#gw2/professions/engineer/specializations/mechanist/catalog-fields.js';
 import { mechanistHooks } from '#gw2/professions/engineer/specializations/mechanist/hooks.js';
+import { MECHANIST_METADATA_FIELDS } from '#gw2/professions/engineer/specializations/mechanist/metadata.js';
 import { mechanistUi } from '#gw2/professions/engineer/specializations/mechanist/presentation.js';
 import { MECHANIST_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/index.js';
 import {
@@ -26,6 +27,7 @@ export const mechanistModule = defineNativeModule({
     traitLines: TRAIT_LINES,
     profileFields: ENGINEER_MECHANIST_PROFILE_FIELDS,
     skillFields: MECHANIST_SKILL_FIELDS,
+    metadataFields: MECHANIST_METADATA_FIELDS,
     skills: materializeSkillDefinitions(MECHANIST_SKILL_MECHANICS)
   }),
   state: { create: mechanistState.create, project: projectMechanistPlanningState },

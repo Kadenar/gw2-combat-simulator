@@ -94,7 +94,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         id: 'revenant.release-mesmer-condition-affinity',
         target: 'conditionBaseDuration',
         operation: 'multiply',
-        factor: (context) => Number(context.event?.metadata?.revenantReleaseConditionDurationFactor),
+        factor: (context) => context.event?.metadata?.revenantReleaseConditionDurationFactor ?? 1,
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
           context.event?.metadata?.revenantReleaseConditionDurationFactor != null
@@ -225,7 +225,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         id: 'revenant.release-assassin-condition-affinity',
         target: 'conditionBaseDuration',
         operation: 'multiply',
-        factor: (context) => Number(context.event?.metadata?.revenantReleaseConditionDurationFactor),
+        factor: (context) => context.event?.metadata?.revenantReleaseConditionDurationFactor ?? 1,
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
           context.event?.metadata?.revenantReleaseConditionDurationFactor != null

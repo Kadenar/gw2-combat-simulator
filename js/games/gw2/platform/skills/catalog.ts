@@ -3,7 +3,7 @@
  * boundary where complete owner declarations become one validated immutable lookup.
  */
 import { prepareCatalogActionRequirements } from '#gw2/platform/effects/action-declarations.js';
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
+import { combineMetadataFields, SHARED_METADATA_FIELDS, type MetadataFields } from '#gw2/platform/events/metadata.js';
 import type { Gw2SpecializationData } from '#gw2/platform/profession-definition/specialization-data-types.js';
 import { indexAutoattackChains } from '#gw2/platform/skills/autoattack-chain-index.js';
 import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
@@ -18,7 +18,7 @@ import type {
   Skill,
   SkillId
 } from '#gw2/platform/skills/types.js';
-import { normalizeSkill, validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
+import { createCatalogNormalizer, validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
 
 /** Ordered, explicit chain declarations; each skill belongs to at most one sequence. */
 export type AutoattackChains = readonly (readonly SkillId[])[];
@@ -35,6 +35,8 @@ interface CanonicalCatalogOptions<TSkill extends Skill> {
   /** Fields only this profession's code reads; the shared vocabulary is always included. */
   readonly skillFields?: FieldSpecs;
   readonly profileFields?: FieldSpecs;
+  /** Profession annotation declarations; catalog construction adds the shared vocabulary. */
+  readonly metadataFields?: MetadataFields;
 }
 
 interface NormalizedAutoattackChains {
@@ -85,12 +87,22 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
   weapons = [],
   weaponHands = {},
   skillFields: professionFields,
-  profileFields: professionProfileDeclarations
+  profileFields: professionProfileDeclarations,
+  metadataFields: professionMetadataFields
 }: CanonicalCatalogOptions<TSkill> = {}): Readonly<CanonicalCatalog<TSkill>> {
   // Every declared skill, including patched replacements, is checked against this one profession-wide table.
   const skillFields = professionSkillFields(professionFields);
   const profileFields = professionProfileFields(professionProfileDeclarations);
-  const normalizedSkills = declared.map((skill) => normalizeSkill(skill));
+  const metadataFields = combineMetadataFields([
+    { owner: 'platform', fields: SHARED_METADATA_FIELDS },
+    { owner: 'profession', fields: professionMetadataFields }
+  ]);
+  const { normalizeSkill, normalizeSkillEffects } = createCatalogNormalizer({
+    skillFields,
+    profileFields,
+    metadataFields
+  });
+  const normalizedSkills = declared.map(normalizeSkill);
   const normalizedAutoattacks = normalizeAutoattackChains(normalizedSkills, autoattackChains);
   const normalizedFlips = normalizeSkillFlips(normalizedSkills, skillFlips, normalizedAutoattacks.positions);
   // Inject chain position data (root id + step index) into each skill after the chain
@@ -125,6 +137,7 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
     skillsById: new Map(skills.map((skill) => [skill.id, skill])),
     skillFields,
     profileFields,
+    metadataFields,
     balanceProfiles: Object.freeze(profiles),
     balanceProfilesById: new Map(profiles.map((profile) => [profile.id, profile])),
     autoattackChains: normalizedAutoattacks.chains,

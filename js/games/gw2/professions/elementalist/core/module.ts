@@ -20,6 +20,7 @@ import {
 import { elementalistCoreTraits } from '#gw2/professions/elementalist/core/traits/index.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { TRAIT_LINES } from '#gw2/professions/elementalist/data/trait-lines.js';
+import { ELEMENTALIST_METADATA_FIELDS } from '#gw2/professions/elementalist/metadata.js';
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 import { defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
 
@@ -52,6 +53,7 @@ export const elementalistCoreModule = defineNativeModule({
     autoattackChains: ELEMENTALIST_CORE_AUTOATTACK_CHAINS,
     profileFields: ELEMENTALIST_CORE_PROFILE_FIELDS,
     skillFields: ELEMENTALIST_CORE_SKILL_FIELDS,
+    metadataFields: ELEMENTALIST_METADATA_FIELDS,
     skills: ELEMENTALIST_CORE_SKILLS
   }),
   state: {

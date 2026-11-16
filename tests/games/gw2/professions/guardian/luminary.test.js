@@ -651,7 +651,9 @@ test('Radiant Forge expiry starts the same reduced recharge as manual exit', () 
   const expiresAt = entered.planningState.profession[STATE.RADIANT_FORGE_ENDS_AT];
   const expired = run(['Enter Radiant Forge', { type: 'wait', durationMs: expiresAt * 1000 }]);
   const manual = run(['Enter Radiant Forge', 'Exit Radiant Forge']);
-  const exit = expired.events.find((event) => event.type === 'weapon_set' && event.automatic);
+  const exit = expired.events.find(
+    (event) => event.type === 'weapon_set' && event.metadata?.guardianAutomaticForgeExit
+  );
   assert.deepEqual(expired.warnings, []);
   assert.equal(exit.at, expiresAt);
   assert.equal(expired.planningState.profession[STATE.RADIANT_FORGE], false);
@@ -1458,7 +1460,7 @@ for (const automatic of [false, true]) {
       (event) => event.type === 'weapon_set' && event.skillId === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE
     );
     assert.equal(exits.length, 1);
-    assert.equal(exits[0].automatic, automatic);
+    assert.equal(exits[0].metadata?.guardianAutomaticForgeExit, automatic);
     assert.equal(
       runtime.cooldownController.rechargeFor(GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE).workAnchorAt,
       exits[0].at

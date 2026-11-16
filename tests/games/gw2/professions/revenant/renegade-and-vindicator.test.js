@@ -1173,9 +1173,9 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
   // Reaver's Curse enhances exactly the next dodge; later dodges return to normal damage.
   assert.equal(dodges.length, 3);
   assert.equal(dodges[1].coefficient, dodges[0].coefficient);
-  assert.equal(dodges[0].reaversCurseDamageFactor, undefined);
-  assert.equal(dodges[1].reaversCurseDamageFactor, 2);
-  assert.equal(dodges[2].reaversCurseDamageFactor, undefined);
+  assert.equal(dodges[0].metadata?.reaversCurseDamageFactor, undefined);
+  assert.equal(dodges[1].metadata?.reaversCurseDamageFactor, 2);
+  assert.equal(dodges[2].metadata?.reaversCurseDamageFactor, undefined);
   assertFlooredDamageMultiplier(dodges[1].damage, dodges[2].damage, 2);
   assert.equal(dodges[2].coefficient, dodges[0].coefficient);
   assert.equal(result.planningState.profession[STATE.REAVERS_CURSE_UNTIL], 0);
@@ -1189,7 +1189,7 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
         },
         event: {
           actorType: 'player',
-          forerunnerOfDeathActive: true
+          metadata: { forerunnerOfDeathActive: true }
         },
         time: 1,
         runtime: { profession: {} }

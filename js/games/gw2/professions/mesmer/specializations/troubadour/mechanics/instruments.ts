@@ -266,8 +266,10 @@ export function resolveCrescendo(
       },
       {
         // Preserve the same snapshot for scalar and timeline strikes; the skill owns the damage calculation.
-        crescendoInstrumentCount: activeInstruments.size,
-        crescendoEffectiveness: effectiveness
+        metadata: {
+          crescendoInstrumentCount: activeInstruments.size,
+          crescendoEffectiveness: effectiveness
+        }
       }
     ).forEach((packet) => {
       context.effects.emit({

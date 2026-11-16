@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
@@ -6,10 +6,12 @@ import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
 import { remainingTargetHealthFraction, targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { runtimeTargetConditionStacks, targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
+import { combineMetadataFields } from '#gw2/platform/events/metadata.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/hitbox.js';
+import { ELEMENTALIST_METADATA_FIELDS } from '#gw2/professions/elementalist/metadata.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
@@ -153,6 +155,10 @@ test('hitbox-sensitive packets follow target transformations and ignore hidden G
   const profession = defineTestProfession({
     id: 'hitbox-fixture',
     name: 'Hitbox fixture',
+    // This fixture exercises the Elementalist mechanic with its own declared packet annotations.
+    catalog: createCanonicalCatalog({
+      metadataFields: combineMetadataFields([{ owner: 'Elementalist', fields: ELEMENTALIST_METADATA_FIELDS }])
+    }),
     hooks: { prepareEvent: prepareElementalistHitboxEvent }
   });
   const result = run(

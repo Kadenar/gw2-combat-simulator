@@ -72,7 +72,7 @@ test('Holosmith shared profiles retain captured heat and causal ownership', () =
     );
     assert.ok(delayed.length > 0);
     for (const event of delayed) {
-      assert.equal(event.holosmithStrikeFactor, skillId === ID.PRIME_LIGHT_BEAM ? 1.2 : 1.35);
+      assert.equal(event.metadata?.holosmithStrikeFactor, skillId === ID.PRIME_LIGHT_BEAM ? 1.2 : 1.35);
       assert.equal(event.activationId, marker.activationId);
       assert.equal(event.parentEventOrder, marker.eventOrder);
     }

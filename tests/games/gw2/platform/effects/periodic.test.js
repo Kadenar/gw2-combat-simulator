@@ -3,7 +3,10 @@ import test from 'node:test';
 
 import { strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import { extendPeriodicEffects } from '#gw2/platform/effects/periodic.js';
-import { normalizeEffect } from '#gw2/platform/effects/validation.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createCatalogNormalizer } from '#gw2/platform/skills/validation.js';
+
+const { normalizeEffect } = createCatalogNormalizer(createCanonicalCatalog());
 
 const strike = {
   type: 'strike',

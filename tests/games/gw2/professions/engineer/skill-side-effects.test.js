@@ -188,7 +188,7 @@ test('Overclock declaration and cannon payload independently own activation and 
   assert.ok(busyUntil > 0);
   assert.equal(removed.planningState.profession[STATE.MECH].busyUntil, busyUntil);
   for (const result of [baseline, removed]) {
-    const autos = result.events.filter((event) => event.type === 'damage' && event.mechBasicAttack);
+    const autos = result.events.filter((event) => event.type === 'damage' && event.metadata?.mechBasicAttack);
     assert.ok(autos.length > 0);
     assert.ok(autos.every((event) => event.at >= busyUntil && event.actorType === 'summon'));
   }

@@ -12,6 +12,7 @@ import { ENGINEER_CORE_SKILL_FLIPS } from '#gw2/professions/engineer/core/skills
 import { createEngineerCoreState, projectEngineerCorePlanningState } from '#gw2/professions/engineer/core/state.js';
 import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.js';
 import { TRAIT_LINES } from '#gw2/professions/engineer/data/trait-lines.js';
+import { ENGINEER_METADATA_FIELDS } from '#gw2/professions/engineer/metadata.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
 
@@ -37,6 +38,7 @@ export const engineerCoreModule = defineNativeModule({
     skillFlips: ENGINEER_CORE_SKILL_FLIPS,
     profileFields: ENGINEER_CORE_PROFILE_FIELDS,
     skillFields: ENGINEER_CORE_SKILL_FIELDS,
+    metadataFields: ENGINEER_METADATA_FIELDS,
     skills: ENGINEER_CORE_SKILLS,
 
     autoattackChains: ENGINEER_CORE_AUTOATTACK_CHAINS

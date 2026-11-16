@@ -8,7 +8,8 @@ export interface EffectSource extends Pick<
   SimulationEventBase,
   'type' | 'kind' | 'at' | 'eventOrder' | 'source' | 'skillName' | 'name'
 > {
-  readonly metadata?: Pick<EffectMetadata, 'radiantWeapon'>;
+  /** Detached annotations preserve family-owned presentation inputs. */
+  readonly metadata?: EffectMetadata;
 }
 
 export interface EffectSegment {
@@ -85,9 +86,7 @@ export class EffectRecorder implements EffectReportObserver {
         source: source.source,
         skillName: source.skillName,
         name: source.name,
-        ...(source.metadata?.radiantWeapon == null
-          ? {}
-          : { metadata: Object.freeze({ radiantWeapon: source.metadata.radiantWeapon }) })
+        ...(source.metadata == null ? {} : { metadata: Object.freeze({ ...source.metadata }) })
       });
       this.sources.set(source, copy);
     }

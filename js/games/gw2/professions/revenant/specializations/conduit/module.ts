@@ -7,6 +7,7 @@ import {
   REVENANT_CONDUIT_PROFILE_FIELDS
 } from '#gw2/professions/revenant/specializations/conduit/catalog-fields.js';
 import { conduitHooks } from '#gw2/professions/revenant/specializations/conduit/hooks.js';
+import { CONDUIT_METADATA_FIELDS } from '#gw2/professions/revenant/specializations/conduit/metadata.js';
 import { conduitUi } from '#gw2/professions/revenant/specializations/conduit/presentation.js';
 import { CONDUIT_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/index.js';
 import { conduitState, projectConduitPlanningState } from '#gw2/professions/revenant/specializations/conduit/state.js';
@@ -21,6 +22,7 @@ export const conduitModule = defineNativeModule({
     traitLines: TRAIT_LINES,
     profileFields: REVENANT_CONDUIT_PROFILE_FIELDS,
     skillFields: CONDUIT_SKILL_FIELDS,
+    metadataFields: CONDUIT_METADATA_FIELDS,
     skills: materializeSkillDefinitions(CONDUIT_BASE_SKILL_MECHANICS)
   }),
   state: { create: conduitState.create, project: projectConduitPlanningState },

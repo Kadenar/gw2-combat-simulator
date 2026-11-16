@@ -370,7 +370,9 @@ test('Willbender reopening preserves partial progress and records one live activ
 
 test('Willbender same-virtue trails overlap while a different virtue retires pending prior pulses', () => {
   const overlapping = run([ID.FLOWING_RESOLVE, ID.FLOWING_RESOLVE, wait(3000)], willbender);
-  const fields = overlapping.resolvedEvents.filter((event) => event.type === 'damage' && event.willbenderFlames);
+  const fields = overlapping.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.metadata?.willbenderFlames
+  );
   assert.equal(new Set(fields.map((event) => event.activationId)).size, 2);
   assert.equal(wb(overlapping).flameGeneration, 1);
   // Either replacement virtue retires every old activation while retaining its own field.
@@ -505,7 +507,7 @@ test('removed Willbender window components preserve independent fields and activ
   assert.equal(wb(result).justiceUntil, 0);
   assert.equal(justiceApplications(result, 'active').length, 0);
   assert.equal(wb(result).lethalTempo.stacks, 1);
-  assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.willbenderFlames));
+  assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.metadata?.willbenderFlames));
   assert.ok(result.resolvedEvents.some((event) => event.kind === 'fury'));
   assert.equal(
     result.resolvedEvents.some((event) => event.kind === 'might' && event.sourceId === TRAIT.HOLY_RECKONING),

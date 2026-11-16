@@ -7,12 +7,18 @@ import {
   validateSideEffectAction
 } from '#gw2/platform/effects/action-validation.js';
 import { skillActions } from '#gw2/platform/effects/actions.js';
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
+import { createEffectNormalizer } from '#gw2/platform/effects/validation.js';
 import { fieldValue, validateFieldValues, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
 import { normalizeSkillModifiers } from '#gw2/platform/skills/modifiers.js';
-import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
-import type { BalanceProfile, CanonicalCatalog, Skill, SkillId, SkillLockout } from '#gw2/platform/skills/types.js';
+import type {
+  BalanceProfile,
+  CanonicalCatalog,
+  CatalogVocabulary,
+  Skill,
+  SkillId,
+  SkillLockout
+} from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
 /** Validate skill declarations and cross-catalog references before runtime selection. */
@@ -64,7 +70,7 @@ function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillL
 
 /** References can cross module contributions, so validate after the complete catalog exists. */
 function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): void {
-  validateSkillTuning(skill, catalogSkillFields(catalog), `skill=${skill.id}`);
+  validateSkillTuning(skill, catalog.skillFields, `skill=${skill.id}`);
 
   // A release threshold only has meaning for skills that retain lockout after commitment.
   if (skill.interruptLockoutReleaseMs != null && skill.retainsCastLockoutAfterInterrupt !== true)
@@ -267,160 +273,179 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
   }
 }
 
-/**
- * Validate and normalize one declared skill before immutable catalog indexing. The closed skill types reject unknown
- * and misspelled fields at compile time; this checks the values those types cannot express.
- */
-export function normalizeSkill<TSkill extends Skill>(source: TSkill): TSkill {
-  const id = source.id;
-  validateDurationFields(source, `skill=${id}`);
+/** Bind all field tables and recursive normalizers for one catalog construction or patch operation. */
+export function createCatalogNormalizer(vocabulary: CatalogVocabulary) {
+  const effects = createEffectNormalizer(vocabulary);
+  const { normalizeSkillEffects } = effects;
+  /**
+   * Validate and normalize one declared skill before immutable catalog indexing. The closed skill types reject unknown
+   * and misspelled fields at compile time; this checks the values those types cannot express.
+   */
+  function normalizeSkill<TSkill extends Skill>(source: TSkill): TSkill {
+    const id = source.id;
+    validateDurationFields(source, `skill=${id}`);
 
-  // Input observations accept only canonical control identifiers.
-  if (source.inputControl != null && !INPUT_CONTROL_IDS.includes(source.inputControl))
-    throw new TypeError(`Skill ${id} has invalid inputControl.`);
+    // Input observations accept only canonical control identifiers.
+    if (source.inputControl != null && !INPUT_CONTROL_IDS.includes(source.inputControl))
+      throw new TypeError(`Skill ${id} has invalid inputControl.`);
 
-  // Direct catalog consumers must enforce ownership even without a profession-specific normalizer.
-  validateComboOwnership(source, `Skill ${id} (${source.name})`);
-  const quicknessCastTimeMs = source.quicknessCastTimeMs == null ? null : Number(source.quicknessCastTimeMs);
+    // Direct catalog consumers must enforce ownership even without a profession-specific normalizer.
+    validateComboOwnership(source, `Skill ${id} (${source.name})`);
+    const quicknessCastTimeMs = source.quicknessCastTimeMs == null ? null : Number(source.quicknessCastTimeMs);
 
-  if (quicknessCastTimeMs != null && (!(quicknessCastTimeMs >= 0) || !Number.isFinite(quicknessCastTimeMs))) {
-    throw new TypeError(`Skill ${id} has an invalid quicknessCastTimeMs.`);
-  }
+    if (quicknessCastTimeMs != null && (!(quicknessCastTimeMs >= 0) || !Number.isFinite(quicknessCastTimeMs))) {
+      throw new TypeError(`Skill ${id} has an invalid quicknessCastTimeMs.`);
+    }
 
-  // Only summon metadata supplies quicknessCastTimeMs and needs a derived base duration.
-  const castTimeMs = Number(
-    source.castTimeMs ?? (quicknessCastTimeMs == null ? 0 : quicknessCastTimeMs * QUICKNESS_ACTION_RATE)
-  );
+    // Only summon metadata supplies quicknessCastTimeMs and needs a derived base duration.
+    const castTimeMs = Number(
+      source.castTimeMs ?? (quicknessCastTimeMs == null ? 0 : quicknessCastTimeMs * QUICKNESS_ACTION_RATE)
+    );
 
-  if (!(castTimeMs >= 0) || !Number.isFinite(castTimeMs)) {
-    throw new TypeError(`Skill ${id} requires a non-negative finite castTimeMs.`);
-  }
+    if (!(castTimeMs >= 0) || !Number.isFinite(castTimeMs)) {
+      throw new TypeError(`Skill ${id} requires a non-negative finite castTimeMs.`);
+    }
 
-  const interruptCommitMs = source.interruptCommitMs == null ? null : Number(source.interruptCommitMs);
+    const interruptCommitMs = source.interruptCommitMs == null ? null : Number(source.interruptCommitMs);
 
-  if (interruptCommitMs != null && (!(interruptCommitMs >= 0) || !Number.isFinite(interruptCommitMs))) {
-    throw new TypeError(`Skill ${id} has an invalid interruptCommitMs.`);
-  }
+    if (interruptCommitMs != null && (!(interruptCommitMs >= 0) || !Number.isFinite(interruptCommitMs))) {
+      throw new TypeError(`Skill ${id} has an invalid interruptCommitMs.`);
+    }
 
-  // Commit is the safe default; only explicitly classified channels retain packets individually.
-  const interruptMode = source.interruptMode == null ? 'commit' : String(source.interruptMode);
+    // Commit is the safe default; only explicitly classified channels retain packets individually.
+    const interruptMode = source.interruptMode == null ? 'commit' : String(source.interruptMode);
 
-  if (interruptMode !== 'commit' && interruptMode !== 'per-packet') {
-    throw new TypeError(`Skill ${id} has invalid interruptMode "${interruptMode}".`);
-  }
+    if (interruptMode !== 'commit' && interruptMode !== 'per-packet') {
+      throw new TypeError(`Skill ${id} has invalid interruptMode "${interruptMode}".`);
+    }
 
-  const effects = normalizeSkillEffects(source.effects || [], `skill=${id}`);
-  const modifiers = source.modifiers == null ? undefined : normalizeSkillModifiers(source.modifiers, `Skill ${id}`);
+    const effects = normalizeSkillEffects(source.effects || [], `skill=${id}`);
+    const modifiers = source.modifiers == null ? undefined : normalizeSkillModifiers(source.modifiers, `Skill ${id}`);
 
-  // A cost names one resource and one amount; the `cost.amount` field declaration bounds the value.
-  if (
-    source.cost != null &&
-    (Object.keys(source.cost).some((key) => !['resource', 'amount', 'spendOn'].includes(key)) ||
-      typeof source.cost.amount !== 'number')
-  )
-    throw new TypeError(`Skill ${id} has an invalid cost declaration.`);
-
-  // Reject obsolete or misspelled task anchors before scheduling can silently choose the full cast end.
-  if (!Array.isArray(source.tasks ?? [])) throw new TypeError(`Skill ${id} tasks must be an array.`);
-
-  for (const task of source.tasks ?? [])
+    // A cost names one resource and one amount; the `cost.amount` field declaration bounds the value.
     if (
-      !task ||
-      typeof task.type !== 'string' ||
-      (task.timingAnchor != null && !['castStart', 'castEnd', 'castCommit'].includes(task.timingAnchor))
+      source.cost != null &&
+      (Object.keys(source.cost).some((key) => !['resource', 'amount', 'spendOn'].includes(key)) ||
+        typeof source.cost.amount !== 'number')
     )
-      throw new TypeError(`Skill ${id} has an invalid task.`);
+      throw new TypeError(`Skill ${id} has an invalid cost declaration.`);
 
-  // Declarative activation phases and variant selectors must be executable before they enter a live catalog.
-  if (!Array.isArray(source.sideEffects ?? [])) throw new TypeError(`Skill ${id} side effects must be an array.`);
+    // Reject obsolete or misspelled task anchors before scheduling can silently choose the full cast end.
+    if (!Array.isArray(source.tasks ?? [])) throw new TypeError(`Skill ${id} tasks must be an array.`);
 
-  for (const sideEffect of source.sideEffects ?? []) {
+    for (const task of source.tasks ?? [])
+      if (
+        !task ||
+        typeof task.type !== 'string' ||
+        (task.timingAnchor != null && !['castStart', 'castEnd', 'castCommit'].includes(task.timingAnchor))
+      )
+        throw new TypeError(`Skill ${id} has an invalid task.`);
+
+    // Declarative activation phases and variant selectors must be executable before they enter a live catalog.
+    if (!Array.isArray(source.sideEffects ?? [])) throw new TypeError(`Skill ${id} side effects must be an array.`);
+
+    for (const sideEffect of source.sideEffects ?? []) {
+      if (
+        !sideEffect ||
+        !['castStart', 'castCommit'].includes(sideEffect.on) ||
+        typeof sideEffect.do?.type !== 'string' ||
+        Array.isArray(sideEffect.do) ||
+        (sideEffect.when != null && typeof sideEffect.when !== 'function') ||
+        (sideEffect.order != null && !Number.isFinite(sideEffect.order))
+      )
+        throw new TypeError(`Skill ${id} has an invalid side effect.`);
+    }
+
+    if (!Array.isArray(source.effectVariants ?? []))
+      throw new TypeError(`Skill ${id} effect variants must be an array.`);
+
+    for (const variant of source.effectVariants ?? []) {
+      if (
+        !variant ||
+        typeof variant.when !== 'function' ||
+        (variant.profileId == null && typeof variant.transform !== 'function') ||
+        (variant.transform != null && typeof variant.transform !== 'function')
+      )
+        throw new TypeError(`Skill ${id} has an invalid effect variant.`);
+    }
+
+    // Every persistent effect needs an explicit launch cutoff, either on itself
+    // or inherited from the skill, before future packets may survive an interrupt.
     if (
-      !sideEffect ||
-      !['castStart', 'castCommit'].includes(sideEffect.on) ||
-      typeof sideEffect.do?.type !== 'string' ||
-      Array.isArray(sideEffect.do) ||
-      (sideEffect.when != null && typeof sideEffect.when !== 'function') ||
-      (sideEffect.order != null && !Number.isFinite(sideEffect.order))
-    )
-      throw new TypeError(`Skill ${id} has an invalid side effect.`);
-  }
+      effects.some(
+        (effect) =>
+          effect.persistsAfterInterrupt === true && effect.interruptCommitMs == null && interruptCommitMs == null
+      )
+    ) {
+      throw new TypeError(`Skill ${id} retains future packets but has no interruptCommitMs.`);
+    }
 
-  if (!Array.isArray(source.effectVariants ?? [])) throw new TypeError(`Skill ${id} effect variants must be an array.`);
-
-  for (const variant of source.effectVariants ?? []) {
     if (
-      !variant ||
-      typeof variant.when !== 'function' ||
-      (variant.profileId == null && typeof variant.transform !== 'function') ||
-      (variant.transform != null && typeof variant.transform !== 'function')
+      source.retainsCastLockoutAfterInterrupt != null &&
+      typeof source.retainsCastLockoutAfterInterrupt !== 'boolean'
+    ) {
+      throw new TypeError(`Skill ${id} has an invalid retainsCastLockoutAfterInterrupt.`);
+    }
+
+    // Actor-owned recharge must explicitly opt out of player cast completion.
+    if (source.rechargeOwner != null && source.rechargeOwner !== 'actor')
+      throw new TypeError(`Skill ${id} has invalid rechargeOwner.`);
+
+    if (source.rechargeAnchor != null && !RECHARGE_ANCHORS.has(source.rechargeAnchor)) {
+      throw new TypeError(`Skill ${id} has invalid rechargeAnchor ` + `"${source.rechargeAnchor}".`);
+    }
+
+    // A cast-scaled recharge boundary must stay inside the selected interval.
+    if (
+      source.rechargeProgress != null &&
+      (typeof source.rechargeProgress !== 'number' ||
+        !Number.isFinite(source.rechargeProgress) ||
+        source.rechargeProgress < 0 ||
+        source.rechargeProgress > 1)
     )
-      throw new TypeError(`Skill ${id} has an invalid effect variant.`);
+      throw new TypeError(`Skill ${id} requires rechargeProgress between zero and one.`);
+
+    const rechargeOffsetMs = Number(source.rechargeOffsetMs ?? 0);
+
+    // Negative offsets start recharge before the selected anchor; cast execution clamps the result to cast start.
+    if (!Number.isFinite(rechargeOffsetMs)) {
+      throw new TypeError(`Skill ${id} requires a finite rechargeOffsetMs.`);
+    }
+
+    const baseSkill = {
+      ...source,
+      castTimeMs,
+      ...(rechargeOffsetMs ? { rechargeOffsetMs } : {}),
+      ...(quicknessCastTimeMs == null ? {} : { quicknessCastTimeMs }),
+      interruptMode,
+      ...(interruptCommitMs == null ? {} : { interruptCommitMs }),
+      lockouts: normalizeLockouts(source.lockouts, id)
+    };
+    const normalized: Partial<TSkill> = {
+      ...baseSkill,
+      effects,
+      ...(modifiers ? { modifiers } : {}),
+      ...(source.sideEffects
+        ? {
+            sideEffects: snapshotActionDeclaration(
+              [...source.sideEffects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+              normalizeSkillEffects
+            )
+          }
+        : {}),
+      tags: Object.freeze([...(baseSkill.tags || [])])
+    };
+    // Assembly validates required shared fields below; profession fields retain their authored types.
+    return normalized as TSkill;
   }
 
-  // Every persistent effect needs an explicit launch cutoff, either on itself
-  // or inherited from the skill, before future packets may survive an interrupt.
-  if (
-    effects.some(
-      (effect) =>
-        effect.persistsAfterInterrupt === true && effect.interruptCommitMs == null && interruptCommitMs == null
-    )
-  ) {
-    throw new TypeError(`Skill ${id} retains future packets but has no interruptCommitMs.`);
-  }
-
-  if (source.retainsCastLockoutAfterInterrupt != null && typeof source.retainsCastLockoutAfterInterrupt !== 'boolean') {
-    throw new TypeError(`Skill ${id} has an invalid retainsCastLockoutAfterInterrupt.`);
-  }
-
-  // Actor-owned recharge must explicitly opt out of player cast completion.
-  if (source.rechargeOwner != null && source.rechargeOwner !== 'actor')
-    throw new TypeError(`Skill ${id} has invalid rechargeOwner.`);
-
-  if (source.rechargeAnchor != null && !RECHARGE_ANCHORS.has(source.rechargeAnchor)) {
-    throw new TypeError(`Skill ${id} has invalid rechargeAnchor ` + `"${source.rechargeAnchor}".`);
-  }
-
-  // A cast-scaled recharge boundary must stay inside the selected interval.
-  if (
-    source.rechargeProgress != null &&
-    (typeof source.rechargeProgress !== 'number' ||
-      !Number.isFinite(source.rechargeProgress) ||
-      source.rechargeProgress < 0 ||
-      source.rechargeProgress > 1)
-  )
-    throw new TypeError(`Skill ${id} requires rechargeProgress between zero and one.`);
-
-  const rechargeOffsetMs = Number(source.rechargeOffsetMs ?? 0);
-
-  // Negative offsets start recharge before the selected anchor; cast execution clamps the result to cast start.
-  if (!Number.isFinite(rechargeOffsetMs)) {
-    throw new TypeError(`Skill ${id} requires a finite rechargeOffsetMs.`);
-  }
-
-  const baseSkill = {
-    ...source,
-    castTimeMs,
-    ...(rechargeOffsetMs ? { rechargeOffsetMs } : {}),
-    ...(quicknessCastTimeMs == null ? {} : { quicknessCastTimeMs }),
-    interruptMode,
-    ...(interruptCommitMs == null ? {} : { interruptCommitMs }),
-    lockouts: normalizeLockouts(source.lockouts, id)
+  return {
+    skillFields: vocabulary.skillFields,
+    profileFields: vocabulary.profileFields,
+    metadataFields: vocabulary.metadataFields,
+    ...effects,
+    normalizeSkill
   };
-  const normalized: Partial<TSkill> = {
-    ...baseSkill,
-    effects,
-    ...(modifiers ? { modifiers } : {}),
-    ...(source.sideEffects
-      ? {
-          sideEffects: snapshotActionDeclaration(
-            [...source.sideEffects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
-            normalizeSkillEffects
-          )
-        }
-      : {}),
-    tags: Object.freeze([...(baseSkill.tags || [])])
-  };
-  // Assembly validates required shared fields below; profession fields retain their authored types.
-  return normalized as TSkill;
 }
+
+export type CatalogNormalizer = ReturnType<typeof createCatalogNormalizer>;

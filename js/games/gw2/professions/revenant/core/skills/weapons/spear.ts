@@ -289,7 +289,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         id: 'revenant.abyssal-raze-stacks',
         target: 'strikeDamage',
         operation: 'multiply',
-        factor: (context) => Number(context.event?.metadata?.revenantAbyssalRazeDamageFactor),
+        factor: (context) => context.event?.metadata?.revenantAbyssalRazeDamageFactor ?? 1,
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
           context.event?.metadata?.revenantAbyssalRazeDamageFactor != null

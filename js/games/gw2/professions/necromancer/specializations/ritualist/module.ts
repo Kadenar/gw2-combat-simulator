@@ -3,6 +3,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { TRAIT_LINES } from '#gw2/professions/necromancer/data/trait-lines.js';
 import { RITUALIST_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/ritualist/catalog-fields.js';
 import { ritualistHooks } from '#gw2/professions/necromancer/specializations/ritualist/hooks.js';
+import { RITUALIST_METADATA_FIELDS } from '#gw2/professions/necromancer/specializations/ritualist/metadata.js';
 import { bindRitualistUi } from '#gw2/professions/necromancer/specializations/ritualist/presentation.js';
 import { RITUALIST_SKILLS } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
 import { NECROMANCER_RITUALIST_SKILL_FLIPS } from '#gw2/professions/necromancer/specializations/ritualist/skills/skill-flips.js';
@@ -18,6 +19,7 @@ export const ritualistModule = defineNativeModule({
     skillFlips: NECROMANCER_RITUALIST_SKILL_FLIPS,
 
     skillFields: RITUALIST_SKILL_FIELDS,
+    metadataFields: RITUALIST_METADATA_FIELDS,
     skills: RITUALIST_SKILLS
   }),
   // One state factory supplies the live combat owner.

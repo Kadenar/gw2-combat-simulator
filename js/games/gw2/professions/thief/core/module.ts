@@ -11,6 +11,7 @@ import { THIEF_CORE_SKILL_FLIPS } from '#gw2/professions/thief/core/skills/skill
 import { createThiefCoreState, projectThiefCorePlanningState } from '#gw2/professions/thief/core/state.js';
 import { coreTraits } from '#gw2/professions/thief/core/traits/index.js';
 import { TRAIT_LINES } from '#gw2/professions/thief/data/trait-lines.js';
+import { THIEF_METADATA_FIELDS } from '#gw2/professions/thief/metadata.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // Core owns the profession-wide weapon equipment choices.
@@ -37,6 +38,7 @@ export const thiefCoreModule = defineNativeModule({
     autoattackChains: THIEF_CORE_AUTOATTACK_CHAINS,
     profileFields: THIEF_CORE_PROFILE_FIELDS,
     skillFields: THIEF_CORE_SKILL_FIELDS,
+    metadataFields: THIEF_METADATA_FIELDS,
     skills: THIEF_CORE_SKILLS
   }),
   state: { create: createThiefCoreState, project: projectThiefCorePlanningState },

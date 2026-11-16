@@ -215,7 +215,7 @@ function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSkill, at
             parentSkillName: skill.name,
             name: 'Drop Mine',
             skillWeapon: 'Unequipped',
-            explosion: true,
+            damageKind: 'explosion',
             triggeredBy: skill.name
           }
         : { ...event, name: 'Streamlined Kits - ' + event.kind },

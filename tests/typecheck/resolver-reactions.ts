@@ -14,6 +14,7 @@ import type {
   Gw2ResolverStage,
   Gw2ResolverStageDetails
 } from '#gw2/platform/resolver/types.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 
 /** Grouped trait dispatch keeps the resolver stage's required details and the imperative transform result. */
 export function checkCompiledReactions(
@@ -67,12 +68,14 @@ export function checkReactionResults(
 export const projection: ProfessionDefinition<{ count: number }> = {
   id: 'projection',
   name: 'Projection',
+  catalog: createCanonicalCatalog(),
   resources: { projectPlanningState: ({ profession }) => ({ count: profession.count }) }
 };
 
 export const invalidProjection: ProfessionDefinition = {
   id: 'invalid-projection',
   name: 'Invalid projection',
+  catalog: createCanonicalCatalog(),
   resources: {
     // @ts-expect-error Projection is a single callback, never an ordered hook list.
     projectPlanningState: [() => ({})]

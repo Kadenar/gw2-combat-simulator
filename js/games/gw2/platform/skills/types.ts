@@ -7,6 +7,7 @@ import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { MetadataFields } from '#gw2/platform/events/metadata.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2SpecializationData } from '#gw2/platform/profession-definition/specialization-data-types.js';
@@ -283,7 +284,17 @@ export interface AutoattackChainPosition {
   readonly nextSkillId: number | null;
 }
 
-export interface CanonicalCatalog<TSkill extends Skill = Skill> {
+/** The complete authoring vocabulary shared by catalog normalization and patching. */
+export interface CatalogVocabulary {
+  /** Shared and profession-owned skill fields; validation, patching, and authoring read this one table. */
+  readonly skillFields: FieldSpecs;
+  /** Shared and profession-owned balance-profile field declarations. */
+  readonly profileFields: FieldSpecs;
+  /** Family-owned packet annotations accepted by authored and procedural effects. */
+  readonly metadataFields: MetadataFields;
+}
+
+export interface CanonicalCatalog<TSkill extends Skill = Skill> extends CatalogVocabulary {
   /** Selected patch metadata used by shared validation diagnostics. */
   readonly balanceDataContext?: {
     readonly professionId: string;
@@ -294,10 +305,6 @@ export interface CanonicalCatalog<TSkill extends Skill = Skill> {
   };
   readonly skills: readonly TSkill[];
   readonly skillsById: ReadonlyMap<SkillId, TSkill>;
-  /** Shared and profession-owned skill fields; validation, patching, and authoring read this one table. */
-  readonly skillFields: FieldSpecs;
-  /** Shared and profession-owned balance-profile field declarations. */
-  readonly profileFields: FieldSpecs;
   readonly balanceProfiles: readonly BalanceProfile[];
   readonly balanceProfilesById: ReadonlyMap<SkillId, BalanceProfile>;
   readonly autoattackChains: readonly (readonly number[])[];

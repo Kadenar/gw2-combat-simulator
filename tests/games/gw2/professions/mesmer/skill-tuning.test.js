@@ -197,12 +197,12 @@ test('Chronophantasma owns captured repeat damage across phantasm packet builder
         (event) =>
           event.type === 'damage' &&
           event.summonKind === 'phantasm' &&
-          (event.chronophantasmaDamageFactor != null) === repeated
+          (event.metadata?.chronophantasmaDamageFactor != null) === repeated
       );
     assert.equal(strike(boosted, false).damage, strike(baseline, false).damage);
     const repeat = strike(boosted, true);
     assert.equal(repeat.coefficient, strike(baseline, true).coefficient);
-    assert.equal(repeat.chronophantasmaDamageFactor, 1.4);
+    assert.equal(repeat.metadata?.chronophantasmaDamageFactor, 1.4);
     assertFlooredDamageMultiplier(repeat.damage, strike(baseline, true).damage, 1.4);
     // Changing current selection or profile cannot rewrite a bonus already accepted by this repeat.
     const context = { event: repeat, config: { selectedTraitIds: [] }, catalog: mesmerCatalog, time: repeat.at };
@@ -282,8 +282,8 @@ test('Crescendo owns instrument scaling and Fragmentation replacement for scalar
       );
       assert.equal(event.at >= instrument.expiresAt, delayed);
       assert.equal(event.coefficient, 2.25);
-      assert.equal(event.crescendoInstrumentCount, 1);
-      assert.equal(event.crescendoEffectiveness, fragmentation ? 0.6 : 0.4);
+      assert.equal(event.metadata?.crescendoInstrumentCount, 1);
+      assert.equal(event.metadata?.crescendoEffectiveness, fragmentation ? 0.6 : 0.4);
       const factor = fragmentation ? 1.6 : 1.4;
       assertFlooredDamageMultiplier(event.damage, strike(baseline).damage, factor);
       const context = { event, config: { selectedTraitIds: [] }, time: event.at + 100, catalog: mesmerCatalog };
@@ -347,11 +347,11 @@ test('Bountiful Blades composes captured Berserker damage with Chronophantasma w
         (event) =>
           event.type === 'damage' &&
           event.summonKind === 'phantasm' &&
-          (event.chronophantasmaDamageFactor != null) === repeated
+          (event.metadata?.chronophantasmaDamageFactor != null) === repeated
       );
     const event = strike(reduced);
     assert.equal(event.coefficient, strike(baseline).coefficient);
-    assert.equal(event.bountifulBladesDamageFactor, 0.5);
+    assert.equal(event.metadata?.bountifulBladesDamageFactor, 0.5);
     assertFlooredDamageMultiplier(event.damage, strike(baseline).damage, 0.5);
     const context = { event, config: { selectedTraitIds: [] }, catalog: mesmerCatalog, time: event.at + 100 };
     assert.equal(hooks.modifyStrikeDamage(context, 100), 50);

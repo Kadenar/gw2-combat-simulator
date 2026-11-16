@@ -56,8 +56,8 @@ const forerunnerOfDeath = defineTrait({
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Use the flag captured on the event when present. Read runtime state for non-dodge strikes.
-        (context.event?.forerunnerOfDeathActive != null
-          ? Boolean(context.event.forerunnerOfDeathActive)
+        (context.event?.metadata?.forerunnerOfDeathActive != null
+          ? context.event.metadata.forerunnerOfDeathActive
           : buffActive(context, 'forerunner-of-death'))
     }
   ],
@@ -134,8 +134,9 @@ const reaversCurse = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       requiresSelection: false,
-      factor: (context) => Number(context.event?.reaversCurseDamageFactor),
-      when: (context) => context.event?.actorType === ACTOR.PLAYER && context.event.reaversCurseDamageFactor != null
+      factor: (context) => context.event?.metadata?.reaversCurseDamageFactor ?? 1,
+      when: (context) =>
+        context.event?.actorType === ACTOR.PLAYER && context.event.metadata?.reaversCurseDamageFactor != null
     }
   ],
   rechargeRules: [

@@ -252,9 +252,8 @@ const powerForPower = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumber(context.catalog, TRAIT.POWER_FOR_POWER, 'damageMultiplier'),
       order: 100,
-      // willbenderFlames flag is set only on Willbender Flames pulse strikes emitted by hooks.ts,
-      // so this 3× multiplier never applies to normal weapon hits.
-      when: (context) => Boolean(context.event?.willbenderFlames)
+      // Flame annotations restrict this multiplier to the virtue's own strikes.
+      when: (context) => context.event?.metadata?.willbenderFlames === true
     }
   ]
 });
@@ -281,7 +280,7 @@ const searingPact = defineTrait({
       emit: TRAIT.SEARING_PACT,
       on: 'damage.resolved',
       when: (_runtime, event, details) =>
-        Boolean(event.willbenderFlames) &&
+        event.metadata?.willbenderFlames === true &&
         details.hitContext.damage > 0 &&
         Number(event.coefficient) > 0 &&
         (event.actorType === ACTOR.PLAYER || event.sourceId === `sigil.${SIGIL_IDS.AIR}`),

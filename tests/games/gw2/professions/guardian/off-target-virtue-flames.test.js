@@ -22,7 +22,7 @@ const config = {
 const wait = { type: 'wait', durationMs: 6000 };
 const run = (rotation, overrides = {}) =>
   createObservedProfessionSimulator(guardianProfession, { ...config, ...overrides })(undefined, rotation);
-const flames = (r) => r.resolvedEvents.filter((e) => e.type === 'damage' && e.willbenderFlames);
+const flames = (r) => r.resolvedEvents.filter((e) => e.type === 'damage' && e.metadata?.willbenderFlames);
 
 test('two off-target Resolve precasts keep two Tempo applications and deal zero target damage', () => {
   const r = run([
@@ -66,7 +66,7 @@ test('an on-target Resolve cast does not make a previous off-target field start 
   assert.ok(groups[0].every((e) => e.offTarget !== true));
   const accepted = r.events.filter((e) => e.type === 'action' && e.skillName === 'Flowing Resolve').at(-1);
   assert.ok(groups[0].every((e) => e.activationId === `${accepted.activationId}:flames`));
-  const hits = r.resolvedEvents.filter((e) => e.type === 'damage' && e.willbenderFlames);
+  const hits = r.resolvedEvents.filter((e) => e.type === 'damage' && e.metadata?.willbenderFlames);
   assert.ok(hits.length > 0);
   assert.ok(hits.every((e) => e.activationId === groups[0][0].activationId));
   assert.ok(r.totalDamage > 0);
@@ -78,7 +78,7 @@ test('ordinary on-target virtue casts and flame activations still deal damage', 
     assert.deepEqual(r.warnings, []);
     assert.ok(flames(r).length > 0);
     assert.ok(flames(r).every((e) => e.offTarget !== true));
-    assert.ok(r.resolvedEvents.some((e) => e.type === 'damage' && e.willbenderFlames && e.damage > 0));
+    assert.ok(r.resolvedEvents.some((e) => e.type === 'damage' && e.metadata?.willbenderFlames && e.damage > 0));
     assert.ok(r.totalDamage > 0);
   }
 });

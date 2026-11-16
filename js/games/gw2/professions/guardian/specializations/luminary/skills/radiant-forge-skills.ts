@@ -583,7 +583,8 @@ function burstEffects(
       atMs,
       timingAnchor: 'castStart',
       timingScale: 'fixed',
-      metadata: { radiantWeapon: weapon }
+      // Shared effects still resolve before an armament is equipped, without an absent weapon annotation.
+      metadata: weapon ? { radiantWeapon: weapon } : undefined
     }));
 }
 

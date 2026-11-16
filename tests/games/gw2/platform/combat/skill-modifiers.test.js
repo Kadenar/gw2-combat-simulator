@@ -4,11 +4,13 @@ import test from 'node:test';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createCatalogNormalizer } from '#gw2/platform/skills/validation.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+
+const { normalizeSkillEffects } = createCatalogNormalizer(createCanonicalCatalog());
 
 const bonus = (id, factor) => ({ id, label: id, target: 'strikeDamage', operation: 'multiply', factor });
 const strike = (modifiers) => ({ type: 'strike', coefficient: 1, ...(modifiers ? { modifiers } : {}) });

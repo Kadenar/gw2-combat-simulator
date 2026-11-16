@@ -3,7 +3,6 @@ import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
-import { normalizeEffect } from '#gw2/platform/effects/validation.js';
 import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 import {
   sampleWeaponStrength,
@@ -19,8 +18,11 @@ import {
 } from '#gw2/platform/resolver/weapon-strength-resolution.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createCatalogNormalizer } from '#gw2/platform/skills/validation.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
+
+const { normalizeEffect } = createCatalogNormalizer(createCanonicalCatalog());
 
 const EXPECTED_PROFILES = Object.freeze({
   'weapon.axe': [900, 1100, 1000],

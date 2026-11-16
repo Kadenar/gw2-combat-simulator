@@ -151,9 +151,13 @@ test('Disenchanter separates its initial projectile from Chronophantasma attacks
   );
   const projectile = attacks.find((event) => event.actorType === 'player');
   assert.equal(projectile.coefficient, 0.8);
-  assert.equal(projectile.chronophantasmaDamageFactor, undefined);
-  assert.ok(attacks.some((event) => event.summonKind === 'phantasm' && event.chronophantasmaDamageFactor === 1));
-  assert.ok(attacks.every((event) => event.chronophantasmaDamageFactor == null || event.actorType === 'summon'));
+  assert.equal(projectile.metadata?.chronophantasmaDamageFactor, undefined);
+  assert.ok(
+    attacks.some((event) => event.summonKind === 'phantasm' && event.metadata?.chronophantasmaDamageFactor === 1)
+  );
+  assert.ok(
+    attacks.every((event) => event.metadata?.chronophantasmaDamageFactor == null || event.actorType === 'summon')
+  );
 });
 
 // Invalid placements must fail at patch validation instead of creating unselectable preview skills.

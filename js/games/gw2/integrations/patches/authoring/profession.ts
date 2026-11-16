@@ -44,7 +44,6 @@ import { traitAttributeFieldLabels } from '#gw2/platform/profession-definition/t
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
-import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { assertObject } from '#kernel/core/objects.js';
 
@@ -358,7 +357,7 @@ export function withPatchPreview<
     definition.name,
     modules,
     assembly.fragments,
-    catalogSkillFields(assembly.catalog),
+    assembly.catalog.skillFields,
     assembly.catalog.profileFields
   );
   const previewModifierRules = preparePreviewModifierRules(modules, professionPatch?.modifierRules);

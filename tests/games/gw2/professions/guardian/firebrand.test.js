@@ -212,7 +212,7 @@ test('stowing during the third tome skill preserves its earned Swift Scholar ref
   assert.equal(result.planningState.profession[STATE.ACTIVE_TOME], '');
   assert.equal(result.planningState.profession[STATE.SWIFT_SCHOLAR_COUNT], 0);
   assert.equal(
-    result.events.some((event) => event.type === 'weapon_set' && event.automatic),
+    result.events.some((event) => event.type === 'weapon_set' && event.metadata?.guardianAutomaticForgeExit),
     false
   );
 });
@@ -271,7 +271,7 @@ for (const initialTomePages of [1, 5]) {
     );
     assert.equal(result.planningState.profession[STATE.ACTIVE_TOME], 'justice');
     assert.equal(
-      result.events.some((event) => event.type === 'weapon_set' && event.automatic),
+      result.events.some((event) => event.type === 'weapon_set' && event.metadata?.guardianAutomaticForgeExit),
       false
     );
   });

@@ -154,6 +154,12 @@ export default [
     }
   },
 
+  // Only metadata declaration interfaces need an empty extension for module augmentation.
+  {
+    files: ['js/games/gw2/**/metadata.ts', 'js/games/gw2/platform/events/events.ts'],
+    rules: { '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends' }] }
+  },
+
   // Validation and normalization must still reject malformed JavaScript/JSON inputs, regardless of their TS types.
   {
     files: [

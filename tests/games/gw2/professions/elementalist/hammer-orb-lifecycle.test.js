@@ -124,7 +124,7 @@ test('Finale cancels source-only orb damage and conditions', () => {
                 condition: 'Burning',
                 stacks: 1,
                 duration: 1,
-                metadata: { sourceOnlyOrbFixture: true }
+                metadata: { packetKind: 'source-only-orb-fixture' }
               }
             });
         }
@@ -147,7 +147,7 @@ test('Finale cancels source-only orb damage and conditions', () => {
   assert.deepEqual(consumed.warnings, []);
   for (const type of ['damage', 'condition']) {
     const delivered = (result) =>
-      result.events.some((event) => event.type === type && event.metadata?.sourceOnlyOrbFixture);
+      result.events.some((event) => event.type === type && event.metadata?.packetKind === 'source-only-orb-fixture');
     assert.equal(delivered(baseline), true);
     assert.equal(delivered(consumed), false);
   }

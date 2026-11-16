@@ -3,7 +3,6 @@ import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { normalizeEffectMetadata } from '#gw2/platform/events/audience-metadata-validation.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -87,7 +86,7 @@ export function buildMesmerConditions(
         ...event,
         condition: conditionName,
         name: label || skillName + ' - ' + conditionName,
-        metadata: normalizeEffectMetadata({ ...event.metadata, ...extra.metadata })
+        metadata: Object.freeze({ ...event.metadata, ...extra.metadata })
       }
     ];
   });
@@ -150,7 +149,7 @@ export function buildMesmerStrikes(
     name: extra.name || group.name || skill.name,
     skillWeapon:
       skill.weapon || (slotSkill ? 'Utility' : gw2ActivePrimaryWeapon(context.config, context.activeWeaponSet) || ''),
-    metadata: normalizeEffectMetadata({ ...event.metadata, ...extra.metadata }),
+    metadata: Object.freeze({ ...event.metadata, ...extra.metadata }),
     ...(strength == null ? {} : { weaponStrength: strength })
   }));
 }

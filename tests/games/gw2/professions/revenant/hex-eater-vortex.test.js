@@ -3,7 +3,8 @@ import test from 'node:test';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createCatalogNormalizer } from '#gw2/platform/skills/validation.js';
 import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_LEGEND_IDS as LEGEND,
@@ -16,6 +17,8 @@ import {
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
+
+const { normalizeSkillEffects } = createCatalogNormalizer(createCanonicalCatalog());
 
 const config = {
   specialization: 'Conduit',

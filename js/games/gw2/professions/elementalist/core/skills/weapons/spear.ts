@@ -105,7 +105,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         scope: 'profession',
         target: 'strikeDamage',
         operation: 'multiply',
-        factor: (context) => Number(context.event?.metadata?.elementalistSeetheDamageFactor),
+        factor: (context) => context.event?.metadata?.elementalistSeetheDamageFactor ?? 1,
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
           context.event?.metadata?.elementalistSeetheDamageFactor != null

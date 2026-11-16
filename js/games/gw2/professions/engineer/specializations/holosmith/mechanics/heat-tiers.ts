@@ -1,4 +1,6 @@
+/** Captures heat tiers for delayed packets and reads their admitted factors at impact. */
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { BalanceSource } from '#gw2/platform/skills/balance-profiles.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -18,29 +20,25 @@ interface HolosmithHeatSnapshot {
   readonly enhancedCapacitySelected: boolean;
 }
 
-// Holosmith event metadata stays local to the specialization while its packets
-// travel through the shared live queue.
-interface HolosmithEventMetadata {
+// Custom event payloads and resolver-stage results retain their handler-owned fields.
+interface HolosmithEventFields {
   readonly extraBlades?: number;
   readonly holosmithActivationHeat?: number;
-  readonly holosmithConditionBaseDurationFactor?: number;
   readonly holosmithEnhancedCapacitySelected?: boolean;
-  readonly holosmithStrikeFactor?: number;
-  readonly holosmithStrikeSkillId?: SkillId;
   readonly solarFocusingLens?: boolean;
 }
 
-export type HolosmithResolverEvent = EngineerResolverEvent & HolosmithEventMetadata;
+export type HolosmithResolverEvent = EngineerResolverEvent & HolosmithEventFields;
 
-/** Safely exposes Holosmith metadata fields carried by an otherwise generic event. */
-export function holosmithEventMetadata(event: unknown): HolosmithEventMetadata {
+/** Reads the custom payload and resolver-stage fields owned by Holosmith handlers. */
+export function holosmithEventFields(event: unknown): HolosmithEventFields {
   return event && typeof event === 'object' ? event : {};
 }
 
 /** Captured skill factors adjust base condition duration before ordinary duration bonuses are capped. */
 export function holosmithEventConditionBaseDurationFactor(context: Gw2ModifierContext): number {
-  const factor = holosmithEventMetadata(context.event).holosmithConditionBaseDurationFactor ?? 1;
-  return Number.isFinite(factor) ? Math.max(0, factor) : 1;
+  const factor = context.event?.metadata?.holosmithConditionBaseDurationFactor ?? 1;
+  return Math.max(0, factor);
 }
 
 /** Captures activation heat and ECSU selection so delayed packets retain their original tier. */
@@ -54,12 +52,12 @@ export function snapshotHolosmithHeat(
   });
 }
 
-/** Reconstructs a cast-time heat snapshot from event metadata at resolution time. */
+/** Reconstructs a cast-time heat snapshot from the custom event payload. */
 export function holosmithHeatSnapshotFromEvent(event: unknown): HolosmithHeatSnapshot {
-  const metadata = holosmithEventMetadata(event);
+  const fields = holosmithEventFields(event);
   return Object.freeze({
-    heat: metadata.holosmithActivationHeat || 0,
-    enhancedCapacitySelected: metadata.holosmithEnhancedCapacitySelected === true
+    heat: fields.holosmithActivationHeat || 0,
+    enhancedCapacitySelected: fields.holosmithEnhancedCapacitySelected === true
   });
 }
 
@@ -88,13 +86,17 @@ export function holosmithSkillStrikeFactor(
 }
 
 /** Reads an event's captured strike factor or evaluates its skill against current heat as a fallback. */
-export function holosmithEventStrikeFactor(context: Gw2ModifierContext, event: unknown, fallback = 1): number {
-  const metadata = holosmithEventMetadata(event);
-  const capturedFactor = Number(metadata.holosmithStrikeFactor);
+export function holosmithEventStrikeFactor(
+  context: Gw2ModifierContext,
+  event: Pick<SimulationEventBase, 'metadata'>,
+  fallback = 1
+): number {
+  const metadata = event.metadata;
+  const capturedFactor = metadata?.holosmithStrikeFactor;
 
-  if (Number.isFinite(capturedFactor)) return Math.max(0, capturedFactor);
+  if (capturedFactor != null) return Math.max(0, capturedFactor);
 
-  if (metadata.holosmithStrikeSkillId == null) return fallback;
+  if (metadata?.holosmithStrikeSkillId == null) return fallback;
 
   return holosmithSkillStrikeFactor(
     context.catalog,

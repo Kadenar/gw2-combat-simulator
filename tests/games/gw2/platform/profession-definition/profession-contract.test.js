@@ -6,6 +6,7 @@ import { defineProfession } from '#gw2/platform/profession-definition/compile-co
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { planningState } from '#gw2/platform/results/planning-state.js';
 import { SHARED_STATE_IDS } from '#gw2/platform/results/state-ids.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { professionUiFixture } from '#tests/helpers/presentation.js';
@@ -84,7 +85,7 @@ test('profession contract supplies neutral calculation defaults', () => {
 // Compilation preserves explicit selectors and gives definitions without observations an empty projection.
 test('planning projection preserves the selected callback', () => {
   const project = ({ profession }) => ({ value: profession.value });
-  const definition = { id: 'projection-callback', name: 'Projection callback' };
+  const definition = { id: 'projection-callback', name: 'Projection callback', catalog: createCanonicalCatalog() };
   const selected = defineProfession({ ...definition, resources: { projectPlanningState: project } });
   assert.equal(selected.projectPlanningState, project);
   assert.deepEqual(selected.projectPlanningState({ profession: { value: 3 } }), { value: 3 });

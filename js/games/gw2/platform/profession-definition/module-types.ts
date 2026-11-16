@@ -3,6 +3,7 @@ import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attribute
 import type { Gw2Build, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
+import type { MetadataFields } from '#gw2/platform/events/metadata.js';
 import type { Gw2AutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type {
@@ -31,6 +32,8 @@ export interface NativeModuleCatalogData<TSkill extends Skill = Skill> {
   readonly skillFields?: FieldSpecs;
   /** Profession-owned profile vocabulary contributed by this module. */
   readonly profileFields?: FieldSpecs;
+  /** Packet annotation declarations owned by this module and available throughout its profession family. */
+  readonly metadataFields?: MetadataFields;
   readonly traits?: readonly CatalogEntity[];
   /** Core and elite trait lines own the selectable layout and nested trait presentation. */
   readonly traitLines?: readonly Gw2SpecializationData[];

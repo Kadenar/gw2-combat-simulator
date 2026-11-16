@@ -11,12 +11,14 @@ import {
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
-import { normalizeEffect } from '#gw2/platform/effects/validation.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
 import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createCatalogNormalizer } from '#gw2/platform/skills/validation.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+
+const { normalizeEffect } = createCatalogNormalizer(createCanonicalCatalog());
 
 // Field fixtures exercise lifecycle through the same owner used by delivery and mechanics.
 function field(fieldId, overrides = {}) {
@@ -369,7 +371,10 @@ test('combo declarations reject missing, blank, and non-string ownership before 
           }),
         /profile=fixture.profile.*ownerId/
       );
-      assert.throws(() => normalizeEffect({ type: 'custom', eventType: 'damage', event: metadata }), /event.*ownerId/);
+      assert.throws(
+        () => normalizeEffect({ type: 'custom', eventType: 'damage', event: metadata }, 'Skill effect'),
+        /event.*ownerId/
+      );
     }
 
     const comboFinishers = [{ ownerId, finisherType: 'Blast' }];
@@ -387,7 +392,7 @@ test('combo declarations reject missing, blank, and non-string ownership before 
         timingScale: 'fixed'
       }
     ]) {
-      assert.throws(() => normalizeEffect(effect), /tick=1.*ownerId/);
+      assert.throws(() => normalizeEffect(effect, 'Skill effect'), /tick=1.*ownerId/);
       assert.throws(() => normalizeGw2ComboCatalogSkill({ id: 1, effects: [effect] }), /ownerId/);
     }
   }

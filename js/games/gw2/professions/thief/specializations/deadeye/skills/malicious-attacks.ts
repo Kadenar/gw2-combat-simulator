@@ -131,7 +131,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
         id: 'thief.malicious-sneak-attack-torment',
         target: 'conditionBaseDuration',
         operation: 'multiply',
-        factor: (context) => Number(context.event?.metadata?.thiefMaliciousSneakDurationFactor),
+        factor: (context) => context.event?.metadata?.thiefMaliciousSneakDurationFactor ?? 1,
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
           context.condition === CONDITION.TORMENT &&
@@ -281,7 +281,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
         id: 'thief.malicious-shadowsquall-poison',
         target: 'conditionBaseDuration',
         operation: 'multiply',
-        factor: (context) => Number(context.event?.metadata?.thiefMaliciousPoisonDurationFactor),
+        factor: (context) => context.event?.metadata?.thiefMaliciousPoisonDurationFactor ?? 1,
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
           context.condition === CONDITION.POISONED &&
@@ -395,7 +395,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
         id: 'thief.malicious-cunning-salvo-poison',
         target: 'conditionBaseDuration',
         operation: 'multiply',
-        factor: (context) => Number(context.event?.metadata?.thiefMaliciousPoisonDurationFactor),
+        factor: (context) => context.event?.metadata?.thiefMaliciousPoisonDurationFactor ?? 1,
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
           context.condition === CONDITION.POISONED &&
@@ -499,7 +499,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
         label: 'Malicious Ashen Assault',
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'multiply',
-        factor: (context) => Number(context.event?.metadata?.thiefMaliciousAshenDamageFactor),
+        factor: (context) => context.event?.metadata?.thiefMaliciousAshenDamageFactor ?? 1,
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
           context.event?.metadata?.thiefMaliciousAshenDamageFactor != null

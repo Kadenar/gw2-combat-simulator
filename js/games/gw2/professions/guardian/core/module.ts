@@ -13,6 +13,7 @@ import { GUARDIAN_CORE_SKILL_FLIPS } from '#gw2/professions/guardian/core/skills
 import { createGuardianCoreState, projectGuardianPlanningState } from '#gw2/professions/guardian/core/state.js';
 import { guardianCoreTraits } from '#gw2/professions/guardian/core/traits/index.js';
 import { TRAIT_LINES } from '#gw2/professions/guardian/data/trait-lines.js';
+import { GUARDIAN_METADATA_FIELDS } from '#gw2/professions/guardian/metadata.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
 
@@ -43,9 +44,9 @@ export const guardianCoreModule = defineNativeModule({
     skillFlips: GUARDIAN_CORE_SKILL_FLIPS,
     autoattackChains: GUARDIAN_CORE_AUTOATTACK_CHAINS,
     profileFields: GUARDIAN_CORE_PROFILE_FIELDS,
-    skills: GUARDIAN_CORE_SKILLS,
-
-    skillFields: GUARDIAN_CORE_SKILL_FIELDS
+    skillFields: GUARDIAN_CORE_SKILL_FIELDS,
+    metadataFields: GUARDIAN_METADATA_FIELDS,
+    skills: GUARDIAN_CORE_SKILLS
   }),
   state: { create: createGuardianCoreState, project: projectGuardianPlanningState },
   traitDefinitions: guardianCoreTraits,

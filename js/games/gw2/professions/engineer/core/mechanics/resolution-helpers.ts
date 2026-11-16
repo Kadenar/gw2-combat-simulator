@@ -12,7 +12,7 @@ interface QueueDamageOptions {
   readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
-  readonly explosion?: boolean;
+  readonly damageKind?: string;
   // The impact supplies timing, and the shared runtime generates the attempt identity.
   readonly comboFinisher?: {
     readonly ownerId: string;
@@ -57,7 +57,7 @@ export function buildEngineerStrike(
     sourceId = event.skillId,
     actorType = ACTOR.PLAYER,
     ownerActorType,
-    explosion = false,
+    damageKind,
     comboFinisher
   }: QueueDamageOptions
 ): SimulationEventBase {
@@ -76,7 +76,8 @@ export function buildEngineerStrike(
     ...(actorType === ACTOR.PLAYER ? { activationId: event.activationId, offTarget: event.offTarget } : {}),
     skillWeapon,
     canCrit: true,
-    explosion,
+    // Derived strikes declare their damage kind independently of the triggering packet.
+    ...(damageKind == null ? {} : { damageKind }),
     ...(comboFinisher
       ? {
           comboFinishers: [
@@ -140,5 +141,5 @@ export function resolverBoonStacks(
 
 /** Damage modifiers and on-hit traits read the accepted packet's explicit explosion classification. */
 export function isExplosion(event: Partial<SimulationEventBase> | null | undefined): boolean {
-  return Boolean(event?.explosion || event?.damageKind === 'explosion');
+  return event?.damageKind === 'explosion';
 }

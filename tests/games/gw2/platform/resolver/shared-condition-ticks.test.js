@@ -12,9 +12,20 @@ import {
   conditionStackLimit,
   isDamagingCondition
 } from '#gw2/platform/combat/state/targets.js';
+import { combineMetadataFields } from '#gw2/platform/events/metadata.js';
 import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
+
+// Expansion preserves declared annotations independently of the condition's duration controls.
+const conditionProfession = defineTestProfession({
+  id: 'condition-expansion-fixture',
+  name: 'Condition expansion fixture',
+  catalog: createCanonicalCatalog({
+    metadataFields: combineMetadataFields([{ owner: 'Fixture', fields: { fixtureFlag: 'boolean' } }])
+  })
+});
 
 // Derive paid lifetime from reported payouts so tests protect accounting without a runtime-only accumulator.
 const paidStackSeconds = (application) =>
@@ -105,6 +116,7 @@ function resolve(
 ) {
   return resolveTestGw2Events({
     output,
+    profession: conditionProfession,
     ...{ events, ...(combatStartTime == null ? {} : { combatStartTime }), endTime: end },
     config: { target, sigilSets: [{ names: [] }] },
     traits: new Set(),
@@ -181,7 +193,7 @@ for (const name of CANONICAL_TARGET_CONDITIONS) {
           stacks: 2.5,
           duration: 1.5,
           activationId: 'fixture.cast',
-          metadata: { fixedDuration: true }
+          metadata: { fixtureFlag: true }
         })
       );
       const observed = [];

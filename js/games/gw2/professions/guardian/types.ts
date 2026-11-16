@@ -78,7 +78,6 @@ export type GuardianVirtue = 'justice' | 'resolve' | 'courage';
 /** Guardian-specific annotations on executed combat and weapon-bar facts. */
 export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly applicationIndex?: number;
-  readonly automatic?: boolean;
 };
 
 /** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */

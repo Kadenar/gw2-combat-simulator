@@ -42,7 +42,10 @@ function luminaryEventLogRow(
   const entered = event.skillId === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE;
   return {
     type: event.type,
-    description: 'RADIANT FORGE ' + (entered ? 'ENTERED' : 'EXITED') + (event.automatic ? ' [automatic]' : ''),
+    description:
+      'RADIANT FORGE ' +
+      (entered ? 'ENTERED' : 'EXITED') +
+      (event.metadata?.guardianAutomaticForgeExit ? ' [automatic]' : ''),
     className: 'resource',
     order: 30
   };

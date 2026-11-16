@@ -1,5 +1,5 @@
 import { RECIPIENT } from '#gw2/platform/constants.js';
-import type { EffectAudience, EffectMetadata } from '#gw2/platform/events/events.js';
+import type { EffectAudience } from '#gw2/platform/events/events.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
 const RECIPIENT_SCOPES: ReadonlySet<string> = new Set(Object.values(RECIPIENT));
@@ -11,45 +11,6 @@ const AUDIENCE_FIELDS = new Set([
   'maximumRecipients',
   'eligibleCompanionIds'
 ]);
-
-const METADATA_VALUE_KINDS = Object.freeze({
-  cloneId: 'number',
-  blade: 'boolean',
-  shatterTraitEligible: 'boolean',
-  triggeredByAlly: 'number',
-  venomProcEffectIndex: 'number',
-  recallSkillId: 'skillId',
-  activeSpirits: 'number',
-  dhuumfireDuration: 'number',
-  dhuumfireInterval: 'number',
-  engineerMech: 'boolean',
-  guardianSymbol: 'boolean',
-  guardianRadiantCourage: 'boolean',
-  thiefFallingSpiderDamageFactor: 'number',
-  thiefMaliciousAshenDamageFactor: 'number',
-  revenantAbyssalRazeDamageFactor: 'number',
-  revenantBlossomingAuraDamageFactor: 'number',
-  revenantReleaseConditionDurationFactor: 'number',
-  thiefMaliciousPoisonDurationFactor: 'number',
-  elementalistSeetheDamageFactor: 'number',
-  thiefMaliciousSneakDurationFactor: 'number',
-  hitboxIndex: 'number',
-  largeHitboxOnly: 'boolean',
-  legendId: 'string',
-  necromancerBlight: 'number',
-  warriorAdrenalineSpent: 'number',
-  warriorBurstTier: 'number',
-  necromancerConditionCount: 'number',
-  necromancerAddleImmobilize: 'boolean',
-  necromancerShroudSkillOne: 'boolean',
-  packetKind: 'string',
-  radiantWeapon: 'string',
-  smallHitboxCap: 'number',
-  spiritAttackType: 'string',
-  trigger: 'string'
-} satisfies Record<keyof EffectMetadata, 'boolean' | 'number' | 'skillId' | 'string'>);
-
-const METADATA_FIELDS = new Set(Object.keys(METADATA_VALUE_KINDS));
 
 /** Validates and freezes the one recipient-selection shape accepted by authored and procedural effects. */
 export function normalizeEffectAudience(value: unknown): EffectAudience | undefined {
@@ -116,40 +77,4 @@ export function normalizeEffectAudience(value: unknown): EffectAudience | undefi
       ? {}
       : { eligibleCompanionIds: Object.freeze([...new Set(audience.eligibleCompanionIds)]) })
   }) as EffectAudience;
-}
-
-/** Validates and freezes the closed annotation vocabulary without flattening it into its owner. */
-export function normalizeEffectMetadata(value: unknown): EffectMetadata | undefined {
-  if (value == null) return undefined;
-
-  if (typeof value !== 'object' || Array.isArray(value)) {
-    throw new TypeError('Effect metadata must be an object.');
-  }
-
-  const metadata = value as UnvalidatedFields;
-  const unknownFields = Object.keys(metadata).filter((field) => !METADATA_FIELDS.has(field));
-
-  if (unknownFields.length) {
-    throw new TypeError(
-      `Effect metadata has unsupported field${unknownFields.length === 1 ? '' : 's'}: ${unknownFields.join(', ')}`
-    );
-  }
-
-  for (const [field, fieldValue] of Object.entries(metadata)) {
-    const kind = METADATA_VALUE_KINDS[field as keyof EffectMetadata];
-
-    if (kind === 'string' && (typeof fieldValue !== 'string' || !fieldValue)) {
-      throw new TypeError(`Effect metadata ${field} must be a non-empty string.`);
-    }
-
-    if (kind === 'number' && (typeof fieldValue !== 'number' || !Number.isFinite(fieldValue))) {
-      throw new TypeError(`Effect metadata ${field} must be a finite number.`);
-    }
-
-    if (kind === 'boolean' && typeof fieldValue !== 'boolean') {
-      throw new TypeError(`Effect metadata ${field} must be a boolean.`);
-    }
-  }
-
-  return Object.freeze({ ...metadata });
 }

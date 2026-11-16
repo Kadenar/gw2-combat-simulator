@@ -1,12 +1,12 @@
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
+import { createCatalogNormalizer } from '#gw2/platform/skills/validation.js';
 
 /** Overrides are construction boundaries too, so test consumers receive the same canonical effects as production. */
-function replaceOwner(current, change, label) {
+function replaceOwner(current, change, label, vocabulary) {
   const replacement = { ...current, ...change };
   const metadata = replacement.balanceDataContext;
   return Object.freeze({
     ...replacement,
-    effects: normalizeSkillEffects(
+    effects: vocabulary.normalizeSkillEffects(
       replacement.effects ?? [],
       `profession=${metadata?.professionId ?? '<unknown>'} patch=${metadata?.patchId ?? '<unknown>'} ${label}`
     )
@@ -19,7 +19,8 @@ function replaceOwner(current, change, label) {
  */
 export function withSkill(catalog, id, change) {
   const current = catalog.skillsById.get(id);
-  const replacement = change === null ? null : replaceOwner(current, change, `skill=${id}`);
+  const replacement =
+    change === null ? null : replaceOwner(current, change, `skill=${id}`, createCatalogNormalizer(catalog));
   const skills = (catalog.skills ?? []).flatMap((skill) =>
     skill.id === id ? (replacement ? [replacement] : []) : [skill]
   );
@@ -33,7 +34,12 @@ export function withSkill(catalog, id, change) {
 
 /** Returns a catalog copy with one balance profile replaced by field overrides. */
 export function withProfile(catalog, id, change) {
-  const profile = replaceOwner(catalog.balanceProfilesById.get(id), change, `balance-profile=${id}`);
+  const profile = replaceOwner(
+    catalog.balanceProfilesById.get(id),
+    change,
+    `balance-profile=${id}`,
+    createCatalogNormalizer(catalog)
+  );
   const balanceProfiles = catalog.balanceProfiles.map((candidate) => (candidate.id === id ? profile : candidate));
   return {
     ...catalog,

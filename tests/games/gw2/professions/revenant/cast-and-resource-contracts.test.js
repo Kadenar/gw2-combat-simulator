@@ -672,7 +672,7 @@ test('Vindicator shared Dodge applies the selected landing conditions and boons 
     if (trait === TRAIT.FORERUNNER_OF_DEATH) {
       const strike = result.events.find((event) => event.type === 'damage');
       const buff = result.events.find((event) => event.kind === 'forerunner-of-death');
-      assert.equal(strike.forerunnerOfDeathActive, false);
+      assert.equal(strike.metadata?.forerunnerOfDeathActive, false);
       assert.ok(strike.eventOrder < buff.eventOrder);
     }
   }

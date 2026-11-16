@@ -6,6 +6,8 @@ import {
   buildMesmerPacket,
   buildMesmerStrikes
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
 function createFixture() {
   return {
@@ -19,7 +21,7 @@ function createFixture() {
 }
 
 test('Mesmer packet builders merge application, tick, and explicit metadata without losing false or zero', () => {
-  // Both procedural paths use packet overrides and keep unrelated annotations through validation.
+  // Both procedural paths merge packet overrides; final delivery validates the family annotations.
   const { context } = createFixture();
   const metadata = { cloneId: 1, blade: true };
   const tickMetadata = { cloneId: 2, blade: false, shatterTraitEligible: true };
@@ -64,21 +66,25 @@ test('Mesmer packet builders merge application, tick, and explicit metadata with
   assert.deepEqual(untimed.metadata, metadata);
   assert.throws(
     () =>
-      buildMesmerConditions(
-        context,
-        'Fixture',
-        0,
-        {
-          type: 'condition',
-          condition: 'Bleeding',
-          duration: 2,
-          metadata: { cloneId: 'invalid' },
-          stacks: 1
-        },
-        'Player',
-        '',
-        { skillId: 123 }
-      ),
+      resolveTestGw2Events({
+        profession: mesmerProfession,
+        config: { specialization: 'Core' },
+        events: buildMesmerConditions(
+          context,
+          'Fixture',
+          0,
+          {
+            type: 'condition',
+            condition: 'Bleeding',
+            duration: 2,
+            metadata: { cloneId: 'invalid' },
+            stacks: 1
+          },
+          'Player',
+          '',
+          { skillId: 123 }
+        )
+      }),
     /cloneId must be a finite number/
   );
 });

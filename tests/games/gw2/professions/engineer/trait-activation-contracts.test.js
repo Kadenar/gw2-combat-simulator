@@ -83,9 +83,15 @@ test('Steel-Packed Powder settles Vulnerability before subsequent explosion reac
     }
   };
   const react = profession.reactions['damage.resolved'];
-  const hit = { at: 1, actorType: 'effect', ownerActorType: 'player', coefficient: 1, explosion: true };
+  const hit = {
+    at: 1,
+    actorType: 'effect',
+    ownerActorType: 'player',
+    coefficient: 1,
+    damageKind: 'explosion'
+  };
   react(runtime, { ...hit, coefficient: 0 }, resolvedTestHitDetails());
-  react(runtime, { ...hit, explosion: false }, resolvedTestHitDetails());
+  react(runtime, { ...hit, damageKind: undefined }, resolvedTestHitDetails());
   assert.equal(vulnerability, 0);
   assert.equal(rolls, 0);
   react(runtime, hit, resolvedTestHitDetails());

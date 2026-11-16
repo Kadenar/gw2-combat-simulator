@@ -164,11 +164,11 @@ export const bountifulBlades = defineTrait<MesmerSkill>({
       operation: 'multiply',
       requiresSelection: false,
       order: 94,
-      factor: (context) => Number(context.event?.bountifulBladesDamageFactor),
+      factor: (context) => context.event?.metadata?.bountifulBladesDamageFactor ?? 1,
       when: (context) =>
         isGw2PhantasmEvent(context.event) &&
         context.event?.skillId === ID.PHANTASMAL_BERSERKER &&
-        context.event.bountifulBladesDamageFactor != null
+        context.event.metadata?.bountifulBladesDamageFactor != null
     }
   ]
 });

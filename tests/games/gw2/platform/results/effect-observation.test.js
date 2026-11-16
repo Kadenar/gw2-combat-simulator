@@ -276,15 +276,25 @@ test('policy changes and native consumption remain visible with unchanged generi
 // Scalar windows and the retained label metadata stay detached from live sources and finished report consumers.
 test('recorded windows and source events stay detached from their owner and report consumers', () => {
   const recorder = new EffectRecorder();
-  const source = { type: 'buff', at: 0, metadata: { radiantWeapon: 'original' } };
+  const source = {
+    type: 'buff',
+    at: 0,
+    metadata: { radiantWeapon: 'original', guardianRadiantCourage: false, triggeredByAlly: 0 }
+  };
   const windows = [{ stacks: 2, expiresAt: 5, source }];
   recorder.capture(0, [timedEffectState('charges', windows, 3, { source })]);
   source.metadata.radiantWeapon = 'changed';
+  source.metadata.guardianRadiantCourage = true;
+  source.metadata.triggeredByAlly = 1;
   windows[0].stacks = 1;
   const report = recorder.finish(2);
   const observed = effectStateAt(report, report.tracks[0], 1);
   assert.equal(observed.count, 2);
-  assert.equal(observed.source.metadata.radiantWeapon, 'original');
+  assert.deepEqual(observed.source.metadata, {
+    radiantWeapon: 'original',
+    guardianRadiantCourage: false,
+    triggeredByAlly: 0
+  });
   observed.source.metadata.radiantWeapon = 'consumer edit';
   assert.equal(recorder.finish(3).tracks[0].terminal.source.metadata.radiantWeapon, 'original');
 });

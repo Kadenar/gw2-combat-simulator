@@ -647,7 +647,7 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
   const mine = streamlined.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Drop Mine');
 
   assert.equal(mine.coefficient, 1.75);
-  assert.equal(mine.explosion, true);
+  assert.equal(mine.damageKind, 'explosion');
   assert.ok(
     streamlined.events.some((event) => event.type === 'buff' && event.kind === 'swiftness' && event.duration === 20)
   );

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createCatalogNormalizer } from '#gw2/platform/skills/validation.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID,
@@ -13,6 +14,8 @@ import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+
+const { normalizeSkillEffects } = createCatalogNormalizer(createCanonicalCatalog());
 
 // Patch declarations through every catalog lookup while retaining the real lifecycle and state owners.
 function patchedProfession(changes, afterCommit) {

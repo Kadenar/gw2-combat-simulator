@@ -62,7 +62,6 @@ import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { nativeSkillModifierRules } from '#gw2/platform/skills/modifiers.js';
-import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
@@ -359,7 +358,7 @@ export function defineNativeProfession<
           // Predicates may depend on live state, but the reference must name a declared numeric skill field.
           const field = rule.multiplier.skillField;
 
-          if (catalogSkillFields(assembly.catalog)[field]?.kind !== 'number')
+          if (assembly.catalog.skillFields[field]?.kind !== 'number')
             throw new TypeError(`Unknown recharge skill field=${field} in ${module.id}.`);
 
           continue;

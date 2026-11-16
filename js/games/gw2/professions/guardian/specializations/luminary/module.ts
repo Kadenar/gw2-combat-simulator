@@ -4,6 +4,7 @@ import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-defini
 import { TRAIT_LINES } from '#gw2/professions/guardian/data/trait-lines.js';
 import { LUMINARY_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/luminary/catalog-fields.js';
 import { luminaryHooks } from '#gw2/professions/guardian/specializations/luminary/hooks.js';
+import { LUMINARY_METADATA_FIELDS } from '#gw2/professions/guardian/specializations/luminary/metadata.js';
 import { bindLuminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
 import { LUMINARY_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/luminary/skills/index.js';
 import { GUARDIAN_LUMINARY_SKILL_FLIPS } from '#gw2/professions/guardian/specializations/luminary/skills/skill-flips.js';
@@ -22,6 +23,7 @@ export const luminaryModule = defineNativeModule({
     traitLines: TRAIT_LINES,
     skillFlips: GUARDIAN_LUMINARY_SKILL_FLIPS,
     skillFields: LUMINARY_SKILL_FIELDS,
+    metadataFields: LUMINARY_METADATA_FIELDS,
     skills: materializeSkillDefinitions(LUMINARY_SKILL_MECHANICS)
   }),
   state: { create: luminaryState.create, project: projectLuminaryPlanningState },

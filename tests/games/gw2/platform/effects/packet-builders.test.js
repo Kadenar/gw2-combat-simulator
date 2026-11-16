@@ -20,6 +20,7 @@ import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js'
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 const trigger = {
   type: 'damage',
@@ -36,15 +37,20 @@ const trigger = {
   causalOrder: 1,
   hitIndex: 7,
   totalHits: 9,
-  metadata: { trigger: 'fixture' },
-  procActivation: { id: 'copied', count: 99 },
-  holosmithStrikeFactor: 3
+  metadata: { trigger: 'fixture', holosmithStrikeFactor: 3 },
+  procActivation: { id: 'copied', count: 99 }
 };
 
 // Exercise actual resolver state so immediate and queued conditions cannot accidentally trade places.
 test('derived conditions preserve immediate visibility and same-time queued ordering', () => {
   const trace = [];
   resolveTestGw2Events({
+    // Admit the trigger annotation so this test observes whether derived packets inherit it.
+    profession: defineTestProfession({
+      id: 'derived-condition-fixture',
+      name: 'Derived condition fixture',
+      catalog: engineerCatalog
+    }),
     config: { target: { armor: 2597, conditions: {} } },
     traits: new Set(),
     ...{ events: [trigger, { ...trigger, sourceId: 'observer' }], endTime: 2 },
@@ -120,7 +126,7 @@ test('derived conditions preserve immediate visibility and same-time queued orde
         trace.push(event.condition);
 
         assert.equal(event.hitIndex, undefined);
-        assert.equal(event.holosmithStrikeFactor, undefined);
+        assert.equal(event.metadata?.holosmithStrikeFactor, undefined);
 
         if (event.sourceId === 2) {
           assert.equal(event.actorType, 'effect');
@@ -149,7 +155,7 @@ test('live Ranger profile emission and Engineer packets retain companion ownersh
   assert.equal(pet.independentConditionOwner, true);
   assert.equal(typeof pet.summonBaseConditionDamage, 'number');
   assert.equal(pet.procActivation.count, 1);
-  assert.equal(pet.holosmithStrikeFactor, undefined);
+  assert.equal(pet.metadata?.holosmithStrikeFactor, undefined);
   effects.emit({
     kind: 'packet',
     settlement: 'reaction',
@@ -174,7 +180,7 @@ test('live Ranger profile emission and Engineer packets retain companion ownersh
   assert.deepEqual(mech.metadata, { engineerMech: true });
   assert.equal(mech.procActivation.count, 2);
   assert.equal(mech.summonInheritsAttributes, true);
-  assert.equal(mech.holosmithStrikeFactor, undefined);
+  assert.equal(mech.metadata?.holosmithStrikeFactor, undefined);
 });
 
 // Fresh boons sample live duration once; generic buffs and explicitly fixed durations bypass scaling.
@@ -241,7 +247,7 @@ test('Engineer derived strikes retain their owner and one combo descriptor', () 
   assert.equal(strike.hitIndex, 1);
   assert.equal(strike.skillId, undefined);
   assert.equal(strike.skillWeapon, 'Unequipped');
-  assert.equal(strike.holosmithStrikeFactor, undefined);
+  assert.equal(strike.metadata?.holosmithStrikeFactor, undefined);
   assert.equal(strike.comboFinishers[0].finisherType, 'Blast');
   assert.equal(strike.sourceId, 42);
   assert.equal(strike.actorType, 'effect');
@@ -278,9 +284,9 @@ test('Holosmith delayed packets retain activation heat after live heat and trait
   const strike = packets.findLast((event) => event.type === 'damage');
   const condition = packets.findLast((event) => event.type === 'condition');
   assert.ok(strike.at > trigger.at);
-  assert.equal(strike.holosmithStrikeFactor, 1.2);
+  assert.equal(strike.metadata?.holosmithStrikeFactor, 1.2);
   assert.equal(condition.at, strike.at);
-  assert.equal(condition.holosmithConditionBaseDurationFactor, 1.5);
+  assert.equal(condition.metadata?.holosmithConditionBaseDurationFactor, 1.5);
 });
 
 // A flat siphon must continue bypassing weapon strength, armor and critical multipliers.

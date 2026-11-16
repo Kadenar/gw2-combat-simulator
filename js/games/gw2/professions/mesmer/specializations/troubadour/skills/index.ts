@@ -251,8 +251,11 @@ const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
         operation: 'multiply',
         order: 1000,
         factor: (context) =>
-          1 + Number(context.event?.crescendoInstrumentCount) * Number(context.event?.crescendoEffectiveness),
-        when: (context) => isGw2PlayerActorEvent(context.event) && context.event?.crescendoInstrumentCount != null
+          1 +
+          (context.event?.metadata?.crescendoInstrumentCount ?? 0) *
+            (context.event?.metadata?.crescendoEffectiveness ?? 0),
+        when: (context) =>
+          isGw2PlayerActorEvent(context.event) && context.event?.metadata?.crescendoInstrumentCount != null
       }
     ],
     effects: [],

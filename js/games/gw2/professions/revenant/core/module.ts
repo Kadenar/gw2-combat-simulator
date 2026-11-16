@@ -12,6 +12,7 @@ import { REVENANT_CORE_SKILL_FLIPS } from '#gw2/professions/revenant/core/skills
 import { createRevenantCoreState, projectRevenantPlanningState } from '#gw2/professions/revenant/core/state.js';
 import { traitDefinitions } from '#gw2/professions/revenant/core/traits/index.js';
 import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
+import { REVENANT_METADATA_FIELDS } from '#gw2/professions/revenant/metadata.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
 
@@ -40,6 +41,7 @@ export const revenantCoreModule = defineNativeModule({
     autoattackChains: REVENANT_CORE_AUTOATTACK_CHAINS,
     profileFields: REVENANT_CORE_PROFILE_FIELDS,
     skillFields: REVENANT_CORE_SKILL_FIELDS,
+    metadataFields: REVENANT_METADATA_FIELDS,
     skills: REVENANT_CORE_SKILLS
   }),
   state: {

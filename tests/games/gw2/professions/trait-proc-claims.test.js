@@ -35,7 +35,7 @@ const cases = [
     trait: E.SHORT_FUSE,
     key: 'shortFuse',
     consumesRemoved: true,
-    invoke: (r) => stageTrigger(shortFuse, 'damage.resolved')(r, hit(r, { explosion: true }))
+    invoke: (r) => stageTrigger(shortFuse, 'damage.resolved')(r, hit(r, { damageKind: 'explosion' }))
   },
   {
     trait: E.AIM_ASSISTED_ROCKET,

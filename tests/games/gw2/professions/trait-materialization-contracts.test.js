@@ -105,7 +105,7 @@ for (const [name, family, trait, effect, event, config] of [
     engineerProfession,
     G.STEEL_PACKED_POWDER,
     'Vulnerability',
-    { ...strike, explosion: true },
+    { ...strike, damageKind: 'explosion' },
     {}
   ],
   [
@@ -119,6 +119,7 @@ for (const [name, family, trait, effect, event, config] of [
   ['Opening Strike', rangerProfession, R.OPENING_STRIKE, 'Vulnerability', strike, { selectedPet: 'Pig' }]
 ])
   test(`${name} preserves ownership while materializing authored condition fields and removal`, () => {
+    const metadataField = family === rangerProfession ? 'packetKind' : 'trigger';
     for (const removed of [false, true]) {
       const selector = { type: 'condition', name: effect };
       const result = simulate(
@@ -127,7 +128,9 @@ for (const [name, family, trait, effect, event, config] of [
         removed
           ? { removeEffects: [selector] }
           : {
-              effects: [{ ...selector, stacks: 4, duration: 7, projectile: true, metadata: { trigger: 'fixture' } }]
+              effects: [
+                { ...selector, stacks: 4, duration: 7, projectile: true, metadata: { [metadataField]: 'fixture' } }
+              ]
             },
         { event, config }
       );
@@ -144,7 +147,7 @@ for (const [name, family, trait, effect, event, config] of [
         );
         assert.equal(packets[0].duration, 7);
         assert.equal(packets[0].projectile, true);
-        assert.equal(packets[0].metadata.trigger, 'fixture');
+        assert.equal(packets[0].metadata[metadataField], 'fixture');
         assert.equal(packets[0].actorType, 'effect');
         assert.equal(packets[0].triggeredBy, 'Trigger');
       }
@@ -167,7 +170,7 @@ for (const [name, trait, attunement] of [
             coefficient: 0.75,
             canCrit: true,
             weaponStrength: 1234,
-            metadata: { trigger: 'fixture' }
+            metadata: { packetKind: 'fixture' }
           }
         ]
       },
@@ -180,7 +183,7 @@ for (const [name, trait, attunement] of [
     assert.equal(packet.coefficient, 0.75);
     assert.equal(packet.canCrit, true);
     assert.equal(packet.weaponStrength, 1234);
-    assert.equal(packet.metadata.trigger, 'fixture');
+    assert.equal(packet.metadata.packetKind, 'fixture');
     assert.equal(packet.sourceId, attunement);
     assert.equal(packet.ownerActorType, 'player');
     assert.match(packet.activationId, /^elementalist\.effect:/);

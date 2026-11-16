@@ -51,6 +51,7 @@ export type ProfessionModuleCatalogFragment<TSkill extends Skill = Skill> = Pick
   | 'skills'
   | 'skillFields'
   | 'profileFields'
+  | 'metadataFields'
   | 'balanceProfiles'
   | 'traits'
   | 'specializations'

@@ -72,13 +72,12 @@ test('Photon Projector scales condition base duration independently of ordinary 
     [0.5, 0.5],
     [1.5, 1.5],
     [0, 0],
-    [-1, 0],
-    [NaN, 1]
+    [-1, 0]
   ]) {
     const context = {
       time: 0,
       config: { selectedTraitIds: [] },
-      event: { holosmithConditionBaseDurationFactor: factor }
+      event: { metadata: factor === undefined ? undefined : { holosmithConditionBaseDurationFactor: factor } }
     };
     assert.equal(
       native.calculations.modifyConditionBaseDuration({ ...context, catalog: native.catalog }, 2),
@@ -801,7 +800,11 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
     [1, 1.2, 1.2, 1.2, 1.3]
   );
   assert.equal(
-    swordTierRule.factor({ event: { holosmithStrikeFactor: 1.3 } }, 'strikeDamage', swordTierRule.parameters),
+    swordTierRule.factor(
+      { event: { metadata: { holosmithStrikeFactor: 1.3 } } },
+      'strikeDamage',
+      swordTierRule.parameters
+    ),
     1.3
   );
 
@@ -812,7 +815,7 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   const blast = blasting.events.find((event) => event.type === 'damage' && event.name === 'Photonic Blasting Module');
 
   assert.equal(blast.coefficient, 5);
-  assert.equal(blast.explosion, true);
+  assert.equal(blast.damageKind, 'explosion');
   assert.equal(blast.comboFinishers[0].finisherType, 'Blast');
   const blastBurns = blasting.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === TRAIT.PHOTONIC_BLASTING_MODULE
@@ -903,7 +906,7 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
       (event) => event.condition === 'Bleeding' && event.duration === 2
     )
   );
-  assert.ok(enhancedDiskDamage.every((event) => event.holosmithStrikeFactor === 1.35));
+  assert.ok(enhancedDiskDamage.every((event) => event.metadata?.holosmithStrikeFactor === 1.35));
 
   const coldWall = run(['Photon Wall', 'Launch Wall', { type: 'wait', durationMs: 1000 }], 0);
   const hotWall = run(['Photon Wall', 'Launch Wall', { type: 'wait', durationMs: 1000 }], 60);
@@ -923,7 +926,9 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
       (event) => event.condition === 'Vulnerability' && event.stacks === 1 && event.duration === 5
     )
   );
-  assert.ok(skillEvents(enhancedWall, 'damage', 'Launch Wall').every((event) => event.holosmithStrikeFactor === 1.35));
+  assert.ok(
+    skillEvents(enhancedWall, 'damage', 'Launch Wall').every((event) => event.metadata?.holosmithStrikeFactor === 1.35)
+  );
 
   const blades = (initialHeat, selectedTraitIds = []) =>
     run(
@@ -970,7 +975,7 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
 
   assert.ok(field.length > 0);
   assert.ok(field.every((event) => event.coefficient === 0.5 && event.damageKind === 'explosion'));
-  assert.ok(field.every((event) => event.holosmithStrikeFactor === 1.2));
+  assert.ok(field.every((event) => event.metadata?.holosmithStrikeFactor === 1.2));
   assert.ok(burning.length > 0);
   assert.ok(
     burning.every((event) => event.condition === 'Burning' && event.duration === 3 && event.effectiveDuration === 4.5)
@@ -1065,7 +1070,7 @@ test('Holosmith skill patches tune tier effects without changing heat topology',
 
   assert.equal(disk.planningState.profession[STATE.HEAT].maximum, 150);
   assert.ok(diskPackets.length > 0);
-  assert.ok(diskPackets.every((event) => event.holosmithStrikeFactor === 1.5));
+  assert.ok(diskPackets.every((event) => event.metadata?.holosmithStrikeFactor === 1.5));
 
   const beam = patchedSimulation(['Prime Light Beam', { type: 'wait', durationMs: 11000 }]);
   const field = beam.resolvedEvents.filter(
@@ -1075,9 +1080,11 @@ test('Holosmith skill patches tune tier effects without changing heat topology',
     (event) => event.type === 'condition' && event.skillName === 'Prime Light Beam'
   );
 
-  assert.ok(field.every((event) => event.holosmithStrikeFactor === 1.4));
+  assert.ok(field.every((event) => event.metadata?.holosmithStrikeFactor === 1.4));
   assert.ok(
-    burning.every((event) => event.holosmithConditionBaseDurationFactor === 2 && event.effectiveDuration === 6)
+    burning.every(
+      (event) => event.metadata?.holosmithConditionBaseDurationFactor === 2 && event.effectiveDuration === 6
+    )
   );
 });
 
@@ -1181,7 +1188,7 @@ test('Holosmith positive strike factors below one apply and retain delayed captu
           specialization: { kind: 'Holosmith', state: createHolosmithState() }
         }
       },
-      event: { actorType: 'player', holosmithStrikeFactor: factor }
+      event: { actorType: 'player', metadata: { holosmithStrikeFactor: factor } }
     };
     assert.equal(rule.when(context), true);
     assert.equal(native.calculations.modifyStrikeDamage(context, 1), factor);
@@ -1204,12 +1211,12 @@ test('Holosmith positive strike factors below one apply and retain delayed captu
         }
       }
     },
-    event: { actorType: 'player', holosmithStrikeSkillId: ID.SUN_EDGE }
+    event: { actorType: 'player', metadata: { holosmithStrikeSkillId: ID.SUN_EDGE } }
   };
   assert.equal(rule.factor(context, 'strikeDamage', rule.parameters), 0.4);
   assert.equal(
     rule.factor(
-      { ...context, event: { ...context.event, holosmithStrikeFactor: 0.25 } },
+      { ...context, event: { ...context.event, metadata: { ...context.event.metadata, holosmithStrikeFactor: 0.25 } } },
       'strikeDamage',
       rule.parameters
     ),

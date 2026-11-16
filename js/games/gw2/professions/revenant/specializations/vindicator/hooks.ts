@@ -67,9 +67,12 @@ function land(runtime: RevenantRuntime, data: unknown): void {
         name: profile.name,
         // Damage rows show the selected landing while cast accounting retains the shared Dodge input.
         icon: profile.icon,
-        reaversCurseDamageFactor,
         skillWeapon: 'Unequipped',
-        forerunnerOfDeathActive: forerunnerActive
+        metadata: {
+          ...event.metadata,
+          ...(reaversCurseDamageFactor == null ? {} : { reaversCurseDamageFactor }),
+          forerunnerOfDeathActive: forerunnerActive
+        }
       })
     });
     runtime.fireTrigger(vindicatorLanded, { profile, activationId });

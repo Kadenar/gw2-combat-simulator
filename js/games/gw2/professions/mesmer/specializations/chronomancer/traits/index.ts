@@ -84,8 +84,9 @@ const chronophantasma = defineTrait<MesmerSkill>({
       operation: 'multiply',
       requiresSelection: false,
       order: 1000,
-      factor: (context) => Number(context.event?.chronophantasmaDamageFactor),
-      when: (context) => isGw2PhantasmEvent(context.event) && context.event?.chronophantasmaDamageFactor != null
+      factor: (context) => context.event?.metadata?.chronophantasmaDamageFactor ?? 1,
+      when: (context) =>
+        isGw2PhantasmEvent(context.event) && context.event?.metadata?.chronophantasmaDamageFactor != null
     }
   ],
   // Admit repeat work once for this batch; the illusion owner retains its conversion and delivery lifetime.

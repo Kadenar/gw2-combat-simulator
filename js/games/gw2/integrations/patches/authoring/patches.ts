@@ -23,11 +23,14 @@ import type {
   StrikeEffect,
   StrikeTick
 } from '#gw2/platform/effects/types.js';
-import { normalizeSkillEffects, requireBalanceNumber, skillEffectKey } from '#gw2/platform/effects/validation.js';
-import { validateFieldValues, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
-import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
+import { requireBalanceNumber, skillEffectKey } from '#gw2/platform/effects/validation.js';
+import { validateFieldValues } from '#gw2/platform/skills/field-specs.js';
 import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
+import {
+  createCatalogNormalizer,
+  validateCanonicalCatalog,
+  type CatalogNormalizer
+} from '#gw2/platform/skills/validation.js';
 
 /** Stable action ids address numeric reward tuning without exposing reaction order or executable predicates. */
 export type ResourceGrantEdits = Readonly<Record<string, Readonly<Record<string, NumEdit>>>>;
@@ -216,7 +219,12 @@ function resourceGrantChanges(
 }
 
 /** Retain only removed identities, so callbacks and successive catalog overlays cannot resurrect deleted packets. */
-function patchEffects(owner: Pick<Skill, 'effects' | 'removedEffectKeys'>, edit: SkillPatchEdit, label: string) {
+function patchEffects(
+  owner: Pick<Skill, 'effects' | 'removedEffectKeys'>,
+  edit: SkillPatchEdit,
+  label: string,
+  normalizer: CatalogNormalizer
+) {
   const effects = [...(owner.effects || [])];
   for (const effectPatch of shorthandEffects(edit)) {
     for (const { index } of selectedEffects(effects, effectPatch, label)) {
@@ -235,7 +243,7 @@ function patchEffects(owner: Pick<Skill, 'effects' | 'removedEffectKeys'>, edit:
   }
 
   // Removed packets need no fields; retained and replacement packets must pass the canonical validator.
-  const retained = normalizeSkillEffects(
+  const retained = normalizer.normalizeSkillEffects(
     [...effects.filter((_, index) => !removedIndexes.has(index)), ...structuredClone(edit.addEffects || [])],
     label
   );
@@ -735,11 +743,11 @@ function normalizeEffectEdits(source: Pick<Skill, 'name' | 'effects'>, edit: Ski
 }
 
 /** Produces an immutable patched skill without mutating the live catalog record. */
-function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string, skillFields: FieldSpecs): Skill {
+function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string, normalizer: CatalogNormalizer): Skill {
   const ownerLabel = `${label} skill=${skill.id} (${skill.name})`;
   const clone = cloneCatalogData(skill);
   for (const { action, changes } of actionEffectEdits(clone, edit))
-    Object.assign(action, patchEffects(action, changes, `${ownerLabel} action=${action.id}`));
+    Object.assign(action, patchEffects(action, changes, `${ownerLabel} action=${action.id}`, normalizer));
   patchResourceGrants(castResourceGrants(clone), edit.resourceGrants, ownerLabel);
   const mutable = clone as unknown as Record<string, unknown>;
 
@@ -769,7 +777,7 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string, skillFiel
   };
   for (const [field, numericEdit] of Object.entries(fields)) {
     // The selected catalog's declarations decide patchability, including fields owned by this profession.
-    const spec = Object.hasOwn(skillFields, field) ? skillFields[field] : undefined;
+    const spec = Object.hasOwn(normalizer.skillFields, field) ? normalizer.skillFields[field] : undefined;
 
     if (spec?.kind !== 'number' || !spec.patch) {
       throw new TypeError(`${ownerLabel} has unsupported patch field ${field}.`);
@@ -778,12 +786,13 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string, skillFiel
     patchSkillNumericField(mutable, field, numericEdit, ownerLabel);
   }
 
-  Object.assign(mutable, patchEffects(clone, edit, ownerLabel));
+  Object.assign(mutable, patchEffects(clone, edit, ownerLabel, normalizer));
 
   // Finish all reward edits before freezing and normalizing the cloned action declarations.
-  if (clone.sideEffects) mutable.sideEffects = snapshotActionDeclaration(clone.sideEffects, normalizeSkillEffects);
+  if (clone.sideEffects)
+    mutable.sideEffects = snapshotActionDeclaration(clone.sideEffects, normalizer.normalizeSkillEffects);
 
-  validateFieldValues(mutable, skillFields, ownerLabel);
+  validateFieldValues(mutable, normalizer.skillFields, ownerLabel);
   return deepFreeze(clone);
 }
 
@@ -792,7 +801,7 @@ function patchBalanceProfile(
   profile: BalanceProfile,
   edit: SkillPatchEdit,
   label: string,
-  profileFields: FieldSpecs
+  normalizer: CatalogNormalizer
 ): BalanceProfile {
   const ownerLabel = `${label} profile=${profile.id} (${profile.name})`;
 
@@ -811,15 +820,15 @@ function patchBalanceProfile(
     ...(edit.cooldown == null ? {} : { cooldown: edit.cooldown })
   };
   for (const [field, numericEdit] of Object.entries(fields)) {
-    if (profileFields[field]?.kind !== 'number' || !profileFields[field].patch) {
+    if (normalizer.profileFields[field]?.kind !== 'number' || !normalizer.profileFields[field].patch) {
       throw new TypeError(`${ownerLabel} has unsupported patch field ${field}.`);
     }
 
     patchSkillNumericField(mutable, field, numericEdit, ownerLabel);
   }
 
-  Object.assign(mutable, patchEffects(clone, edit, ownerLabel));
-  validateFieldValues(mutable, profileFields, ownerLabel);
+  Object.assign(mutable, patchEffects(clone, edit, ownerLabel, normalizer));
+  validateFieldValues(mutable, normalizer.profileFields, ownerLabel);
   return deepFreeze(clone);
 }
 
@@ -850,6 +859,7 @@ export function applySkillPatch(
 
   if (!edits.length) return catalog;
 
+  const normalizer = createCatalogNormalizer(catalog);
   const replacements = new Map<Skill, Skill>();
   for (const [key, edit] of edits) {
     const skill = findSkill(catalog, key);
@@ -864,7 +874,7 @@ export function applySkillPatch(
       throw new TypeError(`Patch edits skill ${skill.name} more than once.`);
     }
 
-    replacements.set(skill, patchSkill(skill, edit, catalogPatchLabel(catalog), catalogSkillFields(catalog)));
+    replacements.set(skill, patchSkill(skill, edit, catalogPatchLabel(catalog), normalizer));
   }
 
   if (!replacements.size) return catalog;
@@ -911,6 +921,7 @@ export function applyBalanceProfilePatch(
 
   if (!edits.length) return catalog;
 
+  const normalizer = createCatalogNormalizer(catalog);
   const replacements = new Map<BalanceProfile, BalanceProfile>();
   for (const [key, edit] of edits) {
     const numericId = /^-?\d+$/.test(key) ? Number(key) : null;
@@ -928,7 +939,7 @@ export function applyBalanceProfilePatch(
       throw new TypeError(`Patch edits balance profile ${profile.name} more than once.`);
     }
 
-    replacements.set(profile, patchBalanceProfile(profile, edit, catalogPatchLabel(catalog), catalog.profileFields));
+    replacements.set(profile, patchBalanceProfile(profile, edit, catalogPatchLabel(catalog), normalizer));
   }
 
   if (!replacements.size) return catalog;

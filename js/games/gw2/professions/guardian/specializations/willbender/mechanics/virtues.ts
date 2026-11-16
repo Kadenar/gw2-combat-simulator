@@ -101,7 +101,7 @@ function flames(runtime: GuardianRuntime, data: unknown): void {
         skillWeapon: 'Unequipped',
         hitIndex: index + 1,
         totalHits: strike.ticks.length,
-        willbenderFlames: true,
+        metadata: { willbenderFlames: true },
         offTarget: cast.command.offTarget
       },
       flameOwner(state.flameGeneration)

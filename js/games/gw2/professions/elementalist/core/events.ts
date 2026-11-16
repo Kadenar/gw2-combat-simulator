@@ -5,7 +5,6 @@ import {
   proceduralSkillWeapon,
   splitStrikeHits
 } from '#gw2/platform/effects/packet-builders.js';
-import { normalizeEffectMetadata } from '#gw2/platform/events/audience-metadata-validation.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -42,7 +41,7 @@ function fields(packet: Packet) {
     skillId: skill?.id ?? id,
     skillName: name,
     ...rest,
-    metadata: normalizeEffectMetadata(rest.metadata)
+    metadata: rest.metadata == null ? undefined : Object.freeze({ ...rest.metadata })
   };
 }
 

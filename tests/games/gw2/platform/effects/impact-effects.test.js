@@ -11,6 +11,7 @@ test('shared impacts preserve event order, local attribution and recipient owner
   const timing = Object.freeze({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' });
   const strike = Object.freeze({ type: 'strike', coefficient: 1, source: 'impact', sourceId: 2 });
   const catalog = createCanonicalCatalog({
+    // The fixture owns its annotation just as a profession owns its packet vocabulary.
     skills: [
       {
         id: 1,

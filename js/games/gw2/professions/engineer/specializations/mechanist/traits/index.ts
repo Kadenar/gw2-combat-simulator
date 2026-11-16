@@ -51,7 +51,7 @@ const jadeCannons = defineTrait({
   ],
   triggers: [
     onTriggerPoint(mechStruck, {
-      when: (_runtime, { cause }: MechStrike) => cause.mechBasicAttack === true,
+      when: (_runtime, { cause }: MechStrike) => cause.metadata?.mechBasicAttack === true,
       run: applyJadeCannonsVulnerability
     })
   ]

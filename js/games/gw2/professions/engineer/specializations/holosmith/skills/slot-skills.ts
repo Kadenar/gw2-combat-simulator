@@ -330,13 +330,15 @@ function emitHeatApplications(
       skillId: event.skillId,
       skillName: event.skillName
     },
-    transform: (packet) => ({
-      ...packet,
-      ...(packet.type === 'damage' ? { holosmithStrikeFactor: strikeFactor } : {}),
-      ...(packet.type === 'condition' && conditionBaseDurationFactor !== undefined
-        ? { holosmithConditionBaseDurationFactor: conditionBaseDurationFactor }
-        : {})
-    })
+    transform: (packet) =>
+      packet.type === 'damage'
+        ? { ...packet, metadata: { ...packet.metadata, holosmithStrikeFactor: strikeFactor } }
+        : packet.type === 'condition' && conditionBaseDurationFactor !== undefined
+          ? {
+              ...packet,
+              metadata: { ...packet.metadata, holosmithConditionBaseDurationFactor: conditionBaseDurationFactor }
+            }
+          : packet
   });
 }
 
@@ -426,7 +428,7 @@ export function prepareHolosmithSlotEvent(
   const id = event.skillId ?? event.sourceId;
   const skill =
     id === ID.BLADE_BURST ? ID.BLADE_BURST : id === ID.PARTICLE_ACCELERATOR ? ID.PARTICLE_ACCELERATOR : undefined;
-  return skill == null ? event : { ...event, holosmithStrikeSkillId: skill };
+  return skill == null ? event : { ...event, metadata: { ...event.metadata, holosmithStrikeSkillId: skill } };
 }
 
 export const holosmithSlotEventHandlers = Object.freeze({

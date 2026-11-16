@@ -300,7 +300,7 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
         skillWeapon: WEAPON.SPEAR,
         name: 'Electric Artillery',
         coefficient: Number(strike.coefficient),
-        explosion: true
+        damageKind: 'explosion'
       })
     });
 

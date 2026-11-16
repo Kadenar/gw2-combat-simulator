@@ -117,7 +117,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
         id: 'revenant.blossoming-aura-stacks',
         target: 'strikeDamage',
         operation: 'multiply',
-        factor: (context) => Number(context.event?.metadata?.revenantBlossomingAuraDamageFactor),
+        factor: (context) => context.event?.metadata?.revenantBlossomingAuraDamageFactor ?? 1,
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
           context.event?.metadata?.revenantBlossomingAuraDamageFactor != null

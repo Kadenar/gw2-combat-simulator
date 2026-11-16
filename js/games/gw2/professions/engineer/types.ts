@@ -84,11 +84,9 @@ export type EngineerResolverEvent = Gw2ResolverEvent & {
   readonly application?: Gw2ResolverEvent;
   readonly charges?: number;
   readonly damageKind?: string;
-  readonly explosion?: boolean;
   readonly expiresAt?: number;
   readonly fieldType?: string;
   readonly hitIndex?: number;
-  readonly mechBasicAttack?: boolean;
   readonly projectile?: boolean;
   readonly offTarget?: boolean;
 };

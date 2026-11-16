@@ -7,6 +7,7 @@ import {
   NECROMANCER_HARBINGER_PROFILE_FIELDS
 } from '#gw2/professions/necromancer/specializations/harbinger/catalog-fields.js';
 import { harbingerHooks } from '#gw2/professions/necromancer/specializations/harbinger/hooks.js';
+import { HARBINGER_METADATA_FIELDS } from '#gw2/professions/necromancer/specializations/harbinger/metadata.js';
 import { bindHarbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
 import { HARBINGER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/harbinger/skills/index.js';
 import { NECROMANCER_HARBINGER_SKILL_FLIPS } from '#gw2/professions/necromancer/specializations/harbinger/skills/skill-flips.js';
@@ -25,6 +26,7 @@ export const harbingerModule = defineNativeModule({
     skillFlips: NECROMANCER_HARBINGER_SKILL_FLIPS,
     profileFields: NECROMANCER_HARBINGER_PROFILE_FIELDS,
     skillFields: HARBINGER_SKILL_FIELDS,
+    metadataFields: HARBINGER_METADATA_FIELDS,
     skills: materializeSkillDefinitions(HARBINGER_BASE_SKILL_MECHANICS)
   }),
   // One state factory supplies the live combat owner.

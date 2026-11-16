@@ -245,7 +245,7 @@ function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEve
   // Native command definitions identify their skill; stamp ownership here before modifiers and reactions consume it.
   const skill = skillForEvent(context.helpers, event);
   const engineerMech =
-    (event.metadata as Record<string, unknown> | undefined)?.engineerMech === true ||
+    event.metadata?.engineerMech === true ||
     (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId)) ||
     event.skillId === ID.JADE_BUSTER_CANNON ||
     isEngineerMechCommand(skill);
@@ -260,7 +260,7 @@ function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEve
     independentConditionOwner: true,
     // Condition packets need the same inherited-stat input as strikes before mech attribute replacement.
     summonInheritsAttributes: true,
-    metadata: { ...(event.metadata as object), engineerMech: true }
+    metadata: { ...event.metadata, engineerMech: true }
   };
 
   // Support grants use player-first party selection; the mech receives them only when a target slot remains.
@@ -279,10 +279,10 @@ function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEve
   // consumed by summon damage resolution; other mech events need ownership only.
   if (event.type === 'damage' && Number(event.coefficient) > 0) {
     const basicAttack =
-      event.mechBasicAttack === true || (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId));
+      event.metadata?.mechBasicAttack === true || (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId));
     Object.assign(updates, {
       ...mechDamageMetadata(event.skillId ?? event.sourceId),
-      mechBasicAttack: basicAttack
+      metadata: { ...event.metadata, engineerMech: true, mechBasicAttack: basicAttack }
     });
   }
 

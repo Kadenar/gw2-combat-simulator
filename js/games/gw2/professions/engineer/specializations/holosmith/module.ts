@@ -7,6 +7,7 @@ import {
   HOLOSMITH_SKILL_FIELDS
 } from '#gw2/professions/engineer/specializations/holosmith/catalog-fields.js';
 import { holosmithHooks } from '#gw2/professions/engineer/specializations/holosmith/hooks.js';
+import { HOLOSMITH_METADATA_FIELDS } from '#gw2/professions/engineer/specializations/holosmith/metadata.js';
 import { bindHolosmithUi } from '#gw2/professions/engineer/specializations/holosmith/presentation.js';
 import { ENGINEER_HOLOSMITH_AUTOATTACK_CHAINS } from '#gw2/professions/engineer/specializations/holosmith/skills/autoattack-chains.js';
 import { HOLOSMITH_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/holosmith/skills/index.js';
@@ -26,6 +27,7 @@ export const holosmithModule = defineNativeModule({
     skillFlips: ENGINEER_HOLOSMITH_SKILL_FLIPS,
     profileFields: ENGINEER_HOLOSMITH_PROFILE_FIELDS,
     skillFields: HOLOSMITH_SKILL_FIELDS,
+    metadataFields: HOLOSMITH_METADATA_FIELDS,
     skills: materializeSkillDefinitions(HOLOSMITH_SKILL_MECHANICS),
     autoattackChains: ENGINEER_HOLOSMITH_AUTOATTACK_CHAINS
   }),

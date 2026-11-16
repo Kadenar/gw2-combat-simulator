@@ -45,7 +45,9 @@ test('Forge entry skill patches own expiry and the conditional exit recharge red
   const entered = result.events.find(
     (event) => event.type === 'weapon_set' && event.skillId === ID.ENTER_RADIANT_FORGE
   );
-  const expired = result.events.find((event) => event.type === 'weapon_set' && event.automatic);
+  const expired = result.events.find(
+    (event) => event.type === 'weapon_set' && event.metadata?.guardianAutomaticForgeExit
+  );
   assert.equal(expired.at - entered.at, 2);
   assert.equal(result.planningState.profession[STATE.RADIANT_FORGE], false);
   assert.equal(

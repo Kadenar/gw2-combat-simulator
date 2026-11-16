@@ -15,7 +15,7 @@ import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import {
-  holosmithEventMetadata,
+  holosmithEventFields,
   holosmithHeatTier,
   snapshotHolosmithHeat
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
@@ -310,7 +310,7 @@ function handleRadiantArcQuickness(context: EngineerResolverContext, event: Holo
 
 /** Materializes every heat-granted Refraction Cutter blade as a strike, bleed, and projectile finisher. */
 function handleRefractionCutterExtraBlades(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
-  const extraBlades = Math.max(0, Math.trunc(holosmithEventMetadata(event).extraBlades || 0));
+  const extraBlades = Math.max(0, Math.trunc(holosmithEventFields(event).extraBlades || 0));
   const skill = requireSkill(context.helpers, ID.REFRACTION_CUTTER);
   const strike = requireEffect(
     skill,
@@ -414,7 +414,7 @@ export function prepareHolosmithSwordEvent(
   )
     return event;
 
-  return { ...event, holosmithStrikeSkillId: event.skillId ?? event.sourceId };
+  return { ...event, metadata: { ...event.metadata, holosmithStrikeSkillId: event.skillId ?? event.sourceId } };
 }
 
 export const holosmithSwordEventHandlers = Object.freeze({

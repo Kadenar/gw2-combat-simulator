@@ -26,6 +26,10 @@ export type Gw2ResolverEvent = SimulationEvent &
     readonly flatDamageConditionCoeff?: number;
     readonly summonDamagePerCoefficient?: number;
     readonly summonBasePower?: number;
+    /** Summon packets can supply native critical stats and their outgoing strike factor. */
+    readonly summonCriticalChance?: number;
+    readonly summonCriticalDamage?: number;
+    readonly summonStrikeMultiplier?: number;
     readonly summonBasePrecision?: number;
     readonly summonBaseFerocity?: number;
     readonly summonBaseConditionDamage?: number;

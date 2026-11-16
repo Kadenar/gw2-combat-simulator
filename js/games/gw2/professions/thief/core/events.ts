@@ -1,6 +1,6 @@
 import { ACTOR, type ControlKind, type SimulationActorType } from '#gw2/platform/constants.js';
 import { splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
-import { normalizeEffectAudience } from '#gw2/platform/events/audience-metadata-validation.js';
+import { normalizeEffectAudience } from '#gw2/platform/events/audience-validation.js';
 import type { EffectAudience, EffectMetadata, SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';

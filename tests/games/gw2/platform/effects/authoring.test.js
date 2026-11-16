@@ -3,7 +3,10 @@ import test from 'node:test';
 
 import { strikeEffectCoefficient, strikeEffectTicks, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import { MAX_EFFECT_EXPANSION } from '#gw2/platform/effects/expansion-budget.js';
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createCatalogNormalizer } from '#gw2/platform/skills/validation.js';
+
+const { normalizeSkillEffects } = createCatalogNormalizer(createCanonicalCatalog());
 
 // Equivalent declarations must keep their formula total, while repeated applications each own a full coefficient.
 test('aggregate strike coefficients agree with equivalent explicit timelines', () => {

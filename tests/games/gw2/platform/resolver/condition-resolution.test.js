@@ -5,6 +5,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
+import { combineMetadataFields } from '#gw2/platform/events/metadata.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -63,7 +64,10 @@ test('Might increases condition damage as well as strike power', () => {
 
 test('condition applications shorter than one second deal fractional damage', () => {
   // Resolution retains nested annotations for condition reactions without flattening them into the application.
-  const metadata = Object.freeze({ cloneId: 0, blade: false, triggeredByAlly: 1, venomProcEffectIndex: 0 });
+  const metadataFields = combineMetadataFields([
+    { owner: 'Fixture', fields: { fixtureCount: 'number', fixtureFlag: 'boolean' } }
+  ]);
+  const metadata = Object.freeze({ fixtureCount: 0, fixtureFlag: false, triggeredByAlly: 1 });
   const scenario = {
     events: [
       {
@@ -87,6 +91,11 @@ test('condition applications shorter than one second deal fractional damage', ()
   };
   const result = resolveTestGw2Events({
     ...scenario,
+    profession: defineTestProfession({
+      id: 'condition-fixture',
+      name: 'Condition fixture',
+      catalog: createCanonicalCatalog({ metadataFields })
+    }),
     config: {
       target: {},
       sigilSets: [{ names: [] }]

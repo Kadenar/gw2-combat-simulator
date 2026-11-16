@@ -23,9 +23,10 @@ import type {
   StrikeTick
 } from '#gw2/platform/effects/types.js';
 import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
-import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/events/audience-metadata-validation.js';
+import { normalizeEffectAudience } from '#gw2/platform/events/audience-validation.js';
+import { normalizeEffectMetadata } from '#gw2/platform/events/metadata.js';
 import { normalizeSkillEffectModifiers } from '#gw2/platform/skills/modifiers.js';
-import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
+import type { BalanceProfile, CatalogVocabulary, Skill } from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
 /** Validate authored effects and retain canonical immutable lists before any runtime consumes them. */
@@ -114,503 +115,528 @@ export function requireCanonicalSkillEffects(
   return effects;
 }
 
-/** Validate complete surviving lists at both catalog assembly and patch boundaries. */
-export function normalizeSkillEffects(effects: readonly SkillEffect[], label: string): readonly SkillEffect[] {
-  if (!Array.isArray(effects)) throw new TypeError(`${label} effects must be an array.`);
+/** Bind a catalog's vocabulary once for recursive effects, ticks, and action payloads. */
+export function createEffectNormalizer(vocabulary: CatalogVocabulary) {
+  /** Validate complete surviving lists at both catalog assembly and patch boundaries. */
+  function normalizeSkillEffects(effects: readonly SkillEffect[], label = 'Skill effect'): readonly SkillEffect[] {
+    if (!Array.isArray(effects)) throw new TypeError(`${label} effects must be an array.`);
 
-  if (effects.length > MAX_EFFECT_EXPANSION)
-    throw new RangeError(`${label} exceeds the effect expansion limit (${MAX_EFFECT_EXPANSION}).`);
+    if (effects.length > MAX_EFFECT_EXPANSION)
+      throw new RangeError(`${label} exceeds the effect expansion limit (${MAX_EFFECT_EXPANSION}).`);
 
-  // Bound the complete list before normalizing tick arrays; many individually valid effects must not multiply the cap.
-  let packetCount = 0;
-  for (const effect of effects) {
-    if (!effect || !EFFECT_TYPES.has(effect.type)) continue;
+    // Bound the complete list before normalizing tick arrays; many individually valid effects must not multiply the cap.
+    let packetCount = 0;
+    for (const effect of effects) {
+      if (!effect || !EFFECT_TYPES.has(effect.type)) continue;
 
-    packetCount += effectApplicationCount(effect, `${label} effect=${effect.type}/${effect.name ?? '<unnamed>'}`);
-    requireEffectExpansionCount(packetCount, label);
+      packetCount += effectApplicationCount(effect, `${label} effect=${effect.type}/${effect.name ?? '<unnamed>'}`);
+      requireEffectExpansionCount(packetCount, label);
+    }
+
+    const keys = new Set<string>();
+    const normalizedEffects = Object.freeze(
+      effects.map((effect) => {
+        const effectLabel = `${label} effect=${effect?.type}/${effect?.name ?? '<unnamed>'}`;
+        const normalized = normalizeEffect(effect, effectLabel);
+
+        if (effect?.name !== undefined) {
+          const key = skillEffectKey(effect.type, effect.name);
+
+          if (keys.has(key)) throw new TypeError(`Invalid balance data: ${effectLabel} duplicate effect key`);
+
+          keys.add(key);
+        }
+
+        return normalized;
+      })
+    );
+    canonicalEffectLists.add(normalizedEffects);
+    return normalizedEffects;
   }
 
-  const keys = new Set<string>();
-  const normalizedEffects = Object.freeze(
-    effects.map((effect) => {
-      const effectLabel = `${label} effect=${effect?.type}/${effect?.name ?? '<unnamed>'}`;
-      const normalized = normalizeEffect(effect, effectLabel);
+  /**
+   * Validates explicit strike timelines and freezes each hit descriptor.
+   */
+  function normalizeStrikeTicks(value: unknown): readonly StrikeTick[] {
+    if (!Array.isArray(value) || value.length === 0) {
+      throw new TypeError('Strike tick timelines require at least one hit.');
+    }
 
-      if (effect?.name !== undefined) {
-        const key = skillEffectKey(effect.type, effect.name);
+    const ticks = value as UnvalidatedFields[];
+    let previousAtMs = -Infinity;
+    return Object.freeze(
+      ticks.map((tick, index) => {
+        validateEffectNumbers(tick, `tick=${index}`);
+        const atMs = requireBalanceNumber(tick?.atMs, `tick=${index} field=atMs`);
+        const coefficient = requireBalanceNumber(tick?.coefficient, `tick=${index} field=coefficient`);
 
-        if (keys.has(key)) throw new TypeError(`Invalid balance data: ${effectLabel} duplicate effect key`);
+        // Required reads already guarantee finite numbers; these checks enforce the strike's value ranges.
+        if (atMs < 0) {
+          throw new TypeError(`Strike tick ${index + 1} requires a valid atMs.`);
+        }
 
-        keys.add(key);
-      }
+        if (coefficient < 0) {
+          throw new TypeError(`Strike tick ${index + 1} requires a non-negative coefficient.`);
+        }
 
-      return normalized;
-    })
-  );
-  canonicalEffectLists.add(normalizedEffects);
-  return normalizedEffects;
-}
+        if (atMs < previousAtMs) {
+          throw new TypeError('Strike tick timelines must be chronological.');
+        }
 
-/**
- * Validates explicit strike timelines and freezes each hit descriptor.
- */
-function normalizeStrikeTicks(value: unknown): readonly StrikeTick[] {
-  if (!Array.isArray(value) || value.length === 0) {
-    throw new TypeError('Strike tick timelines require at least one hit.');
+        previousAtMs = atMs;
+        const metadata = normalizeEffectMetadata(tick.metadata, vocabulary.metadataFields);
+        return Object.freeze({
+          ...tick,
+          atMs,
+          coefficient,
+          ...(metadata ? { metadata } : {})
+        });
+      })
+    );
   }
 
-  const ticks = value as UnvalidatedFields[];
-  let previousAtMs = -Infinity;
-  return Object.freeze(
-    ticks.map((tick, index) => {
-      validateEffectNumbers(tick, `tick=${index}`);
-      const atMs = requireBalanceNumber(tick?.atMs, `tick=${index} field=atMs`);
-      const coefficient = requireBalanceNumber(tick?.coefficient, `tick=${index} field=coefficient`);
+  /**
+   * Validates explicit condition-application timelines and freezes each entry.
+   */
+  function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
+    if (!Array.isArray(value) || value.length === 0) {
+      throw new TypeError('Condition tick timelines require at least one application.');
+    }
 
-      // Required reads already guarantee finite numbers; these checks enforce the strike's value ranges.
-      if (atMs < 0) {
-        throw new TypeError(`Strike tick ${index + 1} requires a valid atMs.`);
-      }
+    const ticks = value as UnvalidatedFields[];
+    let previousAtMs = -Infinity;
+    return Object.freeze(
+      ticks.map((tick, index) => {
+        validateEffectNumbers(tick, `tick=${index}`);
+        const atMs = requireBalanceNumber(tick?.atMs, `tick=${index} field=atMs`);
+        const condition = tick?.condition;
+        const stacks = requireBalanceNumber(tick?.stacks, `tick=${index} field=stacks`);
+        const duration = requireBalanceNumber(tick?.duration, `tick=${index} field=duration`);
 
-      if (coefficient < 0) {
-        throw new TypeError(`Strike tick ${index + 1} requires a non-negative coefficient.`);
-      }
+        // Required reads already guarantee finite numbers; condition applications also require positive payloads.
+        if (atMs < 0) {
+          throw new TypeError(`Condition application ${index + 1} requires a valid atMs.`);
+        }
 
-      if (atMs < previousAtMs) {
-        throw new TypeError('Strike tick timelines must be chronological.');
-      }
+        if (atMs < previousAtMs) {
+          throw new TypeError('Condition tick timelines must be chronological.');
+        }
 
-      previousAtMs = atMs;
-      const metadata = normalizeEffectMetadata(tick.metadata);
-      return Object.freeze({
-        ...tick,
-        atMs,
-        coefficient,
-        ...(metadata ? { metadata } : {})
+        if (typeof condition !== 'string' || !condition.trim()) {
+          throw new TypeError(`Condition application ${index + 1} requires a condition id.`);
+        }
+
+        if (stacks <= 0) {
+          throw new TypeError(`Condition application ${index + 1} requires positive stacks.`);
+        }
+
+        requireEffectExpansionCount(Math.ceil(stacks), `Condition application ${index + 1} stacks`);
+
+        if (duration <= 0) {
+          throw new TypeError(`Condition application ${index + 1} requires a positive duration.`);
+        }
+
+        previousAtMs = atMs;
+        const metadata = normalizeEffectMetadata(tick.metadata, vocabulary.metadataFields);
+        return Object.freeze({
+          ...tick,
+          atMs,
+          condition,
+          stacks,
+          duration,
+          ...(metadata ? { metadata } : {})
+        });
+      })
+    );
+  }
+
+  /**
+   * Validates one declarative effect and normalizes any embedded timelines.
+   */
+  function normalizeEffect(effect: unknown, label = 'Skill effect'): SkillEffect {
+    try {
+      return normalizeEffectFields(effect, label);
+    } catch (error) {
+      throw new TypeError(`${label}: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
+    }
+  }
+
+  function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
+    const candidate =
+      effect && typeof effect === 'object' && !Array.isArray(effect) ? (effect as UnvalidatedFields) : null;
+
+    if (!candidate || typeof candidate.type !== 'string' || !EFFECT_TYPES.has(candidate.type)) {
+      throw new TypeError(`Invalid skill effect type: ${candidate?.type}`);
+    }
+
+    // Profiles and procedural effects also enter here, so their combo ownership cannot bypass catalog checks.
+    validateComboOwnership(candidate, label);
+
+    if (Array.isArray(candidate.ticks)) {
+      // Bound explicit timelines before visiting or copying their entries.
+      requireEffectExpansionCount(candidate.ticks.length, `${label} ticks`);
+      candidate.ticks.forEach((tick, index) => {
+        if (tick && typeof tick === 'object' && !Array.isArray(tick)) {
+          validateComboOwnership(tick, `${label} tick=${index + 1}`);
+        }
       });
-    })
-  );
-}
+    }
 
-/**
- * Validates explicit condition-application timelines and freezes each entry.
- */
-function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
-  if (!Array.isArray(value) || value.length === 0) {
-    throw new TypeError('Condition tick timelines require at least one application.');
-  }
+    const normalizedEffect = candidate as unknown as UnvalidatedEffect;
+    validateEffectNumbers(candidate, label);
 
-  const ticks = value as UnvalidatedFields[];
-  let previousAtMs = -Infinity;
-  return Object.freeze(
-    ticks.map((tick, index) => {
-      validateEffectNumbers(tick, `tick=${index}`);
-      const atMs = requireBalanceNumber(tick?.atMs, `tick=${index} field=atMs`);
-      const condition = tick?.condition;
-      const stacks = requireBalanceNumber(tick?.stacks, `tick=${index} field=stacks`);
-      const duration = requireBalanceNumber(tick?.duration, `tick=${index} field=duration`);
+    // Validate explicit profiles before authored effects enter the runtime.
+    if (candidate.weaponStrengthProfileId !== undefined) weaponStrengthProfile(candidate.weaponStrengthProfileId);
 
-      // Required reads already guarantee finite numbers; condition applications also require positive payloads.
-      if (atMs < 0) {
-        throw new TypeError(`Condition application ${index + 1} requires a valid atMs.`);
+    // Only strike effects can opt into separate child activations; reject ambiguous authoring values.
+    if (
+      candidate.independentSourceStrike !== undefined &&
+      (candidate.type !== 'strike' || typeof candidate.independentSourceStrike !== 'boolean')
+    )
+      throw new TypeError('independentSourceStrike requires a boolean on a strike effect.');
+
+    // Validate aura identity and duration at the same boundary as other supported effects.
+    if (
+      normalizedEffect.type === 'aura' &&
+      (!Object.values(AURA).includes(normalizedEffect.aura!) || !((normalizedEffect.duration ?? 0) > 0))
+    )
+      throw new TypeError('Aura effects require a canonical aura and positive finite duration.');
+
+    // Custom packets must declare their dispatch type and payload before they can enter the event queue.
+    if (normalizedEffect.type === 'custom') {
+      if (typeof normalizedEffect.eventType !== 'string' || !normalizedEffect.eventType.trim()) {
+        throw new TypeError(`field=eventType expected=non-empty string received=${String(normalizedEffect.eventType)}`);
       }
 
-      if (atMs < previousAtMs) {
-        throw new TypeError('Condition tick timelines must be chronological.');
+      if (
+        !normalizedEffect.event ||
+        typeof normalizedEffect.event !== 'object' ||
+        Array.isArray(normalizedEffect.event)
+      ) {
+        throw new TypeError(`field=event expected=object received=${String(normalizedEffect.event)}`);
       }
 
-      if (typeof condition !== 'string' || !condition.trim()) {
-        throw new TypeError(`Condition application ${index + 1} requires a condition id.`);
+      validateComboOwnership(normalizedEffect.event, `${label} event`);
+    }
+
+    for (const field of ['name', 'condition', 'boon', 'kind']) {
+      if (candidate[field] !== undefined && (typeof candidate[field] !== 'string' || !candidate[field].trim())) {
+        throw new TypeError(`field=${field} expected=non-empty string received=${String(candidate[field])}`);
       }
-
-      if (stacks <= 0) {
-        throw new TypeError(`Condition application ${index + 1} requires positive stacks.`);
-      }
-
-      requireEffectExpansionCount(Math.ceil(stacks), `Condition application ${index + 1} stacks`);
-
-      if (duration <= 0) {
-        throw new TypeError(`Condition application ${index + 1} requires a positive duration.`);
-      }
-
-      previousAtMs = atMs;
-      const metadata = normalizeEffectMetadata(tick.metadata);
-      return Object.freeze({
-        ...tick,
-        atMs,
-        condition,
-        stacks,
-        duration,
-        ...(metadata ? { metadata } : {})
-      });
-    })
-  );
-}
-
-/**
- * Validates one declarative effect and normalizes any embedded timelines.
- */
-export function normalizeEffect(effect: unknown, label = 'Skill effect'): SkillEffect {
-  try {
-    return normalizeEffectFields(effect, label);
-  } catch (error) {
-    throw new TypeError(`${label}: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
-  }
-}
-
-function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
-  const candidate =
-    effect && typeof effect === 'object' && !Array.isArray(effect) ? (effect as UnvalidatedFields) : null;
-
-  if (!candidate || typeof candidate.type !== 'string' || !EFFECT_TYPES.has(candidate.type)) {
-    throw new TypeError(`Invalid skill effect type: ${candidate?.type}`);
-  }
-
-  // Profiles and procedural effects also enter here, so their combo ownership cannot bypass catalog checks.
-  validateComboOwnership(candidate, label);
-
-  if (Array.isArray(candidate.ticks)) {
-    // Bound explicit timelines before visiting or copying their entries.
-    requireEffectExpansionCount(candidate.ticks.length, `${label} ticks`);
-    candidate.ticks.forEach((tick, index) => {
-      if (tick && typeof tick === 'object' && !Array.isArray(tick)) {
-        validateComboOwnership(tick, `${label} tick=${index + 1}`);
-      }
-    });
-  }
-
-  const normalizedEffect = candidate as unknown as UnvalidatedEffect;
-  validateEffectNumbers(candidate, label);
-
-  // Validate explicit profiles before authored effects enter the runtime.
-  if (candidate.weaponStrengthProfileId !== undefined) weaponStrengthProfile(candidate.weaponStrengthProfileId);
-
-  // Only strike effects can opt into separate child activations; reject ambiguous authoring values.
-  if (
-    candidate.independentSourceStrike !== undefined &&
-    (candidate.type !== 'strike' || typeof candidate.independentSourceStrike !== 'boolean')
-  )
-    throw new TypeError('independentSourceStrike requires a boolean on a strike effect.');
-
-  // Validate aura identity and duration at the same boundary as other supported effects.
-  if (
-    normalizedEffect.type === 'aura' &&
-    (!Object.values(AURA).includes(normalizedEffect.aura!) || !((normalizedEffect.duration ?? 0) > 0))
-  )
-    throw new TypeError('Aura effects require a canonical aura and positive finite duration.');
-
-  // Custom packets must declare their dispatch type and payload before they can enter the event queue.
-  if (normalizedEffect.type === 'custom') {
-    if (typeof normalizedEffect.eventType !== 'string' || !normalizedEffect.eventType.trim()) {
-      throw new TypeError(`field=eventType expected=non-empty string received=${String(normalizedEffect.eventType)}`);
     }
 
     if (
-      !normalizedEffect.event ||
-      typeof normalizedEffect.event !== 'object' ||
-      Array.isArray(normalizedEffect.event)
+      normalizedEffect.type === 'strike' &&
+      normalizedEffect.coefficient !== undefined &&
+      normalizedEffect.coefficient < 0
     ) {
-      throw new TypeError(`field=event expected=object received=${String(normalizedEffect.event)}`);
+      throw new TypeError('field=coefficient expected=non-negative number');
     }
 
-    validateComboOwnership(normalizedEffect.event, `${label} event`);
-  }
+    if (normalizedEffect.when != null && typeof normalizedEffect.when !== 'function')
+      throw new TypeError('Skill effect when must be a predicate.');
 
-  for (const field of ['name', 'condition', 'boon', 'kind']) {
-    if (candidate[field] !== undefined && (typeof candidate[field] !== 'string' || !candidate[field].trim())) {
-      throw new TypeError(`field=${field} expected=non-empty string received=${String(candidate[field])}`);
+    // Effect ownership must already use the canonical actor vocabulary at catalog assembly.
+    if (normalizedEffect.actorType !== undefined && !ACTOR_TYPES.has(normalizedEffect.actorType)) {
+      throw new TypeError('Skill effect actorType is invalid.');
     }
-  }
 
-  if (
-    normalizedEffect.type === 'strike' &&
-    normalizedEffect.coefficient !== undefined &&
-    normalizedEffect.coefficient < 0
-  ) {
-    throw new TypeError('field=coefficient expected=non-negative number');
-  }
+    if (normalizedEffect.ownerActorType !== undefined && !ACTOR_TYPES.has(normalizedEffect.ownerActorType)) {
+      throw new TypeError('Skill effect ownerActorType is invalid.');
+    }
 
-  if (normalizedEffect.when != null && typeof normalizedEffect.when !== 'function')
-    throw new TypeError('Skill effect when must be a predicate.');
-
-  // Effect ownership must already use the canonical actor vocabulary at catalog assembly.
-  if (normalizedEffect.actorType !== undefined && !ACTOR_TYPES.has(normalizedEffect.actorType)) {
-    throw new TypeError('Skill effect actorType is invalid.');
-  }
-
-  if (normalizedEffect.ownerActorType !== undefined && !ACTOR_TYPES.has(normalizedEffect.ownerActorType)) {
-    throw new TypeError('Skill effect ownerActorType is invalid.');
-  }
-
-  if (
-    normalizedEffect.summonKind !== undefined &&
-    (typeof normalizedEffect.summonKind !== 'string' || !normalizedEffect.summonKind)
-  ) {
-    throw new TypeError('Skill effect summonKind must be a non-empty string.');
-  }
-
-  const interruptCommitMs =
-    normalizedEffect.interruptCommitMs == null ? null : Number(normalizedEffect.interruptCommitMs);
-
-  if (interruptCommitMs != null && (!(interruptCommitMs >= 0) || !Number.isFinite(interruptCommitMs))) {
-    throw new TypeError('Effect interruptCommitMs must be a non-negative finite number.');
-  }
-
-  if (interruptCommitMs != null && normalizedEffect.persistsAfterInterrupt !== true) {
-    throw new TypeError('Effect interruptCommitMs requires persistsAfterInterrupt.');
-  }
-
-  const metadata = normalizeEffectMetadata(normalizedEffect.metadata);
-
-  // Autonomous summon packets may declare an animation separately from their fixed idle interval.
-  if (
-    normalizedEffect.castTimeMs != null &&
-    (normalizedEffect.type !== 'strike' ||
-      normalizedEffect.actorType !== ACTOR.SUMMON ||
-      typeof normalizedEffect.castTimeMs !== 'number' ||
-      !Number.isFinite(normalizedEffect.castTimeMs) ||
-      normalizedEffect.castTimeMs < 0)
-  ) {
-    throw new TypeError('Effect castTimeMs requires a non-negative finite duration on a summon strike.');
-  }
-
-  const audience = normalizeEffectAudience(normalizedEffect.audience);
-
-  // Only timed buffs resolve recipients; aura grants stay with their owner until aura sharing is simulated.
-  if (audience && normalizedEffect.type !== 'boon' && normalizedEffect.type !== 'buff') {
-    throw new TypeError('Skill effect audience is only valid on boon and buff effects.');
-  }
-
-  if (
-    normalizedEffect.weaponStrengthSource != null &&
-    (normalizedEffect.type !== 'strike' || normalizedEffect.weaponStrengthSource !== 'equipped')
-  ) {
-    throw new TypeError('Effect weaponStrengthSource must be "equipped" on a strike effect.');
-  }
-
-  if (normalizedEffect.ticks != null && normalizedEffect.type !== 'strike' && normalizedEffect.type !== 'condition') {
-    throw new TypeError(`Effect type ${normalizedEffect.type} does not support tick timelines.`);
-  }
-
-  const strikeTicks =
-    normalizedEffect.type === 'strike' && normalizedEffect.ticks != null
-      ? normalizeStrikeTicks(normalizedEffect.ticks)
-      : null;
-  const conditionTicks =
-    normalizedEffect.type === 'condition' && normalizedEffect.ticks != null
-      ? normalizeConditionTicks(normalizedEffect.ticks)
-      : null;
-  // "Explicit timing" means the effect carries its own schedule rather than
-  // inheriting placement from the parent skill's cast window.
-  const hasTicks = Boolean(strikeTicks || conditionTicks);
-  const hasAtMs = normalizedEffect.atMs != null;
-  const hasInterval = normalizedEffect.intervalMs != null;
-  const hasExplicitTiming = hasTicks || hasAtMs || hasInterval;
-
-  // `applications` drives regular repeated pulses (e.g. multi-application boons or symbol strikes), each carrying the
-  // effect's full payload. Mutually exclusive with tick timelines because ticks already encode per-packet timing.
-  let applications = null;
-
-  if (normalizedEffect.applications != null) {
     if (
-      normalizedEffect.type !== 'strike' &&
-      normalizedEffect.type !== 'condition' &&
-      normalizedEffect.type !== 'control' &&
-      normalizedEffect.type !== 'boon' &&
-      normalizedEffect.type !== 'buff' &&
-      normalizedEffect.type !== 'aura' &&
-      normalizedEffect.type !== 'custom'
+      normalizedEffect.summonKind !== undefined &&
+      (typeof normalizedEffect.summonKind !== 'string' || !normalizedEffect.summonKind)
     ) {
-      throw new TypeError(`Effect type ${normalizedEffect.type} does not support repeated applications.`);
+      throw new TypeError('Skill effect summonKind must be a non-empty string.');
     }
 
-    applications = Number(normalizedEffect.applications);
-    requireEffectExpansionCount(applications, 'Repeated effects application count');
+    const interruptCommitMs =
+      normalizedEffect.interruptCommitMs == null ? null : Number(normalizedEffect.interruptCommitMs);
 
-    if (hasTicks) {
-      throw new TypeError('Repeated applications cannot be combined with a tick timeline.');
+    if (interruptCommitMs != null && (!(interruptCommitMs >= 0) || !Number.isFinite(interruptCommitMs))) {
+      throw new TypeError('Effect interruptCommitMs must be a non-negative finite number.');
     }
 
-    if (applications > 1 && !hasInterval) {
-      throw new TypeError('Repeated effects require an intervalMs value.');
-    }
-  }
-
-  // timingAnchor and timingScale are only meaningful when the effect carries an
-  // explicit schedule; bare effects inherit timing from the cast window implicitly.
-  if (hasExplicitTiming) {
-    if (normalizedEffect.timingAnchor != null && !TIMING_ANCHORS.has(String(normalizedEffect.timingAnchor))) {
-      throw new TypeError('Explicit effect timing requires timingAnchor castStart or castEnd.');
+    if (interruptCommitMs != null && normalizedEffect.persistsAfterInterrupt !== true) {
+      throw new TypeError('Effect interruptCommitMs requires persistsAfterInterrupt.');
     }
 
-    if (normalizedEffect.timingScale != null && !TIMING_SCALES.has(String(normalizedEffect.timingScale))) {
-      throw new TypeError('Explicit effect timing requires timingScale cast or fixed.');
+    const metadata = normalizeEffectMetadata(normalizedEffect.metadata, vocabulary.metadataFields);
+    // Embedded custom packets obey the same annotation schema and cannot retain the author's metadata object.
+    const customMetadata =
+      normalizedEffect.type === 'custom'
+        ? normalizeEffectMetadata(normalizedEffect.event?.metadata, vocabulary.metadataFields)
+        : undefined;
+    const customEvent =
+      normalizedEffect.type === 'custom'
+        ? Object.freeze({
+            ...normalizedEffect.event,
+            ...(customMetadata ? { metadata: customMetadata } : {})
+          })
+        : undefined;
+
+    // Autonomous summon packets may declare an animation separately from their fixed idle interval.
+    if (
+      normalizedEffect.castTimeMs != null &&
+      (normalizedEffect.type !== 'strike' ||
+        normalizedEffect.actorType !== ACTOR.SUMMON ||
+        typeof normalizedEffect.castTimeMs !== 'number' ||
+        !Number.isFinite(normalizedEffect.castTimeMs) ||
+        normalizedEffect.castTimeMs < 0)
+    ) {
+      throw new TypeError('Effect castTimeMs requires a non-negative finite duration on a summon strike.');
     }
 
-    // "cast" effect values are authored on the Quickness timeline and expand
-    // proportionally for slower casts. They must be relative to cast start.
-    if (normalizedEffect.timingScale === 'cast' && normalizedEffect.timingAnchor !== 'castStart') {
-      throw new TypeError('Cast-scaled effect timing must be anchored to castStart.');
+    const audience = normalizeEffectAudience(normalizedEffect.audience);
+
+    // Only timed buffs resolve recipients; aura grants stay with their owner until aura sharing is simulated.
+    if (audience && normalizedEffect.type !== 'boon' && normalizedEffect.type !== 'buff') {
+      throw new TypeError('Skill effect audience is only valid on boon and buff effects.');
     }
 
-    // An interval without atMs starts immediately after the anchor. Use castEnd
-    // because castStart with a zero offset would begin the interval during the cast.
-    if (!hasTicks && !hasAtMs && normalizedEffect.timingAnchor != null && normalizedEffect.timingAnchor !== 'castEnd') {
-      throw new TypeError('An interval without atMs must be anchored to castEnd.');
+    if (
+      normalizedEffect.weaponStrengthSource != null &&
+      (normalizedEffect.type !== 'strike' || normalizedEffect.weaponStrengthSource !== 'equipped')
+    ) {
+      throw new TypeError('Effect weaponStrengthSource must be "equipped" on a strike effect.');
     }
 
-    if (hasAtMs) {
-      const atMs = Number(normalizedEffect.atMs);
-      const castEndOffset = normalizedEffect.timingAnchor !== 'castStart';
+    if (normalizedEffect.ticks != null && normalizedEffect.type !== 'strike' && normalizedEffect.type !== 'condition') {
+      throw new TypeError(`Effect type ${normalizedEffect.type} does not support tick timelines.`);
+    }
 
-      if (!Number.isFinite(atMs) || (atMs < 0 && !castEndOffset)) {
-        throw new TypeError('Effect atMs must be finite and may only be negative when anchored to castEnd.');
+    const strikeTicks =
+      normalizedEffect.type === 'strike' && normalizedEffect.ticks != null
+        ? normalizeStrikeTicks(normalizedEffect.ticks)
+        : null;
+    const conditionTicks =
+      normalizedEffect.type === 'condition' && normalizedEffect.ticks != null
+        ? normalizeConditionTicks(normalizedEffect.ticks)
+        : null;
+    // "Explicit timing" means the effect carries its own schedule rather than
+    // inheriting placement from the parent skill's cast window.
+    const hasTicks = Boolean(strikeTicks || conditionTicks);
+    const hasAtMs = normalizedEffect.atMs != null;
+    const hasInterval = normalizedEffect.intervalMs != null;
+    const hasExplicitTiming = hasTicks || hasAtMs || hasInterval;
+
+    // `applications` drives regular repeated pulses (e.g. multi-application boons or symbol strikes), each carrying the
+    // effect's full payload. Mutually exclusive with tick timelines because ticks already encode per-packet timing.
+    let applications = null;
+
+    if (normalizedEffect.applications != null) {
+      if (
+        normalizedEffect.type !== 'strike' &&
+        normalizedEffect.type !== 'condition' &&
+        normalizedEffect.type !== 'control' &&
+        normalizedEffect.type !== 'boon' &&
+        normalizedEffect.type !== 'buff' &&
+        normalizedEffect.type !== 'aura' &&
+        normalizedEffect.type !== 'custom'
+      ) {
+        throw new TypeError(`Effect type ${normalizedEffect.type} does not support repeated applications.`);
+      }
+
+      applications = Number(normalizedEffect.applications);
+      requireEffectExpansionCount(applications, 'Repeated effects application count');
+
+      if (hasTicks) {
+        throw new TypeError('Repeated applications cannot be combined with a tick timeline.');
+      }
+
+      if (applications > 1 && !hasInterval) {
+        throw new TypeError('Repeated effects require an intervalMs value.');
       }
     }
 
-    if (hasInterval) {
-      const intervalMs = Number(normalizedEffect.intervalMs);
-
-      if (!(intervalMs >= 0) || !Number.isFinite(intervalMs)) {
-        throw new TypeError('Effect intervalMs must be a non-negative finite number.');
+    // timingAnchor and timingScale are only meaningful when the effect carries an
+    // explicit schedule; bare effects inherit timing from the cast window implicitly.
+    if (hasExplicitTiming) {
+      if (normalizedEffect.timingAnchor != null && !TIMING_ANCHORS.has(String(normalizedEffect.timingAnchor))) {
+        throw new TypeError('Explicit effect timing requires timingAnchor castStart or castEnd.');
       }
 
-      // Repeated pulses happen on the server tick; an off-grid cadence such as 500 ms alternates around itself in game.
-      if (intervalMs % GW2_ACTION_TICK_MS !== 0) {
-        throw new TypeError(`Effect intervalMs must be a multiple of the ${GW2_ACTION_TICK_MS} ms server tick.`);
+      if (normalizedEffect.timingScale != null && !TIMING_SCALES.has(String(normalizedEffect.timingScale))) {
+        throw new TypeError('Explicit effect timing requires timingScale cast or fixed.');
       }
+
+      // "cast" effect values are authored on the Quickness timeline and expand
+      // proportionally for slower casts. They must be relative to cast start.
+      if (normalizedEffect.timingScale === 'cast' && normalizedEffect.timingAnchor !== 'castStart') {
+        throw new TypeError('Cast-scaled effect timing must be anchored to castStart.');
+      }
+
+      // An interval without atMs starts immediately after the anchor. Use castEnd
+      // because castStart with a zero offset would begin the interval during the cast.
+      if (
+        !hasTicks &&
+        !hasAtMs &&
+        normalizedEffect.timingAnchor != null &&
+        normalizedEffect.timingAnchor !== 'castEnd'
+      ) {
+        throw new TypeError('An interval without atMs must be anchored to castEnd.');
+      }
+
+      if (hasAtMs) {
+        const atMs = Number(normalizedEffect.atMs);
+        const castEndOffset = normalizedEffect.timingAnchor !== 'castStart';
+
+        if (!Number.isFinite(atMs) || (atMs < 0 && !castEndOffset)) {
+          throw new TypeError('Effect atMs must be finite and may only be negative when anchored to castEnd.');
+        }
+      }
+
+      if (hasInterval) {
+        const intervalMs = Number(normalizedEffect.intervalMs);
+
+        if (!(intervalMs >= 0) || !Number.isFinite(intervalMs)) {
+          throw new TypeError('Effect intervalMs must be a non-negative finite number.');
+        }
+
+        // Repeated pulses happen on the server tick; an off-grid cadence such as 500 ms alternates around itself in game.
+        if (intervalMs % GW2_ACTION_TICK_MS !== 0) {
+          throw new TypeError(`Effect intervalMs must be a multiple of the ${GW2_ACTION_TICK_MS} ms server tick.`);
+        }
+      }
+    } else if (normalizedEffect.timingAnchor != null || normalizedEffect.timingScale != null) {
+      throw new TypeError('Timing metadata is only valid for explicitly timed effects.');
     }
-  } else if (normalizedEffect.timingAnchor != null || normalizedEffect.timingScale != null) {
-    throw new TypeError('Timing metadata is only valid for explicitly timed effects.');
-  }
 
-  // Tick timelines own packet count and timing; formula defaults may still apply to every tick.
-  if (
-    strikeTicks &&
-    (normalizedEffect.coefficient != null ||
-      normalizedEffect.hits != null ||
-      normalizedEffect.atMs != null ||
-      normalizedEffect.intervalMs != null)
-  ) {
-    throw new TypeError('Strike tick timelines cannot use aggregate coefficient or timing fields.');
-  }
+    // Tick timelines own packet count and timing; formula defaults may still apply to every tick.
+    if (
+      strikeTicks &&
+      (normalizedEffect.coefficient != null ||
+        normalizedEffect.hits != null ||
+        normalizedEffect.atMs != null ||
+        normalizedEffect.intervalMs != null)
+    ) {
+      throw new TypeError('Strike tick timelines cannot use aggregate coefficient or timing fields.');
+    }
 
-  if (
-    conditionTicks &&
-    (normalizedEffect.condition != null ||
-      normalizedEffect.stacks != null ||
-      normalizedEffect.duration != null ||
-      normalizedEffect.atMs != null ||
-      normalizedEffect.intervalMs != null)
-  ) {
-    throw new TypeError('Condition tick timelines cannot use aggregate application or timing fields.');
-  }
+    if (
+      conditionTicks &&
+      (normalizedEffect.condition != null ||
+        normalizedEffect.stacks != null ||
+        normalizedEffect.duration != null ||
+        normalizedEffect.atMs != null ||
+        normalizedEffect.intervalMs != null)
+    ) {
+      throw new TypeError('Condition tick timelines cannot use aggregate application or timing fields.');
+    }
 
-  if (
-    normalizedEffect.type === 'strike' &&
-    !strikeTicks &&
-    !(Number(normalizedEffect.coefficient) >= 0) &&
-    !Number.isFinite(Number(normalizedEffect.flatDamage)) &&
-    !Number.isFinite(Number(normalizedEffect.flatStrikeBase)) &&
-    !Number.isFinite(Number(normalizedEffect.flatStrikePowerCoeff))
-  ) {
-    throw new TypeError('Strike effects require a non-negative coefficient or flat strike data.');
-  }
+    if (
+      normalizedEffect.type === 'strike' &&
+      !strikeTicks &&
+      !(Number(normalizedEffect.coefficient) >= 0) &&
+      !Number.isFinite(Number(normalizedEffect.flatDamage)) &&
+      !Number.isFinite(Number(normalizedEffect.flatStrikeBase)) &&
+      !Number.isFinite(Number(normalizedEffect.flatStrikePowerCoeff))
+    ) {
+      throw new TypeError('Strike effects require a non-negative coefficient or flat strike data.');
+    }
 
-  if (normalizedEffect.type === 'strike' && !strikeTicks)
-    requireEffectExpansionCount(normalizedEffect.hits ?? 1, 'Strike effects hit count');
+    if (normalizedEffect.type === 'strike' && !strikeTicks)
+      requireEffectExpansionCount(normalizedEffect.hits ?? 1, 'Strike effects hit count');
 
-  // A repeated strike lands one hit per application; simultaneous hits and spaced pulses stay distinct forms.
-  if (
-    normalizedEffect.type === 'strike' &&
-    !strikeTicks &&
-    normalizedEffect.intervalMs != null &&
-    applications == null
-  ) {
-    throw new TypeError('Strike intervals require an applications count or an explicit tick timeline.');
-  }
+    // A repeated strike lands one hit per application; simultaneous hits and spaced pulses stay distinct forms.
+    if (
+      normalizedEffect.type === 'strike' &&
+      !strikeTicks &&
+      normalizedEffect.intervalMs != null &&
+      applications == null
+    ) {
+      throw new TypeError('Strike intervals require an applications count or an explicit tick timeline.');
+    }
 
-  if (normalizedEffect.type === 'strike' && Number(applications) > 1 && Number(normalizedEffect.hits ?? 1) > 1) {
-    throw new TypeError('Repeated strike applications land one hit each.');
-  }
+    if (normalizedEffect.type === 'strike' && Number(applications) > 1 && Number(normalizedEffect.hits ?? 1) > 1) {
+      throw new TypeError('Repeated strike applications land one hit each.');
+    }
 
-  if (
-    normalizedEffect.type === 'strike' &&
-    !strikeTicks &&
-    Number(normalizedEffect.hits) > 1 &&
-    normalizedEffect.atMs == null
-  ) {
-    throw new TypeError('Simultaneous multi-hit strikes require one explicit atMs timestamp.');
-  }
+    if (
+      normalizedEffect.type === 'strike' &&
+      !strikeTicks &&
+      Number(normalizedEffect.hits) > 1 &&
+      normalizedEffect.atMs == null
+    ) {
+      throw new TypeError('Simultaneous multi-hit strikes require one explicit atMs timestamp.');
+    }
 
-  if (normalizedEffect.type === 'condition') {
-    if (!conditionTicks) {
-      requireBalanceNumber(normalizedEffect.stacks, 'field=stacks');
+    if (normalizedEffect.type === 'condition') {
+      if (!conditionTicks) {
+        requireBalanceNumber(normalizedEffect.stacks, 'field=stacks');
+        requireBalanceNumber(normalizedEffect.duration, 'field=duration');
+      }
+
+      if (!conditionTicks && !String(normalizedEffect.condition || '')) {
+        throw new TypeError('Condition effects require a condition id.');
+      }
+
+      if (!conditionTicks && (!(Number(normalizedEffect.stacks) > 0) || !(Number(normalizedEffect.duration) > 0))) {
+        throw new TypeError('Condition effects require positive stacks and duration.');
+      }
+
+      if (!conditionTicks) requireEffectExpansionCount(Math.ceil(Number(normalizedEffect.stacks)), 'Condition stacks');
+    }
+
+    if (normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff') {
+      // Catalogs and patches must identify standard boons by ID, independently of effect labels.
+      if (normalizedEffect.type === 'boon' && !Object.hasOwn(BOON_NAMES, normalizedEffect.boon ?? ''))
+        throw new TypeError(`field=boon expected=canonical boon ID received=${String(normalizedEffect.boon)}`);
+
       requireBalanceNumber(normalizedEffect.duration, 'field=duration');
+
+      if (normalizedEffect.maximumDuration != null) {
+        requireBalanceNumber(normalizedEffect.maximumDuration, 'field=maximumDuration');
+
+        if (normalizedEffect.maximumDuration < 0) throw new TypeError('Status maximumDuration must be nonnegative.');
+      }
+
+      if (normalizedEffect.stacks !== undefined && !(normalizedEffect.stacks > 0)) {
+        throw new TypeError('Boon and buff statuses require positive stacks.');
+      }
+
+      if (!String(normalizedEffect.boon || normalizedEffect.kind || normalizedEffect.name || '')) {
+        throw new TypeError('Boon and buff statuses require a name.');
+      }
+
+      if (!(Number(normalizedEffect.duration) > 0)) {
+        throw new TypeError('Boon and buff statuses require a positive duration.');
+      }
     }
 
-    if (!conditionTicks && !String(normalizedEffect.condition || '')) {
-      throw new TypeError('Condition effects require a condition id.');
-    }
-
-    if (!conditionTicks && (!(Number(normalizedEffect.stacks) > 0) || !(Number(normalizedEffect.duration) > 0))) {
-      throw new TypeError('Condition effects require positive stacks and duration.');
-    }
-
-    if (!conditionTicks) requireEffectExpansionCount(Math.ceil(Number(normalizedEffect.stacks)), 'Condition stacks');
+    // Packet-specific targets are validated before immutable declarations reach materialization.
+    const modifiers =
+      normalizedEffect.modifiers == null
+        ? undefined
+        : normalizeSkillEffectModifiers(normalizedEffect.modifiers, label, normalizedEffect.type);
+    // Spread normalized numeric fields on top so runtime consumers always get typed values.
+    return Object.freeze({
+      ...normalizedEffect,
+      ...(normalizedEffect.reactions === undefined
+        ? {}
+        : {
+            reactions: snapshotEffectReactions(normalizedEffect.reactions, normalizeSkillEffects)
+          }),
+      ...(customEvent ? { event: customEvent } : {}),
+      ...(modifiers ? { modifiers } : {}),
+      ...(normalizedEffect.type === 'strike' && !strikeTicks ? { hits: normalizedEffect.hits ?? 1 } : {}),
+      ...(normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff'
+        ? { stacks: normalizedEffect.stacks ?? 1 }
+        : {}),
+      ...(hasAtMs ? { atMs: Number(normalizedEffect.atMs) } : {}),
+      ...(hasInterval ? { intervalMs: Number(normalizedEffect.intervalMs) } : {}),
+      ...(interruptCommitMs == null ? {} : { interruptCommitMs }),
+      ...(applications ? { applications } : {}),
+      ...(strikeTicks ? { ticks: strikeTicks } : {}),
+      ...(conditionTicks ? { ticks: conditionTicks } : {}),
+      ...(audience ? { audience } : {}),
+      ...(metadata ? { metadata } : {})
+    }) as SkillEffect;
   }
 
-  if (normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff') {
-    // Catalogs and patches must identify standard boons by ID, independently of effect labels.
-    if (normalizedEffect.type === 'boon' && !Object.hasOwn(BOON_NAMES, normalizedEffect.boon ?? ''))
-      throw new TypeError(`field=boon expected=canonical boon ID received=${String(normalizedEffect.boon)}`);
-
-    requireBalanceNumber(normalizedEffect.duration, 'field=duration');
-
-    if (normalizedEffect.maximumDuration != null) {
-      requireBalanceNumber(normalizedEffect.maximumDuration, 'field=maximumDuration');
-
-      if (normalizedEffect.maximumDuration < 0) throw new TypeError('Status maximumDuration must be nonnegative.');
-    }
-
-    if (normalizedEffect.stacks !== undefined && !(normalizedEffect.stacks > 0)) {
-      throw new TypeError('Boon and buff statuses require positive stacks.');
-    }
-
-    if (!String(normalizedEffect.boon || normalizedEffect.kind || normalizedEffect.name || '')) {
-      throw new TypeError('Boon and buff statuses require a name.');
-    }
-
-    if (!(Number(normalizedEffect.duration) > 0)) {
-      throw new TypeError('Boon and buff statuses require a positive duration.');
-    }
-  }
-
-  // Packet-specific targets are validated before immutable declarations reach materialization.
-  const modifiers =
-    normalizedEffect.modifiers == null
-      ? undefined
-      : normalizeSkillEffectModifiers(normalizedEffect.modifiers, label, normalizedEffect.type);
-  // Spread normalized numeric fields on top so runtime consumers always get typed values.
-  return Object.freeze({
-    ...normalizedEffect,
-    ...(normalizedEffect.reactions === undefined
-      ? {}
-      : { reactions: snapshotEffectReactions(normalizedEffect.reactions, normalizeSkillEffects) }),
-    ...(modifiers ? { modifiers } : {}),
-    ...(normalizedEffect.type === 'strike' && !strikeTicks ? { hits: normalizedEffect.hits ?? 1 } : {}),
-    ...(normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff'
-      ? { stacks: normalizedEffect.stacks ?? 1 }
-      : {}),
-    ...(hasAtMs ? { atMs: Number(normalizedEffect.atMs) } : {}),
-    ...(hasInterval ? { intervalMs: Number(normalizedEffect.intervalMs) } : {}),
-    ...(interruptCommitMs == null ? {} : { interruptCommitMs }),
-    ...(applications ? { applications } : {}),
-    ...(strikeTicks ? { ticks: strikeTicks } : {}),
-    ...(conditionTicks ? { ticks: conditionTicks } : {}),
-    ...(audience ? { audience } : {}),
-    ...(metadata ? { metadata } : {})
-  }) as SkillEffect;
+  return { normalizeEffect, normalizeSkillEffects };
 }
 
 // Track validated lists without retaining discarded catalogs or revalidating their effects on every read.

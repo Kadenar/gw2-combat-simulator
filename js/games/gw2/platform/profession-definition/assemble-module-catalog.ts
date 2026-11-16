@@ -1,5 +1,6 @@
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 import { prepareCatalogActionRequirements } from '#gw2/platform/effects/action-declarations.js';
+import { combineMetadataFields } from '#gw2/platform/events/metadata.js';
 import type { AnyNativeModule, NativeModuleCatalogData } from '#gw2/platform/profession-definition/module-types.js';
 import { traitBalanceProfiles } from '#gw2/platform/profession-definition/traits.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
@@ -22,6 +23,7 @@ const MODULE_DATA_FIELDS = new Set([
   'skills',
   'skillFields',
   'profileFields',
+  'metadataFields',
   'traitLines',
   'weapons',
   'weaponHands',
@@ -42,6 +44,7 @@ export function createNativeModuleData<TSkill extends Skill = Skill>(
     skills = [],
     skillFields,
     profileFields,
+    metadataFields,
     traitLines = [],
     weapons = [],
     weaponHands = {},
@@ -64,6 +67,7 @@ export function createNativeModuleData<TSkill extends Skill = Skill>(
     skills: Object.freeze([...skills]),
     ...(skillFields == null ? {} : { skillFields }),
     ...(profileFields == null ? {} : { profileFields }),
+    ...(metadataFields == null ? {} : { metadataFields }),
     traits: Object.freeze(ownedTraitLines.flatMap((line) => [...line.minorTraits, ...line.majorTraits.flat()])),
     traitLines: Object.freeze(ownedTraitLines),
     ...(weapons.length ? { weapons: Object.freeze([...weapons]) } : {}),
@@ -136,6 +140,10 @@ function composeNativeCatalog<TSkill extends Skill>(
   const profileFields = combineFields(
     modules.map((module) => ({ owner: module.id, fields: module.data.profileFields }))
   );
+  // Weaponmaster content remains Core-owned, so annotations follow the complete family vocabulary.
+  const metadataFields = combineMetadataFields(
+    modules.map((module) => ({ owner: module.id, fields: module.data.metadataFields }))
+  );
   const specializations = mergeEntityArrays(modules, (module) => module.data.traitLines || [], 'specialization id');
   const weapons = new Set<string>();
   const weaponHands = new Map<string, string>();
@@ -184,7 +192,8 @@ function composeNativeCatalog<TSkill extends Skill>(
     autoattackChains: declaredChains.map((entry) => entry.chain),
     skillFlips: declaredFlips.map((entry) => entry.flip),
     skillFields,
-    profileFields
+    profileFields,
+    metadataFields
   });
 
   const skillOwners = skills.owners;
@@ -233,6 +242,7 @@ function composeNativeCatalog<TSkill extends Skill>(
         skills: Object.freeze(catalog.skills.filter((skill) => skillOwners.get(skill.id) === module.id)),
         skillFields: catalog.skillFields,
         profileFields: catalog.profileFields,
+        metadataFields: catalog.metadataFields,
         balanceProfiles: Object.freeze(
           catalog.balanceProfiles.filter((profile) => balanceProfiles.owners.get(profile.id) === module.id)
         ),
@@ -306,6 +316,7 @@ export function assembleNativeRuntimeCatalog<TSkill extends Skill>(
     skillsById: new Map(skills.map((skill) => [skill.id, skill])),
     skillFields: first.skillFields,
     profileFields: first.profileFields,
+    metadataFields: first.metadataFields,
     balanceProfiles,
     balanceProfilesById: new Map(balanceProfiles.map((profile) => [profile.id, profile])),
     traits: Object.freeze(fragments.flatMap((fragment) => fragment.traits)),

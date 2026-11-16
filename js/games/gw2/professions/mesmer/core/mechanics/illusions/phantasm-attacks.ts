@@ -171,8 +171,10 @@ export function schedulePhantasmStrike(
         },
         {
           name: `${repeatAttackName} - ${repeatPolicy.label}`,
-          chronophantasmaDamageFactor: repeatPolicy.damageMultiplier,
-          chronophantasmaConditionDurationFactor: repeatPolicy.conditionDurationMultiplier
+          metadata: {
+            chronophantasmaDamageFactor: repeatPolicy.damageMultiplier,
+            chronophantasmaConditionDurationFactor: repeatPolicy.conditionDurationMultiplier
+          }
         }
       ).forEach((packet) => {
         emitAttackPacket(state, execution, packet, 'repeat');
@@ -203,8 +205,10 @@ export function schedulePhantasmStrike(
           },
           {
             name: `${repeatAttackName} - ${repeatPolicy.label}`,
-            chronophantasmaDamageFactor: repeatPolicy.damageMultiplier,
-            chronophantasmaConditionDurationFactor: repeatPolicy.conditionDurationMultiplier
+            metadata: {
+              chronophantasmaDamageFactor: repeatPolicy.damageMultiplier,
+              chronophantasmaConditionDurationFactor: repeatPolicy.conditionDurationMultiplier
+            }
           }
         ).forEach((packet) => {
           emitAttackPacket(state, execution, packet, 'repeat');
@@ -416,7 +420,11 @@ function emitAttackPacket(
     kind: 'packet',
     event:
       packet.type === 'damage'
-        ? { ...packet, comboFinishers, bountifulBladesDamageFactor: execution.damageMultiplier }
+        ? {
+            ...packet,
+            comboFinishers,
+            metadata: { ...packet.metadata, bountifulBladesDamageFactor: execution.damageMultiplier }
+          }
         : packet
   });
 }
