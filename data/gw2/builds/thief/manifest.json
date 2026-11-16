@@ -172,15 +172,15 @@
         "build": "data/gw2/builds/thief/b-condi-alac-antiquary-scepter-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-condi-alac-antiquary-scepter-dagger-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-alacrity-antiquary-scepter-dagger-only",
-        "benchmarkDps": 24179,
+        "benchmarkDps": 24097,
         "upToDate": false,
-        "benchmarkApm": 46.5,
+        "benchmarkApm": 46.3,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 33212, "phase": 33212 },
-          "80-60": { "cumulative": 19997, "phase": 14334 },
-          "60-40": { "cumulative": 23237, "phase": 35020 },
-          "40-20": { "cumulative": 23865, "phase": 25967 },
-          "20-0": { "cumulative": 24179, "phase": 24179 }
+          "80-60": { "cumulative": 19810, "phase": 14067 },
+          "60-40": { "cumulative": 23154, "phase": 34783 },
+          "40-20": { "cumulative": 23828, "phase": 26141 },
+          "20-0": { "cumulative": 24097, "phase": 24097 }
         }
       }
     ]
@@ -193,15 +193,15 @@
         "build": "data/gw2/builds/thief/b-condi-specter-scepter-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-condi-specter-scepter-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-specter-scepter-dagger-only",
-        "benchmarkDps": 37194,
+        "benchmarkDps": 37212,
         "upToDate": true,
         "benchmarkApm": 71.2,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 37410, "phase": 37410 },
-          "80-60": { "cumulative": 37157, "phase": 36892 },
-          "60-40": { "cumulative": 37825, "phase": 39260 },
-          "40-20": { "cumulative": 37257, "phase": 35701 },
-          "20-0": { "cumulative": 37194, "phase": 36939 }
+          "80-60": { "cumulative": 37064, "phase": 36702 },
+          "60-40": { "cumulative": 37357, "phase": 37955 },
+          "40-20": { "cumulative": 37257, "phase": 36967 },
+          "20-0": { "cumulative": 37212, "phase": 37030 }
         }
       },
       {
