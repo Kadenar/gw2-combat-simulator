@@ -572,7 +572,6 @@ test('torch pulses and fire-whirl bolts ignite through the condition application
   }
 });
 
-
 test('Signet of Wrath loses its passive condition damage while recharging', () => {
   const throughDamage = (result) =>
     result.breakdown.find((entry) => entry.name.startsWith('Through the Heart') && entry.conditionDamage > 0)

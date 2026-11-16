@@ -444,6 +444,9 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
       ? effect.ticks.map((tick) => ({ ...effect, ...tick, ticks: undefined, hits: 1 }))
       : [effect]
   )) {
+    // Markers carry no direct payload; skill tooltips collect their combo facts separately.
+    if (effect.type === 'custom' && effect.eventType === 'marker') continue;
+
     if (effect.type === 'strike') {
       const coefficient =
         effect.ticks?.reduce((sum, tick) => sum + tooltipNumber(tick, 'coefficient'), 0) ?? effect.coefficient;
