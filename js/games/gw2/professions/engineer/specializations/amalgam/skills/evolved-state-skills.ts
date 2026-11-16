@@ -218,14 +218,12 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     icon: 'https://render.guildwars2.com/file/2AA6D1CCEE723B7415B60DBDBAB55275EA562D29/3680138.png',
     type: 'Utility',
     slot: 'Utility',
-
     // The cast skill owns the damage-bonus window that starts with its first strike.
     duration: 6,
     cooldown: 25,
     rechargeAnchor: 'castStart',
     rechargeOffsetMs: PLASMATIC_STATE_RECHARGE_OFFSET_MS,
     // Custom: Activates Plasmatic State and its duration/state event; see `amalgam/mechanics/evolved-form.ts`.
-
     castTimeMs: PLASMATIC_STATE_CAST_TIME_MS,
     // The active strain strengthens player-owned strike and condition packets.
     modifiers: [

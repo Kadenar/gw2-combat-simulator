@@ -28,7 +28,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<El
     attunement: 'Fire',
 
     cooldown: 20,
-    rechargeAnchor: 'castEnd',
     overload: true,
     skillFamily: 'Attunement',
     castTimeMs: 3320,
@@ -64,7 +63,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<El
     attunement: 'Water',
 
     cooldown: 20,
-    rechargeAnchor: 'castEnd',
     overload: true,
     skillFamily: 'Attunement',
     castTimeMs: 2920,
@@ -85,7 +83,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<El
     attunement: 'Air',
 
     cooldown: 20,
-    rechargeAnchor: 'castEnd',
     overload: true,
     skillFamily: 'Attunement',
     castTimeMs: 3200,
@@ -129,7 +126,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<El
     attunement: 'Earth',
 
     cooldown: 20,
-    rechargeAnchor: 'castEnd',
     overload: true,
     skillFamily: 'Attunement',
     castTimeMs: 2760,

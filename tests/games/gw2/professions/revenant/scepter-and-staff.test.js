@@ -69,7 +69,7 @@ test('Tether cancellation, expiry and weapon swap close follow-ups and start rec
 });
 
 test('Blossoming Aura keeps a fixed fuse after attachment regardless of cast speed', () => {
-  // The lasting effect's cadence and cooldown are independent of the initial casting animation.
+  // Natural detonation preserves the recharge started at cast completion.
   for (const quickness of [false, true]) {
     const result = simulate('Core', ['Blossoming Aura'], { boons: { quickness } }, tail);
     const damage = auraDamage(result);
@@ -79,7 +79,7 @@ test('Blossoming Aura keeps a fixed fuse after attachment regardless of cast spe
     assert.equal(damage.at(-1).coefficient, finalEffect.coefficient);
     assert.equal(damage.at(-1).metadata.revenantBlossomingAuraDamageFactor, finalFactor(tier));
     assertFlooredDamageMultiplier(damage.at(-1).damage, damage[0].damage, finalRatio(tier));
-    assert.equal(result.planningState.cooldownsBySkillId[ID.BLOSSOMING_AURA].readyAtMs, 6400);
+    assert.equal(result.planningState.cooldownsBySkillId[ID.BLOSSOMING_AURA].readyAtMs - result.steps[0].end, 6400);
     assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DETONATE_BLOSSOMING_AURA], undefined);
   }
 });
@@ -99,7 +99,7 @@ test('Manual Aura detonation uses the reached tier and cancels future pulses wit
     assert.equal(final.coefficient, finalEffect.coefficient);
     assert.equal(final.metadata.revenantBlossomingAuraDamageFactor, finalFactor(tier));
     assertFlooredDamageMultiplier(final.damage, damage[0].damage, finalRatio(tier));
-    assert.equal(result.planningState.cooldownsBySkillId[ID.BLOSSOMING_AURA].readyAtMs, 6400);
+    assert.equal(result.planningState.cooldownsBySkillId[ID.BLOSSOMING_AURA].readyAtMs - result.steps[0].end, 6400);
     assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DETONATE_BLOSSOMING_AURA], undefined);
   }
 });
@@ -111,7 +111,7 @@ test('Aura stays attached and remains manually detonatable across a legend swap'
     auraDamage(result).map((event) => event.name),
     ['Pulsing Damage', 'Final Damage']
   );
-  assert.equal(result.planningState.cooldownsBySkillId[ID.BLOSSOMING_AURA].readyAtMs, 6400);
+  assert.equal(result.planningState.cooldownsBySkillId[ID.BLOSSOMING_AURA].readyAtMs - result.steps[0].end, 6400);
 });
 
 // Finisher classification determines whether the skill can interact with a combo field.

@@ -572,20 +572,6 @@ test('torch pulses and fire-whirl bolts ignite through the condition application
   }
 });
 
-test('Peacekeeper begins recharge when its cast starts', () => {
-  const result = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    primaryWeapon: 'Pistol',
-    secondaryWeapon: 'Pistol',
-    boons: { quickness: true, alacrity: true }
-  })(undefined, ['Peacekeeper', 'Peacekeeper']);
-
-  assert.deepEqual(result.warnings, []);
-  const casts = result.events.filter((event) => event.type === 'action' && event.skillName === 'Peacekeeper');
-  // Recharge is anchored to cast start and scales with Alacrity.
-  assert.equal(casts.length, 2);
-  assert.equal(casts[1].at - casts[0].at, guardianCatalog.skillsById.get(71968).cooldown / 1.25);
-});
 
 test('Signet of Wrath loses its passive condition damage while recharging', () => {
   const throughDamage = (result) =>

@@ -231,7 +231,6 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     type: 'Utility',
     slot: 'Utility',
     cooldown: 25,
-    rechargeAnchor: 'castStart',
     duration: 3,
     castTimeMs: 360,
     skillFamily: 'Preparation',

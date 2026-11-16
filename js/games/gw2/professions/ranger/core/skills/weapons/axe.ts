@@ -132,8 +132,6 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     type: 'Weapon',
     weapon: 'Axe',
     slot: 'Weapon_4',
-    // Both range variants start their shared recharge when the cast completes.
-    rechargeAnchor: 'castEnd',
     cooldown: 15,
     castTimeMs: 440,
     interruptCommitMs: 360,
@@ -212,8 +210,6 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = [
     type: 'Weapon',
     weapon: WEAPON.AXE,
     slot: 'Weapon_4',
-    // Travel distance changes return effects but leaves recharge anchored to cast completion.
-    rechargeAnchor: 'castEnd',
     cooldown: 15,
     castTimeMs: 440,
     interruptCommitMs: 360,

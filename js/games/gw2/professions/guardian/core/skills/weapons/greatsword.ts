@@ -148,7 +148,6 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     cooldown: 12,
     // Author symbol identity independently of the skill's display text.
     tags: ['symbol'],
-    rechargeAnchor: 'castStart',
     castTimeMs: 320,
     defaultInterruptMs: 280,
     // The symbol commits at 240 ms but may occupy the action lane through 320 ms, so imported tick timings

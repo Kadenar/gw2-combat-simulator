@@ -55,8 +55,6 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Ski
     movementSkill: true,
     ammo: 6,
 
-    // Begin the count recharge when the magazine is reserved, so the cast animation does not delay recovery.
-    rechargeAnchor: 'castStart',
     cooldown: 5,
     ammoCastLockout: 1,
     castTimeMs: 560,

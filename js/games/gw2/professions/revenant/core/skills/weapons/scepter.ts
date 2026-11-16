@@ -104,7 +104,6 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Weapon',
     weapon: 'Scepter',
     slot: 'Weapon_2',
-    rechargeAnchor: 'castStart',
     duration: 4,
     pulseInterval: 1,
     cooldown: 8,

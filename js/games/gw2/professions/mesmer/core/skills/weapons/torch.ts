@@ -13,7 +13,6 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
     weapon: 'Torch',
     slot: 'Weapon_4',
     cooldown: 20,
-    rechargeAnchor: 'castStart',
     // Prestige commits before its recovery ends; newly added casts stop at commitment.
     castTimeMs: 160,
     defaultInterruptMs: 40,

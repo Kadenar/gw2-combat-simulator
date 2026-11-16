@@ -58,7 +58,6 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Pistol',
     slot: 'Weapon_2',
     cooldown: 6,
-    rechargeAnchor: 'castStart',
     // EVTC impact offsets keep Burning aligned with each strike.
     castTimeMs: 1040,
     interruptCommitMs: 960,

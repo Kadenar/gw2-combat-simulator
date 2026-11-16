@@ -139,7 +139,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Utility',
     skillFamily: 'Gadget',
     cooldown: 12,
-    rechargeAnchor: 'castStart',
     castTimeMs: 360,
     // Expose the follow-up on commitment; its declaration owns the window.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.DETONATE, durationSec: null } }]
@@ -150,7 +149,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Utility',
     slot: 'Utility',
     // Availability requires the parent skill's exposed window.
-
     requiresArmedFlip: true,
     cooldown: 0,
     castTimeMs: 0,
