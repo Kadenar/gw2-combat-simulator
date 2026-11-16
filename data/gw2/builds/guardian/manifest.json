@@ -23,15 +23,15 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-pistol-torch.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-pistol-torch-pistol",
-        "benchmarkDps": 42223,
+        "benchmarkDps": 44056,
         "upToDate": true,
-        "benchmarkApm": 78.8,
+        "benchmarkApm": 80.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 41967, "phase": 41967 },
-          "80-60": { "cumulative": 42600, "phase": 43233 },
-          "60-40": { "cumulative": 42435, "phase": 42104 },
-          "40-20": { "cumulative": 41959, "phase": 40532 },
-          "20-0": { "cumulative": 42223, "phase": 43281 }
+          "100-80": { "cumulative": 42745, "phase": 42745 },
+          "80-60": { "cumulative": 43475, "phase": 44246 },
+          "60-40": { "cumulative": 43125, "phase": 42444 },
+          "40-20": { "cumulative": 43764, "phase": 45869 },
+          "20-0": { "cumulative": 44056, "phase": 44056 }
         }
       },
       {

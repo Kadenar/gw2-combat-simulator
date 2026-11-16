@@ -17,6 +17,7 @@
     "Weapon1": "Viper's",
     "Weapon2": "Viper's"
   },
+  "alternateWeaponPrefixes": ["Viper's", "Viper's"],
   "weapons": ["Pistol", "Torch"],
   "alternateWeapons": ["Pistol", "Pistol"],
   "rune": "Balthazar",
@@ -24,14 +25,13 @@
     ["Bursting", "Air"],
     ["Bursting", "Torment"]
   ],
-  "relic": "Fractal",
+  "relic": "Last Tyrant",
   "food": "Cilantro and Cured Meat Flatbread",
   "utility": "Toxic Tuning Crystal",
   "jadeBotCore": true,
   "infusions": [
-    { "stat": "Power", "count": 0 },
-    { "stat": "Precision", "count": 0 },
-    { "stat": "Condition Damage", "count": 18 }
+    { "stat": "Condition Damage", "count": 18 },
+    { "stat": "Power", "count": 0 }
   ],
   "specializations": [
     { "name": "Radiance", "traits": "2-2-1" },
@@ -47,6 +47,14 @@
   },
   "assumptions": {
     "simulationMode": "deterministic",
+    "simulationSeed": 1,
+    "criticalDamageMode": "rolled",
+    "permanentComboField": "none",
+    "fractal": {
+      "enabled": false,
+      "agonyResistance": 150,
+      "augmentation": "none"
+    },
     "might": 25,
     "fury": true,
     "quickness": true,
@@ -72,8 +80,11 @@
     },
     "targetSkillActivationsPerSecond": 0
   },
-  "initialTomePages": 5,
   "startingWeaponSet": 2,
   "targetHealth": 4000000,
-  "targetArmor": 2597
+  "targetStartingHealthPercent": 100,
+  "targetArmor": 2597,
+  "initialTomePages": 5,
+  "precastRelics": [],
+  "initialThornsStacks": 0
 }
