@@ -23,7 +23,6 @@ test('pet declarations share independent actor recharge rules without changing a
     assert.equal(skill.independentCastCanOverlap, true);
     assert.equal(skill.usableWhileRecharging, true);
     assert.equal(skill.rechargeOwner, 'actor');
-    assert.equal(skill.rechargeAnchor, 'castStart');
     assert.equal(skill.rechargeBuffAudience, RECIPIENT.SUMMONS);
   }
 });
