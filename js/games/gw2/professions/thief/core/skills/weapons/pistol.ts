@@ -296,14 +296,15 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     cost: { resource: 'initiative', amount: 4 },
     cooldown: 0,
     castTimeMs: 440,
+    interruptCommitMs: 280,
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1 }],
+        ticks: [{ atMs: 280, coefficient: 1 }],
         name: 'Head Shot',
         actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         comboFinishers: [
           {
             ownerId: 'thief',
