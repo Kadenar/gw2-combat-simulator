@@ -658,14 +658,15 @@ test('Evolve aliases use only the trait-selected identity and share its charges 
     assert.deepEqual([...observedRuntime(result).cooldownController.cooldownSkillIds()], [skillId]);
     assert.deepEqual([...observedRuntime(result).cooldownController.ammoSkillIds()], traited ? [skillId] : []);
     const [first, second, third] = result.steps;
-    // Both Evolve identities recover from activation rather than cast completion.
-    assert.ok(third.start >= first.start + 32000);
+    // Both variants recover after completion, with Double Helix keeping its separate charge pool.
+    const firstReadyAt = first.end + 32000;
+    assert.ok(third.start >= firstReadyAt);
 
     if (traited) {
       assert.equal(observedRuntime(result).cooldownController.readAmmo(skillId).maximum, 2);
       assert.ok(second.start < first.start + 32000);
     } else {
-      assert.ok(second.start >= first.start + 32000);
+      assert.ok(second.start >= firstReadyAt);
     }
 
     for (const name of ['Evolve', 'Evolve (Base)', 'Evolve (Double Helix)']) {

@@ -125,6 +125,7 @@ const thorns: Partial<SkillDefinition<AmalgamSkill>> = {
 const demolish: Partial<SkillDefinition<AmalgamSkill>> = {
   countsAsToolbeltSkill: true,
   cooldown: 20,
+  // Recharge starts when the logged spin cast ends; the combined animation still includes the follow-up smash.
   rechargeAnchor: 'castStart',
   rechargeOffsetMs: DEMOLISH_RECHARGE_OFFSET_MS,
   castTimeMs: DEMOLISH_CAST_TIME_MS,

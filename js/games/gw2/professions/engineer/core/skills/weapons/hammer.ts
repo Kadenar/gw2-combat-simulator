@@ -133,6 +133,23 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 12,
     castTimeMs: 1920,
     effects: [
+      // Each leap resolves its combo when it begins, so lightning-field dazes can reduce Evolve recharge.
+      ...[0, 1240].map((atMs, index) => ({
+        type: 'custom' as const,
+        eventType: 'marker',
+        event: {},
+        atMs,
+        timingAnchor: 'castStart' as const,
+        timingScale: 'fixed' as const,
+        actorType: ACTOR.PLAYER,
+        comboFinishers: [
+          {
+            ownerId: 'engineer',
+            finisherType: COMBO_FINISHER.LEAP,
+            attemptGroup: `rocket-charge-leap-${index + 1}`
+          }
+        ]
+      })),
       {
         type: 'strike',
         ticks: [

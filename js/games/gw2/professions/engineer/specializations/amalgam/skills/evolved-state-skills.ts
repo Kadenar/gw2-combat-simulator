@@ -45,8 +45,6 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     duration: 8,
     attributeMultiplier: 1.1,
     countsAsToolbeltSkill: true,
-    // Evolve begins recharging on activation, so its cast window contributes to the next use.
-    rechargeAnchor: 'castStart',
     cooldown: 40,
     mechanicSlot: 5,
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
@@ -66,8 +64,6 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     // Double Helix owns the stronger attribute bonus; this variant owns its duration and ammunition.
     duration: 8,
     countsAsToolbeltSkill: true,
-    // Keep the traited identity on the same activation-anchored recharge contract.
-    rechargeAnchor: 'castStart',
     cooldown: 40,
     ammo: 2,
     // The traited action has a short between-cast recharge and a separate per-charge recovery.
