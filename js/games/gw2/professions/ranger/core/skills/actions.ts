@@ -15,8 +15,7 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = [
   createDodgeSkill({
     // A late-cancelled dodge commits while keeping the rest of its animation reserved.
     interruptCommitMs: 760,
-    retainsCastLockoutAfterInterrupt: true,
-    rechargeAnchor: 'castStart'
+    retainsCastLockoutAfterInterrupt: true
   }),
   {
     name: 'Swap Pets',

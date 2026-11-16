@@ -168,12 +168,8 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     slot: 'Utility',
     skillFamily: 'Stance',
     cooldown: 25,
-    patchAuthoringExcluded: true,
-    // This non-DPS stance has simulated boons; hide it from loadout slots without blocking recorded casts.
-
-    slotSelectable: false,
-    castTimeMs: 200,
-    // Activation grants the stance's defensive boons to nearby allies.
+    castTimeMs: 0,
+    // Grant defensive boons to the party, including the caster, on activation.
     effects: [
       { type: 'boon', boon: BOON.STABILITY, stacks: 5, duration: 4, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.PROTECTION, duration: 4, audience: { recipients: RECIPIENT.PARTY } }
