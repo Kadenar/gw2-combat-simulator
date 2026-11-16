@@ -5,6 +5,7 @@ import { grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-s
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
@@ -410,11 +411,12 @@ function tempo(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
   });
 }
 
-/** Earned base work applies to equipped weapon cooldowns and reservations before speed conversion. */
+/** Match the active set and hand slots so stowed weapon cooldowns and reservations earn no reduction. */
 function reduceWeapons(runtime: GuardianRuntime, cause: Gw2ResolverEvent): void {
   const state = willbenderState.from(runtime.profession);
-  const names = new Set(gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1).filter(Boolean));
-  const matches = (skill: Skill) => skill.type === 'Weapon' && (!names.size || names.has(String(skill.weapon)));
+  const weapons = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet);
+  const matches = (skill: Skill) =>
+    skill.type === 'Weapon' && defaultWeaponSkillMatchesSet(skill, weapons, { catalog: runtime.helpers });
   const amount = balanceNumber(runtime.helpers, TRAIT.RESTORATIVE_VIRTUES, 'rechargeReduction');
   let reduction = 0;
   for (const id of new Set([

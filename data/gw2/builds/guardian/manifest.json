@@ -39,15 +39,15 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-scepter-pistol.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-scepter-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-scepter-pistol-pistol-torch",
-        "benchmarkDps": 42409,
+        "benchmarkDps": 42446,
         "upToDate": true,
         "benchmarkApm": 84.6,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 39858, "phase": 39858 },
           "80-60": { "cumulative": 42148, "phase": 44682 },
           "60-40": { "cumulative": 42671, "phase": 43776 },
-          "40-20": { "cumulative": 42548, "phase": 42185 },
-          "20-0": { "cumulative": 42409, "phase": 41858 }
+          "40-20": { "cumulative": 42540, "phase": 42154 },
+          "20-0": { "cumulative": 42446, "phase": 42072 }
         }
       },
       {
