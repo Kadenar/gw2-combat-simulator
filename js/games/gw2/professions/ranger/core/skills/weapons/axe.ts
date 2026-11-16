@@ -10,6 +10,10 @@ import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/profes
 // The channel's strikes, Vulnerability applications, and whirl attempts share the same packet grid.
 const WHIRLING_DEFENSE_TICK_OFFSETS_MS = [200, 360, 600, 840, 1040, 1280, 1520, 1680, 1920, 2160, 2360, 2600] as const;
 
+// Each range shares its return timing across the projectile hit and pull.
+const PATH_OF_SCARS_RETURN_MS = 880;
+const PATH_OF_SCARS_MAX_RANGE_RETURN_MS = 1640;
+
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
@@ -128,11 +132,11 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     type: 'Weapon',
     weapon: 'Axe',
     slot: 'Weapon_4',
+    // Both range variants start their shared recharge when the cast completes.
+    rechargeAnchor: 'castEnd',
     cooldown: 15,
     castTimeMs: 440,
     interruptCommitMs: 360,
-    // Both range variants share the same weapon-slot recharge after completion.
-
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
@@ -141,7 +145,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
         ticks: [
           { atMs: 400, coefficient: 1.2 },
           // Approximate shorter throws with the observed 880 ms return window.
-          { atMs: 880, coefficient: 1.2 }
+          { atMs: PATH_OF_SCARS_RETURN_MS, coefficient: 1.2 }
         ],
         comboFinishers: [
           {
@@ -153,7 +157,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
       {
         type: 'control',
         // Pull and Claw activation belong to the returning contact.
-        atMs: 880,
+        atMs: PATH_OF_SCARS_RETURN_MS,
         controlKind: CONTROL.PULL
       }
     ])
@@ -208,12 +212,11 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = [
     type: 'Weapon',
     weapon: WEAPON.AXE,
     slot: 'Weapon_4',
-    rechargeAnchor: 'castStart',
+    // Travel distance changes return effects but leaves recharge anchored to cast completion.
+    rechargeAnchor: 'castEnd',
     cooldown: 15,
     castTimeMs: 440,
     interruptCommitMs: 360,
-    // Both range variants share the same weapon-slot recharge after completion.
-
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
@@ -224,7 +227,7 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = [
         ticks: [
           { atMs: 400, coefficient: 1.2 },
           // Approximate longer throws with the observed 1,640 ms return window.
-          { atMs: 1640, coefficient: 1.2 }
+          { atMs: PATH_OF_SCARS_MAX_RANGE_RETURN_MS, coefficient: 1.2 }
         ],
         comboFinishers: [
           {
@@ -236,7 +239,7 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = [
       {
         type: 'control',
         // Keep the pull on the return contact, including when the player has already swapped weapons.
-        atMs: 1640,
+        atMs: PATH_OF_SCARS_MAX_RANGE_RETURN_MS,
         controlKind: CONTROL.PULL
       }
     ])
