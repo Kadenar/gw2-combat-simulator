@@ -94,6 +94,7 @@ export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeT
     activeTraits,
     reinforcedArmorStats: resolved.reinforcedArmorAttributes,
     traitStats: resolved.attributes,
+    foodStats: resolved.foodAttributes,
     utilityStats: resolved.utilityAttributes,
     traitDurations: resolved.durations,
     // Reuse the evaluator's aggregate so build finalization shares its contribution semantics.

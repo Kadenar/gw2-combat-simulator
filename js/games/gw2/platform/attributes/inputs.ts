@@ -7,11 +7,12 @@ import type {
   Gw2SeedAttributeConversion
 } from '#gw2/platform/attributes/types.js';
 import { BOON, BOON_NAMES, CONDITION } from '#gw2/platform/constants.js';
+import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_DATA } from '#gw2/platform/equipment/consumables/utilities.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
-/** Seed declarations keep utilities and permanent reinforcement in the same grouped conversion phase. */
-export function equipmentAttributeConversions(utility = ''): readonly Gw2SeedAttributeConversion[] {
+/** Food, utilities, and permanent reinforcement share conversion inputs without converting each other's bonuses. */
+export function equipmentAttributeConversions(utility = '', food = ''): readonly Gw2SeedAttributeConversion[] {
   const conversions: Gw2SeedAttributeConversion[] = Object.hasOwn(UTILITY_DATA, utility)
     ? UTILITY_DATA[utility as keyof typeof UTILITY_DATA].map(({ from, to, percent }) => ({
         source: 'utility',
@@ -21,6 +22,18 @@ export function equipmentAttributeConversions(utility = ''): readonly Gw2SeedAtt
         rounding: 'round'
       }))
     : [];
+  const foodPercent = FOOD_DATA[food]?.allAttributesPercent;
+
+  if (foodPercent)
+    for (const attribute of Object.values(ATTRIBUTE_NAMES))
+      conversions.push({
+        source: 'food',
+        from: attribute,
+        to: attribute,
+        multiplier: foodPercent / 100,
+        rounding: 'round'
+      });
+
   conversions.push({
     source: 'reinforcedArmor',
     from: 'Vitality',
@@ -109,7 +122,7 @@ export function validateAttributeInputs(value: unknown): asserts value is Gw2Att
     for (const conversion of seed.conversions) {
       if (
         !conversion ||
-        !['utility', 'reinforcedArmor'].includes(conversion.source) ||
+        !['food', 'utility', 'reinforcedArmor'].includes(conversion.source) ||
         !Object.values(ATTRIBUTE_NAMES).includes(conversion.from) ||
         !Object.values(ATTRIBUTE_NAMES).includes(conversion.to) ||
         !Number.isFinite(conversion.multiplier) ||

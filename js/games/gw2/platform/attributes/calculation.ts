@@ -50,6 +50,7 @@ interface FinalizeBuildAttributesOptions {
   readonly activeTraits: unknown;
   readonly reinforcedArmorStats: Readonly<Gw2NumericAttributes>;
   readonly traitStats?: Readonly<Gw2NumericAttributes>;
+  readonly foodStats?: Readonly<Gw2NumericAttributes>;
   readonly utilityStats?: Readonly<Gw2NumericAttributes>;
   readonly traitDurations?: Readonly<Gw2NumericAttributes>;
   readonly traitCriticalChance?: number;
@@ -81,6 +82,7 @@ function addAttributes(target: Gw2NumericAttributes, source: Readonly<Gw2Numeric
 /** Keep each conversion owner's contribution available for final stat attribution. */
 export interface ResolvedAttributeEffects {
   readonly attributes: Gw2NumericAttributes;
+  readonly foodAttributes: Gw2NumericAttributes;
   readonly utilityAttributes: Gw2NumericAttributes;
   readonly reinforcedArmorAttributes: Gw2NumericAttributes;
 }
@@ -90,6 +92,7 @@ interface AttributeConversionGroup {
   readonly to: string;
   readonly rounding: 'round' | 'floor' | 'none';
   traits: number;
+  food: number;
   utility: number;
   reinforcement: number;
 }
@@ -102,7 +105,7 @@ function attributeConversionGroup(
   rounding: AttributeConversionGroup['rounding']
 ): AttributeConversionGroup {
   for (const group of groups) if (group.from === from && group.to === to && group.rounding === rounding) return group;
-  const group = { from, to, rounding, traits: 0, utility: 0, reinforcement: 0 };
+  const group = { from, to, rounding, traits: 0, food: 0, utility: 0, reinforcement: 0 };
   groups.push(group);
   return group;
 }
@@ -161,25 +164,30 @@ export function resolveAttributeEffects(
     const group = attributeConversionGroup(groups, conversion.from, conversion.to, conversion.rounding);
     const amount = (genericConversionPool[conversion.from] ?? 0) * conversion.multiplier;
 
-    if (conversion.source === 'utility') group.utility += amount;
+    if (conversion.source === 'food') group.food += amount;
+    else if (conversion.source === 'utility') group.utility += amount;
     else group.reinforcement += amount;
   }
 
+  const foodAttributes: Gw2NumericAttributes = {};
   const utilityAttributes: Gw2NumericAttributes = {};
   const reinforcedArmorAttributes: Gw2NumericAttributes = {};
   // Preserve the same cumulative rounding order without allocating a bucket array for each small group.
   for (const group of groups) {
-    const utilityTotal = group.traits + group.utility;
+    const foodTotal = group.traits + group.food;
+    const utilityTotal = foodTotal + group.utility;
     const total = utilityTotal + group.reinforcement;
     const traits = roundAttributeConversion(group.traits, group.rounding);
+    const withFood = roundAttributeConversion(foodTotal, group.rounding);
     const withUtility = roundAttributeConversion(utilityTotal, group.rounding);
     const withReinforcement = roundAttributeConversion(total, group.rounding);
     addAttribute(attributes, group.to, traits);
-    addAttribute(utilityAttributes, group.to, withUtility - traits);
+    addAttribute(foodAttributes, group.to, withFood - traits);
+    addAttribute(utilityAttributes, group.to, withUtility - withFood);
     addAttribute(reinforcedArmorAttributes, group.to, withReinforcement - withUtility);
   }
 
-  return { attributes, utilityAttributes, reinforcedArmorAttributes };
+  return { attributes, foodAttributes, utilityAttributes, reinforcedArmorAttributes };
 }
 
 /** Builds a standard attribute breakdown for a derived percentage value. */
@@ -433,7 +441,7 @@ export function calculateCommonAttributes(
     commonContext: {
       // Pass eligible conversion inputs and duration bonuses to profession finalization.
       conversionPool,
-      conversions: equipmentAttributeConversions(build.utility),
+      conversions: equipmentAttributeConversions(build.utility, build.food),
       runeDurations,
       foodDurations,
       sigilDurations,
@@ -453,6 +461,7 @@ export function finalizeBuildAttributes(
     activeTraits,
     reinforcedArmorStats,
     traitStats = {},
+    foodStats = {},
     utilityStats = {},
     traitDurations = {},
     traitCriticalChance = 0
@@ -465,6 +474,14 @@ export function finalizeBuildAttributes(
     if (!attributes[name]) continue;
 
     attributes[name].traits += amount;
+    attributes[name].final += amount;
+  }
+
+  // Keep percentage food in the food breakdown after resolving its eligible attribute inputs.
+  for (const [name, amount] of Object.entries(foodStats)) {
+    if (!attributes[name]) continue;
+
+    attributes[name].food += amount;
     attributes[name].final += amount;
   }
 

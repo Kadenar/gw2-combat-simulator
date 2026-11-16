@@ -209,6 +209,14 @@ const FOOD_CATALOG = {
   },
   // All-attribute food grants healing power alongside the eight other attributes.
   'All Stats': {
+    // Percentage food uses the shared conversion pool so its bonus cannot feed another conversion.
+    'Bag of Popped Candy Corn': {
+      icon: 'https://render.guildwars2.com/file/733A17080051D7B32461CCE338A6DF59A80C690E/3695518.png',
+      isConverted: false,
+      stats: {},
+      durations: {},
+      allAttributesPercent: 3
+    },
     "Dragon's Revelry Starcake": {
       isConverted: false,
       stats: {

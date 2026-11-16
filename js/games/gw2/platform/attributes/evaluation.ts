@@ -123,8 +123,9 @@ export function applyAttributeContributions(
 ): Gw2Stats {
   const result: Gw2MutableStats = { ...initial };
   const resolved = resolveAttributeContributions(seed, contributions);
-  // Trait amounts precede utility amounts so float accumulation stays initial + trait + utility.
+  // Apply resolved food and utility bonuses once, after traits and before current-attribute transforms.
   addAttributeAmounts(result, resolved.attributes);
+  addAttributeAmounts(result, resolved.foodAttributes);
   addAttributeAmounts(result, resolved.utilityAttributes);
 
   // Copy each duration map only when first changed, keeping both the input and shared declarations immutable.

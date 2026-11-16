@@ -234,6 +234,8 @@ export function foodOptionLabel(name: string): string {
   const proc = foodProcDetail(food?.proc as UnknownValues | undefined);
   return optionLabel(name, [
     ...attributeDetails(food?.stats as NumericValues | undefined),
+    // Percentage food describes its scaling rather than presenting a flat attribute grant.
+    ...(food?.allAttributesPercent ? [`+${food.allAttributesPercent}% all attributes`] : []),
     ...attributeDetails(food?.durations as NumericValues | undefined, true),
     ...(proc ? [proc] : [])
   ]);

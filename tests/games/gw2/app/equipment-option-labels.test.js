@@ -27,6 +27,7 @@ test('equipment dropdown labels expose their effects without hover text', () => 
     foodOptionLabel('Bowl of Sweet and Spicy Butternut Squash Soup'),
     'Bowl of Sweet and Spicy Butternut Squash Soup - +100 Power, +70 Ferocity'
   );
+  assert.equal(foodOptionLabel('Bag of Popped Candy Corn'), 'Bag of Popped Candy Corn - +3% all attributes');
   assert.equal(
     utilityOptionLabel('Superior Sharpening Stone'),
     'Superior Sharpening Stone - +3% of Precision as Power, +6% of Ferocity as Power'

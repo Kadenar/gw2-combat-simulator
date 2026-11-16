@@ -12,7 +12,7 @@ type Gw2AttributeEffectRounding = 'none' | 'round' | 'floor';
 
 /** Equipment conversions travel with their immutable source pool, never as a second utility selection. */
 export interface Gw2SeedAttributeConversion {
-  readonly source: 'utility' | 'reinforcedArmor';
+  readonly source: 'food' | 'utility' | 'reinforcedArmor';
   readonly from: string;
   readonly to: string;
   readonly multiplier: number;
