@@ -44,15 +44,15 @@ const PLAYER_AUDIENCE = Object.freeze({
   recipientCount: 1
 });
 
-test('Shimmering Stances grants party Protection and blinds only with the trait on completed stances', () => {
-  // Cover the existing stance catalog, trait selection, boon scaling, and hostile off-target routing.
-  for (const name of [
-    'Effulgent Stance',
-    'Resolute Stance',
-    'Piercing Stance',
-    'Valorous Stance',
-    'Daring Advance',
-    'Orb of Wrath'
+test('Shimmering Stances grants Protection to allied stances and Blind to stance hits', () => {
+  // Check recipient eligibility and require a landed stance hit before the trait can blind.
+  for (const [name, protects, blinds] of [
+    ['Effulgent Stance', true, true],
+    ['Resolute Stance', true, false],
+    ['Piercing Stance', false, true],
+    ['Valorous Stance', true, false],
+    ['Daring Advance', true, true],
+    ['Orb of Wrath', false, false]
   ]) {
     for (const [traited, offTarget, concentration, interrupted] of [
       [false, false, 0, false],
@@ -63,7 +63,7 @@ test('Shimmering Stances grants party Protection and blinds only with the trait 
       const result = runGuardian(
         [
           { name, offTarget, ...(interrupted ? { interruptMs: 0 } : {}) },
-          { type: 'wait', durationMs: 1000 }
+          { type: 'wait', durationMs: 5000 }
         ],
         {
           specialization: 'Luminary',
@@ -83,10 +83,10 @@ test('Shimmering Stances grants party Protection and blinds only with the trait 
           event.type === 'condition' &&
           event.condition === 'Blindness'
       );
-      const eligible = traited && !interrupted && name !== 'Orb of Wrath';
+      const eligible = traited && !interrupted;
       assert.deepEqual(result.warnings, [], name);
-      assert.equal(protection.length, eligible ? 1 : 0, name);
-      assert.equal(blind.length, eligible ? 1 : 0, name);
+      assert.equal(protection.length, eligible && protects ? 1 : 0, name);
+      assert.equal(blind.length, eligible && blinds && !offTarget ? 1 : 0, name);
       for (const boon of protection) {
         assert.equal(boon.duration, concentration ? 4.5 : 3, name);
         assert.equal(boon.resolvedAudience.includesSelf, true, name);
@@ -95,7 +95,9 @@ test('Shimmering Stances grants party Protection and blinds only with the trait 
 
       for (const event of blind) {
         assert.equal(event.duration, 3, name);
-        assert.equal(event.offTarget, offTarget, name);
+        const hit = result.resolvedEvents.find((entry) => entry.type === 'damage' && entry.skillName === name);
+        assert.ok(hit, name);
+        assert.equal(event.at, hit.at, name);
       }
     }
   }

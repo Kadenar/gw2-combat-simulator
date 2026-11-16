@@ -39,7 +39,7 @@ import type { GuardianRuntime, GuardianSkill } from '#gw2/professions/guardian/t
 const AURA_DETONATE = 'guardian.luminary.aura-detonate';
 const VIRTUES: readonly number[] = [ID.RADIANT_JUSTICE, ID.RADIANT_RESOLVE, ID.RADIANT_COURAGE];
 
-/** Completed stance casts emit the surviving party boon and hostile Blind components. */
+/** Allied stances grant Protection on commit; offensive stances apply Blind only when their strike hits. */
 const shimmeringStances = defineTrait({
   id: TRAIT.SHIMMERING_STANCES,
   balance: {
@@ -64,13 +64,30 @@ const shimmeringStances = defineTrait({
     {
       emit: TRAIT.SHIMMERING_STANCES,
       on: 'castCommit',
-      when: (_runtime, cast) => cast.skill.skillFamily === 'Stance',
+      when: (_runtime, cast) => cast.skill.skillFamily === 'Stance' && cast.skill.id !== ID.PIERCING_STANCE,
+      effects: (effect) => effect.type === 'boon',
       attribution: (_runtime, cast) => ({
         source: 'guardian',
         skillId: TRAIT.SHIMMERING_STANCES,
         skillName: 'Shimmering Stances',
         offTarget: cast.command.offTarget === true
       })
+    },
+    {
+      emit: TRAIT.SHIMMERING_STANCES,
+      on: 'damage.resolved',
+      when: (_runtime, event, details) =>
+        event.actorType === ACTOR.PLAYER &&
+        details.hitContext.damage > 0 &&
+        (event.skillId === ID.PIERCING_STANCE ||
+          event.skillId === ID.DARING_ADVANCE ||
+          event.skillId === ID.EFFULGENT_STANCE_DAMAGE),
+      effects: (effect) => effect.type === 'condition',
+      attribution: {
+        source: 'guardian',
+        skillId: TRAIT.SHIMMERING_STANCES,
+        skillName: 'Shimmering Stances'
+      }
     }
   ]
 });
