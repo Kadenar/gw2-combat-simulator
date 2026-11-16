@@ -259,14 +259,15 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
     weapon: 'Rifle',
     slot: 'Weapon_3',
     cost: { resource: 'initiative', amount: 4 },
-
     cooldown: 0,
     kneelSkill: true,
     castTimeMs: 840,
+    interruptCommitMs: 680,
     effects: [
       {
         type: 'strike',
         ticks: [400, 560, 720].map((atMs) => ({ atMs, coefficient: 0.85 })),
+        persistsAfterInterrupt: true,
         name: 'Three Round Burst',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
@@ -283,7 +284,8 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
         type: 'boon',
         boon: BOON.MIGHT,
         duration: 6,
-        stacks: 3
+        stacks: 3,
+        persistsAfterInterrupt: true
       }
     ]
   },
