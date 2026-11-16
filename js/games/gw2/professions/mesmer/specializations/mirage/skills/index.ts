@@ -214,7 +214,6 @@ const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinition<Me
     skillFamily: 'Deception',
     cooldown: 20,
     shadowstepSkill: true,
-    rechargeAnchor: 'castStart',
     tasks: [
       {
         type: 'mesmer.mirage.grant-cloak',
@@ -234,7 +233,6 @@ const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinition<Me
     ammo: 3,
 
     shadowstepSkill: true,
-    rechargeAnchor: 'castStart',
     cooldown: 20,
     castTimeMs: 0,
     effects: [

@@ -158,7 +158,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Sword',
     slot: 'Weapon_3',
-    rechargeAnchor: 'castStart',
     cooldown: 0,
     castTimeMs: 0,
     comboFinishers: [

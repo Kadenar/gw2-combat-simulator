@@ -79,7 +79,6 @@ const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinit
         durationMs: 50
       }
     ],
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     effects: []
   },
@@ -269,7 +268,6 @@ const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinit
         durationMs: 50
       }
     ],
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     effects: [
       {
@@ -307,7 +305,6 @@ const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinit
         durationMs: 50
       }
     ],
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     effects: []
   },
@@ -335,7 +332,6 @@ const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinit
         durationMs: 50
       }
     ],
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     effects: []
   }
@@ -353,7 +349,6 @@ export const MESMER_CHRONOMANCER_SKILLS: readonly MesmerSkill[] = Object.freeze(
     inputControl: 'profession-5',
     type: 'Action',
     slot: 'Action',
-    rechargeAnchor: 'castStart',
     cooldown: 0,
     // Manual Continuum Shift restores the captured state when the action completes.
     tasks: [

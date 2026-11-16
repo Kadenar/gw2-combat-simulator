@@ -25,7 +25,6 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Focus',
     slot: 'Weapon_4',
-    rechargeAnchor: 'castStart',
     cooldown: 0,
     castTimeMs: 0,
     // Activating the flip applies its pull immediately.

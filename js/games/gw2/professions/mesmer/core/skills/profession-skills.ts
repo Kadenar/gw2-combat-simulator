@@ -29,7 +29,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         durationMs: 50
       }
     ],
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     effects: []
   },
@@ -52,7 +51,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         durationMs: 50
       }
     ],
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     effects: []
   },
@@ -75,7 +73,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         durationMs: 50
       }
     ],
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     effects: []
   },
@@ -98,7 +95,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         durationMs: 50
       }
     ],
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     // The shatter owns its control effect rather than relying on the core CC skill list.
     effects: [

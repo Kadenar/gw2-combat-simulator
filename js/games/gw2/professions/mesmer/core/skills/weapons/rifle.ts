@@ -83,7 +83,6 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_3',
-    rechargeAnchor: 'castStart',
     cooldown: 0,
     castTimeMs: 0,
     // Early detonation replaces the image's boons with an offensive blast of its own field.
@@ -172,7 +171,6 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_5',
-    rechargeAnchor: 'castStart',
     cooldown: 0,
     parentCooldownIncrease: 0.5,
     castTimeMs: 0,

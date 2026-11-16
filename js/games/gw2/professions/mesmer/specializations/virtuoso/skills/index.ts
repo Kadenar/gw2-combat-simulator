@@ -285,7 +285,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefi
         durationMs: 50
       }
     ],
-    rechargeAnchor: 'castStart',
     blade: true,
     castTimeMs: 0,
     effects: []

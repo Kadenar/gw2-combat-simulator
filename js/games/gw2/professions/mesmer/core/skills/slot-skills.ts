@@ -22,7 +22,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDe
     icon: 'https://render.guildwars2.com/file/A999116605543595AEF225D26026127828AED66B/103745.png',
     type: 'Heal',
     slot: 'Heal',
-    rechargeAnchor: 'castStart',
     cooldown: 20,
     ammoCastLockout: 1,
     ammo: 2,
@@ -37,7 +36,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDe
     icon: 'https://render.guildwars2.com/file/3519C5C770CCEAF92926D9495999E1F8A23D5AF3/103743.png',
     type: 'Utility',
     slot: 'Utility',
-    rechargeAnchor: 'castStart',
     cooldown: 10,
     ammo: 2,
     armedAtStart: true,
@@ -86,7 +84,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDe
     slot: 'Utility',
 
     cooldown: 25,
-    rechargeAnchor: 'castStart',
     resource: {
       mode: 'add',
       count: 2
@@ -153,7 +150,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDe
     skillFamily: 'Signet',
     cooldown: 20,
     attributeBonuses: { expertise: 180 },
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     // Activating the signet applies one five-second blind.
     effects: [
@@ -250,7 +246,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDe
     slot: 'Utility',
 
     cooldown: 32,
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     // Feedback's dome provides an ethereal combo field for its six-second lifetime.
     comboFields: [{ ownerId: 'mesmer', fieldType: COMBO_FIELD.ETHEREAL, duration: 6, startAnchor: 'castStart' }],

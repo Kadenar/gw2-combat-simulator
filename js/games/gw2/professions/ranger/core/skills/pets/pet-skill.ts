@@ -12,7 +12,8 @@ export function definePetSkill(skill: SkillDefinition<RangerSkill>): SkillDefini
     independentCastCanOverlap: true,
     usableWhileRecharging: true,
     rechargeOwner: 'actor',
-    rechargeAnchor: 'castStart',
+    // Instant pet actions use the default anchor because start and completion coincide.
+    ...(skill.castTimeMs === 0 ? {} : { rechargeAnchor: 'castStart' }),
     rechargeBuffAudience: RECIPIENT.SUMMONS
   };
 }

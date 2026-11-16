@@ -27,7 +27,6 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = [
     type: 'Action',
 
     slot: 'Action',
-    rechargeAnchor: 'castStart',
     cooldown: 20,
     castTimeMs: 0,
     effects: [],

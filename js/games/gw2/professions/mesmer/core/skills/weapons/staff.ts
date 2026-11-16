@@ -60,7 +60,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 8,
     shadowstepSkill: true,
     peithaImpactDelayMs: 840,
-    rechargeAnchor: 'castStart',
     resource: {
       mode: 'add',
       count: 1
@@ -144,7 +143,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     weapon: 'Staff',
     slot: 'Weapon_4',
     cooldown: 16,
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     effects: [
       // The self aura must reach aura-gain traits independently of the offensive conditions.

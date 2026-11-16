@@ -134,7 +134,6 @@ const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     noteGain: 1,
     // The instant tale refunds endurance at commitment through the shared capped pool.
     resourceGain: 50,
-    rechargeAnchor: 'castStart',
     cooldown: 25,
     ammo: 2,
 
@@ -213,7 +212,6 @@ const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     cooldown: 20,
     tale: { name: 'Tale of the Soulkeeper', instrument: 'Lute' },
     noteGain: 2,
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     effects: [],
     sideEffects: [
@@ -449,7 +447,6 @@ const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     cooldown: 30,
     tale: { name: 'Tale of the Valiant Marshal', instrument: 'Harp' },
     noteGain: 1,
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     effects: [],
     sideEffects: [

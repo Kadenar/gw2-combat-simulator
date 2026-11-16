@@ -26,7 +26,6 @@ export function createWeaponSwapSkill(overrides: Partial<Pick<Skill, 'cooldown' 
     inputCategory: 'weapon-swap',
     cooldown: 10,
     rechargeIgnoresAlacrity: true,
-    rechargeAnchor: 'castStart',
     castTimeMs: 0,
     ...overrides,
     id: SHARED_SKILL_IDS.SWAP_WEAPONS,
