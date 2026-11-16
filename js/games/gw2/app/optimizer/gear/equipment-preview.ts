@@ -6,10 +6,10 @@ import {
   type OptimizerCandidate
 } from '#gw2/app/optimizer/gear/search.js';
 import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS } from '#gw2/app/shared/equipment/icons.js';
+import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import { getProfessionEntry } from '#gw2/profession-registry.js';
 import { escapeHtml } from '#ui/shared/html.js';
@@ -40,7 +40,7 @@ export function renderOptimizerPreview(
       .createBuildContext({
         build,
         patch,
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        ...normalizeSimulationSettings(app.simulationSettings)
       })
       .attributes(weaponSet === 2 ? 2 : 1)
   };

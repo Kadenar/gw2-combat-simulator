@@ -256,7 +256,7 @@ export function createGw2HitResolution({
       didCrit: damageType === 'strikeDamage' && hitContext.critEligible ? hitContext.critical.didCrit === true : null
     });
 
-    if (damage > 0) ctx.markDamageTime(event.at);
+    if (damage > 0) ctx.markDamageTime(event.at, 'strike');
 
     if (resolved) ctx.resolved.push(resolved);
   }

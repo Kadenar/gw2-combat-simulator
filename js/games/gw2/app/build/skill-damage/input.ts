@@ -1,6 +1,7 @@
 /** Copies mutable preview inputs and retains shared catalogs and calculation owners. */
 import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
 import type { AttributePreviewInput } from '#gw2/app/build/types.js';
+import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { cloneData } from '#kernel/core/clone.js';
 
@@ -16,7 +17,7 @@ export function captureSkillDamageInput(source: SkillDamageInput): SkillDamageIn
     contentId: source.contentId,
     build: cloneData({ ...context.build, rotation: [] }),
     patch: context.patch,
-    simulationSettings: { transitionDelays: context.transitionDelays },
+    simulationSettings: normalizeSimulationSettings(context),
     adapter: source.adapter,
     profession: source.profession,
     activeCatalog: source.activeCatalog,

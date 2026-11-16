@@ -11,6 +11,11 @@ import type { SimulationRandomnessConfig } from '#kernel/core/simulation-random.
 /** The validated run configuration: build stats, equipment, target and boon assumptions, and selected content. */
 
 export interface Gw2Config {
+  /**
+   * Moves shared condition payouts earlier within each second, from 0 to 960 ms in 40 ms steps. A strike opener
+   * counts from first damage. A condition opener counts from rotation start.
+   */
+  readonly conditionTickOffsetMs?: number;
   /** Active elite specialization, or "Core"; profession runtimes resolve their module set from it. */
   readonly specialization?: string;
   /** Starting value of the profession's primary resource. */

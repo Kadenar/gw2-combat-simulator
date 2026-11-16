@@ -236,7 +236,14 @@ function settingsWorkspace(t, initialDelay = 0) {
     const node = controls.find((control) => control.id === `simulation-${key}`);
     node.value = String(value);
     node.handlers.change();
-    assert.equal(node.value, String(app.simulationSettings.transitionDelays[key]));
+    assert.equal(
+      node.value,
+      String(
+        key === 'conditionTickOffsetMs'
+          ? app.simulationSettings.conditionTickOffsetMs
+          : app.simulationSettings.transitionDelays[key]
+      )
+    );
   };
 
   const click = (label) => controls.find((control) => control.textContent === label).handlers.click();
@@ -484,4 +491,39 @@ test('attribute and target choices include condition damage and supported target
       ]
     ]
   );
+});
+
+// Exercise the real UI callback and persistence without adding a browser test for numeric settings.
+test('condition offset edits snap to 40 ms steps and invalidate workspace caches', (t) => {
+  const { app, tab, input } = settingsWorkspace(t);
+  input('conditionTickOffsetMs', 319);
+  assert.equal(loadSimulationSettings().conditionTickOffsetMs, 320);
+  assert.equal(tab.analysis.fresh, false);
+  assert.equal(app.baselineSimulationRunner.queue.pending.request.baseConfig.conditionTickOffsetMs, 320);
+  input('conditionTickOffsetMs', 1009);
+  assert.equal(loadSimulationSettings().conditionTickOffsetMs, 960);
+  input('conditionTickOffsetMs', -40);
+  assert.equal(loadSimulationSettings().conditionTickOffsetMs, 0);
+  input('conditionTickOffsetMs', 'invalid');
+  assert.equal(loadSimulationSettings().conditionTickOffsetMs, 0);
+});
+
+// Portable rotation settings apply only with the rotation and never enter the build codec.
+test('condition offsets round-trip with rotations and reject invalid import metadata', (t) => {
+  const { app } = settingsWorkspace(t);
+  const payload = getBuildWithRotationExportPayload(app.build, app.simulationSettings.transitionDelays, 320);
+  const preview = previewBuildFileImport(payload, 'offset.json', app);
+  assert.equal(preview.conditionTickOffsetMs, 320);
+  assert.equal(Object.hasOwn(preview.build, 'conditionTickOffsetMs'), false);
+  applyBuildFileImport(app, preview, { build: true, rotation: false });
+  assert.equal(loadSimulationSettings().conditionTickOffsetMs, 0);
+  applyBuildFileImport(app, preview, { build: false, rotation: true });
+  assert.equal(loadSimulationSettings().conditionTickOffsetMs, 320);
+  assert.equal(app.baselineSimulationRunner.queue.pending.request.baseConfig.conditionTickOffsetMs, 320);
+  for (const conditionTickOffsetMs of [-40, 1, 319, 1000, 1040, '320', null]) {
+    const invalid = previewBuildFileImport({ ...payload, conditionTickOffsetMs }, 'invalid.json', app);
+    assert.match(invalid.rotationError, /40 ms steps/);
+    assert.throws(() => applyBuildFileImport(app, invalid, { build: true, rotation: true }), /40 ms steps/);
+    assert.equal(loadSimulationSettings().conditionTickOffsetMs, 320);
+  }
 });

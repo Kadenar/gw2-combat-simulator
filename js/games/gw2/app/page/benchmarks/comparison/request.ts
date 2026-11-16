@@ -1,3 +1,4 @@
+import { readRotationConditionTickOffset } from '#gw2/app/import-export/rotation-condition-clock.js';
 import type { ComparisonRequest } from '#gw2/app/page/benchmarks/comparison/model.js';
 import type { Benchmark } from '#gw2/app/page/benchmarks/model.js';
 import { loadBuildContext } from '#gw2/build-context/load.js';
@@ -10,7 +11,8 @@ import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lo
 export function prepareComparisonRequest(
   adapter: BuildContextModule,
   buildData: unknown,
-  rotationItems: unknown
+  rotationItems: unknown,
+  conditionTickOffsetMs = 0
 ): ComparisonRequest {
   if (!buildData || typeof buildData !== 'object' || Array.isArray(buildData)) throw new Error('Invalid saved build.');
 
@@ -20,7 +22,8 @@ export function prepareComparisonRequest(
   const context = adapter.createBuildContext({
     build,
     patch: adapter.profession.resolvePatch(),
-    transitionDelays: normalizeTransitionDelays(undefined)
+    transitionDelays: normalizeTransitionDelays(undefined),
+    conditionTickOffsetMs
   });
   return {
     gameId: 'gw2',
@@ -41,5 +44,10 @@ export async function loadComparisonRequest(row: Benchmark, buildData: unknown):
 
   if (!adapter) throw new Error(`Unknown profession: ${row.profession}`);
 
-  return prepareComparisonRequest(adapter, buildData, getRotationItems(rotationData));
+  return prepareComparisonRequest(
+    adapter,
+    buildData,
+    getRotationItems(rotationData),
+    readRotationConditionTickOffset(rotationData) ?? 0
+  );
 }

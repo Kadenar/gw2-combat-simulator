@@ -1,12 +1,69 @@
-import { applyTransitionDelays } from '#gw2/app/build/state/workspace.js';
+/** Workspace timing controls persist preferences and refresh dependent simulations. */
+import { bindHelpPopover, HELP_ICON_HTML } from '#gw2/app/build/panels/help-popover.js';
+import { applyConditionTickOffset, applyTransitionDelays } from '#gw2/app/build/state/workspace.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import {
+  CONDITION_TICK_OFFSET_MAX_MS,
+  CONDITION_TICK_OFFSET_STEP_MS,
+  normalizeConditionTickOffsetMs
+} from '#gw2/platform/combat/condition-clock.js';
 import { TRANSITION_DELAY_KEYS, type TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
-/** Delay edits affect the active workspace and invalidate only its dependent build tabs. */
+/** Timing edits affect the active workspace and invalidate only its dependent build tabs. */
 export function mountSimulationSettings(app: ProfessionAppState, root: Document = document): void {
   const container = root.getElementById('simulation-options');
 
   if (!container) return;
+
+  container.querySelector('#simulation-condition-clock')?.remove();
+  const clockSection = root.createElement('details');
+  clockSection.id = 'simulation-condition-clock';
+  clockSection.className = 'perma-group';
+  clockSection.open = true;
+  const clockSummary = root.createElement('summary');
+  clockSummary.className = 'perma-group-label';
+  clockSummary.textContent = 'Condition ticks';
+  const clockControls = root.createElement('div');
+  clockControls.className = 'perma-group-content';
+  const clockRow = root.createElement('div');
+  clockRow.className = 'boon-control condition-clock-control';
+  const label = root.createElement('label');
+  label.htmlFor = 'simulation-conditionTickOffsetMs';
+  label.textContent = 'Tick offset (ms)';
+  const offset = root.createElement('input');
+  offset.id = 'simulation-conditionTickOffsetMs';
+  offset.type = 'number';
+  offset.min = '0';
+  offset.max = String(CONDITION_TICK_OFFSET_MAX_MS);
+  offset.step = String(CONDITION_TICK_OFFSET_STEP_MS);
+  offset.value = String(normalizeConditionTickOffsetMs(app.workspace!.simulationSettings.conditionTickOffsetMs));
+  offset.title = 'Moves condition ticks earlier within each second. Applies within this workspace.';
+  offset.addEventListener('change', () => {
+    const changed = applyConditionTickOffset(app, Number(offset.value));
+    offset.value = String(normalizeConditionTickOffsetMs(app.workspace!.simulationSettings.conditionTickOffsetMs));
+
+    if (changed) app.changed();
+  });
+  const picker = root.createElement('div');
+  picker.className = 'condition-clock-picker';
+  const help = root.createElement('details');
+  help.id = 'condition-clock-details';
+  help.innerHTML = `<summary aria-label="About condition tick offset">${HELP_ICON_HTML}</summary>
+  <div class="condition-clock-description">
+    <p>Moves the shared condition damage tick earlier within each one-second cycle. Player, summon, and permanent target conditions use the same clock.</p>
+    <p>For a strike opener, 0 ms pays at 1000, 2000, 3000 ms after first damage. An offset of 320 ms pays at 680, 1680, 2680 ms.</p>
+    <p>When a condition tick is the first damage, the clock counts from rotation start. The offset then moves that first tick, and DPS start moves with it.</p>
+    <p>Application times and condition durations stay unchanged. Each tick pays the accumulated damage, including partial durations. Moving a tick across the end of a fight can change the reported DPS.</p>
+    <p>Choose 0 to ${CONDITION_TICK_OFFSET_MAX_MS} ms in ${CONDITION_TICK_OFFSET_STEP_MS} ms steps.</p>
+  </div>`;
+  // The explanation opens and closes like the critical damage help.
+  bindHelpPopover(help);
+
+  picker.append(offset, help);
+  clockRow.append(label, picker);
+  clockControls.append(clockRow);
+  clockSection.append(clockSummary, clockControls);
+  container.append(clockSection);
 
   container.querySelector('#simulation-transition-delays')?.remove();
   const section = root.createElement('details');

@@ -16,6 +16,7 @@ import {
 import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
 import { SelectedSkillMigrationError } from '#gw2/platform/builds/codec.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { normalizeConditionTickOffsetMs } from '#gw2/platform/combat/condition-clock.js';
 import {
   normalizeTransitionDelays,
   TRANSITION_DELAY_KEYS,
@@ -165,11 +166,40 @@ export function applyTransitionDelays(app: ProfessionAppState, delays: Transitio
 
   settings.transitionDelays = next;
 
+  persistSimulationSettings(app, settings);
+  return true;
+}
+
+/** Offset edits share the workspace's persistence and invalidate every dependent comparison. */
+export function applyConditionTickOffset(app: ProfessionAppState, offset: number | null | undefined): boolean {
+  if (offset == null) return false;
+
+  const settings = app.workspace?.simulationSettings ?? (app.simulationSettings ??= defaultSimulationSettings());
+  const next = normalizeConditionTickOffsetMs(offset);
+
+  if (normalizeConditionTickOffsetMs(settings.conditionTickOffsetMs) === next) return false;
+
+  settings.conditionTickOffsetMs = next;
+  persistSimulationSettings(app, settings);
+  return true;
+}
+
+/** An import applies both timing preferences before its caller refreshes the imported rotation or reference. */
+export function applyRotationSimulationSettings(
+  app: ProfessionAppState,
+  timing: { readonly transitionDelays?: TransitionDelays | null; readonly conditionTickOffsetMs?: number | null }
+): boolean {
+  const delaysChanged = applyTransitionDelays(app, timing.transitionDelays ?? null);
+  const offsetChanged = applyConditionTickOffset(app, timing.conditionTickOffsetMs);
+  return delaysChanged || offsetChanged;
+}
+
+/** A boss workspace saves settings in its scenario and Golem uses shared storage. Both make other tabs stale. */
+function persistSimulationSettings(app: ProfessionAppState, settings: SimulationSettings): void {
   if (app.workspace?.scenario) app.workspace.persist?.();
   else saveSimulationSettings(settings);
 
   invalidateInactiveBuildTabs(app);
-  return true;
 }
 
 /** Shared simulation inputs invalidate inactive caches so activation refreshes Current and Reference together. */

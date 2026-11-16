@@ -1,6 +1,6 @@
+import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 interface AppRotationPlayer {
@@ -26,7 +26,7 @@ export function appLogReconstructionOptions(app: ProfessionAppState): AppLogReco
       .createBuildContext({
         build: app.build,
         patch: app.patch,
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        ...normalizeSimulationSettings(app.simulationSettings)
       })
       .simulationConfig()
   };

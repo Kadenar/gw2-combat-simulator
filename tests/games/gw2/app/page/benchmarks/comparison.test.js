@@ -11,7 +11,7 @@ import {
   comparisonResult,
   savedComparisonAlliedPlayerCount
 } from '#gw2/app/page/benchmarks/comparison/model.js';
-import { prepareComparisonRequest } from '#gw2/app/page/benchmarks/comparison/request.js';
+import { loadComparisonRequest, prepareComparisonRequest } from '#gw2/app/page/benchmarks/comparison/request.js';
 import { ComparisonRunner } from '#gw2/app/page/benchmarks/comparison/runner.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
@@ -180,6 +180,22 @@ test('cache identity includes profession and rotation, not the display label', (
   assert.equal(comparisonKey(row('a')), comparisonKey({ ...row('a'), label: 'Renamed' }));
   assert.notEqual(comparisonKey(row('a')), comparisonKey({ ...row('a'), rotation: 'variant.json' }));
   assert.notEqual(comparisonKey(row('a')), comparisonKey({ ...row('a'), profession: 'guardian' }));
+});
+
+// The benchmarks page reads a preset's saved clock offset through the import validator, defaulting to zero.
+test('comparison requests carry a saved condition offset and reject unsupported values', async (t) => {
+  const adapter = await loadProfessionAppAdapter('guardian');
+  const build = adapter.profession.createBuildDefaults();
+  const row = { profession: 'guardian', rotation: '/rotation.json' };
+  let saved;
+  t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify(saved)));
+  const rotation = [{ type: 'wait', durationMs: 100 }];
+  saved = { rotation, conditionTickOffsetMs: 320 };
+  assert.equal((await loadComparisonRequest(row, build)).config.conditionTickOffsetMs, 320);
+  saved = { rotation };
+  assert.equal((await loadComparisonRequest(row, build)).config.conditionTickOffsetMs, 0);
+  saved = { rotation, conditionTickOffsetMs: 330 };
+  await assert.rejects(loadComparisonRequest(row, build), /40 ms steps/);
 });
 
 // These smoke tests exercise canonical preset preparation and compare only total DPS to manifest values.

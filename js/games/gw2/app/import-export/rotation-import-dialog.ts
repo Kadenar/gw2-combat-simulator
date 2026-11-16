@@ -1,6 +1,6 @@
 /** Coordinates reviewed rotation imports and commits accepted commands through editing history. */
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
-import { applyTransitionDelays } from '#gw2/app/build/state/workspace.js';
+import { applyRotationSimulationSettings } from '#gw2/app/build/state/workspace.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
 import { readJsonFile } from '#gw2/app/import-export/files.js';
 import {
@@ -17,6 +17,10 @@ import {
   readWingmanRotationUrl
 } from '#gw2/app/import-export/logs/dps-report-rotation-import.js';
 import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/import-export/logs/evtc-rotation-import.js';
+import {
+  readRotationConditionTickOffset,
+  rotationConditionTickOffsetNotices
+} from '#gw2/app/import-export/rotation-condition-clock.js';
 import {
   readRotationTransitionDelays,
   rotationTransitionDelayNotices
@@ -42,6 +46,7 @@ type RotationImportSource = 'saved' | 'file' | 'link';
 
 export interface RotationImportPreview {
   readonly transitionDelays?: TransitionDelays | null;
+  readonly conditionTickOffsetMs?: number | null;
   readonly reference?: RotationReferenceDescriptor;
   readonly rotation: readonly RotationCommand[];
   readonly actionCount: number;
@@ -82,13 +87,18 @@ export async function previewRotationFile(file: File, app: ProfessionAppState): 
 
     if (rotation) {
       const transitionDelays = readRotationTransitionDelays(imported);
+      const conditionTickOffsetMs = readRotationConditionTickOffset(imported);
       // Unique authored names are decoded at this boundary; ambiguous variants require explicit IDs.
       return {
         transitionDelays,
+        conditionTickOffsetMs,
         rotation: normalizeImportedRotation(rotation, app),
         actionCount: rotation.length,
         description: `Loaded ${file.name}`,
-        warnings: rotationTransitionDelayNotices(transitionDelays, app),
+        warnings: [
+          ...rotationTransitionDelayNotices(transitionDelays, app),
+          ...rotationConditionTickOffsetNotices(conditionTickOffsetMs, app)
+        ],
         observations: []
       };
     }
@@ -164,6 +174,7 @@ export async function previewManifestRotation(
   const savedRotation = await fetchJsonAsset(preset.rotation);
   const items = getRotationItems(savedRotation);
   const transitionDelays = readRotationTransitionDelays(savedRotation);
+  const conditionTickOffsetMs = readRotationConditionTickOffset(savedRotation);
 
   if (!items) throw new Error('Rotation array missing.');
 
@@ -172,6 +183,7 @@ export async function previewManifestRotation(
   return {
     rotation,
     transitionDelays,
+    conditionTickOffsetMs,
     actionCount: rotation.length,
     description: `Loaded ${name}`,
     // Keep manifest context across shared-config refreshes; published figures never become event evidence.
@@ -183,7 +195,10 @@ export async function previewManifestRotation(
         ...(preset.patchPreview ? { [preset.patchPreview.patchId]: preset.patchPreview.benchmarkDps } : {})
       }
     },
-    warnings: rotationTransitionDelayNotices(transitionDelays, app),
+    warnings: [
+      ...rotationTransitionDelayNotices(transitionDelays, app),
+      ...rotationConditionTickOffsetNotices(conditionTickOffsetMs, app)
+    ],
     observations: []
   };
 }
@@ -298,7 +313,7 @@ export function manifestRotationMatchesBuild(
 
 /** Replaces the active rotation only after the user accepts a successfully reconstructed preview. */
 export function applyRotationImportPreview(app: ProfessionAppState, preview: RotationImportPreview): void {
-  const settingsChanged = applyTransitionDelays(app, preview.transitionDelays ?? null);
+  const settingsChanged = applyRotationSimulationSettings(app, preview);
   commitRotationEdit(app, { type: 'replace', rotation: preview.rotation }, { rebuildStatic: settingsChanged });
 }
 
@@ -714,7 +729,7 @@ export function bindRotationImportDialog(
 
     if (destination === 'reference') {
       // References share the workspace simulation settings with Current and every other build tab.
-      if (applyTransitionDelays(app, activePreview.transitionDelays ?? null)) app.changed();
+      if (applyRotationSimulationSettings(app, activePreview)) app.changed();
 
       app.loadRotationReference(activePreview.rotation);
 

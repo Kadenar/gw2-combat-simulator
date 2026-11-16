@@ -3,6 +3,7 @@
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { normalizeConditionTickOffsetMs } from '#gw2/platform/combat/condition-clock.js';
 import { normalizeTransitionDelays, type TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
 /** One selectable export variant; its filename becomes the default name when chosen. */
@@ -141,8 +142,16 @@ export function getBuildExportPayload(build: Gw2CanonicalBuild): Omit<Gw2Canonic
 }
 
 /** A rotation carries the complete timing settings used to run it, including explicit zero delays. */
-export function getRotationExportPayload(rotation: readonly RotationCommand[], transitionDelays?: TransitionDelays) {
-  return { rotation: structuredClone([...rotation]), transitionDelays: normalizeTransitionDelays(transitionDelays) };
+export function getRotationExportPayload(
+  rotation: readonly RotationCommand[],
+  transitionDelays?: TransitionDelays,
+  conditionTickOffsetMs = 0
+) {
+  return {
+    rotation: structuredClone([...rotation]),
+    transitionDelays: normalizeTransitionDelays(transitionDelays),
+    conditionTickOffsetMs: normalizeConditionTickOffsetMs(conditionTickOffsetMs)
+  };
 }
 
 /**
@@ -153,7 +162,11 @@ export function getRotationExportPayload(rotation: readonly RotationCommand[], t
  */
 export function getBuildWithRotationExportPayload(
   build: Gw2CanonicalBuild,
-  transitionDelays?: TransitionDelays
-): Gw2CanonicalBuild & { transitionDelays: TransitionDelays } {
-  return { ...getBuildExportPayload(build), ...getRotationExportPayload(build.rotation, transitionDelays) };
+  transitionDelays?: TransitionDelays,
+  conditionTickOffsetMs = 0
+): Gw2CanonicalBuild & { transitionDelays: TransitionDelays; conditionTickOffsetMs: number } {
+  return {
+    ...getBuildExportPayload(build),
+    ...getRotationExportPayload(build.rotation, transitionDelays, conditionTickOffsetMs)
+  };
 }

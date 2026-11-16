@@ -13,10 +13,10 @@ import type {
   RandomDistributionRequest,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
+import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
 import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -79,7 +79,7 @@ export function createProfessionRuntime({
       createBuildContext({
         build: app.build,
         patch,
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        ...normalizeSimulationSettings(app.simulationSettings)
       }).simulationConfig()
     );
     return withScenarioConfig(config, app.workspace?.scenario);

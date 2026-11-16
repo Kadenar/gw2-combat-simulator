@@ -4,6 +4,7 @@ import {
 } from '#gw2/app/import-export/logs/log-rotation-import.js';
 import type { RotationImportObservation } from '#gw2/app/import-export/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { ConditionClockObservation } from '#gw2/integrations/logs/evtc/rotation/condition-clock-observation.js';
 import type { CriticalBleedingProcObservation } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
 import type { EngineerShrapnelObservation } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
 import type { MesmerSharperImagesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
@@ -32,6 +33,33 @@ interface ProcRateResult {
 
 function durationList(durations: readonly number[]): string {
   return durations.map((duration) => `${duration.toLocaleString()} ms`).join(' or ');
+}
+
+/** Show measured timing and a suggested setting without changing the workspace during rotation import. */
+function conditionClockImportObservation(result: ConditionClockObservation): RotationImportObservation {
+  if (result.status === 'unavailable') {
+    const reasons = {
+      'unsupported-recording': 'This recording predates the periodic damage marker used by this estimate.',
+      'no-target': 'No outgoing damage to a foe was found for this player or their owned actors.',
+      'condition-opening': 'Damage begins with a condition tick, so its delay from the opening hit cannot be measured.',
+      'insufficient-ticks': 'At least five separate condition tick cycles are needed.',
+      'unstable-ticks': 'Condition tick timestamps do not establish a consistent one-second phase.'
+    };
+    return {
+      title: 'Condition clock offset',
+      summary: 'No reliable estimate.',
+      detail: reasons[result.reason]
+    };
+  }
+
+  return {
+    title: 'Condition clock offset',
+    summary: `Suggested offset: ${result.offsetMs} ms. Current simulation settings are unchanged.`,
+    detail:
+      `Periodic condition damage on the main target falls near ${result.phaseMs} ms after first damage, modulo one second. ` +
+      `${result.matchedTickCount} of ${result.tickCount} distinct tick timestamps agree within ${result.jitterMs} ms. ` +
+      'The suggested offset is rounded to the nearest supported 40 ms step.'
+  };
 }
 
 /** Presents inferred EVTC roll evidence without feeding it into reconstruction or simulation state. */
@@ -135,11 +163,13 @@ export function isJsonRotationFile(file: Pick<File, 'name' | 'type'>): boolean {
 
 /** Reads EVTC/ZIP bytes and reconstructs the matching active build's rotation. */
 export async function readEvtcRotationFile(file: File, app: ProfessionAppState): Promise<ImportedEvtcRotation> {
-  const [{ decompressEvtcInput }, { parseEvtc }, rotationModule] = await Promise.all([
-    import('#gw2/integrations/logs/evtc/decompression.js'),
-    import('#gw2/integrations/logs/evtc/parser.js'),
-    import('#gw2/integrations/logs/evtc/rotation/index.js')
-  ]);
+  const [{ decompressEvtcInput }, { parseEvtc }, rotationModule, { analyzeConditionClockObservation }] =
+    await Promise.all([
+      import('#gw2/integrations/logs/evtc/decompression.js'),
+      import('#gw2/integrations/logs/evtc/parser.js'),
+      import('#gw2/integrations/logs/evtc/rotation/index.js'),
+      import('#gw2/integrations/logs/evtc/rotation/condition-clock-observation.js')
+    ]);
   const expanded = await decompressEvtcInput(await file.arrayBuffer());
   const log = parseEvtc(expanded);
   const playerEvidence = rotationModule.detectEvtcRotationPlayers(log);
@@ -158,7 +188,9 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
     professionConfig: reconstructionOptions.professionConfig
   });
   const playerAddress = BigInt(selected.address);
-  const observations: RotationImportObservation[] = [];
+  const observations: RotationImportObservation[] = [
+    conditionClockImportObservation(analyzeConditionClockObservation(log, playerAddress))
+  ];
 
   // Load optional diagnostics only for this player; each analyzer depends on its profession's attribute rules.
   if (selected.professionId === 'warrior') {

@@ -1,5 +1,6 @@
 import { optimizerEffectiveDps } from '#gw2/app/optimizer/gear/checkpoints.js';
 import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
+import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { SimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { PatchSelection } from '#gw2/integrations/patches/selection.js';
@@ -12,7 +13,6 @@ import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { canEquipWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -140,7 +140,7 @@ export function captureGearOptimizerRequest(
     revision: app.analysis.state.buildRevision,
     build: app.build,
     // Candidate workers reconstruct application input, so carry browser settings outside the build snapshot.
-    simulationSettings: { transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays) },
+    simulationSettings: normalizeSimulationSettings(app.simulationSettings),
     patch: { id: app.patch.id, values: app.patch.values },
     selections,
     limit: 20,
@@ -458,7 +458,7 @@ export function ordinaryEquipmentAt(space: OptimizerSpace, ordinal: bigint): Opt
 export function createOptimizerEvaluator(space: OptimizerSpace, adapter: OptimizerContext) {
   const { request, weaponSets } = space;
   const patch = adapter.profession.resolvePatch(request.patch);
-  const transitionDelays = normalizeTransitionDelays(request.simulationSettings?.transitionDelays);
+  const settings = normalizeSimulationSettings(request.simulationSettings);
   const limits = request.selections;
   const hasRequirements = Object.keys(OPTIMIZER_REQUIREMENTS).some(
     (key) =>
@@ -482,7 +482,7 @@ export function createOptimizerEvaluator(space: OptimizerSpace, adapter: Optimiz
     const context = adapter.createBuildContext({
       build: { ...request.build, ...equipment },
       patch,
-      transitionDelays
+      ...settings
     });
 
     // Reject candidates using finalized build attributes on every usable set before creating a combat simulation.

@@ -1,6 +1,6 @@
 import type { AttributePreviewInput } from '#gw2/app/build/types.js';
+import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { BuildAttributes, BuildContextInput } from '#gw2/build-context/types.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type {
   AttributePreviewValues,
   PreviewControl,
@@ -22,7 +22,7 @@ export function buildContextInput(
   return {
     build,
     patch: input.patch,
-    transitionDelays: normalizeTransitionDelays(input.simulationSettings?.transitionDelays)
+    ...normalizeSimulationSettings(input.simulationSettings)
   };
 }
 

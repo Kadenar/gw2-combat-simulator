@@ -112,6 +112,42 @@ const sources = {
   }
 };
 
+// A rotation names its own clock offset through either source; one without it keeps the workspace value.
+for (const source of ['file', 'manifest']) {
+  test(`${source} rotations announce and apply only an explicit condition offset`, async (t) => {
+    const app = appFor();
+    app.simulationSettings = { transitionDelays: normalizeTransitionDelays(), conditionTickOffsetMs: 320 };
+    const rotation = [{ type: 'cast', skillId: 69311 }];
+    const load = (payload) => {
+      if (source === 'file') return previewRotationFile(new File([JSON.stringify(payload)], 'rotation.json'), app);
+
+      t.mock.method(
+        globalThis,
+        'fetch',
+        async (path) => new Response(JSON.stringify(String(path).includes('build.json') ? app.build : payload))
+      );
+      return previewManifestRotation({ build: '/build.json', rotation: '/fixture.json', label: 'Fixture' }, app);
+    };
+
+    const plain = await load({ rotation });
+    assert.equal(plain.conditionTickOffsetMs, null);
+    assert.deepEqual(plain.warnings, []);
+    applyRotationImportPreview(app, plain);
+    assert.equal(app.simulationSettings.conditionTickOffsetMs, 320);
+
+    const explicit = await load({ rotation, conditionTickOffsetMs: 0 });
+    assert.equal(explicit.warnings.length, 1);
+    assert.match(explicit.warnings[0], /Condition tick offset: This file used 0 ms.*every profession/);
+    assert.equal(app.simulationSettings.conditionTickOffsetMs, 320);
+    applyRotationImportPreview(app, explicit);
+    assert.equal(app.simulationSettings.conditionTickOffsetMs, 0);
+    assert.deepEqual((await load({ rotation, conditionTickOffsetMs: 0 })).warnings, []);
+
+    await assert.rejects(load({ rotation, conditionTickOffsetMs: 1000 }), /40 ms steps/);
+    assert.equal(app.simulationSettings.conditionTickOffsetMs, 0);
+  });
+}
+
 for (const [source, preview] of Object.entries(sources)) {
   // Explicit variants survive import without changing the build or rotation before Apply.
   test(`${source} rotation preview preserves IDs for the selected specialization`, async (t) => {

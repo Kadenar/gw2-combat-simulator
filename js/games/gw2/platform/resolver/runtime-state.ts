@@ -112,11 +112,11 @@ export function createGw2ResolverRuntimeState({
       );
     },
 
-    markDamageTime(at: number): void {
+    markDamageTime(at: number, source: 'strike' | 'condition'): void {
       // First positive damage starts both DPS reporting and the shared condition clock.
       if (this.firstHitTime == null) {
         this.firstHitTime = at;
-        conditions.startDamageClock(this);
+        conditions.startDamageClock(this, source);
       }
 
       this.lastHitTime = at;
@@ -167,7 +167,7 @@ export interface Gw2ResolverRuntime {
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;
   retainsResolved(event: Gw2ResolverEvent): boolean;
-  markDamageTime(at: number): void;
+  markDamageTime(at: number, source: 'strike' | 'condition'): void;
 }
 
 interface CreateGw2ResolverRuntimeStateOptions {

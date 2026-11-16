@@ -1,7 +1,7 @@
 /** Queries and repairs slot selections, then derives attributes from the normalized build for edits and tab restoration. */
+import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export interface SlotSelectionState {
@@ -192,7 +192,7 @@ export function normalizeSelectedSkillsAndAttributes(
     .createBuildContext({
       build: state.build,
       patch: state.patch,
-      transitionDelays: normalizeTransitionDelays(state.simulationSettings?.transitionDelays)
+      ...normalizeSimulationSettings(state.simulationSettings)
     })
     .attributes(state.attributeWeaponSet === 2 ? 2 : 1);
 }

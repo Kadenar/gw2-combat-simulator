@@ -8,8 +8,8 @@ import {
 } from '#gw2/app/import-export/files.js';
 import { bindRotationImportDialog } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { commitBuildReplacement, commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
+import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { requiredElement, requiredInput, requiredSelect } from '#ui/shared/dom.js';
 
 /** Coordinates build transfers, reset, and rotation history for the active application session. */
@@ -21,7 +21,7 @@ export function bindSessionControls(app: ProfessionAppState): void {
       .createBuildContext({
         build: app.build,
         patch: app.patch,
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        ...normalizeSimulationSettings(app.simulationSettings)
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     app.renderAttributes();
@@ -84,7 +84,11 @@ export function bindSessionControls(app: ProfessionAppState): void {
       {
         label: 'Build + rotation',
         filename: app.adapter.filenames.build.replace(/-build\.json$/i, '-build-rotation.json'),
-        payload: getBuildWithRotationExportPayload(app.build, app.simulationSettings?.transitionDelays)
+        payload: getBuildWithRotationExportPayload(
+          app.build,
+          app.simulationSettings?.transitionDelays,
+          app.simulationSettings?.conditionTickOffsetMs
+        )
       }
     ]);
   });
@@ -99,7 +103,11 @@ export function bindSessionControls(app: ProfessionAppState): void {
   requiredElement('btn-export-rotation').addEventListener('click', () =>
     downloadJson(
       app.adapter.filenames.rotation,
-      getRotationExportPayload(app.build.rotation, app.simulationSettings?.transitionDelays)
+      getRotationExportPayload(
+        app.build.rotation,
+        app.simulationSettings?.transitionDelays,
+        app.simulationSettings?.conditionTickOffsetMs
+      )
     )
   );
   const rotationFileInput = requiredInput('rotation-file-input');

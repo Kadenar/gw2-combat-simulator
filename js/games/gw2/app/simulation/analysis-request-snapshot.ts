@@ -8,13 +8,12 @@ import type { ModifierContributionRequest } from '#gw2/app/simulation/modifier-c
 import type { PatchResultIdentity } from '#gw2/app/simulation/patch-result-cache.js';
 import { DEFAULT_RANDOM_DISTRIBUTION_TRIALS } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import type { RandomDistributionJobRequest } from '#gw2/app/simulation/random-distribution/types.js';
-import type { SimulationSettings } from '#gw2/app/simulation/settings.js';
+import { normalizeSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
 import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
 import type { BuildContextFactory, BuildContextProfession, ProfessionModifier } from '#gw2/build-context/types.js';
 import type { PatchSelection } from '#gw2/integrations/patches/selection.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 
 export interface AnalysisRequestInput {
@@ -55,8 +54,8 @@ export function captureAnalysisRequestSnapshot(
   if (input.scenario) delete build.assumptions.fractal;
 
   const values = { ...input.patch.values };
-  const transitionDelays = normalizeTransitionDelays(input.simulationSettings?.transitionDelays);
-  const environment = JSON.stringify({ transitionDelays });
+  const settings = normalizeSimulationSettings(input.simulationSettings);
+  const environment = JSON.stringify(settings);
   const scenario = input.scenario ? structuredClone(input.scenario) : undefined;
   const previewId = profession.preview?.id ?? null;
   const selectedPatchId = input.patch.id;
@@ -104,7 +103,7 @@ export function captureAnalysisRequestSnapshot(
             ? capturedBuild
             : { ...builds.get(requestedPatch)!, rotation: capturedBuild.rotation },
         patch: requestedPatch === selectedPatchId ? selected : patches.get(requestedPatch)!,
-        transitionDelays,
+        ...settings,
         disabledModifier
       });
     const deterministicConfig = (disabledModifier?: ProfessionModifier, requestedPatch = selectedPatchId) =>

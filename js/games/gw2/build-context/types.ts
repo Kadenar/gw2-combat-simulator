@@ -42,6 +42,8 @@ export interface BuildContextInput<TBuild extends Gw2CanonicalBuild = Gw2Canonic
   readonly build: Readonly<TBuild>;
   readonly patch: ResolvedPatch;
   readonly transitionDelays: Readonly<TransitionDelays>;
+  /** Explicit like the delays, so a caller that forgets the workspace offset fails to compile. */
+  readonly conditionTickOffsetMs: number;
   readonly disabledModifier?: Readonly<ProfessionModifier>;
 }
 

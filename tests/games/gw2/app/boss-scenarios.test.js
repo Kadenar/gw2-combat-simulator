@@ -89,9 +89,19 @@ test('scenario documents require valid independent simulation settings', () => {
     assert.throws(() => parse(draft), /Invalid scenario/);
   }
 
+  // The condition offset must name a supported step; a document that omits it opens at zero.
+  for (const conditionTickOffsetMs of [1000, 330, -40, '320', null]) {
+    const draft = makeDraft();
+    draft.simulationSettings.conditionTickOffsetMs = conditionTickOffsetMs;
+    assert.throws(() => parse(draft), /Invalid scenario/);
+  }
+
   const draft = makeDraft();
   draft.simulationSettings.transitionDelays.weaponSwapMs = 250;
+  draft.simulationSettings.conditionTickOffsetMs = 320;
   assert.deepEqual(parse(draft).simulationSettings, draft.simulationSettings);
+  delete draft.simulationSettings.conditionTickOffsetMs;
+  assert.equal(parse(draft).simulationSettings.conditionTickOffsetMs, 0);
 });
 
 // Boss mechanics own the sequence; authors supply only squad damage, split time, and a continuous rotation.

@@ -10,7 +10,8 @@ const build = toApplicationBuild({});
 const input: BuildContextInput<EngineerCanonicalBuild> = {
   build,
   patch: profession.resolvePatch({ id: 'current' }),
-  transitionDelays: normalizeTransitionDelays(undefined)
+  transitionDelays: normalizeTransitionDelays(undefined),
+  conditionTickOffsetMs: 0
 };
 const context = createBuildContext(input);
 context.attributes(1).activeTraits.map((trait) => trait.id);
@@ -18,9 +19,15 @@ context.simulationConfig();
 // @ts-expect-error The bound factory requires its profession's canonical fields.
 createBuildContext({ ...input, build: thiefBuild({}) });
 // @ts-expect-error Patch identity is explicit.
-createBuildContext({ build, transitionDelays: input.transitionDelays });
+createBuildContext({ build, transitionDelays: input.transitionDelays, conditionTickOffsetMs: 0 });
 // @ts-expect-error Settings are explicit, including zero-delay callers.
-createBuildContext({ build, patch: profession.resolvePatch({ id: 'current' }) });
+createBuildContext({ build, patch: profession.resolvePatch({ id: 'current' }), conditionTickOffsetMs: 0 });
+// @ts-expect-error The condition clock offset is explicit, including zero-offset callers.
+createBuildContext({
+  build,
+  patch: profession.resolvePatch({ id: 'current' }),
+  transitionDelays: input.transitionDelays
+});
 // @ts-expect-error Contexts borrow immutable input.
 input.build.initialHeat = 10;
 // @ts-expect-error Only two weapon sets exist.

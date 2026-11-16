@@ -9,6 +9,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
+import { readRotationConditionTickOffset } from '#gw2/app/import-export/rotation-condition-clock.js';
 import { loadBuildContext } from '#gw2/build-context/load.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -69,6 +70,8 @@ export async function assertManifestRegressions(
         .createBuildContext({
           build,
           transitionDelays: normalizeTransitionDelays(),
+          // Read the saved offset through the import validator so the gate rejects what the app rejects.
+          conditionTickOffsetMs: readRotationConditionTickOffset(savedRotation) ?? 0,
           patch: adapter.profession.resolvePatch({ id: 'current' })
         })
         .simulationConfig();

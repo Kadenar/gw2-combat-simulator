@@ -3,6 +3,7 @@ import {
   conditionApplicationDuration,
   type Gw2ConditionDurationTrace
 } from '#gw2/platform/combat-calculation/combat-query.js';
+import { normalizeConditionTickOffsetMs } from '#gw2/platform/combat/condition-clock.js';
 import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/formulas.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
@@ -54,11 +55,19 @@ export function createGw2ConditionResolution({
   // A binary min-heap of those instants yields the sampler's next expiry wake.
   const expiryHeap: Gw2ConditionExpiryBucket[] = [];
   let bufferWake: Gw2ResolverEvent | undefined;
+  const offsetUs = normalizeConditionTickOffsetMs(config.conditionTickOffsetMs) * 1000;
+  // One payout instant in microseconds. Payouts repeat every second from it. The provisional clock counts from
+  // rotation start, moved earlier by the configured offset, until an opening strike anchors it to first damage.
+  let clockOriginUs = -offsetUs;
 
-  // First positive damage fixes the shared phase; integer arithmetic avoids drifting off that phase.
-  function nextPulseAt(ctx: Gw2ResolverRuntime, after: number): number {
-    const origin = timeKey(ctx.firstHitTime ?? 0);
-    return (origin + (Math.floor((timeKey(after) - origin) / 1_000_000) + 1) * 1_000_000) / 1_000_000;
+  // Scheduling and sampling share one phase, including provisional payouts before the first strike.
+  function isPulseAt(at: number): boolean {
+    return (timeKey(at) - clockOriginUs) % 1_000_000 === 0;
+  }
+
+  // Integer microsecond arithmetic keeps every later payout exactly on the origin's phase.
+  function nextPulseAt(after: number): number {
+    return (clockOriginUs + (Math.floor((timeKey(after) - clockOriginUs) / 1_000_000) + 1) * 1_000_000) / 1_000_000;
   }
 
   function activeConditionStackCount(ctx: Gw2ResolverRuntime, name: string, at: number): number {
@@ -123,7 +132,7 @@ export function createGw2ConditionResolution({
 
       if (previous) ctx.queue.cancel(previous);
 
-      const at = nextPulseAt(ctx, after);
+      const at = nextPulseAt(after);
 
       if (ctx.horizon != null && at > ctx.horizon) continue;
 
@@ -145,14 +154,21 @@ export function createGw2ConditionResolution({
   }
 
   /** Replace provisional wakes once first damage establishes fight time; pre-fight accrual cannot fund later ticks. */
-  function startDamageClock(ctx: Gw2ResolverRuntime): void {
+  function startDamageClock(ctx: Gw2ResolverRuntime, source: 'strike' | 'condition'): void {
     const at = ctx.firstHitTime!;
 
-    // An opening condition payout already lies on the provisional phase and must finish its entire batch.
-    if (timeKey(at) % 1_000_000 === 0) return;
+    // An opening condition payout must finish its owner batch on the existing phase without losing buffered damage.
+    if (source === 'condition') return;
+
+    // An opening strike anchors the clock to first damage, moved earlier by the configured offset.
+    const nextOriginUs = timeKey(at) - offsetUs;
+    // A strike that lands on the provisional phase keeps every scheduled wake and its ambient payouts.
+    const rephase = (nextOriginUs - clockOriginUs) % 1_000_000 !== 0;
+    clockOriginUs = nextOriginUs;
 
     for (const state of conditionState.values()) {
       for (const group of state.groups?.values() ?? []) {
+        // Exposure before the opening strike is discarded on either phase, so a matching phase cannot carry it over.
         for (const application of group.applications) {
           application.settledThrough = Math.min(application.naturalExpiresAt, at);
           application.bufferedRawDamage = 0;
@@ -160,10 +176,14 @@ export function createGw2ConditionResolution({
         }
 
         pruneGroup(group, at);
-        group.nextPulseAt = nextPulseAt(ctx, at);
+
+        if (rephase) group.nextPulseAt = nextPulseAt(at);
+
         scheduleGroup(ctx, group);
       }
     }
+
+    if (!rephase) return;
 
     for (const entry of environmentConditions.values()) entry.bufferedRate = 0;
     scheduleEnvironment(ctx, at);
@@ -303,7 +323,7 @@ export function createGw2ConditionResolution({
 
   /** Sample at whole-second pulses and exact expirations, without stepping through intervening milliseconds. */
   function scheduleBuffer(ctx: Gw2ResolverRuntime, after: number, newExpiresAt?: number): void {
-    let at = nextPulseAt(ctx, after);
+    let at = nextPulseAt(after);
     let active = environmentConditions.size > 0;
 
     if (newExpiresAt !== undefined) {
@@ -346,7 +366,7 @@ export function createGw2ConditionResolution({
     if (conditionBufferedAt != null && at <= conditionBufferedAt) return;
 
     conditionBufferedAt = at;
-    const onGrid = (timeKey(at) - timeKey(ctx.firstHitTime ?? 0)) % 1_000_000 === 0;
+    const onGrid = isPulseAt(at);
     // Each target needs its own vulnerability and modifier sample within this observation pass.
     const samples = new Map<string, { vulnerabilityStacks: number; modifierValues: Map<object, number | null> }>();
     const sampleForTarget = () => {
@@ -569,7 +589,7 @@ export function createGw2ConditionResolution({
           handle: {},
           owner,
           condition: name,
-          nextPulseAt: nextPulseAt(ctx, event.at),
+          nextPulseAt: nextPulseAt(event.at),
           wakeToken: 0,
           wakeAt: null,
           applications: []
@@ -663,7 +683,7 @@ export function createGw2ConditionResolution({
         stackSeconds: contributions.reduce((total, contribution) => total + contribution.stackSeconds, 0)
       });
 
-      if (damage > 0) ctx.markDamageTime(event.at);
+      if (damage > 0) ctx.markDamageTime(event.at, 'condition');
     }
 
     pruneGroup(group, event.at);
@@ -674,7 +694,7 @@ export function createGw2ConditionResolution({
   /** Applies only the condition's base formula and target Vulnerability, never player-owned outgoing effects. */
   function handleEnvironmentConditionTick(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
     // Provisional environment wakes become inert when first damage shifts the clock.
-    if ((timeKey(event.at) - timeKey(ctx.firstHitTime ?? 0)) % 1_000_000 !== 0) return;
+    if (!isPulseAt(event.at)) return;
 
     const condition = ctx.helpers.conditionName(event.condition);
     const stacks = Math.max(0, event.stacks || 0);
@@ -684,7 +704,7 @@ export function createGw2ConditionResolution({
 
     environmentWakes.delete(condition);
     // Each paid or gated pulse advances only its own successor; other conditions retain stable insertion order.
-    const next = nextPulseAt(ctx, event.at);
+    const next = nextPulseAt(event.at);
 
     if (ctx.horizon == null || next <= ctx.horizon) {
       environmentWakes.set(condition, ctx.queue.enqueue({ ...event, at: next }));
@@ -804,7 +824,7 @@ export interface Gw2ConditionResolution {
   handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ConditionWorkEvent): Gw2ConditionTickResult | null;
   handleConditionBuffer(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
   initializeEnvironment(context: Gw2ResolverRuntime): void;
-  startDamageClock(context: Gw2ResolverRuntime): void;
+  startDamageClock(context: Gw2ResolverRuntime, source: 'strike' | 'condition'): void;
   handleEnvironmentConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
 }
 

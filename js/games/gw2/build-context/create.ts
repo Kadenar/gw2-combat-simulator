@@ -43,7 +43,7 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild, TConfig exten
     declarations: BuildContextDeclarations<TBuild>
   ): BuildContextFactory<TBuild> => {
     const assumptionControls = buildAssumptionControls(declarations.assumptionControls);
-    return ({ build: inputBuild, patch, transitionDelays, disabledModifier: disabled }) => {
+    return ({ build: inputBuild, patch, transitionDelays, conditionTickOffsetMs, disabledModifier: disabled }) => {
       validateFractalBuffs(inputBuild.assumptions.fractal);
       const { catalog, balanceContext } = patch;
       const eliteNames = new Set(catalog.specializations.filter((spec) => spec.elite).map((spec) => spec.name));
@@ -133,6 +133,7 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild, TConfig exten
               build,
               patchId: patch.id,
               transitionDelays,
+              conditionTickOffsetMs,
               attributeSeeds: [equipment(1).seed, equipment(2).seed],
               specialization,
               disabled,

@@ -5,6 +5,7 @@ import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assump
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import { simulationRandomnessFromAssumptions } from '#gw2/platform/builds/randomness-assumptions.js';
 import type { ProfessionAssumptionControl, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
+import { normalizeConditionTickOffsetMs } from '#gw2/platform/combat/condition-clock.js';
 import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
@@ -58,6 +59,7 @@ export function createGw2SimulationConfig({
   build,
   patchId,
   transitionDelays,
+  conditionTickOffsetMs,
   selectedSkillIds,
   assumptionControls,
   attributeSeeds,
@@ -98,6 +100,7 @@ export function createGw2SimulationConfig({
     procRateOverrides: normalizeProcRateOverrides(assumptions.procRateOverrides),
     // Snapshot explicit timing preferences for workers, comparisons, and optimizer candidates.
     transitionDelays: normalizeTransitionDelays(transitionDelays),
+    conditionTickOffsetMs: normalizeConditionTickOffsetMs(conditionTickOffsetMs),
     specialization,
     selectedTraitIds: [...selectedTraitIds],
     // Removing a skill for contribution analysis also removes its intrinsic passives from every actor.

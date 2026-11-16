@@ -1515,11 +1515,13 @@
   grid-column: 2;
 }
 
-.critical-damage-control {
+.critical-damage-control,
+.condition-clock-control {
   position: relative;
 }
 
-.critical-damage-picker {
+.critical-damage-picker,
+.condition-clock-picker {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1532,7 +1534,8 @@
   font-size: 11px;
 }
 
-#critical-damage-details summary {
+#critical-damage-details summary,
+#condition-clock-details summary {
   /* A centered vector icon stays crisp without relying on the font's circled-i glyph. */
   display: flex;
   align-items: center;
@@ -1541,11 +1544,13 @@
   list-style: none;
 }
 
-#critical-damage-details summary::-webkit-details-marker {
+#critical-damage-details summary::-webkit-details-marker,
+#condition-clock-details summary::-webkit-details-marker {
   display: none;
 }
 
-.critical-damage-description {
+.critical-damage-description,
+.condition-clock-description {
   position: absolute;
   z-index: 1;
   top: 28px;
@@ -1559,7 +1564,8 @@
   line-height: 1.5;
 }
 
-.critical-damage-description p + p {
+.critical-damage-description p + p,
+.condition-clock-description p + p {
   margin-top: 8px;
 }
 

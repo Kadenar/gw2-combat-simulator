@@ -135,3 +135,13 @@ test('representative manifest presets load and simulate with attributable warnin
     assert.deepEqual(result.warnings, [], preset.identity.id);
   }
 });
+
+// Saved clock settings must reach benchmarks without becoming build fields.
+test('benchmark preparation carries the saved rotation condition offset', async () => {
+  const adapter = await loadBuildContext('guardian');
+  const savedBuild = adapter.profession.createBuildDefaults();
+  const savedRotation = { rotation: [{ type: 'wait', durationMs: 100 }], conditionTickOffsetMs: 320 };
+  const result = prepareBenchmarkPreset({ adapter, savedBuild, savedRotation });
+  assert.equal(result.config.conditionTickOffsetMs, 320);
+  assert.equal(Object.hasOwn(result.build, 'conditionTickOffsetMs'), false);
+});

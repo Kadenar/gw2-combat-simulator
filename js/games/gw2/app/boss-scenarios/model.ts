@@ -1,9 +1,14 @@
 import { ENCOUNTER_TEMPLATES, encounterDifficulties, encounterHealth } from '#gw2/app/boss-scenarios/catalog.js';
 import { encounterPhasePlan, type EncounterDifficulty } from '#gw2/app/boss-scenarios/phases.js';
-import { defaultSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
+import {
+  defaultSimulationSettings,
+  normalizeSimulationSettings,
+  type SimulationSettings
+} from '#gw2/app/simulation/settings.js';
 import { validateRotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import { normalizeTransitionDelays, TRANSITION_DELAY_KEYS } from '#gw2/platform/execution/transition-lockouts.js';
+import { isConditionTickOffsetMs } from '#gw2/platform/combat/condition-clock.js';
+import { TRANSITION_DELAY_KEYS } from '#gw2/platform/execution/transition-lockouts.js';
 import type { CatalogLookup } from '#gw2/platform/skills/types.js';
 
 // Workspace-owned simulation settings use a separate document and storage version.
@@ -141,6 +146,8 @@ export function parseBossScenario(
     !text(record.buildName) ||
     !text(record.patchId) ||
     !record.simulationSettings ||
+    (record.simulationSettings.conditionTickOffsetMs !== undefined &&
+      !isConditionTickOffsetMs(record.simulationSettings.conditionTickOffsetMs)) ||
     !TRANSITION_DELAY_KEYS.every((key) => {
       const delay = record.simulationSettings?.transitionDelays?.[key];
       return typeof delay === 'number' && Number.isFinite(delay) && delay >= 0;
@@ -229,7 +236,7 @@ export function parseBossScenario(
     buildName: record.buildName.trim(),
     build,
     patchId: record.patchId,
-    simulationSettings: { transitionDelays: normalizeTransitionDelays(record.simulationSettings.transitionDelays) },
+    simulationSettings: normalizeSimulationSettings(record.simulationSettings),
     encounter: record.encounter!,
     encounterId: record.encounterId!,
     difficulty: record.difficulty!,

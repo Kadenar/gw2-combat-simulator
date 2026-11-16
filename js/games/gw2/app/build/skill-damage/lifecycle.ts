@@ -66,7 +66,7 @@ function preparationSignature(input: SkillDamageInput): string {
     contentId: input.contentId,
     build: { ...input.build, rotation: undefined },
     patch: input.patch.key,
-    transitionDelays: input.simulationSettings?.transitionDelays,
+    simulationSettings: input.simulationSettings,
     activeTraitIds: input.attributeData?.activeTraits.map((trait) => trait.id)
   });
 }

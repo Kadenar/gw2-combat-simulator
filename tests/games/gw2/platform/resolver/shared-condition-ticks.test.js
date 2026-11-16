@@ -112,13 +112,21 @@ function condition(at = 0, extra = {}) {
 
 function resolve(
   events,
-  { end = 2, combatStartTime, output = 'detailed', target = {}, query = {}, reactions = {} } = {}
+  {
+    end = 2,
+    combatStartTime,
+    output = 'detailed',
+    target = {},
+    query = {},
+    reactions = {},
+    conditionTickOffsetMs = 0
+  } = {}
 ) {
   return resolveTestGw2Events({
     output,
     profession: conditionProfession,
     ...{ events, ...(combatStartTime == null ? {} : { combatStartTime }), endTime: end },
-    config: { target, sigilSets: [{ names: [] }] },
+    config: { target, sigilSets: [{ names: [] }], conditionTickOffsetMs },
     traits: new Set(),
     engineReactions: reactions,
     query: {
@@ -1324,5 +1332,62 @@ test('same-time companion retirement preserves completed payouts and cancels lat
       assert.equal(pet.removedAt, 1);
       assert.equal(pet.damage > 0, mode !== 'player-first');
     }
+  }
+});
+
+// Offset payouts preserve expiry remainders, first-damage reporting, and one shared player/environment phase.
+test('condition offsets pay expired exposure once at the shared observation boundary', () => {
+  for (const firstHit of [0, 0.25, 0.68, 1]) {
+    const events = [
+      { type: 'damage', at: firstHit, actorType: 'player', source: 'Player', sourceId: 'opening', flatDamage: 1 },
+      condition(firstHit + 0.2, { duration: 0.2 })
+    ];
+    const boundary = firstHit + 0.68;
+    const settings = { conditionTickOffsetMs: 320, target: { conditions: { Bleeding: 1 } } };
+    const before = resolve(events, { ...settings, end: boundary - 0.001 });
+    const paid = resolve(events, { ...settings, end: boundary });
+    const after = resolve(events, { ...settings, end: boundary + 1 });
+    assert.equal(before.conditionDamage, 0, 'expired exposure waits for payout');
+    assert.ok(paid.conditionDamage > 0);
+    assert.equal(paid.conditionDamage, after.conditionDamage, 'expired exposure pays only once');
+    assert.equal(paid.dpsStartTime, firstHit, 'offset does not move DPS start');
+    assert.ok(paid.environmentDamage > before.environmentDamage, 'ambient conditions share the payout boundary');
+    assert.ok(Math.abs(paidStackSeconds(applications(paid)[0]) - 0.2) < 1e-9);
+  }
+});
+
+// A condition-only opener already owns a running pulse batch; starting DPS must retain every owner's accrual.
+test('offset condition-only combat entry preserves simultaneous owners and expiry remainders', () => {
+  const events = [
+    condition(0.2, { duration: 1.4, sourceId: 'player' }),
+    condition(0.2, {
+      duration: 1.4,
+      sourceId: 'pet',
+      actorType: 'summon',
+      independentConditionOwner: true,
+      summonOwner: 'pet'
+    })
+  ];
+  const result = resolve(events, { conditionTickOffsetMs: 320, end: 2.68 });
+  for (const application of applications(result)) {
+    assert.ok(Math.abs(paidStackSeconds(application) - 1.4) < 1e-9, application.sourceId);
+  }
+
+  assert.equal(result.dpsStartTime, 0.68);
+  assert.equal(result.warnings.length, 0);
+});
+
+// Exposure before the opening strike never funds a later payout, including a strike on the provisional phase.
+test('offset strike openers discard earlier exposure on matching and shifted phases', () => {
+  for (const firstHit of [0.96, 1, 1.04]) {
+    const result = resolve(
+      [
+        condition(0.7, { duration: 3 }),
+        { type: 'damage', at: firstHit, actorType: 'player', source: 'Player', sourceId: 'opening', flatDamage: 1 }
+      ],
+      { conditionTickOffsetMs: 320, end: 6 }
+    );
+    assert.equal(result.dpsStartTime, firstHit);
+    assert.ok(Math.abs(paidStackSeconds(applications(result)[0]) - (3.7 - firstHit)) < 1e-9, String(firstHit));
   }
 });

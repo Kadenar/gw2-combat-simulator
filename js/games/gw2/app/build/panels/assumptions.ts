@@ -1,4 +1,5 @@
 /** Owns assumption controls and target choices while preserving encounter-owned health and armor. */
+import { bindHelpPopover, HELP_ICON_HTML } from '#gw2/app/build/panels/help-popover.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
@@ -249,13 +250,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
           <label for="assumption-criticalDamageMode">Critical damage</label>
           <div class="critical-damage-picker">${select}
             <details id="critical-damage-details">
-              <summary aria-label="About critical damage">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 11v6" />
-                  <circle cx="12" cy="7.5" r="0.75" fill="currentColor" stroke="none" />
-                </svg>
-              </summary>
+              <summary aria-label="About critical damage">${HELP_ICON_HTML}</summary>
               <div class="critical-damage-description">
                 <p><strong>Averaged:</strong> Every hit includes its expected critical damage, smoothing out crit luck for comparisons. Critical Yes/No still records the roll used for on-critical effects.</p>
                 <p><strong>Rolled:</strong> A successful critical roll deals extra damage; a failed roll deals normal damage.</p>
@@ -393,35 +388,8 @@ export function renderAssumptions(app: ProfessionAppState): void {
     for (const control of [enabled, agonyResistance, augmentation]) control.addEventListener('change', updateFractal);
   }
 
-  // Hover and keyboard focus preview the explanation; clicking keeps it open for reading.
-  const criticalDetails = container.querySelector<HTMLDetailsElement>('#critical-damage-details');
-  const criticalSummary = criticalDetails?.querySelector('summary');
-
-  if (criticalDetails && criticalSummary) {
-    let pinned = false;
-    criticalDetails.addEventListener('pointerenter', () => {
-      criticalDetails.open = true;
-    });
-    criticalDetails.addEventListener('pointerleave', () => {
-      if (!pinned && !criticalDetails.contains(document.activeElement)) criticalDetails.open = false;
-    });
-    criticalSummary.addEventListener('focus', () => {
-      criticalDetails.open = true;
-    });
-    criticalSummary.addEventListener('click', (event) => {
-      event.preventDefault();
-      criticalDetails.open = pinned = !pinned;
-    });
-    criticalDetails.addEventListener('focusout', () => {
-      criticalDetails.open = pinned = false;
-    });
-    criticalDetails.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape') return;
-
-      event.stopPropagation();
-      criticalDetails.open = pinned = false;
-    });
-  }
+  // The critical damage explanation opens and closes like every other setting's inline help.
+  bindHelpPopover(container.querySelector<HTMLDetailsElement>('#critical-damage-details'));
 
   container.querySelectorAll('input[type="checkbox"][data-effect-type]').forEach((check) => {
     if (!(check instanceof HTMLInputElement)) return;

@@ -14,6 +14,7 @@ import {
   renderImportNotices,
   requiredDialogPart
 } from '#gw2/app/import-export/import-dialog.js';
+import { rotationConditionTickOffsetNotices } from '#gw2/app/import-export/rotation-condition-clock.js';
 import { rotationTransitionDelayNotices } from '#gw2/app/import-export/rotation-transition-delays.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
@@ -180,7 +181,15 @@ export function bindBuildFileImportDialog(app: ProfessionAppState, fileInput: HT
     renderImportNotices(
       elements.warnings,
       preview
-        ? [...preview.warnings, ...(rotation ? rotationTransitionDelayNotices(preview.transitionDelays, app) : [])]
+        ? [
+            ...preview.warnings,
+            ...(rotation
+              ? [
+                  ...rotationTransitionDelayNotices(preview.transitionDelays, app),
+                  ...rotationConditionTickOffsetNotices(preview.conditionTickOffsetMs, app)
+                ]
+              : [])
+          ]
         : []
     );
     elements.applyButton.disabled = loading || !preview || (!build && !rotation) || Boolean(rotationError);

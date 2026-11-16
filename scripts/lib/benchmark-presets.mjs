@@ -2,6 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import { readRotationConditionTickOffset } from '#gw2/app/import-export/rotation-condition-clock.js';
 import { loadBuildContext } from '#gw2/build-context/load.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { professionOptions } from '#gw2/profession-registry.js';
@@ -62,6 +63,8 @@ export function prepareBenchmarkPreset({ identity, adapter, savedBuild, savedRot
   const context = adapter.createBuildContext({
     build,
     transitionDelays: normalizeTransitionDelays(),
+    // A preset names its own clock offset. An unsupported value fails here exactly as it does on import.
+    conditionTickOffsetMs: readRotationConditionTickOffset(savedRotation) ?? 0,
     patch: adapter.profession.resolvePatch({ id: patchId })
   });
   return {

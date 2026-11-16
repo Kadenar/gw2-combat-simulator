@@ -1,6 +1,7 @@
 /** Detects a saved file's contents and commits the selected build, rotation, and shared input changes together. */
 import { replaceBuild, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
-import { applyTransitionDelays } from '#gw2/app/build/state/workspace.js';
+import { applyRotationSimulationSettings } from '#gw2/app/build/state/workspace.js';
+import { readRotationConditionTickOffset } from '#gw2/app/import-export/rotation-condition-clock.js';
 import { manifestRotationMatchesBuild } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { readRotationTransitionDelays } from '#gw2/app/import-export/rotation-transition-delays.js';
 import { commitBuildReplacement, commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
@@ -19,6 +20,7 @@ const BUILD_FIELDS = ['profession', 'specializations', 'selectedSkillIds', 'sele
 export interface BuildFileImportPreview {
   readonly fileName: string;
   readonly transitionDelays: TransitionDelays | null;
+  readonly conditionTickOffsetMs: number | null;
   /** A rotation validation error blocks that part without preventing a build-only import. */
   readonly rotationError: string | null;
   /** Imported build with any rotation normalized against its own specializations; null for rotation-only files. */
@@ -55,19 +57,25 @@ export function previewBuildFileImport(
   }
 
   let transitionDelays: TransitionDelays | null = null;
+  let conditionTickOffsetMs: number | null = null;
   let rotationError: string | null = null;
 
   // Invalid timing metadata belongs to the rotation; retain the build so it can still be selected independently.
   if (rotation) {
     try {
       transitionDelays = readRotationTransitionDelays(saved);
+      conditionTickOffsetMs = readRotationConditionTickOffset(saved);
     } catch (error) {
       rotationError = errorMessage(error);
     }
   }
 
   // Export metadata belongs to the workspace and must never enter the canonical build or its tab snapshot.
-  const { transitionDelays: _transitionDelays, ...buildPayload } = saved as Record<string, unknown>;
+  const {
+    transitionDelays: _transitionDelays,
+    conditionTickOffsetMs: _conditionTickOffsetMs,
+    ...buildPayload
+  } = saved as Record<string, unknown>;
   const build = hasBuild ? replaceBuild(buildPayload, app.adapter) : null;
   const warnings: string[] = [];
 
@@ -89,7 +97,7 @@ export function previewBuildFileImport(
     }
   }
 
-  return { fileName, build, rotation, transitionDelays, rotationError, warnings };
+  return { fileName, build, rotation, transitionDelays, conditionTickOffsetMs, rotationError, warnings };
 }
 
 /**
@@ -115,7 +123,7 @@ export function applyBuildFileImport(
     if (!applyRotation) build.rotation = app.build.rotation;
 
     // Timing metadata belongs to the selected rotation; importing only build configuration keeps workspace settings.
-    if (applyRotation) applyTransitionDelays(app, preview.transitionDelays);
+    if (applyRotation) applyRotationSimulationSettings(app, preview);
 
     // The imported build is no longer the highlighted template; Reset still returns to the tab's loaded baseline.
     app.currentTemplate = null;
@@ -123,7 +131,7 @@ export function applyBuildFileImport(
   } else if (applyRotation) {
     // Normalizing through the current build resolves specialization-specific skill names before the first simulation.
     const rotation = replaceBuildRotation(preview.rotation!, app.build, app.adapter).rotation;
-    const settingsChanged = applyTransitionDelays(app, preview.transitionDelays);
+    const settingsChanged = applyRotationSimulationSettings(app, preview);
     commitRotationEdit(app, { type: 'replace', rotation }, { rebuildStatic: settingsChanged });
   } else {
     throw new Error('Choose the build, the rotation, or both to apply.');

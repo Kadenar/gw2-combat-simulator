@@ -235,3 +235,23 @@ test('reusing Current after a tuned preview keeps its baseline but compares the 
   assert.equal(request.comparisonConfig.patchId, 'preview');
   assert.deepEqual(request.comparisonConfig.previewValues, {});
 });
+
+// Changing only timing must invalidate every analysis identity while queued jobs retain their captured phase.
+test('condition offsets are detached and shared by baseline, reference, modifiers, and distribution', () => {
+  const f = fixture(withTestPreviewAdapter(mesmerAppAdapter));
+  f.input.simulationSettings.conditionTickOffsetMs = 320;
+  const snapshot = f.capture();
+  f.input.simulationSettings.conditionTickOffsetMs = 640;
+  assert.notEqual(snapshot.identity.environment, f.capture().identity.environment);
+  const baseline = snapshot.baseline({ ...editorIntent, comparePatch: true });
+  const reference = snapshot.withRotation([{ type: 'wait', durationMs: 2000 }]).baseline(editorIntent);
+  const configs = [
+    baseline.baseConfig,
+    baseline.comparisonConfig,
+    reference.baseConfig,
+    snapshot.distribution().baseConfig,
+    ...snapshot.modifiers(100).comparisons.map((entry) => entry.config)
+  ];
+  assert.ok(configs.length > 4);
+  for (const config of configs) assert.equal(config.conditionTickOffsetMs, 320);
+});
