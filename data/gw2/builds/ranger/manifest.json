@@ -43,16 +43,16 @@
         "label": "Condition (Shortbow / Dagger-Dagger) (Janthiri Bee)",
         "build": "data/gw2/builds/ranger/b-condi-soulbeast-shortbow-dagger-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-soulbeast-shortbow-dagger-dagger.json",
-        "benchmarkDps": 37108,
-        "benchmarkApm": 63.8,
+        "benchmarkDps": 37552,
+        "benchmarkApm": 65.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35989, "phase": 35989 },
-          "80-60": { "cumulative": 37419, "phase": 38928 },
-          "60-40": { "cumulative": 37336, "phase": 37166 },
-          "40-20": { "cumulative": 37265, "phase": 37058 },
-          "20-0": { "cumulative": 37108, "phase": 37108 }
+          "100-80": { "cumulative": 35512, "phase": 35512 },
+          "80-60": { "cumulative": 37168, "phase": 39072 },
+          "60-40": { "cumulative": 37829, "phase": 39250 },
+          "40-20": { "cumulative": 37926, "phase": 38217 },
+          "20-0": { "cumulative": 37552, "phase": 37552 }
         },
-        "upToDate": false
+        "upToDate": true
       },
       {
         "label": "Power (Hammer / Axe-Axe) (Tiger)",
