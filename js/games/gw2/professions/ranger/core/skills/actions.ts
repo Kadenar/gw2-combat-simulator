@@ -57,6 +57,10 @@ export function swapRangerPets(runtime: RangerRuntime, skill: Skill): void {
 
 /** Publish the new pet generation at the swap's commit boundary, before shared pet-swap observers execute. */
 export const petSwapLifecycle = {
+  // Precombat pet selection stays free; combat swaps reserve the catalog's recharge work.
+  rechargeWork(runtime, skill, work) {
+    return skill.id === ID.PET_SWAP && !runtime.engagement.active ? 0 : work;
+  },
   sideEffectHandlers: {
     'ranger.swap-pets'(runtime, context) {
       swapRangerPets(runtime, context.skill);
