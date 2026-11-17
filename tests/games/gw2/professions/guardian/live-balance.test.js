@@ -62,14 +62,14 @@ test('Solace refunds two pages, other mantras refund one, and Revelation adds on
         }
 });
 
-// Aegis adds its own bonus while the health-or-Aegis multiplier applies only once.
-test('Unscathed Contender combines its Aegis bonus with the health-or-Aegis multiplier', () => {
+// Health and Aegis each enable the same multiplier without stacking bonuses.
+test('Unscathed Contender applies its health-or-Aegis multiplier once', () => {
   const native = guardianProfession.runtimeFor({ specialization: 'Core' });
   for (const [health, aegis, expected] of [
     [1, false, 112],
-    [1, true, 117.6],
+    [1, true, 112],
     [0.75, false, 100],
-    [0.75, true, 117.6]
+    [0.75, true, 112]
   ]) {
     const context = {
       catalog: native.catalog,
@@ -81,12 +81,12 @@ test('Unscathed Contender combines its Aegis bonus with the health-or-Aegis mult
     };
     assert.ok(Math.abs(native.calculations.modifyStrikeDamage(context, 100) - expected) < 1e-9);
     delete context.attributePreviewPlayerHealthFraction;
-    assert.ok(Math.abs(native.calculations.modifyStrikeDamage(context, 100) - (aegis ? 117.6 : 112)) < 1e-9);
+    assert.ok(Math.abs(native.calculations.modifyStrikeDamage(context, 100) - 112) < 1e-9);
   }
 });
 
-// Other additive bonuses share the Aegis bucket; unselected traits and condition damage receive neither bonus.
-test('Unscathed Contender adds Aegis damage to the existing strike bucket only when selected', () => {
+// The selected trait multiplies existing strike bonuses and leaves condition damage unchanged.
+test('Unscathed Contender multiplies strike damage only when selected', () => {
   const native = guardianProfession.runtimeFor({ specialization: 'Core' });
   for (const selected of [false, true]) {
     const context = {
@@ -97,7 +97,7 @@ test('Unscathed Contender adds Aegis damage to the existing strike bucket only w
       event: { actorType: 'player' },
       damageInputs: { strikeSigilBonus: 0.1 }
     };
-    const expected = selected ? 128.8 : 110;
+    const expected = selected ? 123.2 : 110;
     assert.ok(Math.abs(native.calculations.modifyStrikeDamage(context, 100) - expected) < 1e-9);
     assert.equal(native.calculations.modifyConditionDamage(context, 100), 100);
   }
