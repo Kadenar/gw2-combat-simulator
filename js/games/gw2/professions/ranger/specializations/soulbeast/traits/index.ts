@@ -162,7 +162,7 @@ const predatorsCunning = defineTrait({
   ]
 });
 
-// Merged impacts launch independent frenzies, including Feline Maul and Primal Cry repeats.
+// Each eligible merged cast launches one frenzy on its first landed impact.
 const apexPredator = defineTrait({
   id: TRAIT.APEX_PREDATOR,
   balance: {
@@ -278,11 +278,8 @@ function triggerApexPredator(runtime: RangerResolverContext, event: Gw2ResolverE
   if (!state.beastmodeActive || event.actorType !== ACTOR.PLAYER || !skill?.beastmodeSkill || !event.activationId)
     return;
 
-  // Most skills claim one frenzy per activation. These two skills claim one per landed hit instead.
-  const repeated = skill.id === ID.MAUL_ID_44514 || skill.id === ID.PRIMAL_CRY;
-  const scope = repeated ? `ranger.apex-predator:${event.hitIndex}` : 'ranger.apex-predator';
-
-  if (!claimActivation(state.soulbeastActivationClaims, scope, event.activationId)) return;
+  // Claim the whole activation so later hits cannot launch another frenzy.
+  if (!claimActivation(state.soulbeastActivationClaims, 'ranger.apex-predator', event.activationId)) return;
 
   const beast = skill.slot === 'Profession_3';
   const name = beast ? 'Apex Predator (Beast)' : 'Apex Predator';
@@ -298,8 +295,8 @@ function triggerApexPredator(runtime: RangerResolverContext, event: Gw2ResolverE
       name,
       actorType: ACTOR.EFFECT,
       ownerActorType: ACTOR.PLAYER,
-      // Separate repeats sample their own strength while each frenzy retains its roll across all hits.
-      activationId: `${event.activationId}:apex:${repeated ? event.hitIndex : 1}`,
+      // Each frenzy retains its own strength roll across all hits.
+      activationId: `${event.activationId}:apex`,
       triggeredBy: event.skillName
     }
   });

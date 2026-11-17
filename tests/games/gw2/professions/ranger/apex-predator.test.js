@@ -1,4 +1,4 @@
-// Minimal merged casts protect frenzy eligibility, repeat claims, and player-owned damage scaling.
+// Minimal merged casts protect frenzy eligibility, one proc per cast, and player-owned damage scaling.
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -24,7 +24,7 @@ function run(selectedPet, skills, selectedTraitIds = [TRAIT.APEX_PREDATOR]) {
 for (const [pet, skill, count, beast = false] of [
   ['Tiger', ID.BITE, 1],
   ['Tiger', ID.WORLDLY_IMPACT, 1, true],
-  ['Lynx', ID.PRIMAL_CRY, 3, true],
+  ['Lynx', ID.PRIMAL_CRY, 1, true],
   ['Rock Gazelle', ID.KICK, 1],
   ['Rock Gazelle', ID.CHARGE, 1],
   ['Rock Gazelle', ID.WORLDLY_IMPACT, 1, true],
@@ -37,7 +37,7 @@ for (const [pet, skill, count, beast = false] of [
   ...RANGER_PETS.filter((pet) => pet.beastmodeSkillIds.includes(ID.MAUL_ID_44514)).map((pet) => [
     pet.name,
     ID.MAUL_ID_44514,
-    2
+    1
   ])
 ]) {
   test(`Apex Predator admits ${count} frenzies for ${pet} skill ${skill}`, () => {
@@ -104,7 +104,7 @@ for (const [pet, skill] of [
 
 test('overlapping merged abilities keep independent frenzies without recursively triggering', () => {
   const events = apexEvents(run('Tiger', [ID.BITE, ID.MAUL_ID_44514]));
-  assert.equal(activations(events).size, 3);
+  assert.equal(activations(events).size, 2);
   assert.ok(events.every((event) => ['Bite', 'Maul'].includes(event.triggeredBy)));
 });
 
@@ -122,7 +122,7 @@ test('admitted frenzies survive leaving Beastmode', () => {
   assert.ok(events.some((event) => event.at > leave.at));
 });
 
-// Every frenzy strike must cause its own siphon, including overlapping Beast frenzies.
+// Every frenzy strike must cause its own siphon for both ordinary and Beast skills.
 for (const [pet, skill] of [
   ['Tiger', ID.BITE],
   ['Lynx', ID.PRIMAL_CRY]
