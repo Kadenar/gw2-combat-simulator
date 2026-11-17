@@ -121,12 +121,12 @@ export function createModifierContributionRequest(
       .flatMap((contribution) => contribution.attributeEffects ?? [])
       .flatMap((effect) => (effect.kind === 'flat' && effect.passiveSkillId != null ? [effect.passiveSkillId] : []))
   );
-  for (const skillId of passiveIds) {
-    if (!selected.has(skillId)) continue;
-
+  // Equipped skills can grant damage modifiers without passive attributes, such as Strength of the Pack.
+  for (const skillId of selected) {
     const skill = runtime.catalog.skillsById.get(skillId);
 
-    if (!skill) continue;
+    if (!skill || (!passiveIds.has(skillId) && !skill.modifiers?.some((modifier) => modifier.scope === 'profession')))
+      continue;
 
     candidates.push({
       id: `Skill:${skillId}`,
@@ -138,7 +138,7 @@ export function createModifierContributionRequest(
   }
 
   const comparisons = candidates.map((modifier) => ({ modifier, config: comparisonConfig(modifier) }));
-  // The baseline config discovers passive owners locally; comparison execution reuses the caller's score.
+  // The baseline config discovers skill owners locally; comparison execution reuses the caller's score.
   return {
     gameId: 'gw2',
     contentId: profession.id,
