@@ -217,7 +217,7 @@ const righteousFlames = defineTrait({
 
 // Healing and incoming damage are outside simulation scope. Purity of Word owns all page tuning.
 export const firebrandTraits = [
-  defineTrait({ id: TRAIT.PURITY_OF_WORD, balance: { maximumStacks: 8, pulseInterval: 6, resourceGain: 1 } }),
+  defineTrait({ id: TRAIT.PURITY_OF_WORD, balance: { maximumStacks: 8, pulseInterval: 8, resourceGain: 1 } }),
   swiftScholar,
   legendaryLore,
   unrelentingCriticism,
