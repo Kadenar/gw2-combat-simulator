@@ -5,15 +5,15 @@ This overview follows the main execution path. Use the [module map](MODULES.md) 
 
 ## Layers
 
-| Layer          | Role                                                              | Entry point                                                      |
-| -------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Kernel         | Game-neutral clocks, queues, randomness, and observation          | [js/kernel/](../../js/kernel/)                                   |
-| Platform       | Shared GW2 execution, combat, equipment, and results              | [platform/](../../js/games/gw2/platform/)                        |
-| Professions    | Core and elite content, mechanics, and presentation contributions | [profession registry](../../js/games/gw2/profession-registry.ts) |
-| Build context  | Headless build-to-attributes and configuration binding            | [build-context/](../../js/games/gw2/build-context/)              |
-| Application    | GW2 editing, persistence, analysis, and browser composition       | [profession-app.ts](../../js/games/gw2/app/profession-app.ts)    |
-| Browser and UI | Game loading, workers, shared shell, and neutral views            | [browser/](../../js/browser/), [ui/](../../js/ui/)               |
-| Integrations   | Logs, chat codes, keybindings, assets, and patch previews         | [integrations/](../../js/games/gw2/integrations/)                |
+| Layer          | Role                                                                                              | Entry point                                                      |
+| -------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Kernel         | Game-neutral clocks, event dispatch, scheduling, resource arithmetic, randomness, and observation | [js/kernel/](../../js/kernel/)                                   |
+| Platform       | Shared GW2 execution, combat, equipment, and results                                              | [platform/](../../js/games/gw2/platform/)                        |
+| Professions    | Core and elite content, mechanics, and presentation contributions                                 | [profession registry](../../js/games/gw2/profession-registry.ts) |
+| Build context  | Headless build-to-attributes and configuration binding                                            | [build-context/](../../js/games/gw2/build-context/)              |
+| Application    | GW2 editing, persistence, analysis, and browser composition                                       | [profession-app.ts](../../js/games/gw2/app/profession-app.ts)    |
+| Browser and UI | Game loading, workers, shared shell, and neutral views                                            | [browser/](../../js/browser/), [ui/](../../js/ui/)               |
+| Integrations   | Logs, chat codes, keybindings, assets, and patch previews                                         | [integrations/](../../js/games/gw2/integrations/)                |
 
 Import restrictions live in [eslint.config.js](../../eslint.config.js). [Architecture tests](../../tests/architecture/)
 check selected ownership and dependency properties. The tables here describe responsibilities rather than duplicate
@@ -56,8 +56,8 @@ or trait execution order.
 ## Builds, previews, and encounters
 
 The workspace, workers, and headless tools use build contexts to calculate inputs. The
-[attribute preview](../../js/games/gw2/app/build/attribute-effects.ts) has separate hypothetical controls. Simulation
-scope, including full player health, is recorded in [AGENTS.md](../../AGENTS.md#simulation-scope).
+[attribute preview](../../js/games/gw2/app/build/attribute-preview-controls.ts) has separate hypothetical controls.
+Simulation scope, including full player health, is recorded in [AGENTS.md](../../AGENTS.md#simulation-scope).
 
 [Patch selection](../../js/games/gw2/integrations/patches/selection.ts) connects live or preview content to calculation.
 [Boss scenario compilation](../../js/games/gw2/app/boss-scenarios/simulation.ts) adds encounter inputs;

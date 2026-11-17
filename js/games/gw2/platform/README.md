@@ -40,11 +40,12 @@ hits, procs, and condition wakes settle on the same clock.
 privately owns cooldown deadlines, recharge progress, and ammo pools. Cast readiness, live formula queries, and planning
 projections use its operations and observations; `Gw2Runtime` exposes no recharge maps. Live formula queries retain
 unrounded deadlines and settle only the requested magazine; cast admission and public deadlines retain action-tick
-rounding. `combat/recharge.ts` calculates recharge rates and progress. Static chain indexes live in
-`skills/autoattack-chain-index.ts`, while `execution/autoattack-chains.ts` privately owns per-run progress and live
-transitions. Mechanics can read or reset that progress; only execution advances it. Replacing profession state does not
-replace chain progress. Planning publishes detached expected steps under `STATE.AUTOATTACK_CHAINS`, including root
-defaults for every declared chain.
+rounding. `combat/recharge.ts` supplies GW2 recharge-rate intervals;
+[kernel/core/rate-intervals.ts](../../../kernel/core/rate-intervals.ts) projects completion from remaining work. Static
+chain indexes live in `skills/autoattack-chain-index.ts`, while `execution/autoattack-chains.ts` privately owns per-run
+progress and live transitions. Mechanics can read or reset that progress; only execution advances it. Replacing
+profession state does not replace chain progress. Planning publishes detached expected steps under
+`STATE.AUTOATTACK_CHAINS`, including root defaults for every declared chain.
 
 Service owners construct frozen query and mechanic views. Their interfaces declare progressively wider operations;
 returned objects expose only the permitted methods. Deferred queries follow owner replacement without reading an unbound
@@ -69,8 +70,11 @@ Simulation owns task admission, detached work, causal scope, and queue cancellat
 delivery supplies packet lifetime ownership. Generation cancellation must not erase separately owned committed
 projectiles.
 
-Resource modules own balance settlement, policy application, and depletion deadlines. Simulation owns wake generations
-and cancellation. Resource arithmetic receives clock and policy inputs without the aggregate runtime.
+`combat/resources/` owns GW2 resource policies, balance settlement, and action-tick readiness. Shared resource
+arithmetic lives in [kernel/resources/](../../../kernel/resources/). Simulation owns depletion wake generations and
+cancellation. Periodic task lifecycles live in
+[kernel/execution/periodic-task.ts](../../../kernel/execution/periodic-task.ts); `simulation/periodic-task.ts` binds
+them to GW2 hooks and preview completion policy.
 
 `combat/history/executed-facts.ts` is the gameplay history in every output mode. Its factory returns separate readers
 and writers. Mechanic queries receive only `facts`; registered mechanic handlers receive the explicit `observations`

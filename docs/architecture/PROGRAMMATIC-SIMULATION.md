@@ -75,15 +75,15 @@ context when those inputs change.
 
 ## Input and output owners
 
-| Need                             | Source                                                                                                                               |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Run options and output overloads | [options.ts](../../js/games/gw2/platform/simulation/options.ts), [simulate.ts](../../js/games/gw2/platform/simulation/simulate.ts)   |
-| Shared configuration             | [config.ts](../../js/games/gw2/platform/simulation/config.ts)                                                                        |
-| Attribute seeds                  | [attributes/inputs.ts](../../js/games/gw2/platform/attributes/inputs.ts)                                                             |
-| Saved build shapes and decoding  | [builds/types.ts](../../js/games/gw2/platform/builds/types.ts), [codec.ts](../../js/games/gw2/platform/builds/codec.ts)              |
-| Result fields and units          | [results/types.ts](../../js/games/gw2/platform/results/types.ts)                                                                     |
-| Warning formatting               | [diagnostics.ts](../../js/games/gw2/platform/results/diagnostics.ts)                                                                 |
-| Display aggregation              | [skill-breakdown.ts](../../js/games/gw2/app/results/skill-breakdown.ts), [results/model.ts](../../js/games/gw2/app/results/model.ts) |
+| Need                             | Source                                                                                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Run options and output overloads | [options.ts](../../js/games/gw2/platform/simulation/options.ts), [simulate.ts](../../js/games/gw2/platform/simulation/simulate.ts)               |
+| Shared configuration             | [config.ts](../../js/games/gw2/platform/simulation/config.ts)                                                                                    |
+| Attribute seeds                  | [attributes/inputs.ts](../../js/games/gw2/platform/attributes/inputs.ts)                                                                         |
+| Saved build shapes and decoding  | [builds/types.ts](../../js/games/gw2/platform/builds/types.ts), [codec.ts](../../js/games/gw2/platform/builds/codec.ts)                          |
+| Result fields and units          | [results/types.ts](../../js/games/gw2/platform/results/types.ts)                                                                                 |
+| Warning formatting               | [diagnostics.ts](../../js/games/gw2/platform/results/diagnostics.ts)                                                                             |
+| Display aggregation              | [skill-breakdown.ts](../../js/games/gw2/app/results/skill-breakdown.ts), [summary-metrics.ts](../../js/games/gw2/app/results/summary-metrics.ts) |
 
 ## Rotation commands
 

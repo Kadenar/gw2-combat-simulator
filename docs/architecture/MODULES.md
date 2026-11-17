@@ -25,26 +25,27 @@ Import enforcement lives in [eslint.config.js](../../eslint.config.js) and
 
 Paths below are relative to [app/](../../js/games/gw2/app/).
 
-| Change                                | Start here                                                                                                                                           |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Session composition                   | [profession-app.ts](../../js/games/gw2/app/profession-app.ts), [define-profession-app.ts](../../js/games/gw2/app/define-profession-app.ts)           |
-| Build editing and tabs                | [build/](../../js/games/gw2/app/build/), especially `state/` and `library/`                                                                          |
-| Attribute preview                     | [attribute-effects.ts](../../js/games/gw2/app/build/attribute-effects.ts), [buffed-attributes.ts](../../js/games/gw2/app/build/buffed-attributes.ts) |
-| Skill-damage preview                  | [build/skill-damage/](../../js/games/gw2/app/build/skill-damage/)                                                                                    |
-| Rotation editing and cursor queries   | [rotation/](../../js/games/gw2/app/rotation/), especially `builder.ts`, `context.ts`, and `cursor-preview.ts`                                        |
-| Palette and active state              | [palette/](../../js/games/gw2/app/rotation/palette/), [state-snapshot/](../../js/games/gw2/app/rotation/state-snapshot/)                             |
-| Results and charts                    | [results/](../../js/games/gw2/app/results/)                                                                                                          |
-| Simulation jobs and settings          | [simulation/](../../js/games/gw2/app/simulation/)                                                                                                    |
-| Gear search and relic comparison      | [optimizer/](../../js/games/gw2/app/optimizer/)                                                                                                      |
-| Benchmark pages                       | [page/benchmarks/](../../js/games/gw2/app/page/benchmarks/)                                                                                          |
-| Boss scenario editing and compilation | [boss-scenarios/](../../js/games/gw2/app/boss-scenarios/)                                                                                            |
-| File and log import                   | [import-export/](../../js/games/gw2/app/import-export/)                                                                                              |
-| Patch selection and comparison        | [patch-preview/](../../js/games/gw2/app/patch-preview/)                                                                                              |
-| Standalone patch editor               | [patch-authoring/](../../js/games/gw2/app/patch-authoring/)                                                                                          |
-| Keybinding editor                     | [input-profile/](../../js/games/gw2/app/input-profile/)                                                                                              |
+| Change                                | Start here                                                                                                                                                                                     |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Session composition                   | [profession-app.ts](../../js/games/gw2/app/profession-app.ts), [define-profession-app.ts](../../js/games/gw2/app/define-profession-app.ts)                                                     |
+| Build editing and tabs                | [build/](../../js/games/gw2/app/build/), especially `state/` and `library/`                                                                                                                    |
+| Attribute preview                     | [attribute-preview-controls.ts](../../js/games/gw2/app/build/attribute-preview-controls.ts), [attribute-preview-calculation.ts](../../js/games/gw2/app/build/attribute-preview-calculation.ts) |
+| Skill-damage preview                  | [build/skill-damage/](../../js/games/gw2/app/build/skill-damage/)                                                                                                                              |
+| Rotation editing and cursor queries   | [rotation/](../../js/games/gw2/app/rotation/), especially `builder.ts`, `context.ts`, and `cursor-preview.ts`                                                                                  |
+| Palette and active state              | [palette/](../../js/games/gw2/app/rotation/palette/), [state-snapshot/](../../js/games/gw2/app/rotation/state-snapshot/)                                                                       |
+| Results and charts                    | [results/](../../js/games/gw2/app/results/)                                                                                                                                                    |
+| Simulation jobs and settings          | [simulation/](../../js/games/gw2/app/simulation/)                                                                                                                                              |
+| Gear search and relic comparison      | [optimizer/](../../js/games/gw2/app/optimizer/)                                                                                                                                                |
+| Benchmark pages                       | [page/benchmarks/](../../js/games/gw2/app/page/benchmarks/)                                                                                                                                    |
+| Boss scenario editing and compilation | [boss-scenarios/](../../js/games/gw2/app/boss-scenarios/)                                                                                                                                      |
+| File and log import                   | [import-export/](../../js/games/gw2/app/import-export/)                                                                                                                                        |
+| Patch selection and comparison        | [patch-preview/](../../js/games/gw2/app/patch-preview/)                                                                                                                                        |
+| Standalone patch editor               | [patch-authoring/](../../js/games/gw2/app/patch-authoring/)                                                                                                                                    |
+| Keybinding editor                     | [input-profile/](../../js/games/gw2/app/input-profile/)                                                                                                                                        |
 
-Feature folders keep their runners, workers, models, and views together. The shared worker lifecycle is in
-[worker-harness.ts](../../js/browser/game/worker-harness.ts).
+Feature folders keep their runners, workers, models, and views together. Shared worker message handling lives in
+[worker-endpoint.ts](../../js/browser/game/worker-endpoint.ts); batch worker ownership lives in
+[managed-worker-batch.ts](../../js/browser/game/managed-worker-batch.ts).
 
 ## GW2 engine and platform
 

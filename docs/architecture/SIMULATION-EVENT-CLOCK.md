@@ -19,7 +19,11 @@ controls time; exact arithmetic, deadlines, and limits are defined there.
 
 ## Resource and proc lifecycle
 
-[Resource owners](../../js/games/gw2/platform/combat/resources/) settle balances and report readiness or depletion.
+[GW2 resource owners](../../js/games/gw2/platform/combat/resources/) apply resource policies and action-tick readiness.
+[Kernel accrual](../../js/kernel/resources/accrual.ts) projects continuous balances and depletion;
+[rate intervals](../../js/kernel/core/rate-intervals.ts) project recharge completion.
+[Periodic tasks](../../js/kernel/execution/periodic-task.ts) own recurring lifecycles, with
+[GW2 bindings](../../js/games/gw2/platform/simulation/periodic-task.ts) for hooks and preview completion.
 [Proc registration](../../js/games/gw2/platform/combat/procs/registry.ts) handles proc claims. Follow their callers in
 execution and resolution when investigating ordering around a spend, grant, or hit.
 
