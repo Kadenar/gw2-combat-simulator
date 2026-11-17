@@ -6,8 +6,9 @@ import type { MechanicContext } from '#gw2/platform/profession-definition/mechan
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
 import type { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
-import type { RuntimeWork, TaskScheduling, WorkOwner } from '#gw2/platform/simulation/work-contract.js';
+import type { RuntimeWork, TaskScheduling } from '#gw2/platform/simulation/work-contract.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { WorkOwner } from '#kernel/execution/scheduling.js';
 
 type ScheduledTaskWork = Extract<RuntimeWork, { type: 'runtime.task' | 'runtime.cast-task' }>;
 interface RuntimeTaskScheduler<TSkill extends Skill = Skill> {

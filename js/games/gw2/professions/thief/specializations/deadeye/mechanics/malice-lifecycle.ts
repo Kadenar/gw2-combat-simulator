@@ -1,5 +1,4 @@
 /** Compose malice lifetimes with hit rewards while skill declarations depend only on the malice state owner. */
-import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -19,6 +18,7 @@ import { maliceSpent } from '#gw2/professions/thief/specializations/deadeye/mech
 import { refundMaliciousTacticalStrike } from '#gw2/professions/thief/specializations/deadeye/skills/malicious-attacks.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { claimActivation } from '#kernel/execution/activation-claims.js';
 
 /** First marked hits spend once; initiative hits and critical hits claim their separate activation rewards. */
 function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit: Gw2HitResolutionContext): void {

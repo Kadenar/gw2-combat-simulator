@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createPeriodicTaskState, definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
+import { createPeriodicTask, createPeriodicTaskState } from '#kernel/execution/periodic-task.js';
 
 // Use the production queue for cancellation and ordering; each fixture has independent passive state.
 function fixture(options = {}) {
@@ -19,10 +19,9 @@ function fixture(options = {}) {
       queue.cancelWhere((event) => event.owner.id === owner.id && event.owner.generation === owner.generation);
     }
   };
-  const loop = definePeriodicTask({
+  const loop = createPeriodicTask({
     name: 'test.passive',
     priority: -20,
-    background: true,
     state: (context) => context.state,
     nextAt: (context) => context.time + 2,
     run: (context) => {
@@ -30,22 +29,22 @@ function fixture(options = {}) {
     },
     ...options
   });
-  const pulse = loop.hooks.tasks['test.passive'];
+  const deliver = loop.deliver;
   function through(at) {
     while (queue.peek()?.at <= at) {
       const event = queue.dequeue();
       runtime.time = event.at;
-      pulse(runtime, event.data);
+      deliver(runtime, event.data);
     }
 
     runtime.time = at;
   }
 
-  return { runtime, queue, loop, pulse, through };
+  return { runtime, queue, loop, deliver, through };
 }
 
 test('restarting at the same deadline admits one reward and rejects stale or duplicate work', () => {
-  const { runtime, queue, loop, pulse, through } = fixture();
+  const { runtime, queue, loop, deliver, through } = fixture();
   loop.restart(runtime, 2);
   const stale = queue.peek();
   loop.restart(runtime, 2);
@@ -53,22 +52,22 @@ test('restarting at the same deadline admits one reward and rejects stale or dup
   assert.notEqual(current.owner.generation, stale.owner.generation);
   assert.equal(queue.pending().length, 1);
   runtime.time = 2;
-  pulse(runtime, stale.data);
+  deliver(runtime, stale.data);
   assert.deepEqual(runtime.rewards, []);
   through(2);
-  pulse(runtime, current.data);
+  deliver(runtime, current.data);
   assert.deepEqual(runtime.rewards, [2]);
   assert.equal(runtime.state.nextAt, 4);
   assert.equal(queue.pending().length, 1);
 });
 
 test('a stopped passive cannot rearm from an obsolete task and can start a new lifetime', () => {
-  const { runtime, queue, loop, pulse, through } = fixture();
+  const { runtime, queue, loop, deliver, through } = fixture();
   loop.restart(runtime, 2);
   const stale = queue.peek();
   loop.stop(runtime);
   runtime.time = 2;
-  pulse(runtime, stale.data);
+  deliver(runtime, stale.data);
   assert.deepEqual(runtime.rewards, []);
   assert.equal(runtime.state.nextAt, Infinity);
   assert.deepEqual(queue.pending(), []);
@@ -110,7 +109,7 @@ test('a reward-owned restart or stop is not overwritten by ordinary rearming', (
 
 test('resource rewards can observe their accepted successor before granting without admitting duplicate work', () => {
   const observed = [];
-  const { runtime, queue, loop, pulse, through } = fixture({
+  const { runtime, queue, loop, deliver, through } = fixture({
     rearmBeforeRun: true,
     run(context) {
       // A synchronous resource-readiness query sees queued work, not an unset or already-consumed deadline.
@@ -120,7 +119,7 @@ test('resource rewards can observe their accepted successor before granting with
   loop.restart(runtime, 2);
   const accepted = queue.peek();
   through(2);
-  pulse(runtime, accepted.data);
+  deliver(runtime, accepted.data);
   assert.deepEqual(observed, [[4, 4]]);
   assert.equal(queue.pending().length, 1);
 });
@@ -160,7 +159,32 @@ test('periodic restart validates deadlines before cancelling accepted work', () 
   }
 });
 
-test('periodic task instances keep independent state and classify their registered work as ambient', () => {
+// Delivery must preserve the scalar token and observe the scheduled canonical instant before claiming work.
+test('delivery requires the unchanged generation at its exact canonical deadline', () => {
+  const { runtime, queue, loop, deliver, through } = fixture();
+  loop.restart(runtime, 0.56 + 0.04);
+  const accepted = queue.peek();
+  assert.equal(accepted.at, 0.6);
+  for (const at of [0.599999, 0.600001]) {
+    runtime.time = at;
+    deliver(runtime, accepted.data);
+    assert.deepEqual(runtime.rewards, []);
+    assert.equal(runtime.state.nextAt, 0.6);
+  }
+
+  runtime.time = 0.6;
+  for (const token of [String(accepted.data), { generation: accepted.data }, undefined]) {
+    deliver(runtime, token);
+    assert.deepEqual(runtime.rewards, []);
+    assert.equal(runtime.state.nextAt, 0.6);
+  }
+
+  through(0.6);
+  assert.deepEqual(runtime.rewards, [0.6]);
+  assert.equal(runtime.state.nextAt, 2.6);
+});
+
+test('periodic task instances keep independent state', () => {
   const first = fixture();
   const second = fixture();
   first.loop.restart(first.runtime, 2);
@@ -169,5 +193,4 @@ test('periodic task instances keep independent state and classify their register
   second.through(3);
   assert.deepEqual(second.runtime.rewards, [3]);
   assert.deepEqual(first.runtime.rewards, []);
-  assert.ok(second.loop.hooks.backgroundTasks.includes(second.queue.peek().name));
 });

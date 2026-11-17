@@ -3,6 +3,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { QueuedEvent } from '#kernel/events/queue.js';
+import type { WorkOwner, WorkScheduler } from '#kernel/execution/scheduling.js';
 
 /** Reserved for flip retirement after all queued gameplay at a deadline, before the next rotation command. */
 export const FLIP_EXPIRY_PRIORITY = Number.MAX_VALUE;
@@ -33,12 +34,6 @@ export function isRuntimeWork(entry: RuntimeQueueEntry): entry is RuntimeWork {
   return entry.kind === 'internal';
 }
 
-/** A lifetime is separate from cast attribution: committed projectiles can outlive their originating cast. */
-export interface WorkOwner {
-  readonly id: string;
-  readonly generation: number;
-}
-
 /** Concrete handlers specialize type and payload into a discriminated union; internal work is never a log packet. */
 export interface InternalWork<TType extends string = string, TPayload = unknown> extends QueuedEvent {
   readonly kind: 'internal';
@@ -57,8 +52,9 @@ export type WorkInput<TWork extends InternalWork> = TWork extends InternalWork
   : never;
 
 /** Mechanics schedule owned work without obtaining the queue or advancing its clock. */
-export interface TaskScheduling<TSkill extends Skill = Skill> {
+export interface TaskScheduling<TSkill extends Skill = Skill> extends WorkScheduler {
   schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number, timing?: 'buffs'): void;
+  /** Owner lifetime is separate from cast attribution: committed projectiles can outlive their originating cast. */
   scheduleForCast(
     name: string,
     at: number,
@@ -68,5 +64,4 @@ export interface TaskScheduling<TSkill extends Skill = Skill> {
     priority?: number,
     timing?: 'buffs'
   ): void;
-  cancelOwner(owner: WorkOwner): void;
 }

@@ -10,14 +10,14 @@ import {
   FLIP_EXPIRY_PRIORITY,
   isRuntimeWork,
   type RuntimeQueueEntry,
-  type RuntimeWork,
-  type WorkOwner
+  type RuntimeWork
 } from '#gw2/platform/simulation/work-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { canonicalEvent, StableEventQueue } from '#kernel/events/queue.js';
 import { DEFAULT_EXECUTION_ITERATION_LIMIT } from '#kernel/execution/limits.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import { observationEndTime } from '#kernel/execution/observation.js';
+import type { WorkOwner } from '#kernel/execution/scheduling.js';
 
 /** Condition pulses are scheduled for every active stack at once, so they carry no causal identity. */
 const SHARED_PULSE_TYPES = new Set(['condition_tick', 'condition_buffer']);

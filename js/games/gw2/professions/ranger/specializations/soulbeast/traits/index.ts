@@ -2,7 +2,6 @@
 
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
@@ -18,6 +17,7 @@ import { activeBuff } from '#gw2/professions/ranger/core/traits/modifier-queries
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import { claimActivation } from '#kernel/execution/activation-claims.js';
 
 /** Owns Unstoppable Union's live tuning and trait behavior. */
 const unstoppableUnion = defineTrait({

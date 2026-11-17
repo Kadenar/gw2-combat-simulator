@@ -1,4 +1,3 @@
-import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -34,6 +33,7 @@ import type {
   RangerSkill
 } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { claimActivation } from '#kernel/execution/activation-claims.js';
 
 /** Soulbeast resolver-phase reactions and event handlers. */
 

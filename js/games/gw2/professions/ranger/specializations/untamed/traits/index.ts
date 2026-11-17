@@ -1,6 +1,5 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -13,7 +12,6 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import {
   balanceNumber,
   balanceProfileNumber,
@@ -39,6 +37,8 @@ import {
 } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import { claimActivation } from '#kernel/execution/activation-claims.js';
+import type { WorkOwner } from '#kernel/execution/scheduling.js';
 import {
   activeRefreshedStacks,
   grantRefreshedStacks,

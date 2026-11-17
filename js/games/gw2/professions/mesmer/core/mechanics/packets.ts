@@ -4,12 +4,12 @@ import { materializeSkillEffectApplications } from '#gw2/platform/effects/materi
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { MESMER_CORE_WEAPON_STRENGTH } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
 import { isMesmerCloneOwnerId, mesmerCloneOwnerId } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
 import type { MesmerEventExtra, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import type { WorkOwner } from '#kernel/execution/scheduling.js';
 
 /** Player events are the default; explicit summon metadata keeps ownership independent of display labels. */
 function ownership(actorType: SimulationActorType | undefined, summonKind: string | undefined) {

@@ -1,7 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { boonActive, buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
@@ -35,6 +34,7 @@ import type { GaleshotState } from '#gw2/professions/ranger/specializations/gale
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import type { RangerModifierContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { claimActivation } from '#kernel/execution/activation-claims.js';
 import { advanceCounter } from '#kernel/resources/counters.js';
 
 function galeshotRuntimeState(context: RangerModifierContext) {

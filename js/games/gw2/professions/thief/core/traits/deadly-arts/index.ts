@@ -2,7 +2,6 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { skillForEvent, targetConditionCount, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -42,6 +41,7 @@ import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js'
 import { thiefCastCondition } from '#gw2/professions/thief/core/traits/cast-condition.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { claimActivation } from '#kernel/execution/activation-claims.js';
 
 /** Owns Dagger Training tuning and behavior at the existing execution boundaries. */
 export const daggerTraining = defineTrait({

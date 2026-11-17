@@ -1,5 +1,5 @@
-import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import type { ActivationClaims } from '#kernel/execution/activation-claims.js';
 
 /** Trait and skill readiness that the player and each pet lifetime hold independently; rewards never transfer. */
 export interface RangerActorProcState {

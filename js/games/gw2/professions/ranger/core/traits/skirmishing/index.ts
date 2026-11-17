@@ -2,7 +2,6 @@
 
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { boonActive, buffActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { activeChargeCount, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -42,6 +41,7 @@ import {
 import { qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import { claimActivation } from '#kernel/execution/activation-claims.js';
 
 /** Dodges and evading skills extend the player's strike and condition-duration bonus window. */
 export const lightOnYourFeet = defineTrait({

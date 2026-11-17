@@ -1,5 +1,5 @@
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
-import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
+import type { WorkOwner } from '#kernel/execution/scheduling.js';
 
 // Buff timeline kinds shared by Biorhythm's grants, Vow's modifier, and result rows.
 export const BIORHYTHM = 'biorhythm';

@@ -20,8 +20,8 @@ import type {
 import type { RechargeRule, TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { composeGw2Reactions } from '#gw2/platform/resolver/reaction-registry.js';
 import type { Gw2ResolverReactions } from '#gw2/platform/resolver/types.js';
-import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { WorkOwner } from '#kernel/execution/scheduling.js';
 
 /** Explicit author contributions keep executable policies separate from compiler-owned catalogs and calculations. */
 export interface RuntimeHooks<T extends object, TSkill extends Skill = Skill> {

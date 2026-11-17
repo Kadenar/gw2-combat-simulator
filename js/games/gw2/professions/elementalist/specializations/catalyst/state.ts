@@ -5,8 +5,8 @@ import {
   type SpecializationRuntimeState
 } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createPeriodicTaskState, type PeriodicTaskState } from '#kernel/execution/periodic-task.js';
 import type { RefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
 
 /**
