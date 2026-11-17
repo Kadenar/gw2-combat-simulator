@@ -85,7 +85,10 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
       STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS
     ];
   const observed = {};
-  const recharge = (result) => observedRuntime(result).cooldownController.readyAt(placement.id) - 1;
+  // Holo-Dancer discounts recharge after placement completes, leaving the cast duration intact.
+  const recharge = (result) =>
+    observedRuntime(result).cooldownController.readyAt(placement.id) -
+    result.steps.find((step) => step.skillId === placement.id).end / 1000;
   const persistent = recharge(runThief(rotation.slice(0, 2), config));
   const result = runThief(rotation, config, {
     initialize(runtime) {
@@ -187,9 +190,9 @@ test('Holo-Dancer charges survive healing, unavailable utilities, and cancellati
 
   // After natural expiry the final utility receives its full recharge and finds nothing to spend.
   const last = result.steps.at(-1);
-  const recharge = observedRuntime(result).cooldownController.readyAt(needles.id) - last.start / 1000;
-  const persistent =
-    observedRuntime(runThief(['Prepare Thousand Needles'], config)).cooldownController.readyAt(needles.id) - 0;
+  const recharge = observedRuntime(result).cooldownController.readyAt(needles.id) - last.end / 1000;
+  const baseline = runThief(['Prepare Thousand Needles'], config);
+  const persistent = observedRuntime(baseline).cooldownController.readyAt(needles.id) - baseline.steps[0].end / 1000;
   assert.ok(Math.abs(recharge - persistent) < 1e-9);
   assert.deepEqual(result.planningState.profession[STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS], []);
 });

@@ -325,7 +325,7 @@ test('Engineer condition traits stay blocked at the exact ICD boundary', () => {
 });
 
 test('Soulbeast stance ICDs share each stance boundary across recipients while cooldowns stay independent', () => {
-  // One Wolf Pack includes equality for the player and allies alike; every gate still rejects earlier hits.
+  // Both stances accept the exact deadline for players and allies while rejecting earlier hits.
   for (const kind of ['one-wolf-pack', 'vulture-stance']) {
     for (const ally of [false, true]) {
       const state = createSoulbeastState();
@@ -352,17 +352,15 @@ test('Soulbeast stance ICDs share each stance boundary across recipients while c
         kind,
         ...(ally ? { metadata: { triggeredByAlly: 1 } } : {})
       };
-      const inclusive = kind === 'one-wolf-pack';
-      const blockedTimes = inclusive ? [0.96, READY_AT - 0.000001] : [0.96, READY_AT, READY_AT + 0.0000004];
-      for (const at of blockedTimes) react(context, { ...event, at });
+      for (const at of [0.96, READY_AT - 0.000001]) react(context, { ...event, at });
       assert.equal(context.queue.pending().length, 0);
-      const triggerAt = inclusive ? READY_AT : 1.04;
+      const triggerAt = READY_AT;
       react(context, { ...event, at: triggerAt });
       assert.ok(context.queue.pending().length > 0);
       const deadline = ally
         ? context.procs.deadline(`ranger.soulbeast.alliedStance:${kind}:1`)
         : context.procs.deadline(field);
-      assert.equal(deadline, triggerAt + (kind === 'one-wolf-pack' ? 1 : 0.25));
+      assert.equal(deadline, triggerAt + (kind === 'one-wolf-pack' ? 1 : 0.28));
 
       if (ally) {
         const queued = context.queue.pending().length;

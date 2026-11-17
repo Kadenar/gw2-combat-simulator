@@ -62,10 +62,10 @@ test('Holo-Dancer commits spend grant order even when the newest charge expires 
   const runtime = observedRuntime(result);
   // The accepted utility spends the oldest live entry, skipping the one already expired at its start.
   assert.deepEqual(runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations, [5]);
-  const reduced = runtime.cooldownController.readyAt(skill.id) - result.steps[0].start / 1000;
-  const unreduced =
-    observedRuntime(runThief(['Prepare Pitfall'], config)).cooldownController.readyAt(skill.id) -
-    result.steps[0].start / 1000;
+  // Compare recharge after placement completes so the discount does not scale the cast duration.
+  const reduced = runtime.cooldownController.readyAt(skill.id) - result.steps[0].end / 1000;
+  const baseline = runThief(['Prepare Pitfall'], config);
+  const unreduced = observedRuntime(baseline).cooldownController.readyAt(skill.id) - baseline.steps[0].end / 1000;
   assert.ok(Math.abs(reduced - unreduced * 0.2) < 1e-9);
   assert.deepEqual(
     projectObservedState(thiefProfession, { profession: runtime.profession, time: 5 })[

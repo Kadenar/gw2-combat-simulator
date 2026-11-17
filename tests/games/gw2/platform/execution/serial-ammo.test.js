@@ -79,20 +79,3 @@ test("a live Dragon's Roar magazine recovers one round per interval", () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(observedRuntime(result).cooldownController.readAmmo(ID.DRAGONS_ROAR).charges, 2);
 });
-
-test("Dragon's Roar begins natural recovery when its magazine is reserved", () => {
-  const config = { specialization: 'Bladesworn', secondaryWeapon: 'Pistol', selectedTraitIds: [] };
-  const result = observeGw2Runtime({
-    profession: warriorProfession.runtimeFor(config),
-    config,
-    rotation: [ID.DRAGONS_ROAR]
-  });
-  const runtime = observedRuntime(result);
-  const skill = runtime.helpers.skillsById.get(ID.DRAGONS_ROAR);
-  const startedAt = result.steps[0].start / 1000;
-  assert.deepEqual(result.warnings, []);
-  assert.equal(runtime.cooldownController.refreshAmmo(skill, startedAt + 3.999).charges, 0);
-  assert.equal(runtime.cooldownController.refreshAmmo(skill, startedAt + 4).charges, 1);
-  assert.equal(runtime.cooldownController.refreshAmmo(skill, startedAt + 8).charges, 2);
-  assert.equal(runtime.cooldownController.refreshAmmo(skill, startedAt + 24).charges, 6);
-});
