@@ -1,12 +1,5 @@
 /** Game-neutral timing helpers put timestamps, ordering keys, and window comparisons on the same canonical clock. */
 
-/** A time window with a constant rate for integrating progress over elapsed time. */
-export interface RateInterval {
-  readonly start: number;
-  readonly end: number;
-  readonly rate: number;
-}
-
 /** Integer microseconds make equality transitive without moving authored events onto a combat tick grid. */
 export function timeKey(seconds: number): number {
   const key = Math.round(seconds * 1_000_000);

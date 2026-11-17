@@ -4,7 +4,7 @@ import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { RateInterval } from '#kernel/core/clock.js';
+import type { RateInterval } from '#kernel/core/rate-intervals.js';
 import { cappedResource, grantCapped, resourceAtLeast } from '#kernel/resources/pool.js';
 
 /** Cache one runtime's append-only executed history; unrelated facts cannot change its prepared self-Vigor windows. */

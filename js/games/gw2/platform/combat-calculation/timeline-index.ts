@@ -16,8 +16,8 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import type { RateInterval } from '#kernel/core/clock.js';
 import { insertSorted } from '#kernel/core/collections.js';
+import type { RateInterval } from '#kernel/core/rate-intervals.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
 
 interface CreateGw2TimelineIndexOptions {

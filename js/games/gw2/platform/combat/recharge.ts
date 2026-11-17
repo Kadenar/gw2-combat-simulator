@@ -1,13 +1,10 @@
 import { boonIntervalsFromWindows, type BoonWindow } from '#gw2/platform/combat/boons.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { RateInterval } from '#kernel/core/clock.js';
+import type { RateInterval, WorkProgress } from '#kernel/core/rate-intervals.js';
 
 /** Remaining base-recharge seconds anchored to a timestamp, independent of the current recharge rate. */
-export interface RechargeProgress {
-  /** Timestamp anchoring remaining work; updated when recharge progress is settled or restored. */
-  workAnchorAt: number;
-  work: number;
+export interface RechargeProgress extends WorkProgress {
   /** Captured incarnation owns received boons even after another companion becomes active. */
   readonly companionId?: string;
 }
@@ -59,21 +56,4 @@ export function* gw2RechargeIntervals(
       rate: gw2RechargeRate(skill, playerAlacrityRechargeRate, interval.active)
     };
   }
-}
-
-/** Preserve earned recharge work when a received boon starts or expires. */
-export function projectRecharge(progress: RechargeProgress, intervals: Iterable<RateInterval>): number {
-  let work = Math.max(0, progress.work);
-
-  if (!work) return progress.workAnchorAt;
-
-  for (const interval of intervals) {
-    const elapsed = work / interval.rate;
-
-    if (elapsed <= interval.end - interval.start) return interval.start + elapsed;
-
-    work -= (interval.end - interval.start) * interval.rate;
-  }
-
-  throw new Error('Recharge intervals must cover the remaining cooldown.');
 }

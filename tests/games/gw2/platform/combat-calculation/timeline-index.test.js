@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { projectRecharge } from '#gw2/platform/combat/recharge.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+import { projectWorkCompletion } from '#kernel/core/rate-intervals.js';
 
 // Received duration pools stay separate; retirement invalidates cached projections without erasing earned work.
 test('companion recharge windows isolate grants, extensions and retirement', () => {
@@ -26,7 +26,7 @@ test('companion recharge windows isolate grants, extensions and retirement', () 
   const skill = { id: 1, rechargeBuffAudience: RECIPIENT.SUMMONS };
   const timeline = createGw2TimelineIndex({ events });
   const ready = (companionId) =>
-    projectRecharge({ workAnchorAt: 0, work: 10 }, timeline.rechargeIntervals(skill, 0, Infinity, companionId));
+    projectWorkCompletion({ workAnchorAt: 0, work: 10 }, timeline.rechargeIntervals(skill, 0, Infinity, companionId));
   assert.equal(ready('a'), 9);
   assert.equal(ready('b'), 9);
   assert.equal(ready('c'), 10);

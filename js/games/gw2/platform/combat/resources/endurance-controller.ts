@@ -10,8 +10,8 @@ import type {
   EndurancePolicy,
   EnduranceQueries
 } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { RateInterval } from '#kernel/core/clock.js';
 import { createDeferredQueries } from '#kernel/core/deferred-queries.js';
+import type { RateInterval } from '#kernel/core/rate-intervals.js';
 import { resourceAmount, resourceAtLeast } from '#kernel/resources/pool.js';
 
 interface EnduranceControllerOptions<TContext> {
