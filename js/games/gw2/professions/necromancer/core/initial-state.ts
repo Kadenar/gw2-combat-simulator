@@ -1,12 +1,12 @@
 import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import { necromancerLifeForceCapacity, type NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { createPeriodicTaskState } from '#kernel/execution/periodic-task.js';
+import { createResourceClock } from '#kernel/resources/accrual.js';
 
 /** Creates fresh Core Necromancer resources, transforms, summons, and trait proc state from a build config. */
 export function createNecromancerCoreState(

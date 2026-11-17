@@ -1,6 +1,4 @@
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -21,6 +19,7 @@ import {
 import { selectedRangerPet } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createResourceClock, type ResourceClock } from '#kernel/resources/accrual.js';
 
 export interface RangerCoreState extends StealthState {
   /** The selected pair and active slot own identity; catalog facts are queried rather than synchronized. */

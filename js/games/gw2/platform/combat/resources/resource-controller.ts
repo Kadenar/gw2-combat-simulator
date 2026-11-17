@@ -2,9 +2,7 @@
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import {
   advanceResource,
-  anchorResourceClock,
   resourceAt,
-  resourceDepletionAt,
   resourceRecoveryReadyAt,
   type DiscreteResourceClock
 } from '#gw2/platform/combat/resources/clock.js';
@@ -16,6 +14,7 @@ import type {
 } from '#gw2/platform/combat/resources/resource-policy.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { createDeferredQueries } from '#kernel/core/deferred-queries.js';
+import { anchorResourceClock, resourceDepletionAt } from '#kernel/resources/accrual.js';
 import { resourceAmount, resourceAtLeast } from '#kernel/resources/pool.js';
 
 export interface ResourceDepletionWake {

@@ -6,7 +6,6 @@ import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { queryWeaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { resourceAnchor } from '#gw2/platform/combat/resources/clock.js';
 import {
   addSoulShards,
   consumeSoulShards,
@@ -15,6 +14,7 @@ import {
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { resourceAnchor } from '#kernel/resources/accrual.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { paletteInputFixture } from '#tests/helpers/palette.js';

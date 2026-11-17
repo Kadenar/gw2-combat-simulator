@@ -1,5 +1,3 @@
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
@@ -10,6 +8,7 @@ import {
   createDragonTriggerState,
   type DragonTriggerState
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger-state.js';
+import { createResourceClock, type ResourceClock } from '#kernel/resources/accrual.js';
 
 export interface BladeswornState extends DragonTriggerState {
   flow: ResourceClock;

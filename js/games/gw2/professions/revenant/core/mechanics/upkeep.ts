@@ -1,5 +1,4 @@
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -12,6 +11,7 @@ import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/reve
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { timeKey } from '#kernel/core/clock.js';
+import { resourceDepletionAt } from '#kernel/resources/accrual.js';
 
 export const REVENANT_ENERGY_DEPLETED = 'revenant.energy-depleted';
 

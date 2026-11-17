@@ -1,10 +1,9 @@
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createResourceClock, type ResourceClock } from '#kernel/resources/accrual.js';
 
 /** The four elements, in the canonical order every attunement loop iterates. */
 export const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);

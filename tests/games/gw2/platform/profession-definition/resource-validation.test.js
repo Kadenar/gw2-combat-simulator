@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { createCatalogNormalizer } from '#gw2/platform/skills/validation.js';
+import { createResourceClock } from '#kernel/resources/accrual.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 const { normalizeSkillEffects } = createCatalogNormalizer(createCanonicalCatalog());

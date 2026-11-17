@@ -1,5 +1,4 @@
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
@@ -9,6 +8,7 @@ import { soulBatteryCapacity } from '#gw2/professions/necromancer/core/traits/so
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import type { PeriodicTaskState } from '#kernel/execution/periodic-task.js';
+import type { ResourceClock } from '#kernel/resources/accrual.js';
 import { cappedResource } from '#kernel/resources/pool.js';
 
 export interface NecromancerSelfCondition {

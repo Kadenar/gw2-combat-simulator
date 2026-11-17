@@ -1,5 +1,3 @@
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import {
   defineProfessionSpecializationState,
@@ -8,6 +6,7 @@ import {
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { projectTroubadourInstruments } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-windows.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createResourceClock, type ResourceClock } from '#kernel/resources/accrual.js';
 
 export interface MesmerTroubadourState {
   notes: ResourceClock;

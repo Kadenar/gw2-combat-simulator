@@ -1,16 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  createDiscreteResourceClock,
-  createResourceClock,
-  resourceAnchor
-} from '#gw2/platform/combat/resources/clock.js';
+import { createDiscreteResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceController } from '#gw2/platform/combat/resources/resource-controller.js';
 import { validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import { createResourceDepletionWake } from '#gw2/platform/simulation/task-scheduler.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
+import { createResourceClock, resourceAnchor } from '#kernel/resources/accrual.js';
 
 // Settle each observed clock through the production resource controller.
 function advance(runtime, at) {
@@ -249,6 +246,22 @@ test('no-op mutations and intermediate reads cannot release recovery-funded cost
   const before = structuredClone(context.profession.pool);
   assert.equal(context.resourceController.readyAt('initiative', 0.5), 0.12);
   assert.deepEqual(context.profession.pool, before);
+});
+
+// Tick detection applies to continuous recovery; a direct grant funds costs at its actual timestamp.
+test('off-grid grants become spendable immediately while recovery waits for its detection tick', () => {
+  const context = fixture('continuous', { rate: 5 });
+  context.time = 0.1;
+  assert.equal(context.resourceController.readyAt('initiative', 0.5), 0.12);
+  context.resourceController.grant('initiative', 0.25);
+  assert.equal(context.resourceController.readyAt('initiative', 0.5), 0.1);
+});
+
+test('a recovery shortage below clock precision still waits for a future tick', () => {
+  const context = fixture('continuous', { rate: 1 });
+  context.time = 0.08;
+  assert.equal(context.resourceController.readyAt('initiative', 0.08 + 5e-10), 0.08);
+  assert.equal(context.resourceController.readyAt('initiative', 0.0800001), 0.12);
 });
 
 test('resource initialization rejects invalid tuning and permits disabled pools without depletion loops', () => {

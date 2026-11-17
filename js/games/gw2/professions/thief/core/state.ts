@@ -1,6 +1,4 @@
 import type { ChargeGrant, ChargePool } from '#gw2/platform/combat/resources/charges.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -18,6 +16,7 @@ import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 import type { ActivationClaims } from '#kernel/execution/activation-claims.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#kernel/execution/periodic-task.js';
+import { createResourceClock, type ResourceClock } from '#kernel/resources/accrual.js';
 
 /** One engine-owned axe capacity is shared by starting state, live acquisition and preview inputs. */
 export const MAXIMUM_SPINNING_AXES = 6;

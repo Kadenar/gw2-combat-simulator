@@ -10,7 +10,7 @@ import {
   grantChargePool,
   grantCharges
 } from '#gw2/platform/combat/resources/charges.js';
-import { advanceDiscreteResource, resourceValueAt } from '#gw2/platform/combat/resources/clock.js';
+import { advanceDiscreteResource } from '#gw2/platform/combat/resources/clock.js';
 
 // Canonical expiry closes entitlement even when addition drifts above an exact action tick or off-grid deadline.
 for (const [at, duration, expiry] of [
@@ -135,13 +135,6 @@ test('batch consumption preserves identity and cannot spend a sibling through an
   assert.equal(consumeChargeBatch(grants, 3, onlySelected), undefined);
   assert.equal(consumeChargeBatch(grants, 5), undefined);
   assert.equal(sibling.charges, 2);
-});
-
-test('anchored accrual queries retain their original anchor', () => {
-  const anchor = { value: 10, maximum: 100, unitsPerSecond: 3, updatedAt: 1 };
-  resourceValueAt(anchor, 2);
-  assert.equal(resourceValueAt(anchor, 4), 19);
-  assert.equal(anchor.value, 10, 'queries must retain the original accrual anchor');
 });
 
 test('discrete resources grant on 40 ms ticks without early tolerance or cadence drift', () => {

@@ -1,43 +1,13 @@
+/** GW2 combines continuous accrual with discrete grants and action-tick readiness detection. */
 import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { timeKey } from '#kernel/core/clock.js';
+import {
+  createResourceClock,
+  resourceThresholdAt,
+  resourceValueAt,
+  type ResourceClock
+} from '#kernel/resources/accrual.js';
 import { cappedResource, resourceAtLeast } from '#kernel/resources/pool.js';
-
-/** Resource clock arithmetic: continuous and discrete pools, their accrual anchors, and affordability deadlines. */
-
-export interface ResourceClock {
-  value: number;
-  maximum: number;
-  updatedAt: number;
-  unitsPerSecond: number;
-  /** Positive recovery may stop below capacity without discarding grants above that limit. */
-  recoveryMaximum?: number;
-}
-
-// Runtime observations retain one fixed segment; only resource mutations replace its anchor.
-const resourceAnchors = new WeakMap<ResourceClock, ResourceClock>();
-
-export function resourceAnchor(clock: ResourceClock): ResourceClock {
-  return resourceAnchors.get(clock) ?? clock;
-}
-
-export function anchorResourceClock(clock: ResourceClock): void {
-  resourceAnchors.set(clock, { ...clock });
-}
-
-/** Queries a fixed accrual anchor without accumulating rounding from intermediate observations. */
-export function resourceValueAt(clock: ResourceClock, at: number): number {
-  const anchor = resourceAnchor(clock);
-  const value = cappedResource(anchor.value + (at - anchor.updatedAt) * anchor.unitsPerSecond, anchor.maximum);
-  return anchor.unitsPerSecond > 0
-    ? Math.min(value, Math.max(anchor.value, anchor.recoveryMaximum ?? anchor.maximum))
-    : value;
-}
-
-/** Returns the next zero crossing; a non-draining resource has no depletion deadline. */
-export function resourceDepletionAt(clock: ResourceClock): number {
-  const anchor = resourceAnchor(clock);
-  return anchor.unitsPerSecond < 0 ? anchor.updatedAt + anchor.value / -anchor.unitsPerSecond : Infinity;
-}
 
 /** Credits grants on the first 40 ms tick at or after their deadline, preserving cadence even at the cap. */
 export function advanceDiscreteResource(
@@ -69,16 +39,13 @@ export interface DiscreteResourceClock extends ResourceClock {
   nextAt: number;
 }
 
-/** Factories create detached pools; selected policies supply their tuning during runtime initialization. */
-export function createResourceClock(value = 0): ResourceClock {
-  return { value, maximum: value, unitsPerSecond: 0, updatedAt: 0 };
-}
-
 export function createDiscreteResourceClock(value = 0): DiscreteResourceClock {
   return { ...createResourceClock(value), interval: 0, unitsPerTick: 1, nextAt: Infinity };
 }
 
 /** Project discrete balance and phase together; continuous reads keep their fixed anchor without allocating a result. */
+function resourceProjectionAt(state: DiscreteResourceClock, at: number): { value: number; nextAt: number };
+function resourceProjectionAt(state: ResourceClock, at: number): number | { value: number; nextAt: number };
 function resourceProjectionAt(state: ResourceClock, at: number): number | { value: number; nextAt: number } {
   if (at < state.updatedAt || !Number.isFinite(at))
     throw new RangeError('Resource time must be finite and nondecreasing.');
@@ -114,34 +81,35 @@ export function advanceResource(state: ResourceClock, at: number): void {
 
 /** Pure pool affordability shared by command execution and live resource policies. */
 export function resourceRecoveryReadyAt(state: ResourceClock, cost: number, at: number): number | null {
-  if (!Number.isFinite(cost) || cost < 0) throw new RangeError('Resource cost must be finite and non-negative.');
-
-  const projection = resourceProjectionAt(state, at);
-  const value = typeof projection === 'number' ? projection : projection.value;
-  const anchor = resourceAnchor(state);
-
-  // Recovery-funded thresholds remain tick aligned even when another event observes sufficient fractional value first.
-  if (resourceAtLeast(value, cost)) {
-    if (state.unitsPerSecond > 0 && !resourceAtLeast(anchor.value, cost))
-      return Math.max(at, gw2CooldownReadyAt(anchor.updatedAt + (cost - anchor.value) / state.unitsPerSecond));
-
-    return at;
-  }
-
-  if (cost > state.maximum) return null;
-
   let readyAt = Infinity;
 
-  if (typeof projection !== 'number') {
+  if (!('nextAt' in state)) {
+    const threshold = resourceThresholdAt(state, cost, at);
+
+    if (threshold == null) return null;
+
+    if (threshold.funding === 'existing') return threshold.at;
+
+    readyAt = gw2CooldownReadyAt(threshold.at);
+
+    // Completed recovery can be observed off-grid; a pending cost must still wait for a future detection tick.
+    if (threshold.funding === 'recovered') return Math.max(at, readyAt);
+  } else {
+    if (!Number.isFinite(cost) || cost < 0) throw new RangeError('Resource cost must be finite and non-negative.');
+
     const discrete = state as DiscreteResourceClock;
+    const projection = resourceProjectionAt(discrete, at);
+    const value = projection.value;
+
+    if (resourceAtLeast(value, cost)) return at;
+
+    if (cost > state.maximum) return null;
 
     if (discrete.interval > 0 && discrete.unitsPerTick > 0 && Number.isFinite(discrete.nextAt)) {
       readyAt = gw2CooldownReadyAt(
         projection.nextAt + (Math.ceil((cost - value) / discrete.unitsPerTick) - 1) * discrete.interval
       );
     }
-  } else if (state.unitsPerSecond > 0 && cost <= (state.recoveryMaximum ?? state.maximum)) {
-    readyAt = gw2CooldownReadyAt(anchor.updatedAt + (cost - anchor.value) / state.unitsPerSecond);
   }
 
   if (!Number.isFinite(readyAt)) return null;

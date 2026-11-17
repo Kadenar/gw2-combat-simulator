@@ -1,11 +1,10 @@
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createResourceClock, type ResourceClock } from '#kernel/resources/accrual.js';
 
 export interface EngineerCoreState {
   endurance: ResourceClock;

@@ -1,5 +1,4 @@
 /** State and service capability contracts keep profession authors inside their owned mutation boundaries. */
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineProfessionSpecializationState, professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -42,6 +41,7 @@ import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import type { BladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { WarriorPlanningState } from '#gw2/professions/warrior/types.js';
+import type { ResourceClock } from '#kernel/resources/accrual.js';
 
 type Assert<T extends true> = T;
 type Owns<TState, TField extends PropertyKey> = TField extends keyof TState ? true : false;

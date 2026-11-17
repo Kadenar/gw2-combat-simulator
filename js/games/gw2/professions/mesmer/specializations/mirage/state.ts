@@ -1,5 +1,3 @@
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import {
@@ -10,6 +8,7 @@ import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { createResourceClock, type ResourceClock } from '#kernel/resources/accrual.js';
 
 interface MesmerMirageMirror {
   availableAt: number;

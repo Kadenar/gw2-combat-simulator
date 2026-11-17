@@ -1,5 +1,4 @@
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { createResourceClock, type ResourceClock } from '#kernel/resources/accrual.js';
 
 export interface DragonTriggerState {
   dragonTriggerActive: boolean;

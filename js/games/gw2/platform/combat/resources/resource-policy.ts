@@ -1,5 +1,6 @@
-import type { DiscreteResourceClock, ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import type { DiscreteResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { ResourceClock } from '#kernel/resources/accrual.js';
 
 /** Profession resource contributions: the policies a profession declares and the live controllers built from them. */
 

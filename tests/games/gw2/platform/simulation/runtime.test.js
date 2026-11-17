@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createEnduranceController } from '#gw2/platform/combat/resources/endurance-controller.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { anchorResourceClock } from '#kernel/resources/accrual.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { cast, wait } from '#tests/helpers/commands.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';

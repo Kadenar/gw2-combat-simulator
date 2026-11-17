@@ -1,5 +1,3 @@
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
@@ -7,6 +5,7 @@ import {
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#kernel/execution/periodic-task.js';
+import { createResourceClock, type ResourceClock } from '#kernel/resources/accrual.js';
 
 export interface MesmerVirtuosoState {
   blades: ResourceClock;

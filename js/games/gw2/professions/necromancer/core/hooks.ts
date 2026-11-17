@@ -1,5 +1,4 @@
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR, WEAPON } from '#gw2/platform/constants.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
@@ -63,6 +62,7 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
+import { anchorResourceClock } from '#kernel/resources/accrual.js';
 
 /** Landed player packets own weapon gains and the post-hit half-health test; no predicted observation is replayed. */
 function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {

@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { createDiscreteResourceClock, createResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { createDiscreteResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createEnduranceController } from '#gw2/platform/combat/resources/endurance-controller.js';
 import { createResourceController } from '#gw2/platform/combat/resources/resource-controller.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
@@ -15,6 +15,7 @@ import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
 import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
 import { createRuntimeTaskScheduler } from '#gw2/platform/simulation/task-scheduler.js';
+import { createResourceClock } from '#kernel/resources/accrual.js';
 import { cast, wait } from '#tests/helpers/commands.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 

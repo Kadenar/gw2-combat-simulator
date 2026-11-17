@@ -1,4 +1,3 @@
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
@@ -8,6 +7,7 @@ import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#kernel/execution/periodic-task.js';
+import type { ResourceClock } from '#kernel/resources/accrual.js';
 
 export interface DruidState {
   pendingHitTimes: number[];
