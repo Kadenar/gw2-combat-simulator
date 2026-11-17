@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { addCounterProgress, advanceCounter, advanceCyclicCounter } from '#gw2/platform/combat/resources/counters.js';
+import { addCounterProgress, advanceCounter, advanceCyclicCounter } from '#kernel/resources/counters.js';
 
 // The arithmetic reports a crossing without owning eligibility, rewards, expiry or the caller's stored value.
 test('additive progress remains independent of later reward checks', () => {

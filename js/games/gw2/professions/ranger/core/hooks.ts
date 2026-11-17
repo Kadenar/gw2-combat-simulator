@@ -6,7 +6,6 @@ import {
 } from '#gw2/platform/combat/stealth.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { rangerBuffPolicies } from '#gw2/professions/ranger/core/effect-state.js';
@@ -53,6 +52,7 @@ import { spearLifecycle } from '#gw2/professions/ranger/core/skills/weapons/spea
 import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#kernel/events/handler-registry.js';
 
 const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   buffPolicies: rangerBuffPolicies,

@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumber, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -14,6 +13,7 @@ import {
 } from '#gw2/professions/thief/specializations/antiquary/skills/skritt-scuffle.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { consumeOldestStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Antiquary hooks: artifact pilfering and use, Double Edge outcomes, Skritt summons, and artifact-driven traits. */
 export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = composeRuntimeHooks([

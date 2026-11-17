@@ -1,7 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type { AuraName, BoonId } from '#gw2/platform/constants.js';
 import { ACTOR, AURA, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
@@ -44,6 +43,7 @@ import {
 import { sphereSpecialistDuration } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { activeRefreshedStacks, grantRefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
 
 /** Owns Empowering Auras tuning and its existing execution behavior. */
 const empoweringAuras = defineTrait({

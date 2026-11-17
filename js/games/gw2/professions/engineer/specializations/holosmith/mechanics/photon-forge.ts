@@ -1,11 +1,9 @@
-import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { balanceNumber, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { clearEngineerKit, onEngineerKitEquipped } from '#gw2/professions/engineer/core/mechanics/kits.js';
@@ -31,6 +29,8 @@ import type {
 } from '#gw2/professions/engineer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#kernel/events/handler-registry.js';
+import { resourceAtLeast } from '#kernel/resources/pool.js';
 
 interface PhotonForgeHeatPayload {
   readonly amount: number;

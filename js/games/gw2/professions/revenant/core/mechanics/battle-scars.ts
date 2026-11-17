@@ -1,10 +1,10 @@
-import { consumeNewestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/battle-scars.js';
+import { consumeNewestStacks } from '#kernel/resources/timed-stacks.js';
 
 /** One active Battle Scar becomes a life siphon on a landed player strike. */
 export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {

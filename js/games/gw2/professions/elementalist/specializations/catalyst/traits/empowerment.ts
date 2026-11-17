@@ -7,7 +7,6 @@ import type {
 } from '#gw2/platform/attributes/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -25,6 +24,7 @@ import type {
   ElementalistRuntime,
   ElementalistRuntimeState
 } from '#gw2/professions/elementalist/types.js';
+import { activeStackCount, grantTimedStacks } from '#kernel/resources/timed-stacks.js';
 
 /**
  * Adds timed Elemental Empowerment stacks: expired stacks are dropped first, and

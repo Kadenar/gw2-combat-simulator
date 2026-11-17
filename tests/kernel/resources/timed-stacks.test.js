@@ -9,7 +9,7 @@ import {
   grantTimedStackApplications,
   grantTimedStacks,
   purgeExpiredStacks
-} from '#gw2/platform/combat/resources/timed-stacks.js';
+} from '#kernel/resources/timed-stacks.js';
 
 // Tick-aligned and off-grid lifetimes must close at the same instant as the event clock.
 for (const [at, duration, expiry] of [

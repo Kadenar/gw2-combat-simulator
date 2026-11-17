@@ -3,7 +3,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { activeBuffStacks, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { advanceCyclicCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -29,6 +28,7 @@ import {
   type EngineerRuntimeState,
   type EngineerSkill
 } from '#gw2/professions/engineer/types.js';
+import { advanceCyclicCounter } from '#kernel/resources/counters.js';
 
 /** Grenadier owns its heal trigger and explosion modifier; the barrage owns its skill balance. */
 export const grenadier = defineTrait({

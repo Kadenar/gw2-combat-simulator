@@ -1,4 +1,3 @@
-import { activeRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionStateSnapshotContext,
@@ -17,6 +16,7 @@ import type { GuardianSkill, GuardianUiContext, GuardianUiSlice } from '#gw2/pro
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { activeRefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
 
 const VIRTUE_IDS = Object.freeze([
   GUARDIAN_SKILL_IDS.RUSHING_JUSTICE,

@@ -1,6 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { activeRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import {
@@ -15,6 +14,7 @@ import type { GuardianWillbenderState } from '#gw2/professions/guardian/speciali
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { activeRefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
 
 /** Decodes the selected grant, lifetime, and live cap for a single Tempo trigger. */
 export function lethalTempoParameters(source: BalanceProfileSource, context: unknown) {

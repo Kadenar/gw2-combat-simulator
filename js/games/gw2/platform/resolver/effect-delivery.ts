@@ -29,7 +29,6 @@ import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js
 import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { snapshotActivePlayerBuffs } from '#gw2/platform/resolver/damage-diagnostics.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
-import { HandlerRegistry, OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
 import type {
   Gw2ResolverDispatchArgs,
@@ -42,6 +41,7 @@ import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js'
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { RuntimeWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { HandlerRegistry, OBSERVABLE_EVENT_HANDLER } from '#kernel/events/handler-registry.js';
 
 /** Derived copies cannot reuse the parent's declaration, including after serialization or deferral. */
 function withoutInheritedReaction(event: SimulationEventBase, cause?: EffectDelivery['cause']): SimulationEventBase {

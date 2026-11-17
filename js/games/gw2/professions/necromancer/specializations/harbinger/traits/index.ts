@@ -4,7 +4,6 @@ import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -37,6 +36,7 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { advanceCounter } from '#kernel/resources/counters.js';
 
 /** Dark Disciple owns intrinsic Blight growth, capacity, and shroud life-force drain. */
 const darkDisciple = defineTrait({

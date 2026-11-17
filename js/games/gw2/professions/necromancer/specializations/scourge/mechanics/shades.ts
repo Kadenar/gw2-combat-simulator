@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -24,6 +23,7 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { grantTimedStacks } from '#kernel/resources/timed-stacks.js';
 
 const EXPIRE = 'scourge.shade-expiry';
 

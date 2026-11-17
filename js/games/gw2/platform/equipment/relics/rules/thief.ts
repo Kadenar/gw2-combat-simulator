@@ -1,8 +1,8 @@
 /** Thief relic rules. */
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { announceRelic, defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { activeRefreshedStacks, grantRefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
 
 export const thief = defineRelic({
   createState: () => ({ refreshedStacks: { stacks: 0, expiresAt: 0 } }),

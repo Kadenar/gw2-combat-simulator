@@ -1,7 +1,6 @@
 /** Shared execution owns recharge work and magazine identity; availability is derived without a second ammo deadline. */
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { projectRecharge, type RechargeProgress } from '#gw2/platform/combat/recharge.js';
-import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import type {
   AmmoObservation,
@@ -14,6 +13,7 @@ import type {
 } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import type { RateInterval } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 interface CooldownControllerOptions {

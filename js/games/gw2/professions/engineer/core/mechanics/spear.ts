@@ -1,4 +1,3 @@
-import { activeStackCount, addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
@@ -23,6 +22,7 @@ import type {
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { activeStackCount, addTimedStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Skill declarations select each spear mutation; handlers retain lifetime ownership and release-time snapshots. */
 const engineerSpearSideEffectHandlers: RuntimeHooks<EngineerRuntimeState, EngineerSkill>['sideEffectHandlers'] = {

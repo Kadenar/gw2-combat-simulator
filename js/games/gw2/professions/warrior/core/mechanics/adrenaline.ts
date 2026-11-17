@@ -1,5 +1,4 @@
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
-import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -10,6 +9,7 @@ import { burstCompleted, burstFirstHit } from '#gw2/professions/warrior/core/mec
 import { warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
+import { resourceAtLeast } from '#kernel/resources/pool.js';
 
 // Immutable reservation facts survive resource changes during the cast.
 const warriorBurstSpends = new WeakMap<RuntimeCast<WarriorSkill>, number>();

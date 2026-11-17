@@ -1,4 +1,3 @@
-import { consumeNewestStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import {
   defineProfessionSpecializationState,
@@ -12,6 +11,7 @@ import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { consumeNewestStacks, purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 const BLIGHT_DURATION_SECONDS = 25;
 

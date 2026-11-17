@@ -8,7 +8,6 @@ import {
   resourceRecoveryReadyAt,
   type DiscreteResourceClock
 } from '#gw2/platform/combat/resources/clock.js';
-import { resourceAmount, resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type {
   ResourceController,
   ResourceKey,
@@ -17,6 +16,7 @@ import type {
 } from '#gw2/platform/combat/resources/resource-policy.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { createDeferredQueries } from '#kernel/core/deferred-queries.js';
+import { resourceAmount, resourceAtLeast } from '#kernel/resources/pool.js';
 
 export interface ResourceDepletionWake {
   synchronize(request: {

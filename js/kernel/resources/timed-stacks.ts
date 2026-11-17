@@ -1,5 +1,5 @@
 /**
- * Shared arithmetic for GW2 resources represented as per-stack deadlines or timestamped applications.
+ * Shared arithmetic for resources represented as per-stack deadlines or timestamped applications.
  *
  * Every function purges expired applications first, so callers never need their own filter pass.
  *
@@ -16,27 +16,27 @@ import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Absolute expiry timestamps, one per live application. */
-type Gw2TimedStackExpiries = readonly number[];
+type TimedStackExpiries = readonly number[];
 
-interface Gw2TimedStackGrant {
+interface TimedStackGrant {
   readonly expiries: number[];
   /** Number of applications that landed, reported as the granted stack count. */
   readonly added: number;
 }
 
-interface Gw2TimedStackConsumption {
+interface TimedStackConsumption {
   readonly expiries: number[];
   /** Number of applications removed. May be less than requested if too few were active. */
   readonly consumed: number;
 }
 
 /** Drops closed windows while retaining application order for oldest/newest consumption. */
-export function purgeExpiredStacks(expiries: Gw2TimedStackExpiries, at: number): number[] {
+export function purgeExpiredStacks(expiries: TimedStackExpiries, at: number): number[] {
   return expiries.filter((expiresAt) => isTimeInWindow(at, -Infinity, expiresAt));
 }
 
 /** Counts the applications still live at `at` without rebuilding the array. */
-export function activeStackCount(expiries: Gw2TimedStackExpiries, at: number): number {
+export function activeStackCount(expiries: TimedStackExpiries, at: number): number {
   let count = 0;
   for (const expiresAt of expiries) if (isTimeInWindow(at, -Infinity, expiresAt)) count += 1;
   return count;
@@ -44,12 +44,12 @@ export function activeStackCount(expiries: Gw2TimedStackExpiries, at: number): n
 
 /** Purges, then adds as many applications expiring at `at + duration` as the cap still admits. */
 export function addTimedStacks(
-  expiries: Gw2TimedStackExpiries,
+  expiries: TimedStackExpiries,
   stacks: number,
   at: number,
   duration: number,
   maximum: number
-): Gw2TimedStackGrant {
+): TimedStackGrant {
   const active = purgeExpiredStacks(expiries, at);
   const added = boundedInteger(stacks, 0, 0, Math.max(0, maximum - active.length));
   // Match event-clock precision without changing exact lifetimes or unbounded preview stacks.
@@ -64,11 +64,7 @@ export function addTimedStacks(
  * Front-of-array is oldest only while the caller keeps application order. An expiry-sorted caller
  * spends its earliest deadline instead. Sorting stays the caller's responsibility.
  */
-export function consumeOldestStacks(
-  expiries: Gw2TimedStackExpiries,
-  stacks: number,
-  at: number
-): Gw2TimedStackConsumption {
+export function consumeOldestStacks(expiries: TimedStackExpiries, stacks: number, at: number): TimedStackConsumption {
   const active = purgeExpiredStacks(expiries, at);
   const consumed = boundedInteger(stacks, 0, 0, active.length);
   active.splice(0, consumed);
@@ -82,11 +78,7 @@ export function consumeOldestStacks(
  * application only while the caller keeps application order. Newest grant and latest expiry need
  * not coincide when durations vary.
  */
-export function consumeNewestStacks(
-  expiries: Gw2TimedStackExpiries,
-  stacks: number,
-  at: number
-): Gw2TimedStackConsumption {
+export function consumeNewestStacks(expiries: TimedStackExpiries, stacks: number, at: number): TimedStackConsumption {
   const active = purgeExpiredStacks(expiries, at);
   const consumed = boundedInteger(stacks, 0, 0, active.length);
   active.splice(active.length - consumed, consumed);
@@ -107,15 +99,15 @@ export function consumeNewestStacks(
  *   can replace one another while longer-lived survivors remain. Even an immediately expired grant
  *   evicts a stack when full, but never remains in storage.
  */
-type Gw2TimedStackRetention = 'latest-expiry' | 'newest-grant' | 'replace-earliest';
+type TimedStackRetention = 'latest-expiry' | 'newest-grant' | 'replace-earliest';
 
-interface Gw2TimedStackGrantOptions {
+interface TimedStackGrantOptions {
   readonly at: number;
   /** Absolute deadline, so this helper never decides exact versus tick-aligned expiry for its caller. */
   readonly expiresAt: number;
   readonly count: number;
   readonly maximumStacks: number;
-  readonly retain: Gw2TimedStackRetention;
+  readonly retain: TimedStackRetention;
 }
 
 /**
@@ -130,7 +122,7 @@ interface Gw2TimedStackGrantOptions {
  * a zero cap returns empty. A grant already dead at `at` is never retained, matching the strict
  * `expiresAt > at` comparison every reader in this module uses.
  */
-export function grantTimedStacks(expiries: Gw2TimedStackExpiries, options: Gw2TimedStackGrantOptions): number[] {
+export function grantTimedStacks(expiries: TimedStackExpiries, options: TimedStackGrantOptions): number[] {
   return grantStackEntries(
     expiries,
     options,
@@ -149,7 +141,7 @@ interface TimedStackApplication {
 export function grantTimedStackApplications<T extends TimedStackApplication>(
   applications: readonly T[],
   application: T,
-  options: Omit<Gw2TimedStackGrantOptions, 'expiresAt'>
+  options: Omit<TimedStackGrantOptions, 'expiresAt'>
 ): T[] {
   if (canonicalTime(application.at) > canonicalTime(options.at))
     throw new RangeError('Timed stack grants cannot precede their application start.');
@@ -173,7 +165,7 @@ export function grantTimedStackApplications<T extends TimedStackApplication>(
 /** Apply each replacement before inserting its grant; retaining the longest deadlines is a separate policy. */
 function grantStackEntries<T>(
   entries: readonly T[],
-  options: Gw2TimedStackGrantOptions,
+  options: TimedStackGrantOptions,
   expiryOf: (entry: T) => number,
   create: (expiresAt: number) => T
 ): T[] {

@@ -1,6 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, BOON_NAMES, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import type { BoonEffect } from '#gw2/platform/effects/types.js';
@@ -30,6 +29,7 @@ import {
 } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { activeStackCount, grantTimedStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Landed player attacks against defiant foes trigger Lesser Haste's self boons on one shared skill recharge. */
 export const burstOfAgility = defineTrait({

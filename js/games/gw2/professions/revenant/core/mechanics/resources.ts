@@ -1,5 +1,4 @@
 import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { EndurancePolicy, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -15,6 +14,7 @@ import {
 import { enduringRecoveryBonus } from '#gw2/professions/revenant/core/traits/retribution/index.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
+import { resourceAtLeast } from '#kernel/resources/pool.js';
 
 /** Capacity is distinct from the precombat recovery ceiling, which never discards larger grants. */
 export const revenantEnergy: ResourcePolicy<RevenantRuntime> = {

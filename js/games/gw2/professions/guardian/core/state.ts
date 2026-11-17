@@ -2,10 +2,10 @@ import { activeChargeCount, grantCharges, type ChargeGrant } from '#gw2/platform
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 export interface GuardianCoreState {
   endurance: ResourceClock;

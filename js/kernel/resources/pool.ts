@@ -1,4 +1,4 @@
-/** Shared arithmetic for capped GW2 resource pools, independent of any one resource's bookkeeping. */
+/** Shared arithmetic for capped resource pools, independent of any one resource's bookkeeping. */
 
 import { clamp } from '#kernel/core/numeric.js';
 
@@ -10,13 +10,6 @@ export function cappedResource(value: number, maximum: number): number {
 /** Adds a non-negative grant up to the supplied cap. */
 export function grantCapped(current: number, amount: number, maximum: number): number {
   return cappedResource(current + Math.max(0, amount || 0), maximum);
-}
-
-/** A chronological window with a constant resource recovery or recharge rate. */
-export interface RateInterval {
-  readonly start: number;
-  readonly end: number;
-  readonly rate: number;
 }
 
 /** Resource comparisons tolerate arithmetic drift without borrowing the simulation clock tolerance. */

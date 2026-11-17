@@ -2,11 +2,6 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
-import {
-  activeRefreshedStacks,
-  grantRefreshedStacks,
-  type RefreshedStacks
-} from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -44,6 +39,11 @@ import {
 } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import {
+  activeRefreshedStacks,
+  grantRefreshedStacks,
+  type RefreshedStacks
+} from '#kernel/resources/refreshed-stacks.js';
 
 function untamedModifierState(context: Gw2ModifierContext): Partial<UntamedModifierState> {
   return readProfessionSpecializationState<UntamedModifierState>(context.runtime?.profession, 'Untamed') || {};

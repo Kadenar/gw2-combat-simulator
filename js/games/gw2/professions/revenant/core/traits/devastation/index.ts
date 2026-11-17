@@ -7,7 +7,6 @@ import {
   targetHealthFraction,
   vulnerabilityStacks
 } from '#gw2/platform/combat/query/runtime-query.js';
-import { addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -41,6 +40,7 @@ import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/battle-s
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalInterval, canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { addTimedStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Combat suppression skips the boon while the combat-anchored cadence keeps advancing. */
 const assassinsPresencePassive = definePeriodicTask<RevenantRuntime>({

@@ -3,7 +3,6 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
@@ -36,6 +35,7 @@ import {
 } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/trigger-points.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { advanceCounter } from '#kernel/resources/counters.js';
 
 /** Psychic Blades owns the specialization's baseline blade capacity. */
 const psychicBlades = defineTrait<MesmerSkill>({

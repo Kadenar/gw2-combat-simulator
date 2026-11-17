@@ -1,6 +1,5 @@
 /** Bloodstone relic rules. */
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
@@ -14,6 +13,7 @@ import {
 } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { activeRefreshedStacks, grantRefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
 
 // Display progress toward the fourth blast, which consumes the three stored stacks.
 const VOLATILITY_TRIGGER_STACKS = 4;

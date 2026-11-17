@@ -1,12 +1,12 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
+import { timeKey } from '#kernel/core/clock.js';
 import {
   activeRefreshedStacks,
   grantRefreshedStacks,
   type RefreshedStacks
-} from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
-import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
-import { timeKey } from '#kernel/core/clock.js';
+} from '#kernel/resources/refreshed-stacks.js';
 
 const THORNS_CONDITION_DAMAGE_PER_STACK = 30;
 

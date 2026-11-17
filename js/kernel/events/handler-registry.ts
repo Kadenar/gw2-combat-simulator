@@ -1,12 +1,10 @@
 /**
- * Registry for resolver event handlers. Keeps event-type ownership explicit and
- * rejects duplicate registrations so shared GW2 handlers and profession handlers
- * cannot silently shadow each other. Dispatch rejects missing handlers so
- * required events cannot be silently lost.
+ * Event dispatch rejects duplicate registrations and missing handlers so each
+ * required event has one explicit owner.
  */
 type EventHandler<TContext, TEvent extends { type: string }> = (context: TContext, event: TEvent) => unknown;
 
-/** Explicit shared marker for observable events that require no resolver mutation. */
+/** Explicit shared marker for observable events that require no state mutation. */
 export const OBSERVABLE_EVENT_HANDLER: EventHandler<unknown, { type: string }> = () => undefined;
 
 /** Retain executed observations without replaying the mechanic that published them. */
@@ -15,11 +13,6 @@ export const RECORD_OBSERVATION_EVENT_HANDLER = <TEvent extends { type: string }
   event: TEvent
 ): void => context.observations.record(event);
 
-/**
- * Registry for resolver event handlers. It keeps event-type ownership explicit
- * and rejects duplicate registrations so common GW2 handlers and profession
- * handlers cannot silently shadow each other.
- */
 export class HandlerRegistry<TContext = unknown, TEvent extends { type: string } = { type: string }> {
   readonly #handlers = new Map<string, EventHandler<TContext, TEvent>>();
 

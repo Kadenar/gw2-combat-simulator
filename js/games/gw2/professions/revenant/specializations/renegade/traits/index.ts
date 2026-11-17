@@ -2,7 +2,6 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
@@ -39,6 +38,7 @@ import {
 import { warbandCompleted } from '#gw2/professions/revenant/specializations/renegade/skills/warband.js';
 import { fervorMaximumStacks } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { resourceAtLeast } from '#kernel/resources/pool.js';
 
 const allForOne = defineTrait({
   id: TRAIT.ALL_FOR_ONE,

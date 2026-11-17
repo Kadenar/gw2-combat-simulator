@@ -1,5 +1,4 @@
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
-import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
@@ -7,6 +6,7 @@ import {
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import type { RefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
 
 export type RangerInitialUntamedState = 'Pet' | 'Ranger';
 

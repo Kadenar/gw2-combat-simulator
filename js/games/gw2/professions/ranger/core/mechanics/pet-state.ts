@@ -1,9 +1,9 @@
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import {
   createRangerActorProcState,
   type RangerActorProcState
 } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
+import type { RefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
 
 const RANGER_PET_ID_PREFIX = 'ranger-pet:';
 

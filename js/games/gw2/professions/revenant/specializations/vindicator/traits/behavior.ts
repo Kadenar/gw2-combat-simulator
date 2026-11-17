@@ -1,10 +1,10 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { resourceAtLeast } from '#kernel/resources/pool.js';
 
 /** Snapshots the pre-landing damage window before its renewal. */
 export function forerunnerOfDeathActive(runtime: RevenantRuntime): boolean {

@@ -1,4 +1,3 @@
-import { activeRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type {
   SkillDamagePreviewContext,
   SkillDamagePreviewPreparation,
@@ -17,6 +16,7 @@ import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professio
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { activeRefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
 
 function initialUntamedState(context: Pick<RangerUiContext, 'build' | 'config'>): 'Pet' | 'Ranger' {
   return context.build?.initialUntamedState === 'Ranger' || context.config?.initialUntamedState === 'Ranger'

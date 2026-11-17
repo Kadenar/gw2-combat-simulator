@@ -15,7 +15,6 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { RECORD_OBSERVATION_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import {
   attributeBonusNumber,
   balanceNumber,
@@ -55,6 +54,7 @@ import type {
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { RECORD_OBSERVATION_EVENT_HANDLER } from '#kernel/events/handler-registry.js';
 
 /** Air definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const zephyrsSpeed = defineTrait({

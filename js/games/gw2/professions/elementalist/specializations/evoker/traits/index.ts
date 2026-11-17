@@ -4,7 +4,6 @@ import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
-import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { BoonId } from '#gw2/platform/constants.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -65,6 +64,7 @@ import type {
   ElementalistRuntime,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
+import { advanceCounter } from '#kernel/resources/counters.js';
 
 const boon = (name: string, boonName: BoonId, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',

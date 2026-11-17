@@ -1,6 +1,5 @@
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { ACTOR, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -26,6 +25,7 @@ import type { SpellbreakerState } from '#gw2/professions/warrior/specializations
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { activeStackCount, grantTimedStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const attackersInsight = defineTrait({

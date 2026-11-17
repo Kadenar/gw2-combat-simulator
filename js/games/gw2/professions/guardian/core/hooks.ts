@@ -1,5 +1,4 @@
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -32,6 +31,7 @@ import { masterOfConsecrationsFields } from '#gw2/professions/guardian/core/trai
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { CORE_VIRTUES, guardianVirtueActions } from '#gw2/professions/guardian/virtue-readiness.js';
+import { grantTimedStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Registers virtue, symbol, and follow-up callbacks with the actions from each Core skill. */
 export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianSkill>([

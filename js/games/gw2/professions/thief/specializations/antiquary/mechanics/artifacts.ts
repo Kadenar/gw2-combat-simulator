@@ -1,6 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { consumeChargeBatch } from '#gw2/platform/combat/resources/charges.js';
-import { addCounterProgress, advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -24,6 +23,7 @@ import {
 import type { ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { addCounterProgress, advanceCounter } from '#kernel/resources/counters.js';
 
 /** The slot each accepted artifact cast spent, which selects its Possessive Hoarder family boon. */
 const artifactSlotsUsed = new WeakMap<RuntimeCast<ThiefSkill>, ThiefArtifactSlot | undefined>();

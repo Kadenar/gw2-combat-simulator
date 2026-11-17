@@ -1,5 +1,4 @@
 /** Owns spear etchings, recharge entitlements, and empowerment snapshots for casts and Fulgor sequences. */
-import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { ACTOR, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -21,6 +20,7 @@ import type {
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { advanceCounter } from '#kernel/resources/counters.js';
 
 /** Etchings always unlock their full release after three credits, including completed overload grants. */
 export const ELEMENTALIST_ETCHING_CHARGES = 3;

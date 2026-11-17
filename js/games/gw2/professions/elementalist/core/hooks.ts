@@ -1,7 +1,6 @@
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { OBSERVABLE_EVENT_HANDLER, RECORD_OBSERVATION_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { resolveSkillSelector } from '#gw2/platform/skills/selectors.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
@@ -47,6 +46,7 @@ import { elementalistWeaponStateLifecycle } from '#gw2/professions/elementalist/
 import { shareHeatSyncBoon } from '#gw2/professions/elementalist/core/skills/weapons/warhorn.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import { OBSERVABLE_EVENT_HANDLER, RECORD_OBSERVATION_EVENT_HANDLER } from '#kernel/events/handler-registry.js';
 
 /** Registers cast, resource, and reaction callbacks with the callbacks from each Core mechanic. */
 export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeState, ElementalistSkill>([

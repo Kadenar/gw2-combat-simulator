@@ -1,10 +1,4 @@
 /** Canonical Core revenant skill definitions grouped by their GW2 owner. */
-import {
-  activeStackCount,
-  addTimedStacks,
-  grantTimedStacks,
-  purgeExpiredStacks
-} from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import {
@@ -24,6 +18,12 @@ import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import {
+  activeStackCount,
+  addTimedStacks,
+  grantTimedStacks,
+  purgeExpiredStacks
+} from '#kernel/resources/timed-stacks.js';
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {

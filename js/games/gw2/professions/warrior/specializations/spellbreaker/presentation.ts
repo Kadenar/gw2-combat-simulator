@@ -1,4 +1,3 @@
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
@@ -19,6 +18,7 @@ import {
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
+import { activeStackCount } from '#kernel/resources/timed-stacks.js';
 
 const SKILLS = Object.freeze([ID.FULL_COUNTER]);
 

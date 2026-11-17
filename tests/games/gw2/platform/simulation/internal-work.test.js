@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
-import { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
 import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
 import { FLIP_EXPIRY_PRIORITY, isRuntimeWork } from '#gw2/platform/simulation/work-contract.js';
+import { HandlerRegistry } from '#kernel/events/handler-registry.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 
 // Internal handlers use detached data on the common heap, with explicit lifetime cancellation and cast attribution.

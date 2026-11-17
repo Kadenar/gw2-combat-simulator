@@ -1,5 +1,4 @@
 /** Shared page-session rewards retain their cast ownership through tome stows. */
-import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -17,6 +16,7 @@ import {
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianRuntime, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import { advanceCounter } from '#kernel/resources/counters.js';
 
 const refundByCast = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 

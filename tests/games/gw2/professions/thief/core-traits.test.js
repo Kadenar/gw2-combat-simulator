@@ -6,7 +6,6 @@ import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/pa
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
@@ -19,6 +18,7 @@ import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
+import { activeStackCount } from '#kernel/resources/timed-stacks.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';

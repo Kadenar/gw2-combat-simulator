@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { engineerSpearLifecycle } from '#gw2/professions/engineer/core/mechanics/spear.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { activeStackCount } from '#kernel/resources/timed-stacks.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';

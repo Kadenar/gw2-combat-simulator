@@ -1,11 +1,11 @@
 /** Player boon applications earn concentration and refresh the entire pool, without an internal cooldown. */
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { announceRelic, defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { grantRefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
 
 const MAXIMUM_STACKS = 10;
 const CONCENTRATION_PER_STACK = 25;

@@ -1,4 +1,3 @@
-import { grantTimedStackApplications } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -12,6 +11,7 @@ import {
   fervorMaximumStacks,
   fervorProfile
 } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
+import { grantTimedStackApplications } from '#kernel/resources/timed-stacks.js';
 
 /** Counts started, unexpired Fervor applications consistently for grants, modifiers, and siphons. */
 export function activeKallasFervorStacks(

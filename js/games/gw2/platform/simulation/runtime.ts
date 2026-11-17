@@ -42,7 +42,6 @@ import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-r
 import { createEffectDelivery } from '#gw2/platform/resolver/effect-delivery.js';
 import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
 import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
-import { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
 import { createGw2ResolverReactionRegistry, mapGw2Reactions } from '#gw2/platform/resolver/reaction-registry.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
@@ -83,6 +82,7 @@ import {
   type RuntimeWork
 } from '#gw2/platform/simulation/work-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { HandlerRegistry } from '#kernel/events/handler-registry.js';
 import { normalizeObservationPolicy } from '#kernel/execution/observation.js';
 
 /** The combat entry point assembles gameplay producers before entering the shared runtime. */

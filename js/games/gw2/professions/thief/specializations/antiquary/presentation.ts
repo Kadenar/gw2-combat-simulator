@@ -1,6 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { activeChargeCount, activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
-import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   ProfessionStateSnapshotContext,
@@ -18,6 +17,7 @@ import {
 } from '#gw2/professions/thief/data/ids.js';
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import { purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Shows Combat High and artifact effects with duration or consumable charges. */
 function antiquaryStateSnapshot(

@@ -5,13 +5,14 @@ import {
   grantEndurance,
   spendEndurance
 } from '#gw2/platform/combat/resources/endurance.js';
-import { resourceAmount, resourceAtLeast, type RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import type {
   EnduranceController,
   EndurancePolicy,
   EnduranceQueries
 } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { RateInterval } from '#kernel/core/clock.js';
 import { createDeferredQueries } from '#kernel/core/deferred-queries.js';
+import { resourceAmount, resourceAtLeast } from '#kernel/resources/pool.js';
 
 interface EnduranceControllerOptions<TContext> {
   readonly clock: { readonly time: number };

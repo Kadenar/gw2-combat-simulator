@@ -1,7 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -27,6 +26,7 @@ import {
 } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { grantRefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
 
 /** Intrinsic virtue grants share an inclusive stack lifetime and the outgoing additive damage bucket. */
 export const lethalTempo = defineTrait({

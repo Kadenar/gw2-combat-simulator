@@ -1,16 +1,13 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, STATUS } from '#gw2/platform/constants.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
@@ -30,6 +27,9 @@ import {
   type EngineerRuntime,
   type EngineerSkill
 } from '#gw2/professions/engineer/types.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#kernel/events/handler-registry.js';
+import { advanceCounter } from '#kernel/resources/counters.js';
+import { resourceAtLeast } from '#kernel/resources/pool.js';
 
 /** Lock On reacts to resolved player disables; Controlled Analysis owns its payload and recharge. */
 export const lockOn = defineTrait({

@@ -1,10 +1,10 @@
-import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
 } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 export interface SpellbreakerState {
   attackerInsightExpiries: number[];

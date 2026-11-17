@@ -2,7 +2,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
@@ -16,7 +15,6 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import {
   attributeBonusNumber,
   balanceNumber,
@@ -53,6 +51,8 @@ import type {
   ElementalistRuntime,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#kernel/events/handler-registry.js';
+import { advanceCounter } from '#kernel/resources/counters.js';
 
 /** Arcane definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const arcaneProwess = defineTrait({

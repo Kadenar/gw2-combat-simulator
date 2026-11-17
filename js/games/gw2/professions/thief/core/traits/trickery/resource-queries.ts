@@ -1,11 +1,11 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { activeStackCount } from '#kernel/resources/timed-stacks.js';
 
 /** Additive Steal recharge retains each trait's independent reduction. */
 export function leadAttacksRechargeReduction(runtime: MechanicQueriesOf<ThiefRuntime>): number {

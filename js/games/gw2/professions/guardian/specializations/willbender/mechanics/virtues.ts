@@ -1,5 +1,4 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
@@ -27,6 +26,7 @@ import type {
   GuardianVirtue
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { advanceCounter } from '#kernel/resources/counters.js';
 
 const PULSE = 'guardian.willbender.pulse';
 

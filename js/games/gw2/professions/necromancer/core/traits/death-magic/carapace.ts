@@ -1,6 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-state.js';
-import { activeStackCount, addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
@@ -9,6 +8,7 @@ import { purgeTimedState } from '#gw2/professions/necromancer/core/mechanics/sta
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerResolverContext, NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+import { activeStackCount, addTimedStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Timed grants and combined stack queries share the active patch's capacity, even without minion grants selected. */
 function carapaceCapacity(source: BalanceProfileSource): number {

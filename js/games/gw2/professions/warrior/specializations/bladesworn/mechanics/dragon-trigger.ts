@@ -1,6 +1,5 @@
 /** Own Gunsaber and Dragon Trigger admission, transitions, charge lifetimes, and cast-owned release notifications. */
 import { hasTrait, type Gw2TraitLookupContext } from '#gw2/platform/builds/selected-traits.js';
-import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -20,6 +19,7 @@ import { bladeswornState } from '#gw2/professions/warrior/specializations/blades
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { resourceAtLeast } from '#kernel/resources/pool.js';
 
 const CHARGE_TICK = 'warrior.dragon-charge';
 const TRIGGER_EXPIRY = 'warrior.dragon-trigger-expiry';

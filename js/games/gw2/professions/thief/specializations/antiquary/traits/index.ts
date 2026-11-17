@@ -1,7 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { activeStackCount, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -36,6 +35,7 @@ import {
 } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
 import type { ThiefResolverContext } from '#gw2/professions/thief/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { activeStackCount, purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 /**
  * Card Swap is the only source of Reshuffle, so the skill is denied whenever the trait is not selected. Its condition

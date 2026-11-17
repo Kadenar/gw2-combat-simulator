@@ -2,7 +2,6 @@
  * @fileoverview Implements shared Guardian virtue validation, activation and
  * readiness checks, plus the reusable resolver-time Justice burning contract.
  */
-import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -24,6 +23,7 @@ import type {
   GuardianVirtueContext
 } from '#gw2/professions/guardian/types.js';
 import { guardianVirtueReadyAt } from '#gw2/professions/guardian/virtue-readiness.js';
+import { advanceCounter } from '#kernel/resources/counters.js';
 
 /** An accepted virtue activation; each owner has already admitted its own readiness and replacement rules. */
 export interface VirtueActivation {

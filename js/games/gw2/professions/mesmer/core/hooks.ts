@@ -3,7 +3,6 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { mesmerBuffPolicies, mesmerEffectStates } from '#gw2/professions/mesmer/core/effect-state.js';
 import { completeMesmerCast, mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
@@ -43,6 +42,7 @@ import { completeAxesConfusion, scheduleAxesClones } from '#gw2/professions/mesm
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerShatterLifecycle } from '#gw2/professions/mesmer/shatter-lifecycle.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#kernel/events/handler-registry.js';
 
 /** Completion tasks apply state at the authored boundary, including committed shortened animations. */
 function complete(runtime: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
