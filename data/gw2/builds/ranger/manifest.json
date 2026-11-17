@@ -59,15 +59,15 @@
         "build": "data/gw2/builds/ranger/b-power-soulbeast-hammer-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-hammer-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-axe-axe",
-        "benchmarkDps": 43863,
+        "benchmarkDps": 42644,
         "upToDate": true,
         "benchmarkApm": 60.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 54007, "phase": 54007 },
-          "80-60": { "cumulative": 49340, "phase": 45288 },
-          "60-40": { "cumulative": 44195, "phase": 36660 },
-          "40-20": { "cumulative": 43587, "phase": 41817 },
-          "20-0": { "cumulative": 43863, "phase": 43863 }
+          "100-80": { "cumulative": 53114, "phase": 53114 },
+          "80-60": { "cumulative": 46807, "phase": 41809 },
+          "60-40": { "cumulative": 43685, "phase": 38501 },
+          "40-20": { "cumulative": 41852, "phase": 37123 },
+          "20-0": { "cumulative": 42644, "phase": 42644 }
         }
       },
       {
@@ -107,13 +107,13 @@
         "build": "data/gw2/builds/ranger/b-power-soulbeast-axe-axe-sword-mace.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-axe-axe-sword-mace-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-sword-mace-axe-axe",
-        "benchmarkDps": 43608,
+        "benchmarkDps": 42340,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 51124, "phase": 51124 },
-          "80-60": { "cumulative": 47930, "phase": 45056 },
-          "60-40": { "cumulative": 45296, "phase": 40756 },
-          "40-20": { "cumulative": 43933, "phase": 40249 },
-          "20-0": { "cumulative": 43608, "phase": 43608 }
+          "100-80": { "cumulative": 49564, "phase": 49564 },
+          "80-60": { "cumulative": 46216, "phase": 43281 },
+          "60-40": { "cumulative": 44423, "phase": 41185 },
+          "40-20": { "cumulative": 42997, "phase": 39283 },
+          "20-0": { "cumulative": 42340, "phase": 42340 }
         },
         "benchmarkApm": 66.7,
         "upToDate": true
