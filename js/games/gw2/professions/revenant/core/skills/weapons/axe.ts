@@ -15,14 +15,12 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 10,
     energyCost: 10,
     shadowstepSkill: true,
-    // The November 10 log shows one impact after teleporting, with both conditions applied together.
     castTimeMs: 440,
     interruptCommitMs: 400,
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        // Retain the previous final-strike coefficient until the new coefficient is confirmed.
-        coefficient: 1.5,
+        coefficient: 1.65,
         hits: 1,
         name: 'Frigid Blitz',
         actorType: ACTOR.PLAYER

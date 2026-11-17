@@ -161,9 +161,7 @@ export const revenantCoreTooltips = {
       : [{ name: 'Energy exhaustion cooldown', detail: tooltipSeconds(tooltipNumber(entity, 'starvationCooldown')) }])
   ],
   skills: {
-    [ID.FRIGID_BLITZ]: skillTooltip(
-      'Teleport and strike, applying Chilled and Torment together. Timing follows the November 10 combat log. The strike coefficient remains unconfirmed and uses the previous final-strike value.'
-    ),
+    [ID.FRIGID_BLITZ]: skillTooltip('Teleport and strike, applying Chilled and Torment together.'),
     [ID.FORCED_ENGAGEMENT]: skillTooltip(
       'Strike and cripple one target. In game, targets beyond 600 range are pulled immediately; nearer targets are tethered for 5 seconds, revealed for 6 seconds, and pulled if they cross that threshold. The skill has 900 range and deals 200 bonus defiance damage to defiant foes. Target distance, tether movement, Revealed, and defiance-bar damage are not simulated.'
     ),

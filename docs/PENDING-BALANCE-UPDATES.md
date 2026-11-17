@@ -28,10 +28,6 @@ Current limitations are recorded in the [Core tooltips](../js/games/gw2/professi
 
 ## Ranger
 
-- [ ] **Hunter's Tactics damage bug.** The refreshing 8-second critical-chance window is implemented. The damage
-      multiplier remains neutral to match the supplied November 10 reports. Recheck after a game fix. See
-      [Skirmishing traits](../js/games/gw2/professions/ranger/core/traits/skirmishing/index.ts).
-
 - [ ] **Untamed benchmark rotations.** Original recorded rotations are preserved. The new pet cooldowns cause four
       unavailable-ambush warnings in power Hawk/Beastmastery Hammer-Sword/Axe and one in condition Quickness
       Axe/Dagger-Dagger/Torch. Updated benchmark recordings are needed; do not insert waits or otherwise rewrite these
@@ -40,8 +36,6 @@ Current limitations are recorded in the [Core tooltips](../js/games/gw2/professi
 
 ## Revenant
 
-- [ ] **Frigid Blitz.** Confirm the new strike coefficient; the previous final-strike coefficient remains. See
-      [axe skills](../js/games/gw2/professions/revenant/core/skills/weapons/axe.ts).
 - [ ] **Friend of the Luxons.** Confirm damage stacking and refresh behavior against combat logs. See
       [live traits](../js/games/gw2/professions/revenant/specializations/vindicator/traits/index.ts).
 - [ ] **Heated Rivalry.** Faction counters, Alliance Tactics recharge, and the next opposite-faction skill's energy
