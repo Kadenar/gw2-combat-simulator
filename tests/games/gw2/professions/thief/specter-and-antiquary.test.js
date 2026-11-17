@@ -1403,6 +1403,22 @@ test('Holo-Dancer separates its initial Might from the shared explosion impact',
   );
 });
 
+// Both components retain Guitar ownership, with Rockout owning the channel's confusion.
+test('Guitar breakdown separates Rockout and Final Smash without a third condition row', () => {
+  const result = runThief(['Skritt Swipe', 'Metal Legion Guitar', { type: 'wait', durationMs: 9000 }], {
+    specialization: 'Antiquary'
+  });
+  assert.deepEqual(result.warnings, []);
+  const rows = skillBreakdownRows(result).filter((row) => row.skillId === ID.METAL_LEGION_GUITAR);
+  assert.deepEqual(rows.map((row) => row.name).sort(), [
+    'Metal Legion Guitar - Final Smash',
+    'Metal Legion Guitar - Rockout'
+  ]);
+  assert.ok(rows.every((row) => row.sourceSkill === 'Metal Legion Guitar' && row.strike > 0));
+  assert.ok(rows.find((row) => row.name.endsWith('Rockout')).condition > 0);
+  assert.equal(rows.find((row) => row.name.endsWith('Final Smash')).condition, 0);
+});
+
 test('Meticulous Custodian upgrades artifact packets and effect durations', () => {
   const config = {
     primaryWeapon: 'Sword',
@@ -1430,7 +1446,7 @@ test('Meticulous Custodian upgrades artifact packets and effect durations', () =
 
   assertMultiplier(
     'Metal Legion Guitar',
-    1.5,
+    1.2,
     (entry) => entry.sourceSkill === 'Metal Legion Guitar' && entry.name.endsWith('Packet 1')
   );
   assertMultiplier('Metal Legion Guitar', 1.2, 'Final Smash');

@@ -136,6 +136,8 @@ export function materializeSkillEffectApplications({
     ...(effect.summonOwner != null ? { summonOwner: effect.summonOwner } : {}),
     ...(effect.skillName != null ? { skillName: effect.skillName } : {}),
     ...(effect.parentSkillName != null ? { parentSkillName: effect.parentSkillName } : {}),
+    // Conditions and strikes share the authored row label without changing their source skill.
+    ...(effect.damageBreakdownName != null ? { damageBreakdownName: effect.damageBreakdownName } : {}),
     ...(effect.icon != null ? { icon: effect.icon } : {})
   };
 

@@ -728,7 +728,10 @@ test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and ar
       {
         [STATE.COMBAT_HIGH_EXPIRATIONS]: [6, 8, 10, 12, 14, 16, 18, 20],
         [STATE.ANTIQUARY_DAMAGE_UNTIL]: 9,
-        [STATE.BONUS_STEALTH_ATTACK]: { count: 2, expiresAt: 8 },
+        [STATE.ANTIQUARY_GUITAR_CHARGES]: [
+          { count: 1, expiresAt: 8 },
+          { count: 1, expiresAt: 10 }
+        ],
         [STATE.MISTBURN]: { count: 4, expiresAt: 10 },
         [STATE.KRYPTIS_DAMAGE_UNTIL]: 11,
         [STATE.CHAK_INITIATIVE_REFUNDS]: [{ count: 3, expiresAt: 12 }],

@@ -137,8 +137,10 @@ const meticulousCustodian = defineTrait({
     kryptisDuration: 10,
     mortarBurningDurationMultiplier: 2 / 1.5,
     sunCrystalBurningDurationMultiplier: 5 / 4,
-    guitarFinalFactor: 3 / 2.5,
-    guitarFactor: 1.2 / 0.8,
+    // Preserve Custodian's 20% increase on the observed base Smash coefficient.
+    guitarFinalFactor: 3.6 / 3,
+    // Custodian raises each Guitar pulse from 0.8 to 0.96; the final strike has its own factor.
+    guitarFactor: 0.96 / 0.8,
     mortarFactor: 0.6 / 0.5,
     chakFactor: 1,
     kryptisFactor: 3.36 / 2.8,

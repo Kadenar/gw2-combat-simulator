@@ -261,11 +261,26 @@ export const sunderingShade = defineTrait({
   ]
 });
 
-/** Qualifying hits grant an eight-second critical-chance window; full-health critical damage remains unconditional. */
+/** Selection grants passive critical chance; qualifying hits add a separate timed critical-chance bonus. */
 export const twinFangs = defineTrait({
   id: TRAIT.TWIN_FANGS,
-  balance: { duration: 8, threshold: 0.5, criticalDamage: 1.07, lowHealthCriticalDamage: 1.05, criticalChance: 0.07 },
+  balance: {
+    duration: 8,
+    threshold: 0.5,
+    criticalDamage: 1.07,
+    lowHealthCriticalDamage: 1.05,
+    thiefTwinFangsPassiveCriticalChance: 0.07,
+    criticalChance: 0.07
+  },
   modifierRules: [
+    {
+      order: 4,
+      id: 'thief.twin-fangs-passive-critical-chance',
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: 'add',
+      amount: (context) => balanceNumber(context.catalog, TRAIT.TWIN_FANGS, 'thiefTwinFangsPassiveCriticalChance'),
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
+    },
     {
       order: 4,
       id: 'thief.twin-fangs-critical-damage',

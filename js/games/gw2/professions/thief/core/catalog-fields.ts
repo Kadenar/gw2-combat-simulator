@@ -19,6 +19,12 @@ export const THIEF_CORE_PROFILE_FIELDS = defineFields({
   entryResourceGain: numberField({ patch: 'primary' }),
 
   // Attributes, summon inheritance, and critical-hit scaling.
+  thiefTwinFangsPassiveCriticalChance: numberField({
+    label: 'passive critical chance',
+    patch: 'primary',
+    unit: 'probability',
+    maximum: 1
+  }),
   lowHealthCriticalDamage: numberField({ patch: 'primary', unit: 'factor' }),
   lowHealthCriticalChance: numberField({ patch: 'primary', unit: 'probability', maximum: 1 })
 });

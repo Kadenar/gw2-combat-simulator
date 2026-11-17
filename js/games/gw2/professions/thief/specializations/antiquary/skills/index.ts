@@ -30,8 +30,9 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     type: 'Profession',
     slot: 'Profession_2',
 
-    // The artifact owns the number of stealth attacks granted by its identity window.
-    maximumStacks: 2,
+    // Each use adds two stealth attacks, retaining unused charges up to four.
+    antiquaryStealthAttackCharges: 2,
+    maximumStacks: 4,
     // The artifact owns the lifetime of its stealth attack grant.
     duration: 10,
     cooldown: 0,
@@ -44,14 +45,18 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
         hits: 4,
         atMs: 0,
         name: 'Metal Legion Guitar - Packet 1',
+        // Separate Rockout and its confusion from Final Smash while retaining Guitar cast attribution.
+        damageBreakdownName: 'Metal Legion Guitar - Rockout',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd' as const,
         timingScale: 'fixed' as const
       },
       {
         type: 'strike' as const,
-        ticks: [{ atMs: 0, coefficient: 2.5 }],
+        // November rifle, staff, and sword reports support a 3.0 Smash; the API's 2.5 understates those hits.
+        ticks: [{ atMs: 0, coefficient: 3 }],
         name: 'Final Smash',
+        damageBreakdownName: 'Metal Legion Guitar - Final Smash',
         // Meticulous Custodian keys its separate final-hit factor on this packet identity, not the display label.
         metadata: { packetKind: 'thief.metal-legion-guitar-final-smash' },
         actorType: ACTOR.PLAYER,
@@ -66,6 +71,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
           stacks: 1,
           duration: 8
         })),
+        damageBreakdownName: 'Metal Legion Guitar - Rockout',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart' as const,
         timingScale: 'fixed' as const

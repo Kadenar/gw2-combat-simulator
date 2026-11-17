@@ -1,11 +1,17 @@
+import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import {
   fromProfile,
+  profileFact,
+  simulationEffectFacts,
   tooltipFactorChange,
   tooltipPercent,
+  tooltipPercentValue,
+  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Describe deadly arts tooltips from the selected balance data. */
@@ -38,14 +44,43 @@ export const thiefDeadlyArtsTooltips = {
     'base application'
   ),
   [TRAIT.EVEN_THE_ODDS]: traitTooltip('Stealing inflicts vulnerability.'),
-  [TRAIT.PANIC_STRIKE]: traitTooltip(
-    'A strike against a target with enough different conditions immobilizes it. Your immobilize applications also poison the target; Potent Poison increases the poison stack count.',
-    [
-      ['threshold', 'Different conditions required'],
-      ['internalCooldown', 'Immobilize cooldown', tooltipSeconds],
-      ['playerStacks', 'Poison stacks with Potent Poison']
-    ]
-  ),
+  // The strike trigger has a cooldown; poison follows any player-applied immobilize independently.
+  [TRAIT.PANIC_STRIKE]: (balanceContext, entity) => {
+    const profile = tooltipProfile(balanceContext, entity.id);
+    const effects = (condition: string) =>
+      simulationEffectFacts(
+        profile.effects?.filter((effect) => effect.type === 'condition' && effect.condition === condition)
+      ).facts;
+    return {
+      description:
+        'Strike a target with enough different conditions to immobilize it. Your immobilize applications also inflict poison.',
+      facts: [],
+      factSections: [
+        {
+          label: 'Immobilize on strike',
+          facts: [
+            {
+              ...profileFact(balanceContext, entity.id, 'threshold', 'Different conditions required'),
+              icon: MODIFIER_EFFECT_ICONS['Condition Threshold']
+            },
+            ...effects(CONDITION.IMMOBILIZED),
+            profileFact(balanceContext, entity.id, 'internalCooldown', 'Cooldown', tooltipSeconds)
+          ]
+        },
+        {
+          label: 'Poison on immobilize',
+          description: 'Potent Poison increases the poison stack count.',
+          facts: [
+            ...effects(CONDITION.POISONED),
+            {
+              ...profileFact(balanceContext, entity.id, 'playerStacks', 'Stacks with Potent Poison'),
+              icon: MODIFIER_EFFECT_ICONS[CONDITION.POISONED]
+            }
+          ]
+        }
+      ]
+    };
+  },
   [TRAIT.REVEALED_TRAINING]: traitTooltip('Gain power and additional power while revealed.', [
     ['attributeBonuses.power', 'Power'],
     ['conditionalAttributeBonuses.power', 'Additional power while revealed']
@@ -57,20 +92,39 @@ export const thiefDeadlyArtsTooltips = {
       ['conditionDurationBonus', 'Poison duration', tooltipPercent]
     ]
   ),
-  [TRAIT.IMPROVISATION]: traitTooltip(
-    'Use the same stolen skill more than once. Increase Shadow Force gained from Siphon, including Amplified Siphoning. Skritt Swipe grants an additional artifact use, stacking with Prolific Plunderer, and reduces the active cooldowns of selected utility skills.',
-    [
-      ['maximumStacks', 'Stolen skill uses'],
-      ['resourceGain', 'Additional artifact use from Skritt Swipe'],
-      ['lifeForceGain', 'Additional Shadow Force gain from Siphon', tooltipPercent],
-      [
-        'rechargeMultiplier',
-        'Utility recharge removed, as a fraction of base recharge',
-        (value) => tooltipPercent(1 - value)
-      ],
-      ['internalCooldown', 'Utility reduction cooldown', tooltipSeconds]
+  // Group replacement profession mechanics so each resource bonus and recharge trigger has a clear owner.
+  [TRAIT.IMPROVISATION]: (balanceContext, entity) => ({
+    description: 'Gain extra uses or resources from your profession skill, depending on your specialization.',
+    facts: [],
+    factSections: [
+      {
+        label: 'Stolen skills',
+        description: 'Reuse the same chosen skill.',
+        facts: [profileFact(balanceContext, entity.id, 'maximumStacks', 'Stolen skill uses')]
+      },
+      {
+        label: 'Siphon',
+        description: 'The bonus also applies to Shadow Force added by Amplified Siphoning.',
+        facts: [profileFact(balanceContext, entity.id, 'lifeForceGain', 'Shadow Force gain', tooltipPercent)]
+      },
+      {
+        label: 'Skritt Swipe',
+        description:
+          'Adds artifact uses alongside Prolific Plunderer. Shortens the active recharge of each equipped utility skill.',
+        facts: [
+          profileFact(balanceContext, entity.id, 'resourceGain', 'Additional artifact uses'),
+          profileFact(
+            balanceContext,
+            entity.id,
+            'rechargeMultiplier',
+            'Recharge removed',
+            (value) => `${tooltipPercentValue(1 - value)} of base recharge`
+          ),
+          profileFact(balanceContext, entity.id, 'internalCooldown', 'Recharge reduction cooldown', tooltipSeconds)
+        ]
+      }
     ]
-  ),
+  }),
   [TRAIT.EXECUTIONER]: traitTooltip('Deal increased strike damage against targets below half health.', [
     fromProfile(TRAIT.EXECUTIONER, 'damageMultiplier', 'Strike damage', tooltipFactorChange)
   ])

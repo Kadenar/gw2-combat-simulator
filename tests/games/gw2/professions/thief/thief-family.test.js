@@ -17,20 +17,18 @@ import { runThief } from '#tests/helpers/thief-simulation.js';
 test('Antiquary projects its own charge fields and initialized empty grants', () => {
   // The slice must expose its charges without relying on Deadeye's contribution to the family metadata.
   const state = createAntiquaryState();
-  state.bonusStealthAttack = { count: 2, expiresAt: 10 };
+  state.antiquaryGuitarCharges = [{ count: 2, expiresAt: 10 }];
   const active = projectAntiquaryPlanningState({
     time: 0,
     profession: { core: {}, specialization: { kind: 'Antiquary', state } }
   });
-  assert.equal(active[STATE.BONUS_STEALTH_ATTACK].count, 2);
-  assert.equal(active[STATE.BONUS_STEALTH_ATTACK].expiresAt, 10);
+  assert.deepEqual(active[STATE.ANTIQUARY_GUITAR_CHARGES], [{ count: 2, expiresAt: 10 }]);
 
   const inactive = projectAntiquaryPlanningState({
     time: 0,
     profession: { core: {}, specialization: { kind: 'Antiquary', state: createAntiquaryState() } }
   });
-  assert.equal(inactive[STATE.BONUS_STEALTH_ATTACK].count, 0);
-  assert.equal(inactive[STATE.BONUS_STEALTH_ATTACK].expiresAt, 0);
+  assert.deepEqual(inactive[STATE.ANTIQUARY_GUITAR_CHARGES], []);
 });
 
 test('Daredevil projects its Weakening Strikes grant from a detached snapshot', () => {

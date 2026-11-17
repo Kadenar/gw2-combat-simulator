@@ -14,7 +14,7 @@ import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
-import { thiefBonusStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { beginThiefStealthAttack, thiefBonusStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/data/stolen-skills.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -110,7 +110,9 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
                 stealthUntil: stealthed ? 6 : 0
               });
 
-              if (ownsCharges) Object.assign(elite.state, { bonusStealthAttack: { count: 2, expiresAt } });
+              if (specialization === 'Deadeye') elite.state.bonusStealthAttack = { count: 2, expiresAt };
+
+              if (specialization === 'Antiquary') elite.state.antiquaryGuitarCharges = [{ count: 2, expiresAt }];
             }
           }
         );
@@ -126,23 +128,34 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
         assert.equal(core.bonusStealthAttack.count, 99);
         assert.equal(core.bonusStealthAttack.expiresAt, 100);
         assert.equal(
-          elite.state.bonusStealthAttack?.count,
+          specialization === 'Antiquary'
+            ? elite.state.antiquaryGuitarCharges[0]?.count
+            : elite.state.bonusStealthAttack?.count,
           ownsCharges ? (!stealthed && available ? 1 : 2) : undefined
         );
 
         if (ownsCharges) {
-          const projected = result.planningState.profession[STATE.BONUS_STEALTH_ATTACK];
-          assert.deepEqual(projected, elite.state.bonusStealthAttack);
-          projected.count = 99;
-          assert.notEqual(elite.state.bonusStealthAttack.count, 99, 'planning grants are detached');
+          if (specialization === 'Antiquary') {
+            const projected = result.planningState.profession[STATE.ANTIQUARY_GUITAR_CHARGES];
+            assert.deepEqual(projected, expiresAt > result.rotationEndTime ? elite.state.antiquaryGuitarCharges : []);
+
+            if (projected.length) projected[0].count = 99;
+
+            assert.notEqual(elite.state.antiquaryGuitarCharges[0].count, 99, 'planning grants are detached');
+          } else {
+            const projected = result.planningState.profession[STATE.BONUS_STEALTH_ATTACK];
+            assert.deepEqual(projected, elite.state.bonusStealthAttack);
+            projected.count = 99;
+            assert.notEqual(elite.state.bonusStealthAttack.count, 99, 'planning grants are detached');
+          }
         }
       }
     }
   }
 });
 
-// Both owners replace their own grant using selected tuning; availability and palette reads leave it intact.
-test('Silent Scope and Guitar replace bonus stealth attacks with selected counts and lifetimes', () => {
+// Silent Scope replaces its grant; Guitar accumulates charges. Reads leave both owners intact.
+test('Silent Scope and Guitar grant bonus stealth attacks with their selected stacking and lifetimes', () => {
   for (const specialization of ['Deadeye', 'Antiquary']) {
     const deadeye = specialization === 'Deadeye';
     const profile = deadeye ? TRAIT.SILENT_SCOPE : ID.METAL_LEGION_GUITAR;
@@ -184,15 +197,24 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
 
     runtime.time = 1;
     grant();
-    const first = state.bonusStealthAttack;
+    const first = deadeye ? state.bonusStealthAttack : state.antiquaryGuitarCharges[0];
     assert.equal(first.count, deadeye ? 1 : 2);
     assert.equal(first.expiresAt, 8);
     runtime.time = 2;
     grant();
-    assert.notEqual(state.bonusStealthAttack, first);
-    assert.equal(state.bonusStealthAttack.count, deadeye ? 1 : 2);
-    assert.equal(state.bonusStealthAttack.expiresAt, 9);
-    const before = structuredClone(state.bonusStealthAttack);
+    const grants = deadeye ? [state.bonusStealthAttack] : state.antiquaryGuitarCharges;
+    assert.equal(
+      grants.reduce((sum, entry) => sum + entry.count, 0),
+      deadeye ? 1 : 4
+    );
+    assert.equal(grants.at(-1).expiresAt, 9);
+
+    if (!deadeye) {
+      assert.equal(grants[0], first);
+      assert.equal(first.expiresAt, 8, 'a new Guitar cannot refresh an older grant');
+    }
+
+    const before = structuredClone(grants);
     for (const at of [8, 9, 10]) {
       // Runtime admission and the palette must agree before, at, and after the charge expires.
       runtime.time = at;
@@ -205,7 +227,9 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
           {
             specialization,
             time: at,
-            professionState: { [STATE.BONUS_STEALTH_ATTACK]: state.bonusStealthAttack }
+            professionState: deadeye
+              ? { [STATE.BONUS_STEALTH_ATTACK]: state.bonusStealthAttack }
+              : { [STATE.ANTIQUARY_GUITAR_CHARGES]: state.antiquaryGuitarCharges }
           },
           skill
         ).tileActive,
@@ -213,8 +237,59 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
       );
     }
 
-    assert.deepEqual(state.bonusStealthAttack, before);
+    assert.deepEqual(deadeye ? [state.bonusStealthAttack] : state.antiquaryGuitarCharges, before);
   }
+});
+
+// Different grant lifetimes distinguish newest-first consumption from either expiry order.
+test('Guitar adds two charges up to four and spends grants LIFO without renewing older charges', () => {
+  const result = runThief([], { ...baseConfig, specialization: 'Antiquary' });
+  const runtime = observedRuntime(result);
+  const state = runtime.profession.specialization.state;
+  const skill = runtime.helpers.skillsById.get(ID.METAL_LEGION_GUITAR);
+  const grant = (at, duration) => {
+    runtime.time = at;
+    antiquaryHooks.sideEffectHandlers['thief.guitar'](runtime.mechanics, { skill: { ...skill, duration } });
+  };
+
+  const counts = () => state.antiquaryGuitarCharges.map(({ count, expiresAt }) => ({ count, expiresAt }));
+  grant(1, 20);
+  grant(2, 7);
+  grant(3, 30);
+  assert.deepEqual(counts(), [
+    { count: 2, expiresAt: 21 },
+    { count: 2, expiresAt: 9 }
+  ]);
+  const attack = () =>
+    beginThiefStealthAttack(runtime.mechanics, {
+      skill: runtime.helpers.skillsById.get(ID.BACKSTAB)
+    });
+  attack();
+  assert.deepEqual(counts(), [
+    { count: 2, expiresAt: 21 },
+    { count: 1, expiresAt: 9 }
+  ]);
+  grant(4, 10);
+  assert.deepEqual(counts(), [
+    { count: 2, expiresAt: 21 },
+    { count: 1, expiresAt: 9 },
+    { count: 1, expiresAt: 14 }
+  ]);
+  attack();
+  assert.deepEqual(counts(), [
+    { count: 2, expiresAt: 21 },
+    { count: 1, expiresAt: 9 }
+  ]);
+  runtime.time = 9;
+  attack();
+  assert.deepEqual(counts(), [
+    { count: 1, expiresAt: 21 },
+    { count: 1, expiresAt: 9 }
+  ]);
+  attack();
+  assert.equal(thiefBonusStealthAttack(runtime.mechanics), false, 'expired grants are skipped when spending');
+  grant(14, 10);
+  assert.deepEqual(counts(), [{ count: 2, expiresAt: 24 }]);
 });
 
 test('Endurance Thief is Daredevil-owned and grants its patched endurance with Core steal resources', () => {

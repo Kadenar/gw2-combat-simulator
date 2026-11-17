@@ -51,8 +51,13 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       const state = antiquaryState.from(runtime.profession);
       const at = runtime.time;
       const duration = artifactWindowDuration(runtime, context.skill);
-      // Guitar replaces the active bonus-attack grant with the selected artifact count and lifetime.
-      state.bonusStealthAttack = createChargeGrant(skillNumber(context.skill, 'maximumStacks'), at + duration);
+      // Keep each grant's expiry and insertion order so attacks can consume the newest live charges first.
+      state.antiquaryGuitarCharges = appendBatch(
+        state.antiquaryGuitarCharges,
+        createChargeGrant(skillNumber(context.skill, 'antiquaryStealthAttackCharges'), at + duration),
+        at,
+        { expiry: 'exclusive', order: 'insertion', maximum: skillNumber(context.skill, 'maximumStacks') }
+      );
     },
     'thief.mortar'(runtime, context) {
       const state = antiquaryState.from(runtime.profession);

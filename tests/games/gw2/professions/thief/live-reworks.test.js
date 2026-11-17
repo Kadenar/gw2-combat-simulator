@@ -214,3 +214,40 @@ test('Twin Fangs refreshes its eight-second window only from qualifying hits', (
     assert.deepEqual(active, [false, defiant, defiant, defiant, false]);
   }
 });
+
+// Passive chance applies before the triggering hit; the earned bonus applies to later hits until expiry.
+test('Twin Fangs adds passive critical chance before its active window and after expiry', () => {
+  for (const [selected, defiant, expected] of [
+    [false, true, [0.05, 0.05, 0.05]],
+    [true, false, [0.12, 0.12, 0.12]],
+    [true, true, [0.12, 0.19, 0.12]]
+  ]) {
+    const chances = [];
+    const result = runThief(
+      [wait(12000)],
+      {
+        selectedTraitIds: selected ? [TRAIT.TWIN_FANGS] : [],
+        attributeInputs: baseAttributeInputs({ precision: 1000 }),
+        target: { armor: 2597, defiant, conditions: {} }
+      },
+      {
+        initialize(runtime) {
+          for (const at of [1, 2, 11]) runtime.effects.emit({ kind: 'packet', event: thiefHit(at) });
+        },
+        extend: (native) => ({
+          reactions: {
+            ...native.reactions,
+            'damage.resolved'(runtime, event, details) {
+              if (event.source === 'fixture') chances.push(details.hitContext.critical.chance);
+
+              return native.reactions['damage.resolved'](runtime, event, details);
+            }
+          }
+        })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(chances.length, expected.length);
+    chances.forEach((chance, index) => assert.ok(Math.abs(chance - expected[index]) < 1e-8));
+  }
+});

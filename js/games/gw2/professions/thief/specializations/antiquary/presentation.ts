@@ -97,8 +97,19 @@ function antiquaryStateSnapshot(
     expiry: 'exclusive',
     order: 'earliest-expiry'
   });
+  const guitarCharges = activeBatches(state[STATE.ANTIQUARY_GUITAR_CHARGES] || [], at, {
+    expiry: 'exclusive',
+    order: 'insertion'
+  });
   for (const [id, label, grant] of [
-    ['antiquary-metal-legion-guitar', 'Metal Legion Guitar', state[STATE.BONUS_STEALTH_ATTACK]],
+    [
+      'antiquary-metal-legion-guitar',
+      'Metal Legion Guitar',
+      {
+        count: guitarCharges.reduce((sum, entry) => sum + entry.count, 0),
+        expiresAt: Math.min(...guitarCharges.map((entry) => entry.expiresAt))
+      }
+    ],
     ['antiquary-mistburn-mortar', 'Mistburn Mortar', state[STATE.MISTBURN]],
     [
       'antiquary-chak-shield',

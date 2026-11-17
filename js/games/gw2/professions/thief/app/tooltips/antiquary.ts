@@ -1,3 +1,4 @@
+import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import {
   fromProfile,
   fromSkill,
@@ -83,10 +84,6 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
       skillFact(balanceContext, entity.id, 'maximumStacks', 'Charged strikes'),
       ...simulationEffectFacts(requireSkillAction(selected, 'charged').effects, 'per later charged strike').facts
     );
-  } else if (entity.id === ID.METAL_LEGION_GUITAR) {
-    description += ' Grants timed charges allowing stealth attacks without entering stealth.';
-    window();
-    facts.push(skillFact(balanceContext, entity.id, 'maximumStacks', 'Stealth-attack charges'));
   } else if (entity.id === ID.ZEPHYRITE_SUN_CRYSTAL) {
     description += ' Meticulous Custodian adds burning to each eligible strike.';
     facts.push(
@@ -98,6 +95,48 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   }
 
   return { description, facts };
+};
+
+/** Separate Guitar's attacks from its charge grants, keeping the final smash and charge cap distinct. */
+const guitarTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+  const skill = balanceContext.catalog.skillsById.get(entity.id)!;
+  const attacks = (skill.effects ?? []).flatMap((effect) =>
+    simulationEffectFacts([{ ...effect, name: undefined }]).facts.map((fact) =>
+      effect.type === 'strike' && effect.metadata?.packetKind === 'thief.metal-legion-guitar-final-smash'
+        ? { ...fact, name: 'Final smash' }
+        : fact
+    )
+  );
+  return {
+    description:
+      'Consume this artifact to strike, inflict confusion, and stun. Grants charges for stealth attacks without entering stealth. Artifact-use traits apply.',
+    facts: [],
+    factSections: [
+      { label: 'Base attacks', facts: attacks },
+      {
+        label: 'Stealth-attack charges',
+        description: 'Newest charges are spent first. Reusing does not refresh older charges.',
+        facts: [
+          skillFact(balanceContext, entity.id, 'antiquaryStealthAttackCharges', 'Charges per use'),
+          skillFact(balanceContext, entity.id, 'maximumStacks', 'Maximum charges'),
+          {
+            ...skillFact(balanceContext, entity.id, 'duration', 'Charge duration', tooltipSeconds),
+            icon: MODIFIER_EFFECT_ICONS.Lifetime
+          },
+          {
+            ...profileFact(
+              balanceContext,
+              TRAIT.METICULOUS_CUSTODIAN,
+              'duration',
+              'With Meticulous Custodian',
+              tooltipSeconds
+            ),
+            icon: MODIFIER_EFFECT_ICONS.Lifetime
+          }
+        ]
+      }
+    ]
+  };
 };
 
 const reshuffleTooltip: DescribeSimulationTooltip = skillTooltip(
@@ -149,26 +188,46 @@ const doubleEdgeTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
 
   if (entity.id === ID.STONE_SUMMIT_CANNON) {
     const skill = balanceContext.catalog.skillsById.get(entity.id)!;
+    // Outcome headings replace internal packet names while preserving the selected balance values.
+    const outcomeFacts = (outcome: 'success' | 'backfire') =>
+      simulationEffectFacts(
+        skill.effects
+          ?.filter((effect) => effect.packetLabel === outcome)
+          .map((effect) => ({ ...effect, name: undefined, packetLabel: undefined }))
+      ).facts;
     return {
-      description,
-      facts: [
-        ...simulationEffectFacts(
-          skill.effects?.filter((effect) => effect.packetLabel === 'success'),
-          'success'
-        ).facts,
-        ...simulationEffectFacts(
-          skill.effects?.filter((effect) => effect.packetLabel === 'backfire'),
-          'backfire'
-        ).facts,
-        skillFact(balanceContext, entity.id, 'backfireDelay', 'Backfire delay', tooltipSeconds)
+      description:
+        "Always succeeds when ready. During recharge, uses the selected success or backfire outcome. Scoundrel's Luck consumes its charge to guarantee success during recharge. Can be reused after a backfire.",
+      facts: [],
+      factSections: [
+        { label: 'Success', facts: outcomeFacts('success') },
+        {
+          label: 'Backfire',
+          facts: [
+            ...outcomeFacts('backfire'),
+            skillFact(balanceContext, entity.id, 'backfireDelay', 'Backfire delay', tooltipSeconds)
+          ]
+        }
       ]
     };
   }
 
+  // Show per-coin initiative payouts separately from the shared recharge and Luck rules.
   if (entity.id === ID.CANACH_COIN_TOSS)
     return {
-      description: `${description} Coin tosses follow a deterministic alternating sequence. Heads restores more initiative than tails; backfire reduces the initiative returned.`,
-      facts: []
+      description:
+        "Toss three coins to restore initiative. The simulator alternates heads and tails across uses, starting with heads. Always succeeds when ready. During recharge, uses the selected outcome unless Scoundrel's Luck consumes a charge to guarantee success. You can reuse it after a backfire.",
+      facts: [],
+      factSections: [
+        {
+          label: 'Success',
+          facts: [{ name: 'Initiative restored', detail: '2 per head · 1 per tail' }]
+        },
+        {
+          label: 'Backfire',
+          facts: [{ name: 'Initiative restored', detail: '1 per head · 0 per tail' }]
+        }
+      ]
     };
 
   return {
@@ -187,10 +246,10 @@ export const antiquaryTooltips = {
         ID.CHAK_SHIELD,
         ID.ZEPHYRITE_SUN_CRYSTAL,
         ID.SUMMON_KRYPTIS_TURRET,
-        ID.MISTBURN_MORTAR,
-        ID.METAL_LEGION_GUITAR
+        ID.MISTBURN_MORTAR
       ].map((id) => [id, artifactTooltip])
     ),
+    [ID.METAL_LEGION_GUITAR]: guitarTooltip,
     [ID.RESHUFFLE]: reshuffleTooltip,
     [ID.UNSTABLE_SKRITT_BOMB]: unstableSkrittBombTooltip,
     [ID.SKRITT_SWIPE]: skrittSwipeTooltip,
@@ -273,15 +332,43 @@ export const antiquaryTooltips = {
         return effect ? simulationEffectFacts([effect], label).facts : [];
       })
     }),
-    [TRAIT.COMBAT_HIGH]: traitTooltip(
-      'Skritt Swipe grants a full set of damage-bonus stacks, replacing earlier stacks. Stacks expire one at a time.',
-      [
-        fromProfile(TRAIT.COMBAT_HIGH, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
-        fromProfile(TRAIT.COMBAT_HIGH, 'conditionDamageIncreasePerStack', 'Condition damage per stack', tooltipPercent),
-        ['maximumStacks', 'Initial stacks'],
-        ['pulseInterval', 'Time between stack expirations', tooltipSeconds],
-        ['duration', 'Final stack duration', tooltipSeconds]
+    // Separate per-stack bonuses from decay so the final expiry does not read as every stack's lifetime.
+    [TRAIT.COMBAT_HIGH]: (balanceContext, entity) => ({
+      description:
+        'Skritt Swipe grants damage-bonus stacks that expire one at a time. Using it again replaces the remaining stacks and restarts their decay.',
+      facts: [],
+      factSections: [
+        {
+          label: 'Damage per stack',
+          facts: [
+            profileFact(balanceContext, entity.id, 'damageIncreasePerStack', 'Strike damage', tooltipPercent),
+            profileFact(
+              balanceContext,
+              entity.id,
+              'conditionDamageIncreasePerStack',
+              'Condition damage',
+              tooltipPercent
+            )
+          ]
+        },
+        {
+          label: 'Stack decay',
+          facts: [
+            {
+              ...profileFact(balanceContext, entity.id, 'maximumStacks', 'Stacks granted'),
+              icon: MODIFIER_EFFECT_ICONS['Attribute increase']
+            },
+            {
+              ...profileFact(balanceContext, entity.id, 'pulseInterval', 'Lose one stack every', tooltipSeconds),
+              icon: MODIFIER_EFFECT_ICONS.Interval
+            },
+            {
+              ...profileFact(balanceContext, entity.id, 'duration', 'Last stack expires after', tooltipSeconds),
+              icon: MODIFIER_EFFECT_ICONS.Lifetime
+            }
+          ]
+        }
       ]
-    )
+    })
   }
 } satisfies ProfessionTooltips;

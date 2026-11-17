@@ -17,15 +17,19 @@ import { thiefSkill } from '#gw2/professions/thief/core/events.js';
 import { stealthEntered, stealthExited } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { hiddenKillerLinger } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { consumeBatchFromList } from '#kernel/resources/batch-list.js';
 import { activeBatchCount } from '#kernel/resources/batch.js';
 
 /** A specialization-granted stealth-attack charge is usable outside stealth until it expires at the live clock. */
 export function thiefBonusStealthAttack(runtime: MechanicQueriesOf<ThiefRuntime>): boolean {
   const at = runtime.time;
   const elite = runtime.profession.specialization;
+
+  if (elite.kind === 'Deadeye') return activeBatchCount(elite.state.bonusStealthAttack, at, 'exclusive') > 0;
+
   return (
-    (elite.kind === 'Deadeye' || elite.kind === 'Antiquary') &&
-    activeBatchCount(elite.state.bonusStealthAttack, at, 'exclusive') > 0
+    elite.kind === 'Antiquary' &&
+    elite.state.antiquaryGuitarCharges.some((grant) => activeBatchCount(grant, at, 'exclusive') > 0)
   );
 }
 
@@ -110,8 +114,16 @@ export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast
   const elite = runtime.profession.specialization;
 
   // Actual stealth supplies the attack first; only the active owner can spend a bonus entitlement.
-  if (!stealthActive(core, runtime.time) && (elite.kind === 'Deadeye' || elite.kind === 'Antiquary'))
-    consumeCharge(elite.state.bonusStealthAttack, runtime.time, 'exclusive');
+  if (!stealthActive(core, runtime.time)) {
+    if (elite.kind === 'Deadeye') consumeCharge(elite.state.bonusStealthAttack, runtime.time, 'exclusive');
+
+    if (elite.kind === 'Antiquary') {
+      // Spend the newest live Guitar grant first, preserving older grants and their expiry.
+      const grants = elite.state.antiquaryGuitarCharges;
+      const newest = [...grants].reverse().find((grant) => activeBatchCount(grant, runtime.time, 'exclusive') > 0);
+      consumeBatchFromList(grants, runtime.time, { expiry: 'exclusive', eligible: (grant) => grant === newest });
+    }
+  }
 
   core.strikeBrokeStealthAt = null;
 

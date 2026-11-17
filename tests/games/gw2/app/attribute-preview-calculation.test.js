@@ -552,6 +552,18 @@ test('Roiling Mists adds its critical chance only while the Fury preview is enab
   }
 });
 
+// Trait selection grants passive critical chance; the checkbox adds only the earned bonus.
+test('Twin Fangs previews separate passive and active critical-chance bonuses', () => {
+  const without = previewApp('thief', ['Keen Observer']);
+  const withTrait = previewApp('thief', ['Keen Observer', 'Twin Fangs']);
+  for (const playerHealth of [50, 100]) {
+    const baseline = stats(without, { playerHealth })['Critical Chance'].final;
+    close(stats(withTrait, { playerHealth, twinFangs: 0 })['Critical Chance'].final, baseline + 7);
+    close(stats(withTrait, { playerHealth, twinFangs: 1 })['Critical Chance'].final, baseline + 14);
+    close(stats(without, { playerHealth, twinFangs: 1 })['Critical Chance'].final, baseline);
+  }
+});
+
 test('player health changes only the isolated stat preview', () => {
   // Preview health must affect conditional stats without leaking into builds or simulation configuration.
   for (const [profession, traits] of [['thief', ['Twin Fangs', 'Keen Observer']]]) {

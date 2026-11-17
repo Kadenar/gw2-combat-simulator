@@ -11,6 +11,7 @@ export const THIEF_STATE_IDS = Object.freeze({
   OUTBOUND_AXES: 'gw2.thief.outbound-axes',
   ACTIVE_THIEVES_GUILD: 'gw2.thief.active-thieves-guild',
   BONUS_STEALTH_ATTACK: 'gw2.thief.bonus-stealth-attack',
+  ANTIQUARY_GUITAR_CHARGES: 'gw2.antiquary.guitar-charges',
   ARTIFACT_SLOTS: 'gw2.antiquary.artifact-slots',
   ARTIFACT_USES_REMAINING: 'gw2.antiquary.artifact-uses-remaining',
   SCOUNDRELS_LUCK: 'gw2.antiquary.scoundrels-luck',

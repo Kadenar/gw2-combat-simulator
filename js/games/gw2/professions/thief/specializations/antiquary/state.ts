@@ -17,7 +17,7 @@ export interface ThiefArtifactSlot {
 }
 
 export interface AntiquaryState {
-  bonusStealthAttack: ChargeGrant;
+  antiquaryGuitarCharges: ChargeGrant[];
   artifactSlots: ThiefArtifactSlot[];
   artifactUsesRemaining: number;
   scoundrelsLuck: number;
@@ -46,7 +46,7 @@ export function createAntiquaryState(): AntiquaryState {
     nextSkrittScufflePilferAt: 0,
     antiquaryDamageUntil: 0,
     combatHighExpirations: [],
-    bonusStealthAttack: createChargeGrant(0, 0),
+    antiquaryGuitarCharges: [],
     mistburn: createChargeGrant(0, 0),
     kryptisDamageUntil: 0,
     chakInitiativeRefunds: [],
@@ -62,7 +62,10 @@ export const antiquaryState = defineProfessionSpecializationState('Antiquary', c
 export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
   const state = antiquaryState.from(input.profession);
   return {
-    [STATE.BONUS_STEALTH_ATTACK]: state.bonusStealthAttack,
+    [STATE.ANTIQUARY_GUITAR_CHARGES]: activeBatches(state.antiquaryGuitarCharges, input.time, {
+      expiry: 'exclusive',
+      order: 'insertion'
+    }),
     [STATE.ARTIFACT_SLOTS]: state.artifactSlots,
     [STATE.ARTIFACT_USES_REMAINING]: state.artifactUsesRemaining,
     [STATE.SCOUNDRELS_LUCK]: state.scoundrelsLuck,

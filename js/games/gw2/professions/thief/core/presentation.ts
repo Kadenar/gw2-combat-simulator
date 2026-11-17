@@ -270,7 +270,9 @@ export const thiefCoreUi = Object.freeze({
             revealedUntil: state[STATE.REVEALED_UNTIL]
           },
           now
-        ) || activeBatchCount(state[STATE.BONUS_STEALTH_ATTACK], now, 'exclusive') > 0
+        ) ||
+        activeBatchCount(state[STATE.BONUS_STEALTH_ATTACK], now, 'exclusive') > 0 ||
+        (state[STATE.ANTIQUARY_GUITAR_CHARGES] || []).some((grant) => activeBatchCount(grant, now, 'exclusive') > 0)
     };
   },
   // Equal-duration grants replace oldest stacks, so capping their active sum matches the engine's stack count.

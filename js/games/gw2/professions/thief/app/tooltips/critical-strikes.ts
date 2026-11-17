@@ -35,10 +35,11 @@ export const thiefCriticalStrikesTooltips = {
     ['resourceGain', 'Initiative restored']
   ]),
   [TRAIT.TWIN_FANGS]: traitTooltip(
-    'A direct hit against a defiant target grants critical chance to later hits. Further qualifying hits refresh the window. Flanking non-defiant targets is not modeled. Combat simulation always applies the full-health critical-damage bonus.',
+    'Gain passive critical chance. A direct hit against a defiant target grants additional critical chance to later hits. Further qualifying hits refresh the window. Flanking non-defiant targets is not modeled. Combat simulation always applies the full-health critical-damage bonus.',
     [
+      ['thiefTwinFangsPassiveCriticalChance', 'Passive critical chance', tooltipPercent],
       ['criticalDamage', 'Critical damage at full health', tooltipFactorChange],
-      ['criticalChance', 'Critical chance while active', tooltipPercent],
+      ['criticalChance', 'Additional critical chance while active', tooltipPercent],
       ['duration', 'Bonus duration', tooltipSeconds]
     ]
   ),

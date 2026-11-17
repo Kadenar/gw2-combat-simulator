@@ -157,6 +157,10 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Energy: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Endurance: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Motivation: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
+  // Artifact-use grants share the book glyph with other resource amounts.
+  'Artifact uses': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
+  'Stolen skill uses': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
+  'Shadow Force': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   // Troubadour note gains, requirements, and generation pulses share the standard resource book glyph.
   Notes: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   'Note-generation pulses': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',

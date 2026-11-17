@@ -11,6 +11,7 @@ export const ANTIQUARY_SKILL_FIELDS = defineFields(
     enhancedDuration: numberField({ label: 'enhanced identity duration', patch: 'primary', unit: 'seconds' }),
     maximumDuration: numberField({ label: 'maximum identity duration', patch: 'primary', unit: 'seconds' }),
     refundCharges: numberField({ label: 'initiative refund charges', patch: 'primary' }),
+    antiquaryStealthAttackCharges: numberField({ label: 'stealth attack charges granted', patch: 'primary' }),
     rechargeMultiplier: numberField({ label: 'next utility recharge multiplier', patch: 'primary' })
   },
   'Antiquary'
