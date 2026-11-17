@@ -38,15 +38,9 @@ export const guardianVirtuesTooltips = {
     ]
   ),
   [TRAIT.UNSCATHED_CONTENDER]: traitTooltip(
-    'Deal increased strike damage above the health threshold or with Aegis. Aegis also grants a separate additive strike-damage bonus. Combat simulations assume full health.',
+    'Deal increased strike damage above the health threshold or with Aegis. Combat simulations assume full health.',
     [
       fromProfile(TRAIT.UNSCATHED_CONTENDER, 'damageIncrease', 'Strike damage', tooltipPercent),
-      fromProfile(
-        TRAIT.UNSCATHED_CONTENDER,
-        'aegisDamageIncrease',
-        'Additional strike damage with Aegis',
-        tooltipPercent
-      ),
       fromProfile(TRAIT.UNSCATHED_CONTENDER, 'threshold', 'Health threshold', tooltipPercent)
     ]
   ),
