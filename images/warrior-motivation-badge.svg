@@ -1,34 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="50" height="34" viewBox="0 0 50 34" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="48" viewBox="0 0 64 48" fill="none">
   <defs>
-    <linearGradient id="wing" x1="6" y1="4" x2="31" y2="20" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#fce4a5" />
-      <stop offset="0.42" stop-color="#c48747" />
-      <stop offset="1" stop-color="#59301d" />
-    </linearGradient>
-    <linearGradient id="helm" x1="24" y1="5" x2="24" y2="25" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#ffda83" />
-      <stop offset="0.45" stop-color="#b45425" />
-      <stop offset="1" stop-color="#54201b" />
+    <linearGradient id="amber" x1="32" y1="3" x2="32" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fbb526" />
+      <stop offset="0.5" stop-color="#ef9b0b" />
+      <stop offset="1" stop-color="#d98404" />
     </linearGradient>
   </defs>
-  <!-- Layered wings and a red helm echo Paragon's in-game Motivation emblem at counter size. -->
-  <g stroke-linejoin="round">
-    <path d="M21 9C15 6 10 4 4 4c2 5 7 8 13 10-4-1-8-1-11-2 3 5 8 7 15 7Z" fill="#3b2019" stroke="#643b25" />
-    <path d="M27 9c6-3 11-5 17-5-2 5-7 8-13 10 4-1 8-1 11-2-3 5-8 7-15 7Z" fill="#3b2019" stroke="#643b25" />
+  <!-- Paragon's in-game Motivation crest: a broad amber shield between two feathered wings. -->
+  <g stroke="#9a5c06" stroke-width="1.1" stroke-linejoin="round" fill="url(#amber)">
     <path
-      d="M20 10C15 7 10 6 6 5c3 4 7 6 13 8-4-1-7-1-10-1 4 4 7 5 12 5Z"
-      fill="url(#wing)"
-      stroke="#f0b86d"
-      stroke-width="0.7"
+      d="M20 11.5Q11 5 2.5 3L6 9 3.5 11 7.5 14.5 5.5 16.5 9.5 19.5 8 21.5 12 24.5 11 26.5 15 28.5 14.5 31 18 31.5 18.5 34.5 21.5 33.5Z"
     />
     <path
-      d="M28 10c5-3 10-4 14-5-3 4-7 6-13 8 4-1 7-1 10-1-4 4-7 5-12 5Z"
-      fill="url(#wing)"
-      stroke="#f0b86d"
-      stroke-width="0.7"
+      d="M44 11.5Q53 5 61.5 3L58 9 60.5 11 56.5 14.5 58.5 16.5 54.5 19.5 56 21.5 52 24.5 53 26.5 49 28.5 49.5 31 46 31.5 45.5 34.5 42.5 33.5Z"
     />
-    <path d="M24 5c4 1 6 5 6 9l-2 7-4 4-4-4-2-7c0-4 2-8 6-9Z" fill="url(#helm)" stroke="#f9ca75" stroke-width="0.9" />
-    <path d="m24 6 2 8-2 6-2-6 2-8Z" fill="#ffe0a1" />
-    <path d="m19 13 5 2 5-2-2 6-3 4-3-4-2-6Z" fill="#782c20" stroke="#d48745" stroke-width="0.7" />
+    <path d="M18.5 11H45.5C45.5 27 41 37 32 43.5 23 37 18.5 27 18.5 11Z" />
+  </g>
+  <!-- Feather shafts and the shield's inner bevel keep the crest's texture at counter size. -->
+  <g stroke="#bd7206" stroke-width="0.8" stroke-linecap="round" opacity="0.85">
+    <path d="M6 9 18 15M7.5 14.5 19 19M9.5 19.5 19.5 23M12 24.5 20 27M15 28.5 20.5 30.5" />
+    <path d="M58 9 46 15M56.5 14.5 45 19M54.5 19.5 44.5 23M52 24.5 44 27M49 28.5 43.5 30.5" />
+    <path d="M22 14.5H42C42 27 38.5 34 32 39 25.5 34 22 27 22 14.5Z" />
   </g>
 </svg>

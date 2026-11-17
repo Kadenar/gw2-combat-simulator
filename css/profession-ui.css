@@ -1073,9 +1073,28 @@
 }
 
 .active-resource-counter.warrior-motivation {
+  height: 38px;
   background: url('@images/warrior-motivation-badge.svg') center / contain no-repeat;
   isolation: isolate;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
+}
+
+/* With no Motivation the in-game crest becomes a flat brown silhouette without a count. */
+[data-resource-id='motivation'][data-resource-count='0'] .warrior-motivation {
+  background: none;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+}
+
+[data-resource-id='motivation'][data-resource-count='0'] .warrior-motivation::before {
+  position: absolute;
+  inset: 0;
+  background: #4d3729;
+  content: '';
+  mask: url('@images/warrior-motivation-badge.svg') center / contain no-repeat;
+}
+
+[data-resource-id='motivation'][data-resource-count='0'] .warrior-motivation span {
+  visibility: hidden;
 }
 
 /* The Motivation crest carries its own count, as in the in-game mechanic row. */
@@ -1083,23 +1102,23 @@
   display: none;
 }
 
+/* Center the outlined count on the shield, just below the wing line. */
 .warrior-motivation span {
   position: relative;
   z-index: 1;
-  display: grid;
-  width: 50px;
-  height: 34px;
+  padding-top: 3px;
   color: #fff;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 15px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 17px;
   font-weight: 700;
+  letter-spacing: -0.5px;
   line-height: 1;
-  place-items: end center;
   text-shadow:
-    -1px -1px 1px #111,
-    1px -1px 1px #111,
-    -1px 1px 1px #111,
-    1px 1px 1px #111;
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0 0 2px #000;
 }
 
 .active-resource-bar.endurance {
