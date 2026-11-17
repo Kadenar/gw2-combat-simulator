@@ -107,7 +107,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.DEADLY_DELIVERY]: {
     name: 'Deadly Delivery',
-    icon: 'https://render.guildwars2.com/file/080360524A4926B770065F99DDB57AB7FDFDC4AC/1770555.png',
+    icon: 'https://render.guildwars2.com/file/710E2008CB6D07024D3603A3FE36C266780B3AA4/3833326.png',
     type: 'Weapon',
     weapon: 'Dagger',
     slot: 'Weapon_1',
