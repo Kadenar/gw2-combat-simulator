@@ -14,7 +14,7 @@ import type { GuardianWillbenderState } from '#gw2/professions/guardian/speciali
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { activeRefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 
 /** Decodes the selected grant, lifetime, and live cap for a single Tempo trigger. */
 export function lethalTempoParameters(source: BalanceProfileSource, context: unknown) {
@@ -34,7 +34,7 @@ export function lethalTempoParameters(source: BalanceProfileSource, context: unk
 
 export function activeLethalTempo(state: GuardianWillbenderState, at: number): number {
   // Damage on the final effect tick still receives the bonus, matching the refresh boundary.
-  return activeRefreshedStacks(state.lethalTempo, canonicalTime(at), 'inclusive');
+  return activeBatchCount(state.lethalTempo, canonicalTime(at), 'inclusive');
 }
 
 export function lethalTempoStacks(context: Gw2ModifierContext): number {

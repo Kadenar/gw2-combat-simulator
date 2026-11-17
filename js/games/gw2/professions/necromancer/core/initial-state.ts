@@ -1,5 +1,5 @@
 import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import { necromancerLifeForceCapacity, type NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
@@ -36,7 +36,7 @@ export function createNecromancerCoreState(
     activeShroud: '',
     activeShroudEntryId: null,
     activeShroudExitId: null,
-    soulShardGrant: grantCharges(0, 0),
+    soulShardGrant: createChargeGrant(0, 0),
     carapaceExpiries: [],
     activeMinions: {},
     minionAttackGenerations: {},

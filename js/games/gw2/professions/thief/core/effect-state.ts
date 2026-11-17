@@ -37,7 +37,7 @@ export function thiefEffectStates(
       timedEffectState(
         kind,
         (runtime.profession.core.venomChargeBatches[String(id)] ?? []).map((grant) => ({
-          stacks: grant.charges,
+          stacks: grant.count,
           expiresAt: grant.expiresAt
         }))
       )

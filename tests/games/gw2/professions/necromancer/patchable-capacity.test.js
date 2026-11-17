@@ -48,16 +48,16 @@ for (const [shards, blight] of [
     });
     assert.deepEqual(result.warnings, []);
     const owner = observedRuntime(result);
-    assert.equal(owner.profession.core.soulShardGrant.charges, shards);
+    assert.equal(owner.profession.core.soulShardGrant.count, shards);
     assert.equal(owner.profession.specialization.state.blightExpiries.length, blight);
     assert.equal(harbingerHooks.observeEffects(owner.mechanics)[0].countLimit, blight);
 
     // Reconciliation repairs over-cap projections without rewriting the retained combat state.
-    owner.profession.core.soulShardGrant.charges = 100;
+    owner.profession.core.soulShardGrant.count = 100;
     owner.profession.specialization.state.blightExpiries = Array(100).fill(25);
     const before = structuredClone(owner.profession);
     const state = projectObservedState(family, { config, profession: owner.profession });
-    assert.equal(state[STATE.SOUL_SHARD_GRANT].charges, shards);
+    assert.equal(state[STATE.SOUL_SHARD_GRANT].count, shards);
     assert.equal(state[STATE.BLIGHT], blight);
     assert.deepEqual(owner.profession, before);
 
@@ -91,7 +91,7 @@ for (const [shards, blight] of [
       }
     );
     assert.deepEqual(baseline.warnings, []);
-    assert.equal(observedRuntime(baseline).profession.core.soulShardGrant.charges, 6);
+    assert.equal(observedRuntime(baseline).profession.core.soulShardGrant.count, 6);
     assert.equal(observedRuntime(baseline).profession.specialization.state.blightExpiries.length, 25);
   });
 
@@ -101,7 +101,7 @@ for (const [shards, blight] of [
     const config = { patchId: PATCH, specialization: 'Harbinger', initialResource: 100 };
     const spear = run(['Extirpate'], { ...config, primaryWeapon: 'Spear' });
     assert.deepEqual(spear.warnings, []);
-    assert.equal(observedRuntime(spear).profession.core.soulShardGrant.charges, Math.min(shards, 2));
+    assert.equal(observedRuntime(spear).profession.core.soulShardGrant.count, Math.min(shards, 2));
     const elixir = run(['Elixir of Risk'], { ...config, initialBlight: blight });
     assert.deepEqual(elixir.warnings, []);
     assert.equal(observedRuntime(elixir).profession.specialization.state.blightExpiries.length, blight);
@@ -133,13 +133,13 @@ test('patched Soul Shards can be spent, refilled, and expired through the native
           run(owner) {
             assert.equal(consumeSoulShards(owner.profession.core, 3, owner.time), 3);
             grantNecromancerSoulShards(owner.mechanics, 20);
-            assert.equal(owner.profession.core.soulShardGrant.charges, 8);
+            assert.equal(owner.profession.core.soulShardGrant.count, 8);
           }
         }
       ],
-      probes: [[10, (owner) => assert.equal(owner.profession.core.soulShardGrant.charges, 8)]]
+      probes: [[10, (owner) => assert.equal(owner.profession.core.soulShardGrant.count, 8)]]
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).profession.core.soulShardGrant.charges, 0);
+  assert.equal(observedRuntime(result).profession.core.soulShardGrant.count, 0);
 });

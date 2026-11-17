@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
-import { activeChargeCount, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -11,6 +11,7 @@ import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
 import { runGuardian as run } from '#tests/helpers/guardian-simulation.js';
@@ -340,7 +341,7 @@ test('Willbender counts accepted player and Air impacts through the inclusive vi
   assert.equal(result.resolvedEvents.filter((event) => event.kind === 'lethal-tempo').length, 3);
   assert.deepEqual(wb(result).virtueHitCounts, { justice: 0, resolve: 0, courage: 0 });
   assert.equal(justiceApplications(result, 'active').length, 1);
-  assert.equal(wb(result).lethalTempo.stacks, 3);
+  assert.equal(wb(result).lethalTempo.count, 3);
   const unarmed = run([wait(1)], willbender, { initialize: (runtime) => strike(runtime, 0) });
   assert.equal(
     unarmed.resolvedEvents.some((event) => event.kind === 'lethal-tempo'),
@@ -506,7 +507,7 @@ test('removed Willbender window components preserve independent fields and activ
   );
   assert.equal(wb(result).justiceUntil, 0);
   assert.equal(justiceApplications(result, 'active').length, 0);
-  assert.equal(wb(result).lethalTempo.stacks, 1);
+  assert.equal(wb(result).lethalTempo.count, 1);
   assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.metadata?.willbenderFlames));
   assert.ok(result.resolvedEvents.some((event) => event.kind === 'fury'));
   assert.equal(
@@ -715,12 +716,12 @@ test('Firebrand Ashes grants at application, ignores misses, and preserves hit l
     [1, 'impact-1'],
     [expiry, `impact-${expiry}`]
   ]);
-  assert.equal(fb(result).ashes.charges, 0);
+  assert.equal(fb(result).ashes.count, 0);
   const canceled = run(
     [ID.TOME_OF_JUSTICE, { type: 'cast', skillId: ID.ASHES_OF_THE_JUST, interruptAfterMs: 1 }, wait(1000)],
     firebrand
   );
-  assert.equal(fb(canceled).ashes.charges, 0);
+  assert.equal(fb(canceled).ashes.count, 0);
   assert.equal(fb(canceled).tomePages.value, 8);
   assert.equal(
     canceled.resolvedEvents.some((event) => event.kind === 'ashes-of-the-just'),
@@ -750,7 +751,7 @@ test('removed Firebrand components preserve independent page grants and Might wi
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(fb(result).tomePages.value, 2);
-  assert.equal(fb(result).ashes.charges, 0);
+  assert.equal(fb(result).ashes.count, 0);
   assert.equal(observedRuntime(result).procs.deadline('guardian.firebrand.quickfire'), 0);
   assert.equal(observedRuntime(result).procs.deadline('guardian.firebrand.stalwartSpeed'), 0);
   assert.ok(result.resolvedEvents.some((event) => event.kind === 'might' && event.skillId === ID.ASHES_OF_THE_JUST));
@@ -964,7 +965,7 @@ test('Banish resets either hammer leap only when its strike reaches the target',
 // Seed a real window and its expiry to isolate capture, consumption, and delayed impacts from a setup rotation.
 function illuminate(runtime, expiresAt, symbol = false) {
   if (symbol) runtime.profession.core.spearLuminanceUntil = expiresAt;
-  else runtime.profession.core.spearIlluminated = grantCharges(1, expiresAt);
+  else runtime.profession.core.spearIlluminated = createChargeGrant(1, expiresAt);
 
   runtime.schedule(GUARDIAN_SPEAR_EXPIRY, expiresAt, { symbol, expiresAt }, undefined, -220);
 }
@@ -1030,7 +1031,7 @@ test('spear ignores spent grants and replaces them with exactly one charge', () 
     { primaryWeapon: 'Spear' },
     {
       initialize: (runtime) => {
-        runtime.profession.core.spearIlluminated = grantCharges(0, 5);
+        runtime.profession.core.spearIlluminated = createChargeGrant(0, 5);
       }
     }
   );
@@ -1039,7 +1040,7 @@ test('spear ignores spent grants and replaces them with exactly one charge', () 
     result.procSteps.some((step) => step.skill === 'Illuminated'),
     false
   );
-  assert.equal(activeChargeCount(core(result).spearIlluminated, observedRuntime(result).time), 1);
+  assert.equal(activeBatchCount(core(result).spearIlluminated, observedRuntime(result).time, 'exclusive'), 1);
 });
 
 test('spear expiry runs during waits and a refreshed window survives the old wake', () => {
@@ -1050,9 +1051,9 @@ test('spear expiry runs during waits and a refreshed window survives the old wak
   );
   assert.deepEqual(result.warnings, []);
   assert.ok(observedRuntime(result).time > 0.5);
-  assert.equal(core(result).spearIlluminated.charges, 1);
+  assert.equal(core(result).spearIlluminated.count, 1);
   const expired = run([ID.HELIO_RUSH, wait(7000)], { primaryWeapon: 'Spear' });
-  assert.equal(core(expired).spearIlluminated.charges, 0);
+  assert.equal(core(expired).spearIlluminated.count, 0);
   const symbol = run([ID.SYMBOL_OF_LUMINANCE, wait(7000)], { primaryWeapon: 'Spear' });
   assert.equal(core(symbol).spearLuminanceUntil, 0);
 });
@@ -1065,7 +1066,7 @@ test('an uncommitted spear attempt preserves its charge and creates no illuminat
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(core(result).spearIlluminated.expiresAt, 5);
-  assert.equal(core(result).spearIlluminated.charges, 1);
+  assert.equal(core(result).spearIlluminated.count, 1);
   assert.equal(
     result.resolvedEvents.some((event) => event.skillId === ID.SOLAR_STORM && event.type === 'damage'),
     false
@@ -1123,12 +1124,15 @@ test('spear filler preserves an armed charge and removed grant components cannot
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(activeChargeCount(core(result).spearIlluminated, observedRuntime(result).time), symbol ? 1 : 0);
+    assert.equal(
+      activeBatchCount(core(result).spearIlluminated, observedRuntime(result).time, 'exclusive'),
+      symbol ? 1 : 0
+    );
     assert.equal(core(result).spearIlluminated.expiresAt, 5);
   }
 
   // A replacement with the same deadline belongs to a different grant and must survive the accepted cast.
-  const replacement = grantCharges(1, 5);
+  const replacement = createChargeGrant(1, 5);
   const refreshed = run(
     [ID.HELIO_RUSH],
     { primaryWeapon: 'Spear', patchId: 'no-illumination-grants' },
@@ -1148,7 +1152,7 @@ test('spear filler preserves an armed charge and removed grant components cannot
   assert.deepEqual(refreshed.warnings, []);
   assert.ok(refreshed.procSteps.some((step) => step.skill === 'Illuminated'));
   assert.equal(core(refreshed).spearIlluminated, replacement);
-  assert.equal(replacement.charges, 1);
+  assert.equal(replacement.count, 1);
 });
 
 test('spear selects remaining projectile components', () => {

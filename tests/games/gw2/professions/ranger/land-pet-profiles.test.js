@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { rangerPetAutoProfile } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -86,7 +86,7 @@ test('Bristleback bleed charges expire, are spent, and cannot migrate through a 
       },
       {
         initialize(runtime) {
-          runtime.profession.core.pet.sharpenSpines = grantCharges(1, expiresAt);
+          runtime.profession.core.pet.sharpenSpines = createChargeGrant(1, expiresAt);
         },
         timeline: swap
           ? [
@@ -102,7 +102,7 @@ test('Bristleback bleed charges expire, are spent, and cannot migrate through a 
           [
             10,
             (runtime) => {
-              charges = runtime.profession.core.pet.sharpenSpines.charges;
+              charges = runtime.profession.core.pet.sharpenSpines.count;
             }
           ]
         ]

@@ -232,7 +232,7 @@ test('Lethal Tempo imports supplied stacks in isolation while new virtue rewards
       initialBuffs: [{ kind: 'lethal-tempo', stacks: 2, duration: 20 }],
       selectedTraitIds: [TRAIT.RESTORATIVE_VIRTUES]
     });
-    assert.equal(state(runtime).lethalTempo.stacks, traitTriggers ? 3 : 2);
+    assert.equal(state(runtime).lethalTempo.count, traitTriggers ? 3 : 2);
     assert.ok(state(runtime).resolveUntil > runtime.time);
     assert.equal(
       result.resolvedEvents.some((event) => event.type === 'buff' && event.kind === 'vigor'),

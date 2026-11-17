@@ -39,11 +39,7 @@ import { untamedState } from '#gw2/professions/ranger/specializations/untamed/st
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { claimActivation } from '#kernel/execution/activation-claims.js';
 import type { WorkOwner } from '#kernel/execution/scheduling.js';
-import {
-  activeRefreshedStacks,
-  grantRefreshedStacks,
-  type RefreshedStacks
-} from '#kernel/resources/refreshed-stacks.js';
+import { activeBatchCount, refreshBatch, type Batch } from '#kernel/resources/batch.js';
 
 function untamedModifierState(context: Gw2ModifierContext): Partial<UntamedModifierState> {
   return readProfessionSpecializationState<UntamedModifierState>(context.runtime?.profession, 'Untamed') || {};
@@ -195,7 +191,7 @@ const ferociousSymbiosis = defineTrait({
         const companion = readProfessionCoreState<RangerCoreState>(context.runtime?.profession).pet;
         const pet = context.event?.actorType === ACTOR.SUMMON && companion?.id === context.event.summonOwner;
         // Damage ownership selects the pool: Ranger-owned pet skills such as Poisonous Cloud use player stacks.
-        const stacks = activeRefreshedStacks(
+        const stacks = activeBatchCount(
           pet ? companion?.ferociousSymbiosis : state.ferociousSymbiosisPlayer,
           context.time,
           'exclusive'
@@ -414,7 +410,7 @@ const vowOfTheUntamed = defineTrait({
 
 interface UntamedModifierState {
   readonly rangerUnleashed?: boolean;
-  readonly ferociousSymbiosisPlayer?: RefreshedStacks;
+  readonly ferociousSymbiosisPlayer?: Batch;
 }
 
 // The ambush damage bonus follows the same supported identities as availability and Let Loose.
@@ -452,26 +448,22 @@ function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2Res
     if (!context.procs.claim(TRAIT.FEROCIOUS_SYMBIOSIS, 'ranger.untamed.ferociousSymbiosisPet', event.at)) return;
 
     // A player hit builds Pet stacks (cross-buff: player hits power the pet).
-    pet.ferociousSymbiosis = grantRefreshedStacks(
-      pet.ferociousSymbiosis,
-      1,
-      event.at,
-      event.at + duration,
-      maximumStacks,
-      'exclusive'
-    );
+    pet.ferociousSymbiosis = refreshBatch(pet.ferociousSymbiosis, 1, {
+      at: event.at,
+      expiresAt: event.at + duration,
+      expiry: 'exclusive',
+      maximum: maximumStacks
+    }).batch;
   } else if (isPetStrike(event) && event.actorType === ACTOR.SUMMON && event.summonOwner === pet.id) {
     if (!context.procs.claim(TRAIT.FEROCIOUS_SYMBIOSIS, 'ranger.untamed.ferociousSymbiosisPlayer', event.at)) return;
 
     // A pet hit builds Player stacks (cross-buff: pet hits power the player).
-    state.ferociousSymbiosisPlayer = grantRefreshedStacks(
-      state.ferociousSymbiosisPlayer,
-      1,
-      event.at,
-      event.at + duration,
-      maximumStacks,
-      'exclusive'
-    );
+    state.ferociousSymbiosisPlayer = refreshBatch(state.ferociousSymbiosisPlayer, 1, {
+      at: event.at,
+      expiresAt: event.at + duration,
+      expiry: 'exclusive',
+      maximum: maximumStacks
+    }).batch;
   }
 }
 

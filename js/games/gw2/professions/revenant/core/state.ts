@@ -72,7 +72,7 @@ export function createRevenantCoreState(config: RevenantConfig): RevenantCoreSta
     activeUpkeeps: [],
     endurance: createResourceClock(ENDURANCE.maximum),
     enchantedDaggers: {
-      charges: 0,
+      count: 0,
       expiresAt: 0,
       readyAt: 0
     },

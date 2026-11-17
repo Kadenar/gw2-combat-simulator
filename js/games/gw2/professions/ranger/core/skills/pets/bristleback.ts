@@ -2,7 +2,7 @@
  * Owns Core Ranger pet skill definitions for the Bristleback family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
-import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -158,7 +158,7 @@ export function armPetSharpenSpines(runtime: RangerRuntime, event: Gw2ResolverEv
 
   const pet = rangerOwningPetState(state.pet, event.summonOwner);
 
-  if (pet) pet.sharpenSpines = grantCharges(Number(event.stacks), runtime.time + Number(event.duration));
+  if (pet) pet.sharpenSpines = createChargeGrant(Number(event.stacks), runtime.time + Number(event.duration));
 }
 
 /** Only the currently armed Bristleback's landed strikes can spend its expiring bleed charges. */
@@ -168,14 +168,14 @@ export function consumePetSharpenSpines(context: RangerResolverContext, event: G
   if (!pet || rangerPetForState(context.profession.core).name !== 'Bristleback' || !isActivePetStrike(context, event))
     return;
 
-  if (pet.sharpenSpines.charges <= 0) return;
+  if (pet.sharpenSpines.count <= 0) return;
 
   deliverChargedHit(
     context,
     event,
     ID.BRISTLEBACK_SHARPEN_SPINES,
     'sharpen-spines',
-    () => consumeCharge(pet.sharpenSpines, event.at),
+    () => consumeCharge(pet.sharpenSpines, event.at, 'exclusive'),
     {
       attribution: {
         source: 'ranger-pet',

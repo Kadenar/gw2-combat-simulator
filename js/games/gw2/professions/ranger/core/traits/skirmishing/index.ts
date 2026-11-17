@@ -3,7 +3,7 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, buffActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { activeChargeCount, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, WEAPON, type BoonId } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -42,6 +42,7 @@ import { qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { claimActivation } from '#kernel/execution/activation-claims.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 
 /** Dodges and evading skills extend the player's strike and condition-duration bonus window. */
 export const lightOnYourFeet = defineTrait({
@@ -133,7 +134,7 @@ export const quickDraw = defineTrait({
       when: (runtime: MechanicQueriesOf<RangerRuntime>, skill) =>
         skill.type === 'Weapon' &&
         skill.slot !== 'Weapon_1' &&
-        activeChargeCount(runtime.profession.core.quickDraw, runtime.time) > 0,
+        activeBatchCount(runtime.profession.core.quickDraw, runtime.time, 'exclusive') > 0,
       multiplier: { profile: TRAIT.QUICK_DRAW, field: 'rechargeMultiplier' }
     }
   ],
@@ -146,7 +147,7 @@ export const quickDraw = defineTrait({
     reserveRecharge(runtime: RangerRuntime, skill, work) {
       // Quick Draw is reserved at acceptance so concurrent casts cannot consume the same grant twice.
       if (skill.type === 'Weapon' && skill.slot !== 'Weapon_1')
-        consumeCharge(runtime.profession.core.quickDraw, runtime.time);
+        consumeCharge(runtime.profession.core.quickDraw, runtime.time, 'exclusive');
 
       return work;
     }
@@ -442,7 +443,7 @@ function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): 
     const profile = requireBalanceProfile(context.helpers, TRAIT.QUICK_DRAW);
     const effect = requireEffect(profile, 'boon', BOON.QUICKNESS);
     // The recharge window is trait-owned, so it and its cooldown survive a removed quickness packet.
-    state.quickDraw = grantCharges(1, at + balanceProfileNumber(profile, 'duration'));
+    state.quickDraw = createChargeGrant(1, at + balanceProfileNumber(profile, 'duration'));
 
     if (effect)
       emitTraitProfile(context, TRAIT.QUICK_DRAW, TRAIT.QUICK_DRAW, undefined, {

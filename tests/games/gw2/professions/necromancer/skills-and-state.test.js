@@ -972,7 +972,7 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
     damageEvents(chain, ID.SINISTER_STAB).map((event) => event.coefficient),
     [1.8]
   );
-  assert.equal(chain.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 2);
+  assert.equal(chain.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 2);
   assert.equal(lifeForcePercent(chain.planningState.profession[STATE.LIFE_FORCE]), 5);
   assert.equal(
     chain.events.some(
@@ -980,10 +980,10 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
     ),
     true
   );
-  assert.equal(expired.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
+  assert.equal(expired.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 0);
 
   assert.equal(lifeForcePercent(utility.planningState.profession[STATE.LIFE_FORCE]), 22);
-  assert.equal(utility.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
+  assert.equal(utility.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 0);
   assert.equal(
     utility.events.some(
       (event) => event.type === 'buff' && event.skillId === ID.EXTIRPATE && event.kind === 'might' && event.stacks === 5
@@ -1053,36 +1053,36 @@ test('Soul Shards expire after ten seconds and refresh together when another sha
 
   addSoulShards(state, 2, 0, 6);
   assert.equal(state.soulShardGrant.expiresAt, 10);
-  assert.equal(state.soulShardGrant.charges, 2);
+  assert.equal(state.soulShardGrant.count, 2);
 
   addSoulShards(state, 1, 9, 6);
-  assert.equal(state.soulShardGrant.charges, 3);
+  assert.equal(state.soulShardGrant.count, 3);
   assert.equal(state.soulShardGrant.expiresAt, 19);
 
   purgeTimedState(state, 10);
-  assert.equal(state.soulShardGrant.charges, 3);
+  assert.equal(state.soulShardGrant.count, 3);
   purgeTimedState(state, 19);
-  assert.equal(state.soulShardGrant.charges, 0);
+  assert.equal(state.soulShardGrant.count, 0);
 });
 
 test('Soul Shards refresh at capacity and consume only live charges without reviving expired shards', () => {
   const state = necromancerProfession.resolveProfession({}).createState({}).core;
   addSoulShards(state, 8, 0, 6);
-  assert.equal(state.soulShardGrant.charges, 6);
+  assert.equal(state.soulShardGrant.count, 6);
   addSoulShards(state, 2, 9, 6);
   assert.equal(state.soulShardGrant.expiresAt, 19);
-  assert.equal(state.soulShardGrant.charges, 6);
+  assert.equal(state.soulShardGrant.count, 6);
   assert.equal(consumeSoulShards(state, 1, 10), 1);
-  assert.equal(state.soulShardGrant.charges, 5);
+  assert.equal(state.soulShardGrant.count, 5);
   assert.equal(state.soulShardGrant.expiresAt, 19, 'spending cannot refresh the window');
   assert.equal(consumeSoulShards(state, 1, 19), 0);
-  assert.equal(state.soulShardGrant.charges, 0);
+  assert.equal(state.soulShardGrant.count, 0);
   addSoulShards(state, 2, 19, 6);
-  assert.equal(state.soulShardGrant.charges, 2);
+  assert.equal(state.soulShardGrant.count, 2);
   assert.equal(state.soulShardGrant.expiresAt, 29);
   assert.equal(consumeSoulShards(state, 10, 20), 2);
   assert.equal(consumeSoulShards(state, 1, 20), 0);
-  assert.equal(state.soulShardGrant.charges, 0);
+  assert.equal(state.soulShardGrant.count, 0);
 });
 
 test('Isolate and Distress expose the follow-up and reset Perforate', () => {
@@ -1108,7 +1108,7 @@ test('Isolate and Distress expose the follow-up and reset Perforate', () => {
     ).length > 0
   );
   assert.ok(result.events.filter((event) => event.type === 'damage' && event.name === 'Soul Shards').length > 0);
-  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
+  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 0);
   const rows = skillBreakdownRows(result);
   assert.equal(rows.find((row) => row.name === 'Soul Shards')?.hits, 6);
   assert.equal(
@@ -1145,7 +1145,7 @@ test('Perforate consumes one shard per strike after concurrent Distress', () => 
 
   assert.deepEqual(result.warnings, []);
   assert.ok(distress.start > perforate.start && distress.start < perforate.end);
-  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
+  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 0);
   assert.equal(result.events.filter((event) => event.type === 'damage' && event.name === 'Soul Shards').length, 6);
 });
 
@@ -1172,14 +1172,14 @@ test('Addle grants four shards to defiant foes and checks activation shards', ()
       (event) => event.type === 'condition' && event.skillId === ID.ADDLE && event.condition === 'Immobilized'
     );
 
-  assert.equal(normal.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 2);
+  assert.equal(normal.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 2);
   assert.equal(lifeForcePercent(normal.planningState.profession[STATE.LIFE_FORCE]), 10);
   assert.equal(immobilizes(normal).length, 0);
   assert.ok(normal.events.some((event) => event.type === 'control' && event.skillId === ID.ADDLE));
-  assert.equal(defiant.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 4);
+  assert.equal(defiant.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 4);
   assert.equal(lifeForcePercent(defiant.planningState.profession[STATE.LIFE_FORCE]), 20);
   assert.equal(immobilizes(defiant).length, 0);
   assert.ok(defiant.events.some((event) => event.type === 'control' && event.skillId === ID.ADDLE));
-  assert.equal(threshold.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 5);
+  assert.equal(threshold.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 5);
   assert.equal(immobilizes(threshold).length, 1);
 });

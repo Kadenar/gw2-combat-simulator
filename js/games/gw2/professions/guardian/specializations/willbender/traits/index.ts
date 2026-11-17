@@ -26,7 +26,7 @@ import {
 } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { grantRefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
+import { refreshBatch } from '#kernel/resources/batch.js';
 
 /** Intrinsic virtue grants share an inclusive stack lifetime and the outgoing additive damage bucket. */
 export const lethalTempo = defineTrait({
@@ -360,15 +360,13 @@ function gainLethalTempo(
 ): number {
   // Grants through the expiry tick refresh every stack; only a later grant starts a new stack window.
   at = canonicalTime(at);
-  state.lethalTempo = grantRefreshedStacks(
-    state.lethalTempo,
-    stacks,
+  state.lethalTempo = refreshBatch(state.lethalTempo, stacks, {
     at,
-    gw2EffectExpiresAt(at, duration),
-    maximumStacks,
-    'inclusive'
-  );
-  return state.lethalTempo.stacks;
+    expiresAt: gw2EffectExpiresAt(at, duration),
+    expiry: 'inclusive',
+    maximum: maximumStacks
+  }).batch;
+  return state.lethalTempo.count;
 }
 
 /** Both virtue boundaries grant and report the same inclusive stack window. */

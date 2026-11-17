@@ -7,7 +7,7 @@ import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { RefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
+import type { Batch } from '#kernel/resources/batch.js';
 
 /** Configuration fields consumed by relic rules. */
 interface Gw2RelicConfig {
@@ -19,7 +19,7 @@ interface Gw2RelicConfig {
 
 /** Optional fields are initialized by the relic rule that owns each timer or history. */
 export interface Gw2RelicState {
-  refreshedStacks?: RefreshedStacks;
+  refreshedStacks?: Batch;
   combatStartTime?: number;
   timelineEvents?: readonly SimulationEvent[];
   trackedActivations?: Set<string>;

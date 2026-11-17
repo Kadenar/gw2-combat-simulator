@@ -77,7 +77,7 @@ test('Lethal Tempo removal suppresses scheduler and resolver stacks without remo
     { type: 'wait', durationMs: 5000 }
   ]);
   for (const state of [result.planningState.profession, result.planningState.profession]) {
-    assert.equal(state[STATE.LETHAL_TEMPO].stacks, 0);
+    assert.equal(state[STATE.LETHAL_TEMPO].count, 0);
     assert.equal(state[STATE.LETHAL_TEMPO].expiresAt, 0);
   }
 
@@ -196,7 +196,7 @@ for (const [type, name] of [
         : { [ashesBurningSkill.id]: remove(type, name) }
     );
     assert.equal(has(result, 'buff', 'kind', 'ashes-of-the-just'), false);
-    assert.equal(result.planningState.profession[STATE.ASHES].charges, 0);
+    assert.equal(result.planningState.profession[STATE.ASHES].count, 0);
     assert.equal(result.planningState.profession[STATE.TOME_PAGES].value, 7);
     assert.ok(has(result, 'buff', 'kind', 'might'));
   });

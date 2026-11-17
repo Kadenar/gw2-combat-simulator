@@ -44,8 +44,8 @@ test('Ferocious Symbiosis buffs the tiger only when the ranger attacks', () => {
     assert.deepEqual(baseline.warnings, []);
     const state = result.planningState.profession;
     const pet = state[STATE.PET];
-    assert.equal(state[STATE.FEROCIOUS_SYMBIOSIS_PLAYER].stacks, 5);
-    assert.equal(pet.ferociousSymbiosis.stacks, attacks ? 5 : 0);
+    assert.equal(state[STATE.FEROCIOUS_SYMBIOSIS_PLAYER].count, 5);
+    assert.equal(pet.ferociousSymbiosis.count, attacks ? 5 : 0);
     const lastPetHit = (run) =>
       run.resolvedEvents.findLast((event) => event.type === 'damage' && event.source === 'ranger-pet');
     assertFlooredDamageMultiplier(lastPetHit(result).damage, lastPetHit(baseline).damage, attacks ? 1.25 : 1);
@@ -74,15 +74,15 @@ test('Ferocious Symbiosis independently throttles, caps, refreshes, and expires 
   }
 
   for (const pool of [state.ferociousSymbiosisPlayer, pet.ferociousSymbiosis]) {
-    assert.equal(pool.stacks, 1);
+    assert.equal(pool.count, 1);
     assert.equal(pool.expiresAt, 6);
   }
 
   hit(1.6, true);
   for (const at of [1.6, 2.2, 2.8, 3.4, 4]) hit(at);
-  assert.equal(state.ferociousSymbiosisPlayer.stacks, 2);
+  assert.equal(state.ferociousSymbiosisPlayer.count, 2);
   assert.equal(state.ferociousSymbiosisPlayer.expiresAt, 6.6);
-  assert.equal(pet.ferociousSymbiosis.stacks, 5);
+  assert.equal(pet.ferociousSymbiosis.count, 5);
   assert.equal(pet.ferociousSymbiosis.expiresAt, 9);
 
   const petEvent = {
@@ -98,7 +98,7 @@ test('Ferocious Symbiosis independently throttles, caps, refreshes, and expires 
   assert.equal(runtime.query.strikeMultiplier(playerEvent, 6.59, runtime), 1.1);
   assert.equal(runtime.query.strikeMultiplier(playerEvent, 6.6, runtime), 1);
   hit(9);
-  assert.equal(pet.ferociousSymbiosis.stacks, 1);
+  assert.equal(pet.ferociousSymbiosis.count, 1);
   assert.equal(pet.ferociousSymbiosis.expiresAt, 14);
 });
 
@@ -108,10 +108,10 @@ test('Ranger-owned pet skill damage uses player Symbiosis even when the pet has 
   const pet = runtime.profession.core.pet;
   // Caster provenance remains pet-owned, but damage modifiers follow the packet's player ownership.
   const cloud = { source: 'ranger-pet', actorType: 'player', summonOwner: pet.id };
-  state.ferociousSymbiosisPlayer = { stacks: 5, expiresAt: 10 };
-  pet.ferociousSymbiosis = { stacks: 0, expiresAt: 10 };
+  state.ferociousSymbiosisPlayer = { count: 5, expiresAt: 10 };
+  pet.ferociousSymbiosis = { count: 0, expiresAt: 10 };
   assert.equal(runtime.query.strikeMultiplier(cloud, 1, runtime), 1.25);
-  state.ferociousSymbiosisPlayer.stacks = 0;
-  pet.ferociousSymbiosis.stacks = 5;
+  state.ferociousSymbiosisPlayer.count = 0;
+  pet.ferociousSymbiosis.count = 5;
   assert.equal(runtime.query.strikeMultiplier(cloud, 1, runtime), 1);
 });

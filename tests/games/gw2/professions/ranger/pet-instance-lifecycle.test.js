@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { setBeastmode } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
@@ -43,12 +43,12 @@ for (const output of ['detailed', 'score']) {
         output,
         initialize(runtime) {
           outgoing = runtime.profession.core.pet;
-          outgoing.poisonousStrikes = grantCharges(3, 30);
+          outgoing.poisonousStrikes = createChargeGrant(3, 30);
           outgoing.poisonMasterReady = true;
-          outgoing.ferociousSymbiosis = { stacks: 5, expiresAt: 30 };
+          outgoing.ferociousSymbiosis = { count: 5, expiresAt: 30 };
           outgoing.wutheringWindReady = true;
           outgoing.openingStrikeReady = false;
-          runtime.profession.core.player.poisonousStrikes = grantCharges(2, 30);
+          runtime.profession.core.player.poisonousStrikes = createChargeGrant(2, 30);
           grant(runtime, 'alacrity', outgoing.id);
           grant(runtime, 'superspeed', outgoing.id);
           runtime.cooldownController.startRecharge(
@@ -84,12 +84,12 @@ for (const output of ['detailed', 'score']) {
                 0
               );
               assert.equal(runtime.combat.companionRetiredAt(outgoing.id), runtime.time);
-              assert.equal(replacement.poisonousStrikes.charges, 0);
+              assert.equal(replacement.poisonousStrikes.count, 0);
               assert.equal(replacement.poisonMasterReady, false);
-              assert.equal(replacement.ferociousSymbiosis.stacks, 0);
+              assert.equal(replacement.ferociousSymbiosis.count, 0);
               assert.equal(replacement.wutheringWindReady, false);
               assert.equal(replacement.openingStrikeReady, true);
-              assert.equal(runtime.profession.core.player.poisonousStrikes.charges, 2);
+              assert.equal(runtime.profession.core.player.poisonousStrikes.count, 2);
               assert.equal(runtime.combat.activeBoonStacks('alacrity', 2), 1);
               readyAt = runtime.cooldownController.readyAt(ID.POISONOUS_CLOUD);
               assert.equal(readyAt, 29.5, 'Only the first two seconds receive Alacrity acceleration.');
@@ -115,7 +115,7 @@ for (const output of ['detailed', 'score']) {
                 }),
                 0
               );
-              assert.equal(returned.poisonousStrikes.charges, 0);
+              assert.equal(returned.poisonousStrikes.count, 0);
               assert.equal(runtime.cooldownController.readyAt(ID.POISONOUS_CLOUD), readyAt);
             }
           }
@@ -151,7 +151,7 @@ for (const output of ['detailed', 'score']) {
               mode(runtime, false);
               outgoing = runtime.profession.core.pet;
               outgoing.poisonMasterReady = true;
-              outgoing.poisonousStrikes = grantCharges(2, 10);
+              outgoing.poisonousStrikes = createChargeGrant(2, 10);
               grant(runtime, 'might', outgoing.id);
             }
           },
@@ -161,7 +161,7 @@ for (const output of ['detailed', 'score']) {
               mode(runtime, true);
               assert.equal(runtime.profession.core.pet, null);
               assert.equal(runtime.profession.core.player.poisonMasterReady, false);
-              assert.equal(runtime.profession.core.player.poisonousStrikes.charges, 0);
+              assert.equal(runtime.profession.core.player.poisonousStrikes.count, 0);
               assert.equal(
                 runtime.combat.activeBoonStacks('alacrity', runtime.time, 1, {
                   actor: 'companion',
@@ -179,7 +179,7 @@ for (const output of ['detailed', 'score']) {
               const pet = runtime.profession.core.pet;
               assert.notEqual(pet.id, outgoing.id);
               assert.equal(pet.poisonMasterReady, false);
-              assert.equal(pet.poisonousStrikes.charges, 0);
+              assert.equal(pet.poisonousStrikes.count, 0);
               assert.equal(
                 runtime.combat.activeBoonStacks('alacrity', runtime.time, 1, {
                   actor: 'companion',

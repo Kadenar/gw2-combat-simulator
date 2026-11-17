@@ -1,7 +1,7 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -350,7 +350,7 @@ function handleSolarFocusingLens(context: EngineerResolverContext, event: Holosm
   const state = holosmithState.from(context.profession);
   // Lens keeps its inclusive final-hit policy on the temporary-effect expiry tick.
   state.solarFocusingLens = {
-    ...grantCharges(Number(event.stacks), gw2EffectExpiresAt(event.at, Number(event.duration))),
+    ...createChargeGrant(Number(event.stacks), gw2EffectExpiresAt(event.at, Number(event.duration))),
     readyAt: event.at
   };
 }
@@ -374,7 +374,10 @@ function consumeSolarFocusingLens(
   if (!condition) return;
 
   // Lens cannot activate before its grant; zero-ICD consumption does not enforce readyAt.
-  if (event.at < (state.solarFocusingLens.readyAt ?? 0) || !consumeCharge(state.solarFocusingLens, event.at, 0, true))
+  if (
+    event.at < (state.solarFocusingLens.readyAt ?? 0) ||
+    !consumeCharge(state.solarFocusingLens, event.at, 'inclusive', 0)
+  )
     return;
 
   emitTraitProfile(context, TRAIT.SOLAR_FOCUSING_LENS, TRAIT.SOLAR_FOCUSING_LENS, undefined, {

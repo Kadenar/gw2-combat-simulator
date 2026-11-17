@@ -245,10 +245,10 @@ for (const [spec, name, legend, config = {}] of [
       false
     );
     const state = result.planningState.profession;
-    assert.equal(state[STATE.ENCHANTED_DAGGERS].charges, 0);
+    assert.equal(state[STATE.ENCHANTED_DAGGERS].count, 0);
 
     if (spec === 'Renegade') {
-      assert.equal(state[STATE.RAZORCLAWS_RAGE].charges, 0);
+      assert.equal(state[STATE.RAZORCLAWS_RAGE].count, 0);
       assert.equal(planningBuffStacks(result.planningState, 'band-together'), 0);
     } else {
       assert.equal(Object.hasOwn(state, 'razorclawsRage'), false);
@@ -304,7 +304,7 @@ for (const [name, skillId, cooldown] of [
       );
 
     const bounded = scenario(
-      { charges: buff.stacks, expiresAt: 1 + buff.duration, readyAt: 1 },
+      { count: buff.stacks, expiresAt: 1 + buff.duration, readyAt: 1 },
       [
         ...[{ actorType: 'effect' }, { coefficient: 0 }, { skillId }].map((fields) => revenantHit(1.1, fields)),
         revenantHit(0.9),
@@ -316,7 +316,7 @@ for (const [name, skillId, cooldown] of [
       3000
     );
     const runtime = observedRuntime(bounded);
-    assert.equal(owner(runtime)[key].charges, buff.stacks - 2, 'only two eligible hits clear their gates');
+    assert.equal(owner(runtime)[key].count, buff.stacks - 2, 'only two eligible hits clear their gates');
     const packets = derived(bounded);
     assert.equal(packets.length, 2);
     assert.equal(packets[0].at, Number((1.1 + (daggers ? cooldown : 0)).toFixed(6)));
@@ -333,13 +333,13 @@ for (const [name, skillId, cooldown] of [
     if (daggers) assert.equal(packets[0].hitIndex, 1);
 
     const expired = scenario(
-      { charges: buff.stacks, expiresAt: 3 + buff.duration, readyAt: 3 },
+      { count: buff.stacks, expiresAt: 3 + buff.duration, readyAt: 3 },
       [revenantHit(3 + buff.duration)],
       (4 + buff.duration) * 1000
     );
-    assert.equal(owner(observedRuntime(expired))[key].charges, buff.stacks, 'exact expiry cannot consume');
-    const exhausted = scenario({ charges: 1, expiresAt: 100, readyAt: 0 }, [revenantHit(50), revenantHit(60)], 61000);
-    assert.equal(owner(observedRuntime(exhausted))[key].charges, 0, 'exhausted grants cannot underflow');
+    assert.equal(owner(observedRuntime(expired))[key].count, buff.stacks, 'exact expiry cannot consume');
+    const exhausted = scenario({ count: 1, expiresAt: 100, readyAt: 0 }, [revenantHit(50), revenantHit(60)], 61000);
+    assert.equal(owner(observedRuntime(exhausted))[key].count, 0, 'exhausted grants cannot underflow');
     assert.equal(derived(exhausted).length, 1);
   });
 }
@@ -354,7 +354,7 @@ test("Razorclaw's Rage arms its charges and assumed allies' Bleeding at completi
   const buff = revenantCatalog.skillsById.get(SKILL.RAZORCLAWS_RAGE).effects.find((effect) => effect.type === 'buff');
   const completion = result.events.find((event) => event.type === 'action' && event.name === "Razorclaw's Rage").endsAt;
   assert.deepEqual(specialization(result).razorclawsRage, {
-    charges: buff.stacks,
+    count: buff.stacks,
     expiresAt: completion + buff.duration,
     readyAt: completion
   });
@@ -371,7 +371,7 @@ test('Razorclaw rejects a missing proc and keeps charges when its bleed is remov
       {
         catalog,
         initialize(runtime) {
-          runtime.profession.specialization.state.razorclawsRage = { charges: 2, expiresAt: 10, readyAt: 0 };
+          runtime.profession.specialization.state.razorclawsRage = { count: 2, expiresAt: 10, readyAt: 0 };
           runtime.effects.emit({ kind: 'packet', event: revenantHit(1) });
         }
       }
@@ -380,7 +380,7 @@ test('Razorclaw rejects a missing proc and keeps charges when its bleed is remov
   const removed = run((catalog) =>
     applySkillPatch(catalog, { skills: { [procId]: { removeEffects: [{ type: 'condition', name: 'Bleeding' }] } } })
   );
-  assert.deepEqual(specialization(removed).razorclawsRage, { charges: 2, expiresAt: 10, readyAt: 0 });
+  assert.deepEqual(specialization(removed).razorclawsRage, { count: 2, expiresAt: 10, readyAt: 0 });
   assert.equal(
     removed.events.some((event) => event.condition === 'Bleeding'),
     false
@@ -558,7 +558,7 @@ test('Core strike reactions keep upkeep, trait, and dagger order with the origin
           empoweredNextPulse: false
         });
         state.battleScars = [10];
-        state.enchantedDaggers = { charges: 2, expiresAt: 10, readyAt: 0 };
+        state.enchantedDaggers = { count: 2, expiresAt: 10, readyAt: 0 };
         runtime.effects.emit({
           kind: 'packet',
           event: revenantHit(1, { skillId: SKILL.PHASE_SMASH, sourceId: SKILL.PHASE_SMASH, skillName: 'Phase Smash' })
@@ -584,7 +584,7 @@ test('Core strike reactions keep upkeep, trait, and dagger order with the origin
     ]
   );
   assert.equal(core(result).battleScars.length, 0);
-  assert.equal(core(result).enchantedDaggers.charges, 1);
+  assert.equal(core(result).enchantedDaggers.count, 1);
 });
 
 // Release cooldowns belong to the upkeep parent and use its release-specific duration with recharge modifiers.

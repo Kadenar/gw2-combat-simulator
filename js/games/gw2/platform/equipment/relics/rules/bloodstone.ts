@@ -13,7 +13,7 @@ import {
 } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { activeRefreshedStacks, grantRefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
+import { activeBatchCount, refreshBatch } from '#kernel/resources/batch.js';
 
 // Display progress toward the fourth blast, which consumes the three stored stacks.
 const VOLATILITY_TRIGGER_STACKS = 4;
@@ -22,7 +22,7 @@ export const bloodstone = defineRelic({
   buffPolicies: [{ kind: 'bloodstone-fervor', name: 'Relic of Bloodstone', maximumStacks: 1 }],
   damagePayload: emitDamagePayload,
   createState: () => ({
-    refreshedStacks: { stacks: 0, expiresAt: 0 }
+    refreshedStacks: { count: 0, expiresAt: 0 }
   }),
   combo(ctx, state, event) {
     // The shared combo reaction now reaches leap finishers for Steamshrieker; Bloodstone remains blast-only.
@@ -31,29 +31,27 @@ export const bloodstone = defineRelic({
     // Volatility cannot accumulate while Fervor is active.
     if (relicBuffActive(ctx, 'bloodstone-fervor', event.at)) return;
 
-    const currentStacks = activeRefreshedStacks(state.refreshedStacks, event.at, 'exclusive');
+    const currentStacks = activeBatchCount(state.refreshedStacks, event.at, 'exclusive');
 
     if (currentStacks < VOLATILITY_TRIGGER_STACKS - 1) {
       // Each blast renews all Volatility stacks; the next blast at cap still belongs to the Fervor transition.
-      const buff = grantRefreshedStacks(
-        state.refreshedStacks!,
-        1,
-        event.at,
-        gw2EffectExpiresAt(event.at, 10),
-        VOLATILITY_TRIGGER_STACKS - 1,
-        'exclusive'
-      );
+      const buff = refreshBatch(state.refreshedStacks, 1, {
+        at: event.at,
+        expiresAt: gw2EffectExpiresAt(event.at, 10),
+        expiry: 'exclusive',
+        maximum: VOLATILITY_TRIGGER_STACKS - 1
+      }).batch;
       state.refreshedStacks = buff;
       announceRelic(ctx, event, 'Bloodstone Volatility', {
-        detail: `${buff.stacks}/${VOLATILITY_TRIGGER_STACKS} stacks`,
+        detail: `${buff.count}/${VOLATILITY_TRIGGER_STACKS} stacks`,
         expiresAt: buff.expiresAt,
-        effectState: { stacks: buff.stacks, maximumStacks: VOLATILITY_TRIGGER_STACKS }
+        effectState: { stacks: buff.count, maximumStacks: VOLATILITY_TRIGGER_STACKS }
       });
       return;
     }
 
     // The fourth qualifying blast consumes three Volatility stacks and activates Fervor.
-    state.refreshedStacks = { stacks: 0, expiresAt: 0 };
+    state.refreshedStacks = { count: 0, expiresAt: 0 };
     announceRelic(ctx, event, 'Bloodstone Volatility', {
       detail: 'stacks consumed',
       expiresAt: event.at,

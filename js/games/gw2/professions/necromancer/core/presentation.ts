@@ -159,14 +159,14 @@ export function necromancerSoulShardResourceViews(context: NecromancerUiContext)
     gw2PrimaryWeapon(context.config, 1),
     gw2PrimaryWeapon(context.config, 2)
   ];
-  return equippedWeapons.includes(WEAPON.SPEAR) || (state[STATE.SOUL_SHARD_GRANT]?.charges || 0) > 0
+  return equippedWeapons.includes(WEAPON.SPEAR) || (state[STATE.SOUL_SHARD_GRANT]?.count || 0) > 0
     ? [
         {
           id: 'soul-shards',
           singular: 'soul shard',
           plural: 'soul shards',
           maximum: necromancerSoulShardMaximum(context.catalog),
-          value: state[STATE.SOUL_SHARD_GRANT]?.charges || 0,
+          value: state[STATE.SOUL_SHARD_GRANT]?.count || 0,
           canStart: false,
           step: 1,
           displayMode: 'counter',

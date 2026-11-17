@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
@@ -38,6 +37,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
+import { activeBatches } from '#kernel/resources/batch-list.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -95,15 +95,15 @@ test('Taste for Blood spends insertion-ordered batches independently with applic
     spendTasteForBlood(context, { at, actorType, summonOwner, skillName: 'Test strike' });
   hit(0);
   assert.deepEqual(
-    pools.self.map((grant) => grant.charges),
+    pools.self.map((grant) => grant.count),
     [2, 1]
   );
   hit(2);
   // Shared consumption preserves the captured batch and updates its authoritative charge count.
-  assert.equal(original.charges, 1);
+  assert.equal(original.count, 1);
   assert.equal(pools.self[0], original);
   assert.deepEqual(
-    pools.self.map((grant) => [grant.charges, grant.expiresAt]),
+    pools.self.map((grant) => [grant.count, grant.expiresAt]),
     [
       [1, 11],
       [1, 5]
@@ -111,12 +111,12 @@ test('Taste for Blood spends insertion-ordered batches independently with applic
   );
   assert.equal(pools['ally:1'], undefined, 'zero strike rate creates no unusable allied batches');
   assert.deepEqual(
-    pools['companion:minion:test'].map((grant) => grant.charges),
+    pools['companion:minion:test'].map((grant) => grant.count),
     [2, 1]
   );
   hit(2, 'summon', 'minion:test');
   assert.deepEqual(
-    pools['companion:minion:test'].map((grant) => grant.charges),
+    pools['companion:minion:test'].map((grant) => grant.count),
     [1, 1]
   );
   // A detached report reflects the canonical remaining counts without consuming them.
@@ -128,7 +128,7 @@ test('Taste for Blood spends insertion-ordered batches independently with applic
   ]);
   assert.deepEqual(pools, before);
   hit(3);
-  assert.equal(original.charges, 0, 'every reference observes exhaustion after the batch leaves its pool');
+  assert.equal(original.count, 0, 'every reference observes exhaustion after the batch leaves its pool');
   assert.deepEqual(
     pools.self.map((grant) => grant.expiresAt),
     [5]
@@ -157,7 +157,7 @@ test('Taste for Blood preserves charges when its authored strike is removed', ()
   });
   grantTasteForBlood(context, { at: 1, stacks: 2, duration: 5, resolvedAudience: { includesSelf: true } });
   spendTasteForBlood(context, { at: 2, actorType: 'player' });
-  assert.equal(context.profession.core.tasteForBloodGrants.self[0].charges, 2);
+  assert.equal(context.profession.core.tasteForBloodGrants.self[0].count, 2);
   assert.deepEqual(context.events, []);
 });
 
@@ -167,7 +167,7 @@ test('Sharpening Stone batches spend earliest expiry without spending on expired
   handleRangerSharpeningStone(context, { at: 1, charges: 2.9, duration: 10 });
   handleRangerSharpeningStone(context, { at: 2, charges: 2, duration: 3 });
   assert.deepEqual(
-    core.sharpeningStoneGrants.map((grant) => [grant.charges, grant.expiresAt]),
+    core.sharpeningStoneGrants.map((grant) => [grant.count, grant.expiresAt]),
     [
       [2, 5],
       [2, 11]
@@ -176,19 +176,25 @@ test('Sharpening Stone batches spend earliest expiry without spending on expired
   const hit = { at: 2, actorType: 'player', coefficient: 1 };
   triggerSharpeningStone(context, hit);
   assert.deepEqual(
-    core.sharpeningStoneGrants.map((grant) => grant.charges),
+    core.sharpeningStoneGrants.map((grant) => grant.count),
     [1, 2]
   );
   // Observe live entitlement at each hit boundary independently of retained expired storage.
   for (const fields of [{ actorType: 'effect' }, { actorType: 'summon' }, { coefficient: 0 }])
     triggerSharpeningStone(context, { ...hit, at: 5, ...fields });
   assert.deepEqual(
-    activeChargeGrants(core.sharpeningStoneGrants, 5).map((grant) => [grant.charges, grant.expiresAt]),
+    activeBatches(core.sharpeningStoneGrants, 5, { expiry: 'exclusive', order: 'earliest-expiry' }).map((grant) => [
+      grant.count,
+      grant.expiresAt
+    ]),
     [[2, 11]]
   );
   assert.equal(context.events.length, 1);
   triggerSharpeningStone(context, { ...hit, at: 5 });
-  assert.equal(activeChargeGrants(core.sharpeningStoneGrants, 5)[0].charges, 1);
+  assert.equal(
+    activeBatches(core.sharpeningStoneGrants, 5, { expiry: 'exclusive', order: 'earliest-expiry' })[0].count,
+    1
+  );
   // Remove only the skill-owned follow-up while retaining the independently expiring charge batches.
   const catalog = context.helpers;
   context.helpers = applySkillPatch(context.helpers, {
@@ -199,10 +205,16 @@ test('Sharpening Stone batches spend earliest expiry without spending on expired
     }
   });
   triggerSharpeningStone(context, { ...hit, at: 6 });
-  assert.equal(activeChargeGrants(core.sharpeningStoneGrants, 6)[0].charges, 1);
+  assert.equal(
+    activeBatches(core.sharpeningStoneGrants, 6, { expiry: 'exclusive', order: 'earliest-expiry' })[0].count,
+    1
+  );
   context.helpers = catalog;
   triggerSharpeningStone(context, { ...hit, at: 11 });
-  assert.deepEqual(activeChargeGrants(core.sharpeningStoneGrants, 11), []);
+  assert.deepEqual(
+    activeBatches(core.sharpeningStoneGrants, 11, { expiry: 'exclusive', order: 'earliest-expiry' }),
+    []
+  );
   assert.equal(context.events.length, 2);
 });
 
@@ -211,7 +223,7 @@ test('Shattering Stone replaces self grants and spends player or effect hits bef
   const core = context.profession.core;
   const grant = { kind: 'shattering stone', at: 1, stacks: 2, duration: 2, resolvedAudience: { includesSelf: true } };
   applyShatteringStoneBuff(context, { ...grant, resolvedAudience: { includesSelf: false } });
-  assert.equal(core.shatteringStone.charges, 0);
+  assert.equal(core.shatteringStone.count, 0);
   applyShatteringStoneBuff(context, grant);
   for (const event of [
     { actorType: 'summon', coefficient: 1 },
@@ -220,17 +232,17 @@ test('Shattering Stone replaces self grants and spends player or effect hits bef
     triggerShatteringStone(context, { at: 2, ...event });
   }
 
-  assert.equal(core.shatteringStone.charges, 2);
+  assert.equal(core.shatteringStone.count, 2);
   triggerShatteringStone(context, { at: 2, actorType: 'effect', coefficient: 1 });
-  assert.equal(core.shatteringStone.charges, 1);
+  assert.equal(core.shatteringStone.count, 1);
   assert.equal(context.events[0].condition, 'Bleeding');
   assert.equal(context.events[0].at, 2);
   applyShatteringStoneBuff(context, { ...grant, at: 2 });
-  assert.equal(core.shatteringStone.charges, 2);
+  assert.equal(core.shatteringStone.count, 2);
   assert.equal(core.shatteringStone.expiresAt, 4);
   triggerShatteringStone(context, { at: 3, actorType: 'player', coefficient: 1 });
   triggerShatteringStone(context, { at: 4, actorType: 'player', coefficient: 1 });
-  assert.equal(core.shatteringStone.charges, 1);
+  assert.equal(core.shatteringStone.count, 1);
 });
 
 test('Poisonous Strikes gives pet and merged player separate inclusive-expiry grants', () => {
@@ -250,15 +262,15 @@ test('Poisonous Strikes gives pet and merged player separate inclusive-expiry gr
   handleRangerPoisonousStrikes(context, { at: 1, charges: 3, duration: 2, summonOwner: pet.summonOwner });
   for (const event of [player, { ...pet, coefficient: 0 }, { ...pet, summonOwner: 'other' }])
     triggerPoisonousStrikes(context, event);
-  assert.equal(core.pet.poisonousStrikes.charges, 3);
+  assert.equal(core.pet.poisonousStrikes.count, 3);
   triggerPoisonousStrikes(context, pet);
-  assert.equal(core.pet.poisonousStrikes.charges, 2);
+  assert.equal(core.pet.poisonousStrikes.count, 2);
   merged.beastmodeActive = true;
   reactToSoulbeastDamage(context, player);
-  assert.equal(core.pet.poisonousStrikes.charges, 2);
+  assert.equal(core.pet.poisonousStrikes.count, 2);
   handleRangerPoisonousStrikes(context, { at: 2, charges: 2, duration: 1 });
   reactToSoulbeastDamage(context, player);
-  assert.equal(core.player.poisonousStrikes.charges, 1);
+  assert.equal(core.player.poisonousStrikes.count, 1);
   assert.equal(context.events[0].independentConditionOwner, true);
   assert.equal(context.events[1].ownerActorType, 'player');
   // Pet and merged-player charge consumption both emit independent proc identities.
@@ -267,10 +279,10 @@ test('Poisonous Strikes gives pet and merged player separate inclusive-expiry gr
   assert.notEqual(context.events[0].procActivation.id, context.events[1].procActivation.id);
   triggerPoisonousStrikes(context, { ...pet, at: 3 });
   reactToSoulbeastDamage(context, { ...player, at: 3 });
-  assert.equal(core.player.poisonousStrikes.charges, 0);
+  assert.equal(core.player.poisonousStrikes.count, 0);
   handleRangerPoisonousStrikes(context, { at: 3, charges: 2, duration: 1, summonOwner: pet.summonOwner });
   triggerPoisonousStrikes(context, { ...pet, at: 4.001 });
-  assert.equal(core.pet.poisonousStrikes.charges, 0);
+  assert.equal(core.pet.poisonousStrikes.count, 0);
 });
 
 test('Blood Thirst grants merged players twelve seconds, replaces remaining charges, and respects strike eligibility', () => {
@@ -296,7 +308,7 @@ test('Blood Thirst grants merged players twelve seconds, replaces remaining char
   };
 
   grant(1);
-  assert.equal(core.bloodThirst.charges, 3);
+  assert.equal(core.bloodThirst.count, 3);
   assert.equal(core.bloodThirst.expiresAt, 13);
   const hit = { at: 2, source: 'ranger', actorType: 'player', coefficient: 1 };
   for (const fields of [
@@ -309,19 +321,19 @@ test('Blood Thirst grants merged players twelve seconds, replaces remaining char
     reactToRangerCoreDamage(context, { ...hit, ...fields });
   }
 
-  assert.equal(core.bloodThirst.charges, 3);
+  assert.equal(core.bloodThirst.count, 3);
   reactToRangerCoreDamage(context, hit);
-  assert.equal(core.bloodThirst.charges, 2);
+  assert.equal(core.bloodThirst.count, 2);
   assert.equal(context.events.at(-1).condition, 'Bleeding');
   grant(2);
-  assert.equal(core.bloodThirst.charges, 3);
+  assert.equal(core.bloodThirst.count, 3);
   assert.equal(core.bloodThirst.expiresAt, 14);
   reactToRangerCoreDamage(context, { ...hit, at: 13.999 });
-  assert.equal(core.bloodThirst.charges, 2);
+  assert.equal(core.bloodThirst.count, 2);
   const count = context.events.length;
   reactToRangerCoreDamage(context, { ...hit, at: 14 });
   reactToRangerCoreDamage(context, { ...hit, at: 15 });
-  assert.equal(core.bloodThirst.charges, 0);
+  assert.equal(core.bloodThirst.count, 0);
   assert.equal(context.events.length, count);
 });
 
@@ -337,19 +349,19 @@ test('Solar Focusing Lens keeps not-before eligibility and live spending', () =>
     solarFocusingLens.lifetime.reactions['damage.resolving'](context, { ...hit, at: 1.1, actorType: 'effect' }),
     undefined
   );
-  assert.equal(state.solarFocusingLens.charges, 2);
+  assert.equal(state.solarFocusingLens.count, 2);
   assert.deepEqual(solarFocusingLens.lifetime.reactions['damage.resolving'](context, { ...hit, at: 1.001 }), {
     solarFocusingLens: true
   });
-  assert.equal(state.solarFocusingLens.charges, 1);
+  assert.equal(state.solarFocusingLens.count, 1);
   assert.equal(state.solarFocusingLens.expiresAt, 2.04);
   grant(context, { at: 2.001, stacks: 2, duration: 1 });
-  assert.equal(state.solarFocusingLens.charges, 2);
+  assert.equal(state.solarFocusingLens.count, 2);
   assert.deepEqual(solarFocusingLens.lifetime.reactions['damage.resolving'](context, { ...hit, at: 3.04 }), {
     solarFocusingLens: true
   });
   assert.equal(solarFocusingLens.lifetime.reactions['damage.resolving'](context, { ...hit, at: 3.040001 }), undefined);
-  assert.equal(state.solarFocusingLens.charges, 1);
+  assert.equal(state.solarFocusingLens.count, 1);
 });
 
 test('Mistburn replaces grants, spends on eligible strikes, and excludes its granting hit', () => {
@@ -358,7 +370,7 @@ test('Mistburn replaces grants, spends on eligible strikes, and excludes its gra
   const hit = { type: 'damage', actorType: 'player', coefficient: 0 };
   const react = (runtime, event) =>
     antiquaryResolverEventReactions.damage(runtime, { ...hit, at: runtime.time, ...event });
-  const charges = (runtime) => runtime.profession.specialization.state.mistburn.charges;
+  const charges = (runtime) => runtime.profession.specialization.state.mistburn.count;
   const result = runThief(
     [
       'Skritt Swipe',
@@ -416,16 +428,16 @@ test('Mistburn replaces grants, spends on eligible strikes, and excludes its gra
   assert.equal(observed.replaced, observed.initial);
   // The grant expires at its exclusive deadline: a strike there spends nothing and the projection is empty.
   assert.equal(observed.atExpiry, observed.initial);
-  assert.equal(observed.projected.charges, 0);
+  assert.equal(observed.projected.count, 0);
 });
 
 test('Mistburn projects its grant without aliases or mutations to runtime state', () => {
   const context = contextFor(thiefProfession, 'Antiquary');
   const state = context.profession.specialization.state;
-  state.mistburn = { charges: 3, expiresAt: 5 };
+  state.mistburn = { count: 3, expiresAt: 5 };
   context.state.time = 2;
   const projected = projectObservedState(thiefProfession, { ...context.state });
-  assert.equal(projected[STATE.MISTBURN].charges, 3);
+  assert.equal(projected[STATE.MISTBURN].count, 3);
   assert.equal(projected[STATE.MISTBURN].expiresAt, 5);
   for (const internal of [state, snapshotProfessionState(context.profession), projected]) {
     assert.equal(Object.hasOwn(internal, 'mistburnCharges'), false);
@@ -444,11 +456,11 @@ test('Mistburn projects its grant without aliases or mutations to runtime state'
   }
 
   context.state.time = 5;
-  assert.equal(projectObservedState(thiefProfession, { ...context.state })[STATE.MISTBURN].charges, 0);
-  assert.equal(state.mistburn.charges, 3, 'projection must not expire the live runtime grant');
-  state.mistburn.charges = 0;
+  assert.equal(projectObservedState(thiefProfession, { ...context.state })[STATE.MISTBURN].count, 0);
+  assert.equal(state.mistburn.count, 3, 'projection must not expire the live runtime grant');
+  state.mistburn.count = 0;
   context.state.time = 2;
-  assert.equal(projectObservedState(thiefProfession, { ...context.state })[STATE.MISTBURN].charges, 0);
+  assert.equal(projectObservedState(thiefProfession, { ...context.state })[STATE.MISTBURN].count, 0);
   const core = contextFor(thiefProfession, 'Core');
   const inactive = projectObservedState(thiefProfession, { ...core.state });
   assert.equal(Object.hasOwn(inactive, STATE.MISTBURN), false);

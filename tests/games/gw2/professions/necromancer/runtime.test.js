@@ -377,20 +377,19 @@ test('spear shard gains require landed hits and refreshed grants survive their o
   for (const skillId of [ID.DEADLY_SLICE, ID.SINISTER_STAB, ID.EXTIRPATE]) {
     const setup = chainStepSetup(skillId);
     assert.equal(
-      simulate([cast(skillId)], base, setup).planningState.profession[STATE.SOUL_SHARD_GRANT].charges,
+      simulate([cast(skillId)], base, setup).planningState.profession[STATE.SOUL_SHARD_GRANT].count,
       skillId === ID.EXTIRPATE ? 2 : 1
     );
     for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }])
       assert.equal(
-        simulate([{ ...cast(skillId), ...flags }], base, setup).planningState.profession[STATE.SOUL_SHARD_GRANT]
-          .charges,
+        simulate([{ ...cast(skillId), ...flags }], base, setup).planningState.profession[STATE.SOUL_SHARD_GRANT].count,
         0
       );
   }
 
   const rotation = [cast(ID.EXTIRPATE), wait(8000), cast(ID.DARK_SLASH), cast(ID.DEADLY_SLICE), wait(2000)];
-  assert.equal(simulate(rotation).planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 3);
-  assert.equal(simulate([...rotation, wait(10000)]).planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
+  assert.equal(simulate(rotation).planningState.profession[STATE.SOUL_SHARD_GRANT].count, 3);
+  assert.equal(simulate([...rotation, wait(10000)]).planningState.profession[STATE.SOUL_SHARD_GRANT].count, 0);
 });
 
 test('Addle snapshots its activation gate but grants shards and defiance life force at impact', () => {
@@ -411,7 +410,7 @@ test('Addle snapshots its activation gate but grants shards and defiance life fo
       ...native.tasks,
       'test.shards'(runtime) {
         if (during) addSoulShards(runtime.profession.core, during, runtime.time, 6);
-        else runtime.profession.core.soulShardGrant.charges = 0;
+        else runtime.profession.core.soulShardGrant.count = 0;
       }
     }
   });
@@ -421,12 +420,12 @@ test('Addle snapshots its activation gate but grants shards and defiance life fo
     false
   );
   assert.equal(lifeForcePercent(gained.planningState.profession[STATE.LIFE_FORCE]), 20);
-  assert.equal(gained.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 6);
+  assert.equal(gained.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 6);
   const spent = simulate([cast(ID.ADDLE)], config, { profession: makeProfession(3, 0) });
   assert.ok(spent.resolvedEvents.some((event) => event.condition === 'Immobilized'));
-  assert.equal(spent.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 4);
+  assert.equal(spent.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 4);
   const missed = simulate([{ ...cast(ID.ADDLE), offTarget: true }], config);
-  assert.equal(missed.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
+  assert.equal(missed.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 0);
   assert.equal(lifeForcePercent(missed.planningState.profession[STATE.LIFE_FORCE]), 0);
 });
 
@@ -452,13 +451,13 @@ test('Perforate consumes current shards per accepted packet, including gains dur
     }
   };
   const result = simulate([cast(ID.PERFORATE)], base, { profession });
-  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
+  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 0);
   assert.equal(
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === ID.SOUL_SHARDS).length,
     2
   );
   const missed = simulate([{ ...cast(ID.PERFORATE), offTarget: true }], base, { profession });
-  assert.equal(missed.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 2);
+  assert.equal(missed.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 2);
   const removed = {
     ...profession,
     catalog: applySkillPatch(native.catalog, {
@@ -466,7 +465,7 @@ test('Perforate consumes current shards per accepted packet, including gains dur
     })
   };
   const noSiphon = simulate([cast(ID.PERFORATE)], base, { profession: removed });
-  assert.equal(noSiphon.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
+  assert.equal(noSiphon.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 0);
   assert.equal(
     noSiphon.resolvedEvents.some((event) => event.skillId === ID.SOUL_SHARDS),
     false
@@ -476,7 +475,7 @@ test('Perforate consumes current shards per accepted packet, including gains dur
 
 test('Distress consumes its flip, refreshes Perforate, and grants the single-target shard allowance', () => {
   const result = simulate([cast(ID.PERFORATE), cast(ID.ISOLATE), cast(ID.DISTRESS)]);
-  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 6);
+  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 6);
   assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.PERFORATE), false);
   assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DISTRESS], undefined);
   assert.deepEqual(result.warnings, []);
@@ -1609,7 +1608,7 @@ test('delivered Taste for Blood charges are independent and obey the party recip
   );
   assert.equal(simulate(rotation, config, { ...setup, output: 'score' }).totalDamage, result.totalDamage);
   const missed = simulate([{ ...cast(ID.NECROTIC_BITE), offTarget: true }], config, setup);
-  assert.equal(observedRuntime(missed).profession.core.tasteForBloodGrants.self[0].charges, 1);
+  assert.equal(observedRuntime(missed).profession.core.tasteForBloodGrants.self[0].count, 1);
 });
 
 test('zero passive grants cannot advertise an endless affordability retry', () => {
@@ -1844,5 +1843,5 @@ test('interrupted Distress neither refreshes Perforate nor grants shards', () =>
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.PERFORATE), true);
-  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
+  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].count, 0);
 });

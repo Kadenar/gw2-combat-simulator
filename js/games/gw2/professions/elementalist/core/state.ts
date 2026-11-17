@@ -1,4 +1,4 @@
-import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
@@ -106,7 +106,7 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
       Earth: Boolean(configuredBullets.Earth)
     },
     dazingDischargeUntil: 0,
-    shatteringStone: grantCharges(0, 0),
+    shatteringStone: createChargeGrant(0, 0),
     hammerOrbs: { Fire: null, Water: null, Air: null, Earth: null },
     hammerOrbActivationIds: {
       Fire: null,

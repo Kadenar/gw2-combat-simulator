@@ -57,10 +57,10 @@ test('Ashes spending cannot mutate its delivered buff or public snapshot', () =>
     { initialize: (runtime) => strike(runtime, 1) }
   );
   const buff = result.events.find((event) => event.kind === 'ashes-of-the-just');
-  assert.equal(state(result).ashes.charges, buff.stacks - 1);
-  const remaining = result.planningState.profession[STATE.ASHES].charges;
-  state(result).ashes.charges = 0;
-  assert.equal(result.planningState.profession[STATE.ASHES].charges, remaining);
+  assert.equal(state(result).ashes.count, buff.stacks - 1);
+  const remaining = result.planningState.profession[STATE.ASHES].count;
+  state(result).ashes.count = 0;
+  assert.equal(result.planningState.profession[STATE.ASHES].count, remaining);
   assert.equal(buff.stacks, remaining + 1);
 });
 
@@ -74,7 +74,7 @@ test('Ashes buff history, expiry cleanup, and planning state share the effect-cl
   assert.ok(buff.expiresAt >= application.at + application.duration);
   assert.equal(state(result).ashes.expiresAt, buff.expiresAt);
   assert.equal(result.planningState.profession[STATE.ASHES].expiresAt, buff.expiresAt);
-  assert.equal(state(result).ashes.charges, 0);
+  assert.equal(state(result).ashes.count, 0);
 });
 
 // The application boundary owns the grant; cancellation before commitment never installs party charges.
@@ -94,11 +94,11 @@ test('Ashes charges require an accepted grant and canceled casts grant nothing',
 
     if (action.cancelled) {
       assert.deepEqual(grants, []);
-      assert.equal(state(result).ashes.charges, 0);
+      assert.equal(state(result).ashes.count, 0);
     } else {
       assert.equal(grants.length, 1);
       assert.ok(grants[0].at >= action.at);
-      assert.equal(state(result).ashes.charges, grants[0].stacks);
+      assert.equal(state(result).ashes.count, grants[0].stacks);
     }
   }
 });
@@ -116,7 +116,7 @@ test('Ashes replacement resets readiness while trait refresh can shorten the liv
           tasks: {
             ...native.tasks,
             'test.ashes'(runtime) {
-              runtime.profession.specialization.state.ashes = { charges: 4, expiresAt: 20, readyAt: 8 };
+              runtime.profession.specialization.state.ashes = { count: 4, expiresAt: 20, readyAt: 8 };
               grantAshes(runtime, {
                 source,
                 cause: { type: 'buff', at: runtime.time },
@@ -130,10 +130,10 @@ test('Ashes replacement resets readiness while trait refresh can shorten the liv
         })
       }
     );
-    assert.equal(installed.charges, source === 'epilogue' ? 2 : 6);
+    assert.equal(installed.count, source === 'epilogue' ? 2 : 6);
     assert.equal(installed.readyAt, source === 'epilogue' ? 0 : 8);
     assert.equal(installed.expiresAt, gw2EffectExpiresAt(0.2, 2));
-    assert.equal(state(result).ashes.charges, 0);
+    assert.equal(state(result).ashes.count, 0);
   }
 });
 
@@ -234,7 +234,7 @@ test('Fervid removes components before claiming but rejects nonpositive grant nu
       !['buff', 'burning'].includes(mode),
       mode
     );
-    assert.equal(state(result).ashes.charges > 0, mode === 'valid', mode);
+    assert.equal(state(result).ashes.count > 0, mode === 'valid', mode);
     assert.equal(
       result.procSteps.some((step) => step.skill === 'Fervid Conviction'),
       mode === 'valid',

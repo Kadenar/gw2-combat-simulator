@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
@@ -91,7 +91,7 @@ test('Helio Rush reads its selected illumination multiplier without changing ord
         {
           profession,
           initialize: (runtime) => {
-            if (illuminated) runtime.profession.core.spearIlluminated = grantCharges(1, 5);
+            if (illuminated) runtime.profession.core.spearIlluminated = createChargeGrant(1, 5);
           }
         }
       );

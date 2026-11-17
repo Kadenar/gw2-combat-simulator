@@ -170,7 +170,7 @@ test('Evoker admitted enchantments retain independent charge expiry under isolat
   );
   assert.ok(rewards(result, 'elementalist.electric-enchantment').some((event) => event.type === 'damage'));
   assert.equal(
-    evokerState.from(runtime.profession).electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
+    evokerState.from(runtime.profession).electricEnchantmentGrants.reduce((sum, grant) => sum + grant.count, 0),
     0
   );
 });
@@ -320,11 +320,11 @@ test('Taste for Blood retains finite independent self and ally charges under iso
   const siphons = rewards(result, NT.OVERFLOWING_THIRST).filter((event) => event.type === 'damage');
   assert.equal(siphons.length, 2);
   assert.equal(
-    runtime.profession.core.tasteForBloodGrants.self.reduce((sum, grant) => sum + grant.charges, 0),
+    runtime.profession.core.tasteForBloodGrants.self.reduce((sum, grant) => sum + grant.count, 0),
     0
   );
   assert.equal(
-    runtime.profession.core.tasteForBloodGrants['ally:1'].reduce((sum, grant) => sum + grant.charges, 0),
+    runtime.profession.core.tasteForBloodGrants['ally:1'].reduce((sum, grant) => sum + grant.count, 0),
     0
   );
 });

@@ -302,7 +302,7 @@ test('Mistburn removal suppresses its charge grant while spending the artifact',
     'Antiquary',
     ['Skritt Swipe', 'Mistburn Mortar']
   );
-  assert.equal(result.planningState.profession[STATE.MISTBURN].charges, 0);
+  assert.equal(result.planningState.profession[STATE.MISTBURN].count, 0);
   assert.equal(result.planningState.profession[STATE.ARTIFACT_USES_REMAINING], 0);
 });
 

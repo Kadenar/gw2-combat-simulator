@@ -1049,7 +1049,7 @@ test('Mistburn charges are spent once by later player strikes, never by the Mort
   );
   assert.equal(procs.length, 5);
   assert.ok(procs.every((event) => event.triggeredBy !== 'Mistburn Mortar'));
-  assert.equal(result.planningState.profession[STATE.MISTBURN].charges, 0);
+  assert.equal(result.planningState.profession[STATE.MISTBURN].count, 0);
 });
 
 test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic', () => {

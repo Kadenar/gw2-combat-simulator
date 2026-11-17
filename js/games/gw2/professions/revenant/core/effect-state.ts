@@ -32,7 +32,7 @@ export function revenantEffectStates(
   ];
   effects.push(
     timedEffectState('enchanted-daggers', [
-      { stacks: core.enchantedDaggers.charges, expiresAt: core.enchantedDaggers.expiresAt }
+      { stacks: core.enchantedDaggers.count, expiresAt: core.enchantedDaggers.expiresAt }
     ])
   );
   effects.push(

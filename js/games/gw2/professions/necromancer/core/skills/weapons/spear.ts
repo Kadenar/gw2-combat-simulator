@@ -217,7 +217,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         when: () => true,
         transform: (runtime, _cast, effects) => {
           const grant = (runtime as NecromancerRuntime).profession.core.soulShardGrant;
-          const immobilize = grant.charges >= 3 && grant.expiresAt > runtime.time;
+          const immobilize = grant.count >= 3 && grant.expiresAt > runtime.time;
           return effects
             .filter((effect) => effect.packetLabel !== 'on-hit')
             .map((effect) =>

@@ -40,9 +40,9 @@ export function createMesmerCoreState(): MesmerCoreState {
     trackedSkillHits: {},
 
     chaosAuraUntil: 0,
-    mimic: { charges: 0, expiresAt: 0 },
+    mimic: { count: 0, expiresAt: 0 },
     scepterChainExpiresAt: null,
-    clarity: { charges: 0, expiresAt: 0 },
+    clarity: { count: 0, expiresAt: 0 },
     signetIllusionsPassive: createPeriodicTaskState()
   };
 }
@@ -61,6 +61,6 @@ export function projectMesmerCorePlanningState(input: Gw2PlanningStateInput) {
       : {}),
     // The display timer projects the grant without consuming or pruning its owner.
     [STATE.CLARITY_REMAINING]:
-      state.clarity.charges > 0 ? Math.max(0, Math.round((state.clarity.expiresAt - at) * 1000)) : 0
+      state.clarity.count > 0 ? Math.max(0, Math.round((state.clarity.expiresAt - at) * 1000)) : 0
   };
 }

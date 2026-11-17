@@ -23,7 +23,7 @@ export const untamedHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkill>
     /** Hold the selected preview state while evaluating detached damage queries. */
     prepareDamageState(runtime, _skill, inputs) {
       untamedState.from(runtime.profession).ferociousSymbiosisPlayer = {
-        stacks: Number(inputs.ferociousSymbiosis ?? 0),
+        count: Number(inputs.ferociousSymbiosis ?? 0),
         expiresAt: Infinity
       };
     },

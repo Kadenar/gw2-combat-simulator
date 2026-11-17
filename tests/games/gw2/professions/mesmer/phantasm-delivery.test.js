@@ -52,7 +52,7 @@ test('player variants and summon preparation share the accepted Clarity snapshot
   for (const clarity of [false, true]) {
     const result = runMesmer(rotation, config, {
       initialize(runtime) {
-        runtime.profession.core.clarity = { charges: Number(clarity), expiresAt: 10 };
+        runtime.profession.core.clarity = { count: Number(clarity), expiresAt: 10 };
       },
       catalog(catalog) {
         return withSkill(catalog, ID.PHANTASMAL_LANCER, {

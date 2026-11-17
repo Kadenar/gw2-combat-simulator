@@ -19,11 +19,11 @@ test('Ranger activation declarations are the sole owners of their grants and tra
       'Core',
       ID.SHARPENING_STONE,
       [],
-      (r) => r.profession.core.sharpeningStoneGrants.reduce((sum, grant) => sum + grant.charges, 0),
+      (r) => r.profession.core.sharpeningStoneGrants.reduce((sum, grant) => sum + grant.count, 0),
       0
     ],
-    ['Core', ID.DOUBLE_ARC, [], (r) => r.profession.core.pet.poisonousStrikes.charges, 0],
-    ['Core', ID.CRIPPLING_SHOT, [], (r) => r.profession.core.bloodThirst.charges, 0],
+    ['Core', ID.DOUBLE_ARC, [], (r) => r.profession.core.pet.poisonousStrikes.count, 0],
+    ['Core', ID.CRIPPLING_SHOT, [], (r) => r.profession.core.bloodThirst.count, 0],
     ['Core', ID.WINTERS_BITE, [], (r) => r.profession.core.winterBiteReady, false],
     ['Core', ID.PET_SWAP, [], (r) => r.profession.core.activePetSlot, 1],
     ['Druid', ID.CELESTIAL_AVATAR, [], (r) => r.profession.specialization.state.celestialAvatarEndsAt, null],
@@ -85,17 +85,17 @@ test('declared charge grants preserve replacement, additive expiry, and cancella
     if (Array.isArray(state)) {
       assert.deepEqual(
         state,
-        grants.map((grant) => ({ charges: grant.charges, expiresAt: grant.at + grant.duration, readyAt: 0 }))
+        grants.map((grant) => ({ count: grant.charges, expiresAt: grant.at + grant.duration, readyAt: 0 }))
       );
     } else {
-      assert.equal(state.charges, grants[1].charges);
+      assert.equal(state.count, grants[1].charges);
       assert.equal(state.expiresAt, grants[1].at + grants[1].duration);
       const cancelled = runRanger([{ type: 'cast', skillId, interruptMs: 1 }], {}, { extend });
       assert.deepEqual(cancelled.warnings, []);
       assert.equal(
         (pool === 'poisonousStrikes'
           ? observedRuntime(cancelled).profession.core.pet
-          : observedRuntime(cancelled).profession.core)[pool].charges,
+          : observedRuntime(cancelled).profession.core)[pool].count,
         0
       );
     }

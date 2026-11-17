@@ -68,7 +68,7 @@ test('spear shard reactions belong to selected accepted strike effects', () => {
           onCastStart(runtime, cast) {
             native.onCastStart(runtime, cast);
 
-            if (cast.skill.id === skillId) runtime.profession.core.soulShardGrant.charges = 0;
+            if (cast.skill.id === skillId) runtime.profession.core.soulShardGrant.count = 0;
           },
           modifyEffects(runtime, cast, effects) {
             const selected = native.modifyEffects(runtime, cast, effects);
@@ -79,7 +79,7 @@ test('spear shard reactions belong to selected accepted strike effects', () => {
         }
       });
       assert.deepEqual(result.warnings, []);
-      assert.equal(observedRuntime(result).profession.core.soulShardGrant.charges, mode === 'landed' ? amount : 0);
+      assert.equal(observedRuntime(result).profession.core.soulShardGrant.count, mode === 'landed' ? amount : 0);
     }
   }
 });
@@ -103,7 +103,7 @@ test('Distress declares its shard grant after recharge reset and expires it thro
         'necromancer.soul-shards'(runtime, cast, action) {
           resetBeforeGrant = !runtime.cooldownController.hasCooldown(ID.PERFORATE);
           native.sideEffectHandlers['necromancer.soul-shards'](runtime, cast, action);
-          assert.equal(runtime.profession.core.soulShardGrant.charges, 6);
+          assert.equal(runtime.profession.core.soulShardGrant.count, 6);
           assert.equal(runtime.profession.core.soulShardGrant.expiresAt, runtime.time + 10);
         }
       }
@@ -111,7 +111,7 @@ test('Distress declares its shard grant after recharge reset and expires it thro
   });
   assert.deepEqual(result.warnings, []);
   assert.equal(resetBeforeGrant, true);
-  assert.equal(observedRuntime(result).profession.core.soulShardGrant.charges, 0);
+  assert.equal(observedRuntime(result).profession.core.soulShardGrant.count, 0);
 });
 
 // Removing a declared producer must remove its state transition, proving no ambient cast dispatcher still runs it.

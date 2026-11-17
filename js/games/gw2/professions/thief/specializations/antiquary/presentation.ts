@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { activeChargeCount, activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   ProfessionStateSnapshotContext,
@@ -17,6 +16,8 @@ import {
 } from '#gw2/professions/thief/data/ids.js';
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import { activeBatches } from '#kernel/resources/batch-list.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 import { purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Shows Combat High and artifact effects with duration or consumable charges. */
@@ -92,7 +93,10 @@ function antiquaryStateSnapshot(
   }
 
   // Artifact charge displays read canonical grants without expiring the live owner.
-  const chakRefunds = activeChargeGrants(state[STATE.CHAK_INITIATIVE_REFUNDS] || [], at);
+  const chakRefunds = activeBatches(state[STATE.CHAK_INITIATIVE_REFUNDS] || [], at, {
+    expiry: 'exclusive',
+    order: 'earliest-expiry'
+  });
   for (const [id, label, grant] of [
     ['antiquary-metal-legion-guitar', 'Metal Legion Guitar', state[STATE.BONUS_STEALTH_ATTACK]],
     ['antiquary-mistburn-mortar', 'Mistburn Mortar', state[STATE.MISTBURN]],
@@ -100,13 +104,13 @@ function antiquaryStateSnapshot(
       'antiquary-chak-shield',
       'Chak Shield',
       {
-        charges: chakRefunds.reduce((sum, grant) => sum + grant.charges, 0),
+        count: chakRefunds.reduce((sum, grant) => sum + grant.count, 0),
         expiresAt: Math.min(...chakRefunds.map((grant) => grant.expiresAt))
       }
     ]
   ] as const) {
     const remaining = (grant?.expiresAt || 0) - at;
-    const charges = Math.trunc(activeChargeCount(grant, at));
+    const charges = Math.trunc(activeBatchCount(grant, at, 'exclusive'));
 
     if (remaining <= 0 || charges <= 0) continue;
 

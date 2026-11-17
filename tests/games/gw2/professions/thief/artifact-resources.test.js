@@ -21,14 +21,14 @@ test('Chak Shield refunds two paid weapon uses and preserves charges for free or
     resourceController: { grant: (resource, amount) => refunds.push([resource, amount]) }
   };
   const state = runtime.profession.specialization.state;
-  assert.equal(state.chakInitiativeRefunds[0].charges, 2);
+  assert.equal(state.chakInitiativeRefunds[0].count, 2);
   antiquaryArtifactLifecycle.onCastStart(runtime, {
     skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 0 } }
   });
   antiquaryArtifactLifecycle.onCastStart(runtime, {
     skill: { type: 'Profession', cost: { resource: 'initiative', amount: 2 } }
   });
-  assert.equal(state.chakInitiativeRefunds[0].charges, 2);
+  assert.equal(state.chakInitiativeRefunds[0].count, 2);
   for (let use = 0; use < 4; use++) {
     antiquaryArtifactLifecycle.onCastStart(runtime, {
       skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 4 } }
@@ -80,7 +80,7 @@ test('Chak Shield caps stacked refunds at four and expired grants cannot fund we
   };
   const state = runtime.profession.specialization.state;
   assert.equal(
-    state.chakInitiativeRefunds.reduce((sum, grant) => sum + grant.charges, 0),
+    state.chakInitiativeRefunds.reduce((sum, grant) => sum + grant.count, 0),
     4
   );
   for (const grant of state.chakInitiativeRefunds) grant.expiresAt = runtime.time;

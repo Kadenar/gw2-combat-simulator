@@ -509,7 +509,7 @@ test('Guardian charge procs stay blocked at the exact ICD boundary', () => {
     config: {},
     catalog: guardianCatalog
   });
-  state.ashes.charges = 2;
+  state.ashes.count = 2;
   state.ashes.expiresAt = 10;
   state.ashes.readyAt = READY_AT;
   const { context, procs, conditions } = professionContext({
@@ -522,11 +522,11 @@ test('Guardian charge procs stay blocked at the exact ICD boundary', () => {
   const event = { type: 'damage', actorType: 'player', coefficient: 1, at: READY_AT };
 
   reactToAshesHit(context, event);
-  assert.equal(state.ashes.charges, 2);
+  assert.equal(state.ashes.count, 2);
   assert.equal(conditions.length, 0);
 
   reactToAshesHit(context, { ...event, at: AFTER_READY_AT });
-  assert.equal(state.ashes.charges, 1);
+  assert.equal(state.ashes.count, 1);
   assert.equal(conditions.length, 1);
   assert.equal(procs.length, 1);
 });

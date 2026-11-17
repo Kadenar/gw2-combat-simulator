@@ -27,7 +27,7 @@ export function willbenderEffectStates(runtime: MechanicQueriesOf<GuardianRuntim
   effects.push(
     timedEffectState(
       'lethal-tempo',
-      [{ stacks: state.lethalTempo.stacks, expiresAt: state.lethalTempo.expiresAt }],
+      [{ stacks: state.lethalTempo.count, expiresAt: state.lethalTempo.expiresAt }],
       balanceProfileNumber(balanceProfile(runtime.helpers, TRAIT.LETHAL_TEMPO)!, 'maximumStacks')
     )
   );

@@ -100,8 +100,8 @@ test('Taste for Blood allied opportunities preserve charges at expiry and with r
   const removed = run({ grants: [{ at: 0 }], removed: true, end: 1 });
   for (const result of [expired, removed]) {
     assert.equal(siphons(result).length, 0);
-    assert.equal(grantsOf(result)['ally:1'][0].charges, 1);
-    assert.equal(grantsOf(result)['ally:2'][0].charges, 1);
+    assert.equal(grantsOf(result)['ally:1'][0].count, 1);
+    assert.equal(grantsOf(result)['ally:2'][0].count, 1);
   }
 });
 
@@ -129,8 +129,8 @@ test('Taste for Blood cannot borrow a sibling batch at its canonical expiry', ()
   });
   for (const pool of Object.values(grantsOf(result))) {
     assert.deepEqual(
-      pool.map(({ charges, expiresAt }) => ({ charges, expiresAt })),
-      [{ charges: 1, expiresAt: 0.5 }]
+      pool.map(({ count, expiresAt }) => ({ count, expiresAt })),
+      [{ count: 1, expiresAt: 0.5 }]
     );
   }
 
@@ -151,7 +151,7 @@ test('Taste for Blood preserves explicit and implicit combat-start behavior', ()
   const grants = [{ at: 0, stacks: 3 }];
   const setup = run({ grants, combatStartTime: 2, end: 2 });
   assert.equal(siphons(setup).length, 0);
-  assert.equal(grantsOf(setup)['ally:1'][0].charges, 3);
+  assert.equal(grantsOf(setup)['ally:1'][0].count, 3);
   const started = run({ grants, combatStartTime: 2, end: 2.5 });
   assert.deepEqual(
     siphons(started).map((event) => event.at),
@@ -168,8 +168,8 @@ test('Taste for Blood preserves explicit and implicit combat-start behavior', ()
 test('Taste for Blood stops allied spending after target death', () => {
   const result = run({ grants: [{ at: 0, stacks: 3 }], health: 1 });
   assert.equal(result.deathTime, 0.5);
-  assert.equal(grantsOf(result)['ally:1'][0].charges, 2);
-  assert.equal(grantsOf(result)['ally:2'][0].charges, 2);
+  assert.equal(grantsOf(result)['ally:1'][0].count, 2);
+  assert.equal(grantsOf(result)['ally:2'][0].count, 2);
 });
 
 // A fractional stepped cadence includes its last in-window hit and leaves future charges untouched at the horizon.
@@ -177,5 +177,5 @@ test('ambient Taste for Blood wakes retain rounding and cannot extend the observ
   const result = run({ grants: [{ at: 0, stacks: 5 }], rate: 3, end: 1 });
   assert.ok(siphons(result).every((event) => event.at > 0 && event.at <= 1));
   assert.equal(observedRuntime(result).time, 1);
-  assert.equal(grantsOf(result)['ally:1'][0].charges, 2);
+  assert.equal(grantsOf(result)['ally:1'][0].count, 2);
 });

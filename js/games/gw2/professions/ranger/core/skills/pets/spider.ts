@@ -2,7 +2,7 @@
  * Owns Core Ranger pet skill definitions for the Spider family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
-import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, COMBO_FIELD, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -215,7 +215,7 @@ export function armParalyzingVenom(runtime: RangerRuntime, event: Gw2ResolverEve
   const pet = rangerOwningPetState(runtime.profession.core.pet, event.summonOwner);
 
   // The venom arms one strike until its buff expires.
-  if (pet) pet.paralyzingVenom = grantCharges(1, runtime.time + Number(event.duration));
+  if (pet) pet.paralyzingVenom = createChargeGrant(1, runtime.time + Number(event.duration));
 }
 
 /** The first accepted strike by the armed companion consumes its venom, retaining pet condition ownership. */
@@ -224,14 +224,14 @@ export function consumeParalyzingVenom(context: RangerResolverContext, event: Gw
 
   if (!pet || !isActivePetStrike(context, event)) return;
 
-  if (pet.paralyzingVenom.charges <= 0) return;
+  if (pet.paralyzingVenom.count <= 0) return;
 
   deliverChargedHit(
     context,
     event,
     ID.PARALYZING_VENOM,
     'paralyzing-venom',
-    () => consumeCharge(pet.paralyzingVenom, event.at),
+    () => consumeCharge(pet.paralyzingVenom, event.at, 'exclusive'),
     {
       attribution: {
         source: 'ranger-pet',

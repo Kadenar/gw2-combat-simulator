@@ -5,13 +5,13 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { ACTOR } from '#gw2/platform/constants.js';
 import { announceRelic, defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
-import { grantRefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
+import { refreshBatch } from '#kernel/resources/batch.js';
 
 const MAXIMUM_STACKS = 10;
 const CONCENTRATION_PER_STACK = 25;
 
 export const herald = defineRelic({
-  createState: () => ({ refreshedStacks: { stacks: 0, expiresAt: 0 }, activations: [] }),
+  createState: () => ({ refreshedStacks: { count: 0, expiresAt: 0 }, activations: [] }),
   boon(ctx, state, event) {
     // Ownership alone cannot qualify summons: only the player and explicitly player-owned effects grant stacks.
     if (
@@ -25,23 +25,21 @@ export const herald = defineRelic({
     )
       return;
 
-    const buff = grantRefreshedStacks(
-      state.refreshedStacks!,
-      1,
-      event.at,
-      gw2EffectExpiresAt(event.at, 3),
-      MAXIMUM_STACKS,
-      'exclusive'
-    );
+    const buff = refreshBatch(state.refreshedStacks, 1, {
+      at: event.at,
+      expiresAt: gw2EffectExpiresAt(event.at, 3),
+      expiry: 'exclusive',
+      maximum: MAXIMUM_STACKS
+    }).batch;
     state.refreshedStacks = buff;
     // Keep accepted windows so reordered attribute observations cannot see future grants or lose earlier stacks.
-    state.activations!.push({ at: canonicalTime(event.at), ...buff });
+    state.activations!.push({ at: canonicalTime(event.at), stacks: buff.count, expiresAt: buff.expiresAt });
     announceRelic(ctx, event, 'Relic of the Herald', {
-      detail: `${buff.stacks}/${MAXIMUM_STACKS} stacks`,
+      detail: `${buff.count}/${MAXIMUM_STACKS} stacks`,
       icon: '',
       cooldownReduction: null,
       expiresAt: buff.expiresAt,
-      effectState: { stacks: buff.stacks, maximumStacks: MAXIMUM_STACKS }
+      effectState: { stacks: buff.count, maximumStacks: MAXIMUM_STACKS }
     });
   },
   concentrationBonus(state, at) {

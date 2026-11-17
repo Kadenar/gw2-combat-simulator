@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { triggerSharpeningStone } from '#gw2/professions/ranger/core/skills/slot-skills.js';
@@ -12,6 +11,7 @@ import { THIEF_SKILL_IDS } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { WARRIOR_SKILL_IDS, WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { activeBatches } from '#kernel/resources/batch-list.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { observedRuntime, observeGw2Runtime, projectObservedState } from '#tests/helpers/observed-runtime.js';
@@ -77,7 +77,7 @@ test('Holo-Dancer commits spend grant order even when the newest charge expires 
 });
 
 test('Sharpening Stone ignores excluded hits and spends the earliest live expiry on player strikes', () => {
-  const prior = Object.freeze([1, 5, 30].map((expiresAt) => ({ charges: 1, expiresAt })));
+  const prior = Object.freeze([1, 5, 30].map((expiresAt) => ({ count: 1, expiresAt })));
   // Copies of a pool retain live grant references; detached snapshots preserve historical values.
   const snapshot = structuredClone(prior);
   const core = { sharpeningStoneGrants: [...prior] };
@@ -90,19 +90,25 @@ test('Sharpening Stone ignores excluded hits and spends the earliest live expiry
   const event = { type: 'damage', at: 1, actorType: 'effect', coefficient: 1 };
   triggerSharpeningStone(context, event);
   assert.deepEqual(
-    activeChargeGrants(core.sharpeningStoneGrants, event.at),
-    [5, 30].map((expiresAt) => ({ charges: 1, expiresAt }))
+    activeBatches(core.sharpeningStoneGrants, event.at, { expiry: 'exclusive', order: 'earliest-expiry' }),
+    [5, 30].map((expiresAt) => ({ count: 1, expiresAt }))
   );
   assert.deepEqual(queued, []);
   triggerSharpeningStone(context, { ...event, actorType: 'player' });
-  assert.deepEqual(activeChargeGrants(core.sharpeningStoneGrants, event.at), [{ charges: 1, expiresAt: 30 }]);
+  assert.deepEqual(
+    activeBatches(core.sharpeningStoneGrants, event.at, { expiry: 'exclusive', order: 'earliest-expiry' }),
+    [{ count: 1, expiresAt: 30 }]
+  );
   assert.equal(queued.length, 1);
   assert.equal(queued[0].condition, 'Bleeding');
-  assert.equal(prior[1].charges, 0);
-  assert.equal(activeChargeGrants(core.sharpeningStoneGrants, event.at)[0], prior[2]);
+  assert.equal(prior[1].count, 0);
+  assert.equal(
+    activeBatches(core.sharpeningStoneGrants, event.at, { expiry: 'exclusive', order: 'earliest-expiry' })[0],
+    prior[2]
+  );
   assert.deepEqual(
     snapshot,
-    [1, 5, 30].map((expiresAt) => ({ charges: 1, expiresAt }))
+    [1, 5, 30].map((expiresAt) => ({ count: 1, expiresAt }))
   );
 });
 

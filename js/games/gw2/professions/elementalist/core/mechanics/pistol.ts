@@ -1,5 +1,5 @@
 /** Owns pistol enhancement actions, charge rewards, recharge grants, and deferred tasks. */
-import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, COMBO_FINISHER, WEAPON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
@@ -195,7 +195,7 @@ export function applyShatteringStoneBuff(context: ElementalistResolverContext, e
   if (event.kind !== 'shattering stone' || !event.resolvedAudience?.includesSelf) return;
 
   const core = professionCoreState(context.profession);
-  core.shatteringStone = grantCharges(event.stacks || 0, event.at + (event.duration || 0));
+  core.shatteringStone = createChargeGrant(event.stacks || 0, event.at + (event.duration || 0));
 }
 
 /** Spend Shattering Stone charges in resolved impact order, including previously scheduled attacks. */
@@ -205,7 +205,7 @@ export function triggerShatteringStone(context: ElementalistResolverContext, eve
   if (
     (event.actorType === ACTOR.PLAYER || event.actorType === ACTOR.EFFECT) &&
     Number(event.coefficient) > 0 &&
-    consumeCharge(core.shatteringStone, event.at)
+    consumeCharge(core.shatteringStone, event.at, 'exclusive')
   ) {
     // Follow-up hits read the same patched action that armed the charges, without emitting its payload on cast.
     const skill = requireSkill(context.helpers, ID.SHATTERING_STONE);

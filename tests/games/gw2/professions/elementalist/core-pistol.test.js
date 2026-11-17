@@ -146,7 +146,7 @@ test('Shattering Stone selected charges expire and consume even when their bleed
       }
     });
     const armed = run(profession, 'Earth', [{ type: 'cast', skillId: ID.SHATTERING_STONE }]);
-    assert.equal(observedRuntime(armed).profession.core.shatteringStone.charges, 2);
+    assert.equal(observedRuntime(armed).profession.core.shatteringStone.count, 2);
     assert.ok(!armed.events.some((event) => event.condition === 'Bleeding' && event.duration === 17));
     for (const expired of [false, true]) {
       const result = run(profession, 'Earth', [
@@ -159,7 +159,7 @@ test('Shattering Stone selected charges expire and consume even when their bleed
         result.resolvedEvents.some((event) => event.condition === 'Bleeding' && event.duration === 17),
         !removed && !expired
       );
-      assert.equal(observedRuntime(result).profession.core.shatteringStone.charges, expired ? 2 : 1);
+      assert.equal(observedRuntime(result).profession.core.shatteringStone.count, expired ? 2 : 1);
       assert.equal(observedRuntime(result).profession.core.pistolBullets.Earth, false);
     }
   }

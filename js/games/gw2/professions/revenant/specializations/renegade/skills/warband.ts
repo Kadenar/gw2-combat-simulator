@@ -1,10 +1,5 @@
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import {
-  activeChargeCount,
-  consumeCharge,
-  grantCharges,
-  type ChargeGrant
-} from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
@@ -20,6 +15,7 @@ import { bandTogetherReady } from '#gw2/professions/revenant/specializations/ren
 import { RAZORCLAW_PROC_ID } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 
 // Band Together's selected profile is an acceptance fact: the window is consumed before effects are selected.
 export const bandTogether = new WeakMap<RuntimeCast<RevenantSkill>, { enhanced: boolean; profileSkillId: SkillId }>();
@@ -90,7 +86,10 @@ export function razorclawsRage(
   const duration = Math.max(0, effectNumber(profile, buff, 'duration'));
   const charges = Math.max(0, Math.trunc(effectNumber(profile, buff, 'stacks')));
   // Every recipient's grant is blocked at its arming instant, so no strike at that timestamp can spend it.
-  const arm = (): ChargeGrant => ({ ...grantCharges(charges, runtime.time + duration), readyAt: runtime.time });
+  const arm = (): ChargeGrant => ({
+    ...createChargeGrant(charges, runtime.time + duration),
+    readyAt: runtime.time
+  });
   const state = renegadeState.from(runtime.profession);
   state.razorclawsRage = arm();
   // The controller only offers strikes; each ally's charges, expiry, and cooldown follow the player's policy.
@@ -100,7 +99,7 @@ export function razorclawsRage(
     const current = () => renegadeState.from(runtime.profession).alliedRazorclawsRage[allyIndex];
     return {
       id: `razorclaw:${allyIndex}`,
-      isActive: (at) => activeChargeCount(current(), at) > 0,
+      isActive: (at) => activeBatchCount(current(), at, 'exclusive') > 0,
       trigger(allied) {
         const spent = spendRazorclawCharge(runtime, current());
 
@@ -132,7 +131,7 @@ function spendRazorclawCharge(runtime: RevenantRuntime, grant: ChargeGrant | und
 
   const cooldown = Math.max(0, proc.cooldown || 0);
 
-  if (!consumeCharge(grant, runtime.time, cooldown)) return;
+  if (!consumeCharge(grant, runtime.time, 'exclusive', cooldown)) return;
 
   if (cooldown === 0) grant.readyAt = runtime.time;
 

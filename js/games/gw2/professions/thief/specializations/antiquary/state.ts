@@ -1,9 +1,4 @@
-import {
-  activeChargeCount,
-  activeChargeGrants,
-  grantCharges,
-  type ChargeGrant
-} from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
@@ -12,6 +7,8 @@ import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import type { ThiefArtifactKind } from '#gw2/professions/thief/types.js';
+import { activeBatches } from '#kernel/resources/batch-list.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 import { purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 export interface ThiefArtifactSlot {
@@ -49,8 +46,8 @@ export function createAntiquaryState(): AntiquaryState {
     nextSkrittScufflePilferAt: 0,
     antiquaryDamageUntil: 0,
     combatHighExpirations: [],
-    bonusStealthAttack: grantCharges(0, 0),
-    mistburn: grantCharges(0, 0),
+    bonusStealthAttack: createChargeGrant(0, 0),
+    mistburn: createChargeGrant(0, 0),
     kryptisDamageUntil: 0,
     chakInitiativeRefunds: [],
     holoUtilityCooldownReductionExpirations: [],
@@ -73,9 +70,12 @@ export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput<Speci
     [STATE.NEXT_SKRITT_SCUFFLE_PILFER_AT]: state.nextSkrittScufflePilferAt,
     [STATE.ANTIQUARY_DAMAGE_UNTIL]: state.antiquaryDamageUntil,
     [STATE.COMBAT_HIGH_EXPIRATIONS]: purgeExpiredStacks(state.combatHighExpirations, input.time),
-    [STATE.MISTBURN]: { ...state.mistburn, charges: activeChargeCount(state.mistburn, input.time) },
+    [STATE.MISTBURN]: { ...state.mistburn, count: activeBatchCount(state.mistburn, input.time, 'exclusive') },
     [STATE.KRYPTIS_DAMAGE_UNTIL]: state.kryptisDamageUntil,
-    [STATE.CHAK_INITIATIVE_REFUNDS]: activeChargeGrants(state.chakInitiativeRefunds, input.time),
+    [STATE.CHAK_INITIATIVE_REFUNDS]: activeBatches(state.chakInitiativeRefunds, input.time, {
+      expiry: 'exclusive',
+      order: 'earliest-expiry'
+    }),
     [STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS]: purgeExpiredStacks(
       state.holoUtilityCooldownReductionExpirations,
       input.time

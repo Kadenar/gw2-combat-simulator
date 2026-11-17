@@ -1,6 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, countActiveBoons, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, BOON_NAMES, RECIPIENT } from '#gw2/platform/constants.js';
 import type { BoonEffect } from '#gw2/platform/effects/types.js';
@@ -295,7 +295,7 @@ function grantSilentScope(runtime: ThiefRuntime, { cast }: DeadeyeCast): void {
 
     if (state.malice.value > balanceProfileNumber(silentScope, 'threshold')) {
       // Reapplying Silent Scope replaces the prior bonus rather than stacking attacks.
-      state.bonusStealthAttack = grantCharges(1, runtime.time + balanceProfileNumber(silentScope, 'duration'));
+      state.bonusStealthAttack = createChargeGrant(1, runtime.time + balanceProfileNumber(silentScope, 'duration'));
     }
   }
 }

@@ -1,4 +1,4 @@
-import type { ChargeGrant, ChargePool } from '#gw2/platform/combat/resources/charges.js';
+import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -54,7 +54,7 @@ export interface ThiefCoreState extends StealthState {
   /** Outgoing projectiles are recallable before landing, but do not occupy grounded slots yet. */
   outboundAxes: { id: string; skillId: SkillId }[];
   /** Expiry-ordered player grants; active counts ignore expired entries until that pool's next grant prunes them. */
-  venomChargeBatches: ChargePool['grants'];
+  venomChargeBatches: Record<string, ChargeGrant[]>;
   /** Each assumed ally's venom batches, keyed by `${allyIndex}:${skillId}`; the allied controller supplies strikes. */
   alliedVenomChargeBatches: Record<string, AlliedVenomBatch[]>;
   activeThievesGuild: ThievesGuildState | null;

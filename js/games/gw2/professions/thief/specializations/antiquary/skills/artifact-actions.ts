@@ -1,5 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { activeChargeGrants, appendChargeGrant, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -19,6 +19,7 @@ import {
 } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { appendBatch } from '#kernel/resources/batch-list.js';
 
 /** Artifact skills own their effects; the inventory lifecycle owns spending and reward ordering. */
 export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> =
@@ -51,7 +52,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       const at = runtime.time;
       const duration = artifactWindowDuration(runtime, context.skill);
       // Guitar replaces the active bonus-attack grant with the selected artifact count and lifetime.
-      state.bonusStealthAttack = grantCharges(skillNumber(context.skill, 'maximumStacks'), at + duration);
+      state.bonusStealthAttack = createChargeGrant(skillNumber(context.skill, 'maximumStacks'), at + duration);
     },
     'thief.mortar'(runtime, context) {
       const state = antiquaryState.from(runtime.profession);
@@ -61,7 +62,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       if (!requireEffect(context.skill, 'condition', CONDITION.BURNING, requireSkillAction(context.skill, 'charged')))
         return;
 
-      state.mistburn = grantCharges(skillNumber(context.skill, 'maximumStacks'), at + duration);
+      state.mistburn = createChargeGrant(skillNumber(context.skill, 'maximumStacks'), at + duration);
     },
     'thief.kryptis'(runtime) {
       const state = antiquaryState.from(runtime.profession);
@@ -73,17 +74,15 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       const at = runtime.time;
       const duration = artifactWindowDuration(runtime, context.skill);
       // Three refunds are added up to four total; unused grants keep their own expiry instead of becoming permanent.
-      const grants = activeChargeGrants(state.chakInitiativeRefunds, at);
-      const remaining = grants.reduce((sum, grant) => sum + grant.charges, 0);
-      const added = Math.max(
-        0,
-        Math.min(skillNumber(context.skill, 'refundCharges'), skillNumber(context.skill, 'maximumStacks') - remaining)
-      );
-      state.chakInitiativeRefunds = appendChargeGrant(
-        grants,
-        grantCharges(added, at + duration),
+      state.chakInitiativeRefunds = appendBatch(
+        state.chakInitiativeRefunds,
+        createChargeGrant(Math.max(0, skillNumber(context.skill, 'refundCharges')), at + duration),
         at,
-        'earliest-expiry'
+        {
+          expiry: 'exclusive',
+          order: 'earliest-expiry',
+          maximum: skillNumber(context.skill, 'maximumStacks')
+        }
       );
     },
     'thief.holo'(runtime, context) {

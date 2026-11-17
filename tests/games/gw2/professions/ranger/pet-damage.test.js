@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -40,16 +40,16 @@ test('pet swaps discard unspent Poisonous Strikes charges', () => {
       { selectedPet: 'Jacaranda', selectedPet2: 'Carrion Devourer' },
       {
         initialize(runtime) {
-          runtime.profession.core.pet.poisonousStrikes = grantCharges(charges, 7);
+          runtime.profession.core.pet.poisonousStrikes = createChargeGrant(charges, 7);
         },
         timeline: [
           {
             at: 0.1,
             run(runtime) {
-              assert.equal(runtime.profession.core.pet.poisonousStrikes.charges, charges);
+              assert.equal(runtime.profession.core.pet.poisonousStrikes.count, charges);
               swapRangerPets(runtime.mechanics, runtime.helpers.skillsById.get(ID.PET_SWAP));
               assert.equal(rangerPetForState(runtime.profession.core).name, 'Carrion Devourer');
-              assert.equal(runtime.profession.core.pet.poisonousStrikes.charges, 0);
+              assert.equal(runtime.profession.core.pet.poisonousStrikes.count, 0);
             }
           },
           {
@@ -57,7 +57,7 @@ test('pet swaps discard unspent Poisonous Strikes charges', () => {
             run(runtime) {
               swapRangerPets(runtime.mechanics, runtime.helpers.skillsById.get(ID.PET_SWAP));
               assert.equal(rangerPetForState(runtime.profession.core).name, 'Jacaranda');
-              assert.equal(runtime.profession.core.pet.poisonousStrikes.charges, 0);
+              assert.equal(runtime.profession.core.pet.poisonousStrikes.count, 0);
             }
           }
         ]

@@ -90,8 +90,8 @@ test('Ranger pet projections expose detached observations without traversing pri
   for (const key of ['activationClaims', 'effects', 'autoAction', 'commandReadyAt'])
     assert.equal(Object.hasOwn(projected[STATE.PET], key), false);
   assert.equal(projected[STATE.PET].id, pet.id);
-  projected[STATE.PET].ferociousSymbiosis.stacks = 5;
-  assert.equal(pet.ferociousSymbiosis.stacks, 0);
+  projected[STATE.PET].ferociousSymbiosis.count = 5;
+  assert.equal(pet.ferociousSymbiosis.count, 0);
 });
 
 test('public expiry projections use exclusive deadlines without mutating the live owner', () => {
@@ -141,13 +141,13 @@ test('charge expiry projections preserve live grants and earlier observations', 
     const config = { specialization };
     const profession = family.runtimeFor(config).createState(config);
     const owner = slice === 'core' ? profession.core : profession.specialization.state;
-    owner[key] = Object.freeze({ charges: 3, expiresAt: 5, readyAt: 2 });
+    owner[key] = Object.freeze({ count: 3, expiresAt: 5, readyAt: 2 });
     const earlier = projectObservedState(family, { profession, config, time: 4 });
     const expired = projectObservedState(family, { profession, config, time: 5 });
-    assert.deepEqual(expired[stateId], { charges: 0, expiresAt: 5, readyAt: 2 });
-    assert.deepEqual(owner[key], { charges: 3, expiresAt: 5, readyAt: 2 });
-    owner[key] = { charges: 7, expiresAt: 9, readyAt: 6 };
-    assert.deepEqual(earlier[stateId], { charges: 3, expiresAt: 5, readyAt: 2 });
+    assert.deepEqual(expired[stateId], { count: 0, expiresAt: 5, readyAt: 2 });
+    assert.deepEqual(owner[key], { count: 3, expiresAt: 5, readyAt: 2 });
+    owner[key] = { count: 7, expiresAt: 9, readyAt: 6 };
+    assert.deepEqual(earlier[stateId], { count: 3, expiresAt: 5, readyAt: 2 });
     expired[stateId].readyAt = 99;
     assert.equal(owner[key].readyAt, 6);
     assert.equal(earlier[stateId].readyAt, 2);
@@ -234,18 +234,18 @@ test('Antiquary filters refund grants without sharing surviving grants with live
   const config = { specialization: 'Antiquary' };
   const profession = thiefProfession.runtimeFor(config).createState(config);
   const grants = [
-    { charges: 2, expiresAt: 9 },
-    { charges: 1, expiresAt: 5 },
-    { charges: 3, expiresAt: 7 }
+    { count: 2, expiresAt: 9 },
+    { count: 1, expiresAt: 5 },
+    { count: 3, expiresAt: 7 }
   ];
   profession.specialization.state.chakInitiativeRefunds = grants;
   const projected = projectObservedState(thiefProfession, { profession, config, time: 5 });
   assert.deepEqual(projected[STATE.CHAK_INITIATIVE_REFUNDS], [grants[2], grants[0]]);
-  projected[STATE.CHAK_INITIATIVE_REFUNDS][0].charges = 0;
+  projected[STATE.CHAK_INITIATIVE_REFUNDS][0].count = 0;
   assert.deepEqual(grants, [
-    { charges: 2, expiresAt: 9 },
-    { charges: 1, expiresAt: 5 },
-    { charges: 3, expiresAt: 7 }
+    { count: 2, expiresAt: 9 },
+    { count: 1, expiresAt: 5 },
+    { count: 3, expiresAt: 7 }
   ]);
 });
 
@@ -420,7 +420,7 @@ test('Guardian snapshots combine core and elite active state', () => {
         [STATE.JUSTICE_UNTIL]: 8,
         [STATE.RESOLVE_UNTIL]: 7,
         [STATE.COURAGE_UNTIL]: 3,
-        [STATE.LETHAL_TEMPO]: { stacks: 4, expiresAt: 10 }
+        [STATE.LETHAL_TEMPO]: { count: 4, expiresAt: 10 }
       },
       4
     )
@@ -628,8 +628,8 @@ test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbios
       'Untamed',
       {
         [STATE.AMBUSH_READY_UNTIL]: 7,
-        [STATE.FEROCIOUS_SYMBIOSIS_PLAYER]: { stacks: 3, expiresAt: 9 },
-        [STATE.PET]: { id: 'pet', ferociousSymbiosis: { stacks: 5, expiresAt: 8 } }
+        [STATE.FEROCIOUS_SYMBIOSIS_PLAYER]: { count: 3, expiresAt: 9 },
+        [STATE.PET]: { id: 'pet', ferociousSymbiosis: { count: 5, expiresAt: 8 } }
       },
       4
     )
@@ -641,7 +641,7 @@ test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbios
   const projected = projectObservedState(rangerProfession, {
     profession: rangerProfession.runtimeFor({ specialization: 'Untamed' }).createState({ specialization: 'Untamed' })
   });
-  assert.equal(projected[STATE.FEROCIOUS_SYMBIOSIS_PLAYER].stacks, 0);
+  assert.equal(projected[STATE.FEROCIOUS_SYMBIOSIS_PLAYER].count, 0);
   assert.equal(projected[STATE.FEROCIOUS_SYMBIOSIS_PLAYER].expiresAt, 0);
 
   const galeshot = valuesById(snapshot(rangerProfession, 'Galeshot', { [STATE.MISTRAL_UNTIL]: 7.5 }, 4));
@@ -728,10 +728,10 @@ test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and ar
       {
         [STATE.COMBAT_HIGH_EXPIRATIONS]: [6, 8, 10, 12, 14, 16, 18, 20],
         [STATE.ANTIQUARY_DAMAGE_UNTIL]: 9,
-        [STATE.BONUS_STEALTH_ATTACK]: { charges: 2, expiresAt: 8 },
-        [STATE.MISTBURN]: { charges: 4, expiresAt: 10 },
+        [STATE.BONUS_STEALTH_ATTACK]: { count: 2, expiresAt: 8 },
+        [STATE.MISTBURN]: { count: 4, expiresAt: 10 },
         [STATE.KRYPTIS_DAMAGE_UNTIL]: 11,
-        [STATE.CHAK_INITIATIVE_REFUNDS]: [{ charges: 3, expiresAt: 12 }],
+        [STATE.CHAK_INITIATIVE_REFUNDS]: [{ count: 3, expiresAt: 12 }],
         [STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS]: [3, 13, 14]
       },
       4

@@ -347,7 +347,7 @@ test('Ritualist weapon spells consume stacks and Resilient Weapon is usable', ()
   assert.equal(nightmareProc.effects[1].duration, 8);
   assert.deepEqual(resilient.warnings, []);
   assert.equal(
-    observedRuntime(resilient).profession.specialization.state.weaponSpells.resilient.recipients.player.charges,
+    observedRuntime(resilient).profession.specialization.state.weaponSpells.resilient.recipients.player.count,
     5
   );
 });

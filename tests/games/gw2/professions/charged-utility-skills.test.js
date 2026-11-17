@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
@@ -10,6 +9,7 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { addVenomCharges, applyActiveVenoms } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { activeBatches } from '#kernel/resources/batch-list.js';
 import { wait } from '#tests/helpers/commands.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -28,10 +28,10 @@ const thief = createObservedProfessionSimulator(thiefProfession, config);
 // Live venom grants keep their own deadlines; only unexpired batches still hold charges.
 const liveVenomCharges = (result, id) => {
   const runtime = observedRuntime(result);
-  return activeChargeGrants(runtime.profession.core.venomChargeBatches[id], runtime.time).reduce(
-    (sum, batch) => sum + batch.charges,
-    0
-  );
+  return activeBatches(runtime.profession.core.venomChargeBatches[id], runtime.time, {
+    expiry: 'exclusive',
+    order: 'earliest-expiry'
+  }).reduce((sum, batch) => sum + batch.count, 0);
 };
 
 const conditions = (result, skillId) =>
@@ -58,51 +58,63 @@ test('player venoms spend shorter grants first and regrants prune only their sel
   for (const event of [thiefHit(2, { actorType: 'summon' }), thiefHit(2, { coefficient: 0 })])
     assert.equal(applyActiveVenoms(context, event), 0);
   assert.deepEqual(
-    spider.map((grant) => grant.charges),
+    spider.map((grant) => grant.count),
     [2, 2]
   );
   assert.equal(applyActiveVenoms(context, thiefHit(2)), 1);
   assert.deepEqual(
-    spider.map((grant) => grant.charges),
+    spider.map((grant) => grant.count),
     [1, 2]
   );
   assert.equal(applyActiveVenoms(context, thiefHit(3)), 1);
   assert.deepEqual(
-    spider.map((grant) => grant.charges),
+    spider.map((grant) => grant.count),
     [1, 1]
   );
   assert.equal(core.venomChargeBatches[THIEF.SPIDER_VENOM], spider);
   assert.equal(core.venomChargeBatches[THIEF.SKALE_VENOM], skale);
-  assert.equal(skale[0].charges, 2);
+  assert.equal(skale[0].count, 2);
   assert.equal(applyActiveVenoms(context, thiefHit(10)), 0);
   addVenomCharges(core, THIEF.SPIDER_VENOM, 10, 5, 4, 2);
   assert.deepEqual(
-    core.venomChargeBatches[THIEF.SPIDER_VENOM].map(({ charges, expiresAt }) => [charges, expiresAt]),
+    core.venomChargeBatches[THIEF.SPIDER_VENOM].map(({ count: charges, expiresAt }) => [charges, expiresAt]),
     [[2, 14]]
   );
   assert.equal(core.venomChargeBatches[THIEF.SKALE_VENOM], skale);
 });
 
-test('trait venom caps and zero gains preserve live utility charges while excluding expired capacity', () => {
+test('trait venom caps and nonpositive or NaN gains preserve live utility charges while excluding expired capacity', () => {
   const core = thiefProfession.runtimeFor({}).createState({}).core;
   addVenomCharges(core, THIEF.SPIDER_VENOM, 0, 6, 2);
   for (const [charges, cap] of [
     [2, 3],
     [2, 0],
-    [0, 10]
+    [0, 10],
+    [-1, 10],
+    [NaN, 10]
   ]) {
     addVenomCharges(core, THIEF.SPIDER_VENOM, 1, charges, 10, cap);
     assert.deepEqual(
-      core.venomChargeBatches[THIEF.SPIDER_VENOM].map(({ charges, expiresAt }) => [charges, expiresAt]),
+      core.venomChargeBatches[THIEF.SPIDER_VENOM].map(({ count: charges, expiresAt }) => [charges, expiresAt]),
       [[6, 2]]
     );
   }
 
   addVenomCharges(core, THIEF.SPIDER_VENOM, 2, 2, 5, 3);
   assert.deepEqual(
-    core.venomChargeBatches[THIEF.SPIDER_VENOM].map(({ charges, expiresAt }) => [charges, expiresAt]),
+    core.venomChargeBatches[THIEF.SPIDER_VENOM].map(({ count: charges, expiresAt }) => [charges, expiresAt]),
     [[2, 7]]
   );
+});
+
+// Ignored gains still expire the selected pool at its exclusive deadline.
+test('nonpositive and NaN venom gains prune expired grants', () => {
+  for (const charges of [0, -1, NaN]) {
+    const core = thiefProfession.runtimeFor({}).createState({}).core;
+    addVenomCharges(core, THIEF.SPIDER_VENOM, 0, 2, 1);
+    addVenomCharges(core, THIEF.SPIDER_VENOM, 1, charges, 10);
+    assert.deepEqual(core.venomChargeBatches[THIEF.SPIDER_VENOM], []);
+  }
 });
 
 test('venom planning and reports exclude retained expired charges and observe a later regrant', () => {
@@ -126,7 +138,7 @@ test('venom planning and reports exclude retained expired charges and observe a 
     assert.equal(planningBuffStacks(result.planningState, 'spider-venom'), regrant ? 1 : 0);
     const grants = observedRuntime(result).profession.core.venomChargeBatches[THIEF.SPIDER_VENOM];
     assert.deepEqual(
-      grants.map(({ charges, expiresAt }) => [charges, expiresAt]),
+      grants.map(({ count, expiresAt }) => [count, expiresAt]),
       regrant ? [[1, 6]] : [[2, 1]]
     );
     const track = result.effectReport.tracks.find(
@@ -177,10 +189,10 @@ test('Sharpening Stone applications expire independently at their authored durat
   // Expired private batches may remain stored; entitlement is observed at the live runtime clock.
   const runtime = observedRuntime(result);
   assert.equal(
-    activeChargeGrants(runtime.profession.core.sharpeningStoneGrants, runtime.time).reduce(
-      (sum, grant) => sum + grant.charges,
-      0
-    ),
+    activeBatches(runtime.profession.core.sharpeningStoneGrants, runtime.time, {
+      expiry: 'exclusive',
+      order: 'earliest-expiry'
+    }).reduce((sum, grant) => sum + grant.count, 0),
     charges - 1
   );
   assert.equal(conditions(result, RANGER.SHARPENING_STONE).length, 1);

@@ -1,11 +1,6 @@
 /** Canonical Core guardian skill definitions grouped by their GW2 owner. */
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import {
-  activeChargeCount,
-  consumeCharge,
-  grantCharges,
-  type ChargeGrant
-} from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, BOON, COMBO_FIELD, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { impactEffects, strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
@@ -19,13 +14,14 @@ import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 
 const consumedCharges = new WeakMap<RuntimeCast<GuardianSkill>, ChargeGrant>();
 
 /** Symbol of Luminance or a remaining single charge illuminates a spear skill accepted at this instant. */
 function spearIlluminated(runtime: { readonly profession: GuardianRuntime['profession'] }, at: number): boolean {
   const state = runtime.profession.core;
-  return state.spearLuminanceUntil > at || activeChargeCount(state.spearIlluminated, at) > 0;
+  return state.spearLuminanceUntil > at || activeBatchCount(state.spearIlluminated, at, 'exclusive') > 0;
 }
 
 /** Illuminated spear skills select their patchable skill components once, at acceptance. */
@@ -133,7 +129,8 @@ function completeSpearIllumination(runtime: GuardianRuntime, cast: RuntimeCast<G
   const state = runtime.profession.core;
 
   // Settle only the captured grant, leaving any replacement entitled even when its deadline matches.
-  if (consumedCharges.get(cast) === state.spearIlluminated) consumeCharge(state.spearIlluminated, cast.start);
+  if (consumedCharges.get(cast) === state.spearIlluminated)
+    consumeCharge(state.spearIlluminated, cast.start, 'exclusive');
 
   const skill = requireSkill(runtime.helpers, ID.SYMBOL_OF_LUMINANCE);
   const effect = requireEffect(
@@ -182,7 +179,7 @@ function completeSpearIllumination(runtime: GuardianRuntime, cast: RuntimeCast<G
     });
   } else {
     // Each committed skill replaces the single charge instead of accumulating charges on refresh.
-    state.spearIlluminated = grantCharges(expiresAt > runtime.time ? 1 : 0, expiresAt);
+    state.spearIlluminated = createChargeGrant(expiresAt > runtime.time ? 1 : 0, expiresAt);
   }
 
   if (expiresAt > runtime.time)
@@ -450,7 +447,7 @@ export const guardianSpearLifecycle = {
 
     // The isolated cast starts now, so the authored finite lifetime is sufficient to select its bonus.
     const duration = effectNumber(skill, effect, 'duration');
-    runtime.profession.core.spearIlluminated = grantCharges(
+    runtime.profession.core.spearIlluminated = createChargeGrant(
       duration > 0 ? 1 : 0,
       gw2EffectExpiresAt(runtime.time, duration)
     );

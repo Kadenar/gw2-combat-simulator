@@ -6,7 +6,7 @@ import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import type { ActivationClaims } from '#kernel/execution/activation-claims.js';
-import type { RefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
+import type { Batch } from '#kernel/resources/batch.js';
 
 export type RangerInitialUntamedState = 'Pet' | 'Ranger';
 
@@ -14,7 +14,7 @@ export interface UntamedState {
   rangerUnleashed: boolean;
   ambushReadyUntil: number;
 
-  ferociousSymbiosisPlayer: RefreshedStacks;
+  ferociousSymbiosisPlayer: Batch;
 
   biorhythmArmed: boolean;
 
@@ -28,7 +28,7 @@ function createUntamedState(config: RangerConfig = {}): UntamedState {
     // Zero means no grant; an armed ambush is available only before its deadline while Ranger is unleashed.
     ambushReadyUntil: 0,
     // Player and pet track separate stacks because each cross-triggers the other's buff.
-    ferociousSymbiosisPlayer: { stacks: 0, expiresAt: 0 },
+    ferociousSymbiosisPlayer: { count: 0, expiresAt: 0 },
     // Stack expiry never revokes an earned Vow; a new unleash consumes it and replaces the stack cycle.
     biorhythmArmed: false,
     // Keyed by activationId so multi-hit ambush skills only grant Let Loose buffs once per cast.

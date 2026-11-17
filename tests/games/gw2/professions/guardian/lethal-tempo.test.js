@@ -32,7 +32,7 @@ test('Lethal Tempo uses patched caps and trait windows without sharing phase sta
   ]) {
     const parameters = lethalTempoParameters(catalog, { catalog, traits: new Set(traits) });
     assert.deepEqual(parameters, { maximumStacks: 5, duration, stacks });
-    const scheduler = { lethalTempo: { stacks: 0, expiresAt: 0 } };
+    const scheduler = { lethalTempo: { count: 0, expiresAt: 0 } };
     const resolver = { ...scheduler };
     // Grants refresh at the cap through expiry; only a later grant starts a new stack window.
     assert.equal(grantTempo(scheduler, 0, parameters), stacks);
@@ -49,7 +49,7 @@ test('Lethal Tempo uses patched caps and trait windows without sharing phase sta
 test('Lethal Tempo refreshes existing stacks through its rounded expiry tick', () => {
   const parameters = { maximumStacks: 5, duration: 6, stacks: 1 };
   for (const at of [6.001, 6.02, 6.039999, 6.04, 6.040001]) {
-    const state = { lethalTempo: { stacks: 0, expiresAt: 0 } };
+    const state = { lethalTempo: { count: 0, expiresAt: 0 } };
     assert.equal(activeLethalTempo(state, 0), 0);
     grantTempo(state, 0.001, parameters);
     grantTempo(state, 0.001, parameters);
@@ -89,7 +89,7 @@ function grantTempo(state, at, parameters) {
   lethalTempo.triggers
     .find((trigger) => trigger.on.id === 'guardian.willbender-virtue-opened')
     .run(runtime, { cause: { at, skillName: 'Fixture' } });
-  return state.lethalTempo.stacks;
+  return state.lethalTempo.count;
 }
 
 // Supplied state is an absolute count even when ordinary triggers grant multiple stacks.
@@ -104,7 +104,7 @@ test('Lethal Tempo initialization does not multiply imported stacks by the selec
       }
     ]
   });
-  const state = { lethalTempo: { stacks: 0, expiresAt: 0 } };
+  const state = { lethalTempo: { count: 0, expiresAt: 0 } };
   lethalTempo.hooks.initialize({
     time: 0,
     helpers: catalog,
@@ -112,5 +112,5 @@ test('Lethal Tempo initialization does not multiply imported stacks by the selec
     config: { initialBuffs: [{ kind: 'lethal-tempo', stacks: 2, duration: 20 }] },
     profession: { specialization: { kind: 'Willbender', state } }
   });
-  assert.deepEqual(state.lethalTempo, { stacks: 2, expiresAt: 20 });
+  assert.deepEqual(state.lethalTempo, { count: 2, expiresAt: 20 });
 });

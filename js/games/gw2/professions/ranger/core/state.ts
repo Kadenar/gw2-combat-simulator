@@ -1,4 +1,4 @@
-import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -59,9 +59,9 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     ...createStealthState(),
     winterBiteReady: false,
 
-    quickDraw: grantCharges(0, 0),
+    quickDraw: createChargeGrant(0, 0),
     pendingFrostTrapEvents: [],
-    bloodThirst: grantCharges(0, 0),
+    bloodThirst: createChargeGrant(0, 0),
     sharpeningStoneGrants: []
   };
 }

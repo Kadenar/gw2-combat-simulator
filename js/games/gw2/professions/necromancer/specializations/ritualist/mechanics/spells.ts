@@ -1,5 +1,5 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { activeChargeCount, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -22,6 +22,7 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 
 const EXPIRE = 'ritualist.weapon-spell-expiry';
 const BOND = 'ritualist.painful-bond-pulse';
@@ -110,13 +111,13 @@ function grantWeaponSpell(
     recipients: RECIPIENT.PARTY,
     eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
   });
-  const recipients: Record<string, ChargeGrant> = { player: grantCharges(effect.stacks ?? 0, expiresAt) };
-  for (const key of audience.companionIds) recipients[key] = grantCharges(allyStacks, expiresAt);
+  const recipients: Record<string, ChargeGrant> = { player: createChargeGrant(effect.stacks ?? 0, expiresAt) };
+  for (const key of audience.companionIds) recipients[key] = createChargeGrant(allyStacks, expiresAt);
 
   // Defensive grants retain allied effect windows independently of the party's offensive strike cadence.
   if (spell === 'resilient')
     for (let index = 1; index <= audience.alliedPlayerCount; index++)
-      recipients[`ally:${audience.alliedPlayerIndex ?? index}`] = grantCharges(allyStacks, expiresAt);
+      recipients[`ally:${audience.alliedPlayerIndex ?? index}`] = createChargeGrant(allyStacks, expiresAt);
 
   state.weaponSpells[spell] = {
     generation,
@@ -158,13 +159,13 @@ function grantAlliedWeaponSpell(
   runtime.alliedStrikes.registerRecipients(
     (allyIndex) => {
       // Create native charges only after the controller accepts a recipient with a live strike cadence.
-      active.recipients[`ally:${allyIndex}`] = grantCharges(charges, expiresAt);
+      active.recipients[`ally:${allyIndex}`] = createChargeGrant(charges, expiresAt);
       return {
         id: `ritualist.weapon-spell:${spell}:${allyIndex}`,
         // A replacement spell retires this registration; otherwise the ally's native grant answers liveness.
         isActive: (at) =>
           ritualistState.from(runtime.profession).weaponSpells[spell] === active &&
-          activeChargeCount(active.recipients[`ally:${allyIndex}`], at) > 0,
+          activeBatchCount(active.recipients[`ally:${allyIndex}`], at, 'exclusive') > 0,
         trigger(opportunity) {
           triggerRitualistWeaponSpell(
             runtime,

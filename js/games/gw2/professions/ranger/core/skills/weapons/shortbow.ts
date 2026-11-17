@@ -1,7 +1,7 @@
 /** Canonical Core ranger skill definitions grouped by their GW2 owner. */
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { type ConditionEffect } from '#gw2/platform/effects/types.js';
@@ -15,6 +15,7 @@ import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { rangerTargetImpaired } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
+import { expireBatch } from '#kernel/resources/batch.js';
 
 /** Poison Volley extends its base duration against impaired or defiant targets. */
 export function shortbowConditionDuration(context: Gw2ModifierContext) {
@@ -258,7 +259,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
 
 /** Resolve Crippling Shot's charge grant by replacing the remaining pool and its deadline together. */
 export function handleRangerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  professionCoreState(context.profession).bloodThirst = grantCharges(
+  professionCoreState(context.profession).bloodThirst = createChargeGrant(
     Math.max(0, Number(event.charges || 0)),
     event.at + (event.duration || 0)
   );
@@ -267,7 +268,7 @@ export function handleRangerBloodThirst(context: RangerResolverContext, event: G
 /** Pet hits, or player hits in Beastmode, spend charges using the Ranger's condition attributes. */
 export function triggerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context.profession);
-  expireCharges(state.bloodThirst, event.at);
+  expireBatch(state.bloodThirst, event.at, 'exclusive');
 
   // The granting skill cannot spend its own new charges, and its attributed bonus packets cannot spend further charges.
   if (event.sourceId === ID.CRIPPLING_SHOT) return;
@@ -281,7 +282,7 @@ export function triggerBloodThirst(context: RangerResolverContext, event: Gw2Res
     event,
     ID.CRIPPLING_SHOT,
     'blood-thirst',
-    () => consumeCharge(state.bloodThirst, event.at),
+    () => consumeCharge(state.bloodThirst, event.at, 'exclusive'),
     {
       // Player ownership implements the June 2024 change, even when a pet delivers the strike.
       attribution: {

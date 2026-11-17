@@ -115,6 +115,6 @@ test('pet venom action payload removal preserves its arming window without an im
       assert.ok(child.summonOwner);
     }
 
-    if (removed) assert.equal(observedRuntime(result).profession.core.pet.paralyzingVenom.charges, 1);
+    if (removed) assert.equal(observedRuntime(result).profession.core.pet.paralyzingVenom.count, 1);
   }
 });

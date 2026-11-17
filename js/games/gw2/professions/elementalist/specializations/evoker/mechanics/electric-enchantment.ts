@@ -1,6 +1,6 @@
 /** Electric Enchantment owns its shared identity, charge lifecycle, combat payload, and damage preview. */
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { activeChargeGrants, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
@@ -9,9 +9,10 @@ import { requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balan
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { appendBatch, consumeBatchFromList } from '#kernel/resources/batch-list.js';
 
 // Combat packets, announcements, and the preview share one identity independently of the granting skill or trait.
 const electricEnchantment = Object.freeze({
@@ -35,11 +36,6 @@ function announceElectricEnchantment(
   );
 }
 
-/** Normalize new grants into earliest-expiry order, discarding spent or expired batches only when granting. */
-function normalizeElectricEnchantments(state: EvokerState, at: number): void {
-  state.electricEnchantmentGrants = activeChargeGrants(state.electricEnchantmentGrants, at);
-}
-
 /**
  * Each grant retains its own expiry and owner; its announcement identifies the skill that supplied the charges. A trait
  * grant names its trait, so only the charges it supplied make their consumption trait-owned.
@@ -61,12 +57,16 @@ export function grantElectricEnchantments(
   }
 ): void {
   const state = evokerState.from(context.profession);
-  state.electricEnchantmentGrants.push({
-    ...grantCharges(stacks, gw2EffectExpiresAt(at, duration)),
-    at: canonicalTime(at),
-    ...(traitId == null ? {} : { traitId })
-  });
-  normalizeElectricEnchantments(state, at);
+  state.electricEnchantmentGrants = appendBatch(
+    state.electricEnchantmentGrants,
+    {
+      ...createChargeGrant(stacks, gw2EffectExpiresAt(at, duration)),
+      at: canonicalTime(at),
+      ...(traitId == null ? {} : { traitId })
+    },
+    at,
+    { expiry: 'exclusive', order: 'earliest-expiry' }
+  );
   announceElectricEnchantment(context, {
     at,
     procType: traitId == null ? 'skill' : 'trait',
@@ -141,9 +141,10 @@ function emitElectricEnchantment(context: ElementalistRuntime, event: Simulation
 /** Consume in grant-established expiry order; start and expiry guards skip ineligible batches without refreshing. */
 export function consumeElectricEnchantment(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context.profession);
-  const grant = state.electricEnchantmentGrants.find(
-    (candidate) => event.at >= canonicalTime(candidate.at) && consumeCharge(candidate, event.at)
-  );
+  const grant = consumeBatchFromList(state.electricEnchantmentGrants, event.at, {
+    expiry: 'exclusive',
+    eligible: (candidate) => event.at >= canonicalTime(candidate.at)
+  });
 
   if (grant) emitElectricEnchantment(context, event, grant.traitId);
 }

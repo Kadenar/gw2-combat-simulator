@@ -179,7 +179,7 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
   const queued = [],
     procs = [];
   const state = catalystState.create();
-  state.empoweringAuras = { stacks: 1, expiresAt: 3 };
+  state.empoweringAuras = { count: 1, expiresAt: 3 };
   const context = {
     engagement: enteredCombat(),
     profession: { core: { activeAuras: [] }, specialization: { kind: 'Catalyst', state } },
@@ -246,27 +246,31 @@ test('Empowering Auras keeps queued grants, tick-aligned refreshes, exclusive ex
   const apply = (event, includesSelf = true) =>
     applyEmpoweringAurasBuff(context, { ...event, resolvedAudience: { includesSelf } });
   aura(0.001);
-  assert.equal(state.empoweringAuras.stacks, 0, 'aura acceptance only queues a new stack');
+  assert.equal(state.empoweringAuras.count, 0, 'aura acceptance only queues a new stack');
   apply(events.at(-1), false);
-  assert.equal(state.empoweringAuras.stacks, 0);
+  assert.equal(state.empoweringAuras.count, 0);
   apply(events.at(-1));
-  assert.deepEqual(state.empoweringAuras, { stacks: 1, expiresAt: 10.04 });
+  assert.deepEqual(state.empoweringAuras, { count: 1, expiresAt: 10.04 });
   aura(1.001);
   apply(events.at(-1));
   const queued = events.length;
   aura(2.001);
   assert.equal(events.length, queued, 'at-cap refreshes do not queue additional stacks');
-  assert.deepEqual(state.empoweringAuras, { stacks: 2, expiresAt: 12.04 });
+  assert.deepEqual(state.empoweringAuras, { count: 2, expiresAt: 12.04 });
   const snapshot = catalystEffectStates(context).find((effect) => effect.kind === 'empowering auras');
   const prior = structuredClone(state.empoweringAuras);
   assert.equal(empoweringAuraStacks({ runtime: context, time: 12.039 }), 2);
   assert.equal(empoweringAuraStacks({ runtime: context, time: 12.04 }), 0);
   assert.deepEqual(state.empoweringAuras, prior);
   aura(12.04);
-  assert.equal(state.empoweringAuras.stacks, 0);
+  assert.equal(state.empoweringAuras.count, 0);
   apply(events.at(-1));
-  assert.equal(state.empoweringAuras.stacks, 1);
-  assert.deepEqual(snapshot.windows, [prior], 'later refreshes cannot rewrite earlier observations');
+  assert.equal(state.empoweringAuras.count, 1);
+  assert.deepEqual(
+    snapshot.windows,
+    [{ stacks: prior.count, expiresAt: prior.expiresAt }],
+    'later refreshes cannot rewrite earlier observations'
+  );
 });
 
 test('Catalyst snapshots retain capped aura refreshes without adding or reviving stacks', () => {

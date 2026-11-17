@@ -151,7 +151,7 @@ test('Nightmare consumes only accepted recipient hits and cannot trigger itself'
   const result = run([cast(ID.NIGHTMARE_WEAPON), wait(1000)], {
     events: [hit(0.25, { offTarget: true }), hit(0.5), hit(0.75)]
   });
-  assert.equal(state(result).weaponSpells.nightmare.recipients.player.charges, 3);
+  assert.equal(state(result).weaponSpells.nightmare.recipients.player.count, 3);
   assert.equal(spellDamage(result, ID.NIGHTMARE_WEAPON).length, 2);
   assert.equal(
     result.events.some((event) => event.type === 'necromancer.weapon-spell'),
@@ -171,8 +171,8 @@ test('Splinter triggers Nightmare in one direction and rejected effects spend no
       hit(1.1, { actorType: 'effect', sourceId: ID.SPLINTER_WEAPON, offTarget: true })
     ]
   });
-  assert.equal(state(result).weaponSpells.nightmare.recipients.player.charges, 3);
-  assert.equal(state(result).weaponSpells.splinter.recipients.player.charges, 4);
+  assert.equal(state(result).weaponSpells.nightmare.recipients.player.count, 3);
+  assert.equal(state(result).weaponSpells.splinter.recipients.player.count, 4);
   assert.deepEqual(
     spellDamage(result, ID.NIGHTMARE_WEAPON).map((event) => event.triggeredBy),
     ['Necrotic Grasp', 'Splinter Weapon']
@@ -189,10 +189,10 @@ test('ally-triggered Splinter consumes caster Nightmare charges without reusing 
     combatStartTime: 0
   });
   const grants = state(result).weaponSpells;
-  assert.equal(grants.nightmare.recipients.player.charges, 4);
-  assert.equal(grants.nightmare.recipients['ally:1'].charges, 2);
-  assert.equal(grants.splinter.recipients.player.charges, 5);
-  assert.equal(grants.splinter.recipients['ally:1'].charges, 2);
+  assert.equal(grants.nightmare.recipients.player.count, 4);
+  assert.equal(grants.nightmare.recipients['ally:1'].count, 2);
+  assert.equal(grants.splinter.recipients.player.count, 5);
+  assert.equal(grants.splinter.recipients['ally:1'].count, 2);
   // The two charge owners remain separate rows even though both damage packets were triggered by the ally.
   const nightmareRows = skillBreakdownRows(result).filter((row) => row.sourceId === ID.NIGHTMARE_WEAPON);
   assert.deepEqual(nightmareRows.map((row) => [row.name, row.hits]).sort(), [
@@ -215,9 +215,9 @@ test('allied opportunities consume independent finite grants on the actual strik
   const config = { ...base, allies: { count: 2, strikesPerSecond: 10 } };
   const result = run([cast(ID.SPLINTER_WEAPON), wait(1200)], { config, combatStartTime: 0 });
   const grants = state(result).weaponSpells.splinter.recipients;
-  assert.equal(grants.player.charges, 5);
-  assert.equal(grants['ally:1'].charges, 0);
-  assert.equal(grants['ally:2'].charges, 0);
+  assert.equal(grants.player.count, 5);
+  assert.equal(grants['ally:1'].count, 0);
+  assert.equal(grants['ally:2'].count, 0);
   const allied = spellDamage(result, ID.SPLINTER_WEAPON).filter((event) => event.metadata.triggeredByAlly === 1);
   const cooldown = necromancerProfession.runtimeFor(config).catalog.skillsById.get(ID.SPLINTER_WEAPON).internalCooldown;
   assert.ok(allied.every((event, index) => index === 0 || event.at - allied[index - 1].at > cooldown));
@@ -242,7 +242,7 @@ test('weapon spell replacement retains allied cadence and the old expiry cannot 
     spellDamage(result, ID.NIGHTMARE_WEAPON).map((event) => event.at),
     [5, 10]
   );
-  assert.equal(state(result).weaponSpells.nightmare.recipients['ally:1'].charges, 1);
+  assert.equal(state(result).weaponSpells.nightmare.recipients['ally:1'].count, 1);
   assert.equal(state(result).weaponSpells.nightmare.generation, 2);
   const expired = run([...rotation, wait(700)], { config, combatStartTime: 0 });
   assert.deepEqual(state(expired).weaponSpells, {});
@@ -253,7 +253,7 @@ test('explicit precombat and target death cannot spend allied weapon spell charg
   const config = { ...base, allies: { count: 1, strikesPerSecond: 1 } };
   const rotation = [cast(ID.NIGHTMARE_WEAPON), wait(2000)];
   assert.equal(
-    state(run(rotation, { config, combatStartTime: 3 })).weaponSpells.nightmare.recipients['ally:1'].charges,
+    state(run(rotation, { config, combatStartTime: 3 })).weaponSpells.nightmare.recipients['ally:1'].count,
     3
   );
   const dead = run([cast(ID.NIGHTMARE_WEAPON), wait(2000)], {
@@ -262,7 +262,7 @@ test('explicit precombat and target death cannot spend allied weapon spell charg
     events: [hit(0.5)]
   });
   assert.equal(dead.deathTime, 0.5);
-  assert.equal(state(dead).weaponSpells.nightmare.recipients['ally:1'].charges, 3);
+  assert.equal(state(dead).weaponSpells.nightmare.recipients['ally:1'].count, 3);
 });
 
 // Preparing a weapon spell cannot advance its allied attack countdown or extend the finite grant's lifetime.
@@ -295,8 +295,8 @@ test('weapon spell allied opportunities follow engagement independently of DPS r
   assert.ok(Math.abs(firstAlly(marker).at - marker.combatStartTime - 0.52) < 1e-6);
   assert.equal(firstAlly(implicit).at, 0.52);
   assert.equal(implicit.combatStartTime, firstAlly(implicit).at);
-  assert.equal(state(marker).weaponSpells.nightmare.recipients['ally:1'].charges, 1);
-  assert.equal(state(implicit).weaponSpells.nightmare.recipients['ally:1'].charges, 0);
+  assert.equal(state(marker).weaponSpells.nightmare.recipients['ally:1'].count, 1);
+  assert.equal(state(implicit).weaponSpells.nightmare.recipients['ally:1'].count, 0);
   for (const result of [marker, implicit]) assert.deepEqual(result.warnings, []);
 });
 
@@ -306,7 +306,7 @@ test('weapon spell recipients are selected at grant time and Wielders Boon chang
   const result = run(rotation, { config, combatStartTime: 10 });
   const grants = state(result).weaponSpells.nightmare.recipients;
   assert.deepEqual(Object.keys(grants).sort(), ['ally:1', 'ally:2', 'ally:3', 'minion:bone-minion:0', 'player']);
-  assert.ok(Object.values(grants).every((grant) => grant.charges === 5));
+  assert.ok(Object.values(grants).every((grant) => grant.count === 5));
   assert.deepEqual(result.warnings, []);
 });
 
@@ -323,10 +323,10 @@ test('removed weapon spell strikes preserve independent Nightmare conditions and
     combatStartTime: 0
   });
   assert.equal(spellDamage(result, ID.NIGHTMARE_WEAPON).length, 0);
-  assert.equal(state(result).weaponSpells.nightmare.recipients.player.charges, 4);
-  assert.equal(state(result).weaponSpells.nightmare.recipients['ally:1'].charges, 2);
-  assert.equal(state(result).weaponSpells.splinter.recipients.player.charges, 5);
-  assert.equal(state(result).weaponSpells.splinter.recipients['ally:1'].charges, 3);
+  assert.equal(state(result).weaponSpells.nightmare.recipients.player.count, 4);
+  assert.equal(state(result).weaponSpells.nightmare.recipients['ally:1'].count, 2);
+  assert.equal(state(result).weaponSpells.splinter.recipients.player.count, 5);
+  assert.equal(state(result).weaponSpells.splinter.recipients['ally:1'].count, 3);
   assert.ok(
     result.resolvedEvents.some((event) => event.type === 'condition' && event.sourceId === ID.NIGHTMARE_WEAPON)
   );
@@ -573,7 +573,7 @@ for (const skillId of [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON]) {
     const spell = skillId === ID.NIGHTMARE_WEAPON ? 'nightmare' : 'splinter';
     const recipients = state(result).weaponSpells[spell].recipients;
     assert.deepEqual(Object.keys(recipients).sort(), ['minion:bone-minion:0', 'player']);
-    assert.ok(Object.values(recipients).every(({ charges }) => charges > 0));
+    assert.ok(Object.values(recipients).every(({ count }) => count > 0));
     assert.deepEqual(observedRuntime(result).alliedStrikeController.pendingEffects(), []);
   });
 }
@@ -588,16 +588,16 @@ for (const strikesPerSecond of [0, 2]) {
     assert.deepEqual(Object.keys(recipients).sort(), ['ally:1', 'ally:2', 'ally:3', 'ally:4', 'player']);
     for (const recipient of ['ally:1', 'ally:2', 'ally:3', 'ally:4']) {
       const grant = recipients[recipient];
-      assert.equal(grant.charges, recipients.player.charges);
+      assert.equal(grant.count, recipients.player.count);
       const effect = result.planningState.effects.find(
         (entry) => entry.kind === 'resilient-weapon' && entry.recipient === recipient
       );
-      assert.deepEqual(effect.windows, [{ stacks: grant.charges, expiresAt: grant.expiresAt }]);
+      assert.deepEqual(effect.windows, [{ stacks: grant.count, expiresAt: grant.expiresAt }]);
       const track = result.effectReport.tracks.find(
         (entry) => entry.kind === 'resilient-weapon' && entry.recipient === recipient
       );
       assert.ok(track.segments.some((segment) => segment.count > 0));
-      assert.equal(track.terminal.count, grant.charges);
+      assert.equal(track.terminal.count, grant.count);
     }
 
     // Defensive windows do not create pending offensive grants in the allied-strike owner.

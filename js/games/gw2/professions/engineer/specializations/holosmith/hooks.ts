@@ -1,4 +1,4 @@
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { DamageCalculationError } from '#gw2/platform/skill-damage/errors.js';
 import { balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
@@ -32,7 +32,7 @@ export const holosmithHooks: RuntimeHooks<EngineerRuntimeState, HolosmithSkill> 
       if (!Number.isInteger(charges) || charges > balanceProfileNumber(profile, 'maximumStacks'))
         throw new DamageCalculationError('missing-input', 'Choose a valid Solar Focusing Lens charge count.');
 
-      state.solarFocusingLens = grantCharges(charges, balanceProfileNumber(profile, 'duration'));
+      state.solarFocusingLens = createChargeGrant(charges, balanceProfileNumber(profile, 'duration'));
     }
   },
   // Slot preparation precedes sword preparation; separate owners expose registry collisions to the composer.

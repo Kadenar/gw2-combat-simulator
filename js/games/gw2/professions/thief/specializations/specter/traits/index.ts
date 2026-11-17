@@ -1,7 +1,7 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { barrierRecipients } from '#gw2/platform/combat/barrier.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { activeChargeCount, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
@@ -21,6 +21,8 @@ import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import { appendBatch, consumeBatchFromList } from '#kernel/resources/batch-list.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 
 const ROT_WALLOW_VENOM_ICON = 'https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png';
 
@@ -276,18 +278,20 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
   runtime.alliedStrikes.registerRecipients(
     (allyIndex, cause) => {
       const state = specterState.from(runtime.profession);
-      state.rotWallowVenom[allyIndex] = [
-        ...(state.rotWallowVenom[allyIndex] ?? []).filter((grant) => activeChargeCount(grant, runtime.time, true) > 0),
-        { ...grantCharges(stacks, runtime.time + venomDuration), cause }
-      ];
+      state.rotWallowVenom[allyIndex] = appendBatch(
+        state.rotWallowVenom[allyIndex] ?? [],
+        { ...createChargeGrant(stacks, runtime.time + venomDuration), cause },
+        runtime.time,
+        { expiry: 'inclusive', order: 'insertion' }
+      );
       const batches = () => specterState.from(runtime.profession).rotWallowVenom[allyIndex] ?? [];
-      const next = (time: number) => batches().find((batch) => activeChargeCount(batch, time, true) > 0);
+      const next = (time: number) => batches().find((batch) => activeBatchCount(batch, time, 'inclusive') > 0);
       return {
         id: `rot-wallow:${allyIndex}`,
         isActive: (time) => next(time) != null,
         causeAt: (time) => next(time)?.cause ?? null,
         trigger(proc) {
-          if (!consumeChargeBatch(batches(), proc.at, undefined, true)) return false;
+          if (!consumeBatchFromList(batches(), proc.at, { expiry: 'inclusive' })) return false;
 
           emitTraitProfile(runtime, TRAIT.DARK_SENTRY, TRAIT.DARK_SENTRY, undefined, {
             at: proc.at,

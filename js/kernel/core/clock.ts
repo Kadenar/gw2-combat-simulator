@@ -1,5 +1,8 @@
 /** Game-neutral timing helpers put timestamps, ordering keys, and window comparisons on the same canonical clock. */
 
+/** Inclusive deadlines remain live at equality; exclusive deadlines expire at equality. */
+export type ExpiryPolicy = 'inclusive' | 'exclusive';
+
 /** Integer microseconds make equality transitive without moving authored events onto a combat tick grid. */
 export function timeKey(seconds: number): number {
   const key = Math.round(seconds * 1_000_000);

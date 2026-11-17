@@ -1,9 +1,10 @@
-import { activeChargeCount, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createResourceClock, type ResourceClock } from '#kernel/resources/accrual.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 import { purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 export interface GuardianCoreState {
@@ -37,7 +38,7 @@ export function createGuardianCoreState(): GuardianCoreState {
     righteousInstinctsGeneration: 0,
     righteousInstinctsCause: null,
 
-    spearIlluminated: grantCharges(0, 0),
+    spearIlluminated: createChargeGrant(0, 0),
     spearLuminanceUntil: 0
   };
 }
@@ -58,7 +59,7 @@ export function projectGuardianPlanningState(input: Gw2PlanningStateInput) {
     [STATE.RESOLUTION_UNTIL]: state.resolutionUntil,
     [STATE.SPEAR_ILLUMINATED]: {
       ...state.spearIlluminated,
-      charges: activeChargeCount(state.spearIlluminated, input.time)
+      count: activeBatchCount(state.spearIlluminated, input.time, 'exclusive')
     },
     [STATE.SPEAR_LUMINANCE_UNTIL]: state.spearLuminanceUntil
   };

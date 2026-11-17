@@ -98,7 +98,7 @@ export function projectNecromancerPlanningState(input: Gw2PlanningStateInput) {
     [STATE.ACTIVE_SHROUD]: state.activeShroud,
     [STATE.SOUL_SHARD_GRANT]: {
       ...state.soulShardGrant,
-      charges: cappedResource(state.soulShardGrant.charges, necromancerSoulShardMaximum(input.catalog))
+      count: cappedResource(state.soulShardGrant.count, necromancerSoulShardMaximum(input.catalog))
     },
     [STATE.CARAPACE_EXPIRIES]: state.carapaceExpiries,
     [STATE.ACTIVE_MINIONS]: state.activeMinions,

@@ -79,7 +79,7 @@ for (const removal of ['grant', 'payload']) {
       false
     );
     const state = observedRuntime(result).profession.core;
-    const charges = (batches) => (batches ?? []).reduce((sum, batch) => sum + batch.charges, 0);
+    const charges = (batches) => (batches ?? []).reduce((sum, batch) => sum + batch.count, 0);
     assert.equal(charges(state.venomChargeBatches[ID.SPIDER_VENOM]), removal === 'grant' ? 0 : 5);
     assert.equal(
       Object.values(state.alliedVenomChargeBatches).reduce((sum, batches) => sum + charges(batches), 0),

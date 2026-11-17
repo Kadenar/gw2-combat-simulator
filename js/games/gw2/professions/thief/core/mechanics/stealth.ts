@@ -1,4 +1,4 @@
-import { activeChargeCount, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import {
   createStealthLifecycle,
   endStealth,
@@ -17,6 +17,7 @@ import { thiefSkill } from '#gw2/professions/thief/core/events.js';
 import { stealthEntered, stealthExited } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { hiddenKillerLinger } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 
 /** A specialization-granted stealth-attack charge is usable outside stealth until it expires at the live clock. */
 export function thiefBonusStealthAttack(runtime: MechanicQueriesOf<ThiefRuntime>): boolean {
@@ -24,7 +25,7 @@ export function thiefBonusStealthAttack(runtime: MechanicQueriesOf<ThiefRuntime>
   const elite = runtime.profession.specialization;
   return (
     (elite.kind === 'Deadeye' || elite.kind === 'Antiquary') &&
-    activeChargeCount(elite.state.bonusStealthAttack, at) > 0
+    activeBatchCount(elite.state.bonusStealthAttack, at, 'exclusive') > 0
   );
 }
 
@@ -110,7 +111,7 @@ export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast
 
   // Actual stealth supplies the attack first; only the active owner can spend a bonus entitlement.
   if (!stealthActive(core, runtime.time) && (elite.kind === 'Deadeye' || elite.kind === 'Antiquary'))
-    consumeCharge(elite.state.bonusStealthAttack, runtime.time);
+    consumeCharge(elite.state.bonusStealthAttack, runtime.time, 'exclusive');
 
   core.strikeBrokeStealthAt = null;
 

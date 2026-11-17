@@ -20,7 +20,7 @@ export function renegadeEffectStates(runtime: MechanicQueriesOf<RevenantRuntime>
       fervorMaximumStacks(runtime.helpers, runtime)
     ),
     timedEffectState('razorclaws-rage', [
-      { stacks: state.razorclawsRage.charges, expiresAt: state.razorclawsRage.expiresAt }
+      { stacks: state.razorclawsRage.count, expiresAt: state.razorclawsRage.expiresAt }
     ])
   ];
 }

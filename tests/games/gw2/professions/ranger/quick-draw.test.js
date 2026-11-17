@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -16,30 +16,30 @@ test('Quick Draw reserves only one same-time weapon recharge and ignores ineligi
   const native = rangerProfession.runtimeFor(config);
   const skill = runtime.helpers.skillsById.get(12525);
   runtime.time = 4;
-  const grant = (runtime.profession.core.quickDraw = grantCharges(1, 5));
+  const grant = (runtime.profession.core.quickDraw = createChargeGrant(1, 5));
   for (const ineligible of [
     { ...skill, slot: 'Weapon_1' },
     { ...skill, type: 'Utility' }
   ]) {
     assert.equal(native.rechargeWork(runtime, ineligible, 10), 10);
     assert.equal(native.reserveRecharge(runtime, ineligible, 10), 10);
-    assert.equal(grant.charges, 1);
+    assert.equal(grant.count, 1);
   }
 
   const first = native.rechargeWork(runtime, skill, 10);
   assert.ok(Math.abs(first - 3.4) < 1e-9);
   assert.equal(native.rechargeWork(runtime, skill, 10), first);
-  assert.equal(grant.charges, 1);
+  assert.equal(grant.count, 1);
   assert.equal(native.reserveRecharge(runtime, skill, first), first);
-  assert.equal(grant.charges, 0);
+  assert.equal(grant.count, 0);
   assert.equal(native.rechargeWork(runtime, skill, 10), 10);
   assert.equal(native.reserveRecharge(runtime, skill, 10), 10);
 
-  runtime.profession.core.quickDraw = grantCharges(1, 5);
+  runtime.profession.core.quickDraw = createChargeGrant(1, 5);
   runtime.time = 5;
   assert.equal(native.rechargeWork(runtime, skill, 10), 10);
   native.reserveRecharge(runtime, skill, 10);
-  assert.equal(runtime.profession.core.quickDraw.charges, 1, 'expiry queries do not spend');
+  assert.equal(runtime.profession.core.quickDraw.count, 1, 'expiry queries do not spend');
 });
 
 // The execution owner skips reservation for an already-cancelled attempt, preserving the next discount.
@@ -47,14 +47,14 @@ test('a cancelled weapon attempt preserves its unreserved Quick Draw grant', () 
   let acceptedWork;
   const result = runRanger([{ skillId: 12525, interruptMs: 1 }], config, {
     initialize(runtime) {
-      runtime.profession.core.quickDraw = grantCharges(1, 5);
+      runtime.profession.core.quickDraw = createChargeGrant(1, 5);
     },
     extend(native) {
       return {
         onCastStart(runtime, cast) {
           native.onCastStart?.(runtime, cast);
           acceptedWork = cast.rechargeWork;
-          assert.equal(runtime.profession.core.quickDraw.charges, 1);
+          assert.equal(runtime.profession.core.quickDraw.count, 1);
         }
       };
     }
@@ -63,8 +63,8 @@ test('a cancelled weapon attempt preserves its unreserved Quick Draw grant', () 
   assert.deepEqual(result.warnings, []);
   assert.ok(result.events.some((event) => event.type === 'action' && event.cancelled));
   assert.equal(acceptedWork, runtime.helpers.skillsById.get(12525).cooldown * 0.34);
-  assert.equal(runtime.profession.core.quickDraw.charges, 1);
-  assert.equal(result.planningState.profession[STATE.QUICK_DRAW].charges, 1);
-  result.planningState.profession[STATE.QUICK_DRAW].charges = 0;
-  assert.equal(runtime.profession.core.quickDraw.charges, 1, 'planning state is detached');
+  assert.equal(runtime.profession.core.quickDraw.count, 1);
+  assert.equal(result.planningState.profession[STATE.QUICK_DRAW].count, 1);
+  result.planningState.profession[STATE.QUICK_DRAW].count = 0;
+  assert.equal(runtime.profession.core.quickDraw.count, 1, 'planning state is detached');
 });

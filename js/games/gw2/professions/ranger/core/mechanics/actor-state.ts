@@ -1,4 +1,4 @@
-import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { ActivationClaims } from '#kernel/execution/activation-claims.js';
 
 /** Trait and skill readiness that the player and each pet lifetime hold independently; rewards never transfer. */
@@ -15,7 +15,7 @@ export function createRangerActorProcState(): RangerActorProcState {
     activationClaims: {},
     openingStrikeReady: true,
     poisonMasterReady: false,
-    poisonousStrikes: grantCharges(0, 0)
+    poisonousStrikes: createChargeGrant(0, 0)
   };
 }
 

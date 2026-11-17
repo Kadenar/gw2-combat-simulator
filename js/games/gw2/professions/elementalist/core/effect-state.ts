@@ -47,7 +47,7 @@ export function elementalistEffectStates(runtime: MechanicQueriesOf<Elementalist
   const effects = [
     timedEffectState(
       'shattering stone',
-      [{ stacks: stone.charges, expiresAt: stone.expiresAt }],
+      [{ stacks: stone.count, expiresAt: stone.expiresAt }],
       skillNumber(requireSkill(runtime.helpers, ID.SHATTERING_STONE), 'maximumStacks')
     )
   ];

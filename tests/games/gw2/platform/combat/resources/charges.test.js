@@ -1,16 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  activeChargeCount,
-  activeChargeGrants,
-  consumeCharge,
-  consumeChargeBatch,
-  expireCharges,
-  grantChargePool,
-  grantCharges
-} from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, createChargeGrant, refreshChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { advanceDiscreteResource } from '#gw2/platform/combat/resources/clock.js';
+import { activeBatches, consumeBatchFromList } from '#kernel/resources/batch-list.js';
+import { activeBatchCount, expireBatch } from '#kernel/resources/batch.js';
 
 // Canonical expiry closes entitlement even when addition drifts above an exact action tick or off-grid deadline.
 for (const [at, duration, expiry] of [
@@ -18,123 +12,101 @@ for (const [at, duration, expiry] of [
   [0.137, 5, 5.137]
 ]) {
   test(`charges close at canonical expiry ${expiry} without extending their lifetime`, () => {
-    const grant = grantCharges(1, at + duration);
+    const grant = createChargeGrant(1, at + duration);
     assert.equal(grant.expiresAt, expiry);
-    assert.equal(activeChargeCount(grant, expiry - 0.000001), 1);
-    assert.equal(activeChargeCount(grant, expiry), 0);
-    assert.equal(consumeCharge(grant, expiry), false);
-    assert.equal(consumeChargeBatch([grant], expiry), undefined);
-    assert.deepEqual(activeChargeGrants([grant], expiry), []);
-    expireCharges(grant, expiry);
-    assert.equal(grant.charges, 0);
+    assert.equal(activeBatchCount(grant, expiry - 0.000001, 'exclusive'), 1);
+    assert.equal(activeBatchCount(grant, expiry, 'exclusive'), 0);
+    assert.equal(consumeCharge(grant, expiry, 'exclusive'), false);
+    assert.equal(consumeBatchFromList([grant], expiry, { expiry: 'exclusive' }), undefined);
+    assert.deepEqual(activeBatches([grant], expiry, { expiry: 'exclusive', order: 'earliest-expiry' }), []);
+    expireBatch(grant, expiry, 'exclusive');
+    assert.equal(grant.count, 0);
 
-    const inclusive = grantCharges(2, at + duration);
-    expireCharges(inclusive, expiry, true);
-    assert.equal(activeChargeCount(inclusive, expiry, true), 2);
-    assert.equal(consumeCharge(inclusive, expiry, 0, true), true);
-    assert.equal(consumeChargeBatch([inclusive], expiry, undefined, true), inclusive);
-    expireCharges(inclusive, expiry + 0.000001, true);
-    assert.equal(inclusive.charges, 0);
+    const inclusive = createChargeGrant(2, at + duration);
+    expireBatch(inclusive, expiry, 'inclusive');
+    assert.equal(activeBatchCount(inclusive, expiry, 'inclusive'), 2);
+    assert.equal(consumeCharge(inclusive, expiry, 'inclusive', 0), true);
+    assert.equal(consumeBatchFromList([inclusive], expiry, { expiry: 'inclusive' }), inclusive);
+    expireBatch(inclusive, expiry + 0.000001, 'inclusive');
+    assert.equal(inclusive.count, 0);
   });
 }
 
 test('charge readers and expiry compare canonical observations and deadlines', () => {
-  const grant = { charges: 1, expiresAt: 0.56 + 0.04 };
-  assert.equal(activeChargeCount(grant, 0.6), 0);
-  assert.equal(consumeChargeBatch([grant], 0.6), undefined);
-  expireCharges(grant, 0.6);
-  assert.equal(grant.charges, 0);
-  assert.equal(activeChargeCount(grantCharges(1, 0.1), 0.3 - 0.2), 0);
-  assert.equal(activeChargeCount(grantCharges(1, 0.6), 0.56 + 0.04, true), 1);
+  const grant = { count: 1, expiresAt: 0.56 + 0.04 };
+  assert.equal(activeBatchCount(grant, 0.6, 'exclusive'), 0);
+  assert.equal(consumeBatchFromList([grant], 0.6, { expiry: 'exclusive' }), undefined);
+  expireBatch(grant, 0.6, 'exclusive');
+  assert.equal(grant.count, 0);
+  assert.equal(activeBatchCount(createChargeGrant(1, 0.1), 0.3 - 0.2, 'exclusive'), 0);
+  assert.equal(activeBatchCount(createChargeGrant(1, 0.6), 0.56 + 0.04, 'inclusive'), 1);
 });
 
 test('canonical charge refresh resets expired ICDs and preserves live grants against old expiry work', () => {
-  const prior = grantCharges(2, 0.56 + 0.04);
-  assert.equal(consumeCharge(prior, 0.56, 0.04), true);
+  const prior = createChargeGrant(2, 0.56 + 0.04);
+  assert.equal(consumeCharge(prior, 0.56, 'exclusive', 0.04), true);
   assert.equal(prior.readyAt, 0.6);
-  const live = grantCharges(1, 0.137 + 5, prior, 0.599999);
-  assert.equal(live.charges, 2);
+  const live = refreshChargeGrant(prior, 1, 0.137 + 5, 0.599999, 'exclusive');
+  assert.equal(live.count, 2);
   assert.equal(live.readyAt, 0.6);
-  assert.equal(consumeCharge(live, 0.599999, 0.04), false);
-  expireCharges(live, 0.6);
+  assert.equal(consumeCharge(live, 0.599999, 'exclusive', 0.04), false);
+  expireBatch(live, 0.6, 'exclusive');
   // Internal cooldowns remain blocked through their deadline even though this grant survives its old expiry.
-  assert.equal(consumeCharge(live, 0.6, 0.04), false);
-  assert.equal(consumeCharge(live, 0.600001, 0.04), true);
-  assert.deepEqual(grantCharges(1, 0.137 + 5, prior, 0.6), { charges: 1, expiresAt: 5.137, readyAt: 0 });
+  assert.equal(consumeCharge(live, 0.6, 'exclusive', 0.04), false);
+  assert.equal(consumeCharge(live, 0.600001, 'exclusive', 0.04), true);
+  assert.deepEqual(refreshChargeGrant(prior, 1, 0.137 + 5, 0.6, 'exclusive'), {
+    count: 1,
+    expiresAt: 5.137,
+    readyAt: 0
+  });
 });
 
-test('independent charge grants free capacity exactly at canonical expiry', () => {
-  const pool = { grants: {} };
-  grantChargePool(pool, 'player', 0.56, 1, 0.04, 2);
-  grantChargePool(pool, 'player', 0.56, 1, 1, 2);
-  const survivor = pool.grants.player[1];
-  grantChargePool(pool, 'player', 0.6, 1, 0.04, 2);
-  assert.deepEqual(
-    pool.grants.player.map((grant) => grant.expiresAt),
-    [0.64, 1.56]
-  );
-  assert.equal(pool.grants.player[1], survivor);
-  assert.equal(survivor.charges, 1);
-});
-
-test('charge refresh survives old expiry, preserves ICD, and keeps independent recipient grants isolated', () => {
-  let grant = grantCharges(2, 5);
-  assert.equal(consumeCharge(grant, 1, 2), true);
-  grant = grantCharges(1, 10, grant, 2);
-  assert.equal(consumeCharge(grant, 2, 2), false);
-  expireCharges(grant, 5);
-  assert.equal(consumeCharge(grant, 5, 2), true);
-  assert.equal(grant.charges, 1);
-  const pool = { grants: {} };
-  grantChargePool(pool, 'player', 0, 2, 4);
-  grantChargePool(pool, 'player', 1, 3, 6);
-  grantChargePool(pool, 'ally:1', 0, 2, 4);
-  assert.equal(consumeCharge(pool.grants.player[0], 2), true);
-  assert.equal(pool.grants['ally:1'][0].charges, 2);
-  const active = activeChargeGrants(pool.grants.player, 4);
-  assert.deepEqual(
-    active.map((value) => value.charges),
-    [3]
-  );
-  active[0].charges = 1;
-  assert.equal(consumeCharge(grantCharges(1, 4), 4), false);
-  assert.equal(consumeCharge(grantCharges(1, 4), 4, 0, true), true);
+test('charge refresh survives old expiry and preserves its internal cooldown', () => {
+  let grant = createChargeGrant(2, 5);
+  assert.equal(consumeCharge(grant, 1, 'exclusive', 2), true);
+  grant = refreshChargeGrant(grant, 1, 10, 2, 'exclusive');
+  assert.equal(consumeCharge(grant, 2, 'exclusive', 2), false);
+  expireBatch(grant, 5, 'exclusive');
+  assert.equal(consumeCharge(grant, 5, 'exclusive', 2), true);
+  assert.equal(grant.count, 1);
+  assert.equal(consumeCharge(createChargeGrant(1, 4), 4, 'exclusive'), false);
+  assert.equal(consumeCharge(createChargeGrant(1, 4), 4, 'inclusive', 0), true);
 });
 
 // Expired observations cannot erase entitlement needed by a later completion with an earlier eligibility time.
 test('charge queries are read-only and distinguish exclusive from inclusive expiry', () => {
-  const grant = Object.freeze(grantCharges(2, 5));
-  assert.equal(activeChargeCount(undefined, 0), 0);
-  assert.equal(activeChargeCount(grant, 4), 2);
-  assert.equal(activeChargeCount(grant, 5), 0);
-  assert.equal(activeChargeCount(grant, 5, true), 2);
-  assert.equal(activeChargeCount(grant, 6, true), 0);
-  assert.equal(activeChargeCount(grant, 4), 2);
-  assert.equal(activeChargeCount(grantCharges(0, 5), 4), 0);
+  const grant = Object.freeze(createChargeGrant(2, 5));
+  assert.equal(activeBatchCount(undefined, 0, 'exclusive'), 0);
+  assert.equal(activeBatchCount(grant, 4, 'exclusive'), 2);
+  assert.equal(activeBatchCount(grant, 5, 'exclusive'), 0);
+  assert.equal(activeBatchCount(grant, 5, 'inclusive'), 2);
+  assert.equal(activeBatchCount(grant, 6, 'inclusive'), 0);
+  assert.equal(activeBatchCount(grant, 4, 'exclusive'), 2);
+  assert.equal(activeBatchCount(createChargeGrant(0, 5), 4, 'exclusive'), 0);
 });
 
-// Captured batch references stay authoritative after partial spending and observe exhaustion even after removal.
-test('batch consumption preserves identity and cannot spend a sibling through an exhausted or expired reference', () => {
-  const selected = grantCharges(2, 5);
-  const sibling = grantCharges(2, 5);
-  const grants = [selected, sibling];
-  const onlySelected = (grant) => grant === selected;
-  assert.equal(
-    consumeChargeBatch(grants, 1, () => false),
-    undefined
-  );
-  assert.equal(selected.charges, 2);
-  // The spent batch is returned so its owner can attribute the spend to that batch's grant.
-  assert.equal(consumeChargeBatch(grants, 1, onlySelected), selected);
-  assert.equal(grants[0], selected);
-  assert.equal(selected.charges, 1);
-  assert.equal(consumeChargeBatch(grants, 2, onlySelected), selected);
-  assert.equal(selected.charges, 0);
-  assert.equal(grants.length, 1);
-  assert.equal(grants[0], sibling);
-  assert.equal(consumeChargeBatch(grants, 3, onlySelected), undefined);
-  assert.equal(consumeChargeBatch(grants, 5), undefined);
-  assert.equal(sibling.charges, 2);
+// GW2 grants keep finite deadlines while the kernel supports unbounded preview batches.
+test('GW2 charge creation and refresh require finite deadlines and retain fractional counts', () => {
+  const previous = createChargeGrant(0.5, 5);
+  assert.deepEqual(previous, { count: 0.5, expiresAt: 5, readyAt: 0 });
+  assert.throws(() => createChargeGrant(1, Infinity));
+  assert.throws(() => refreshChargeGrant(previous, 1, Infinity, 1, 'exclusive'));
+  assert.equal(consumeCharge(previous, 1, 'exclusive', 2), true);
+  assert.equal(previous.count, -0.5);
+  assert.equal(previous.readyAt, 3);
+  assert.equal(consumeCharge(previous, 4, 'exclusive', 2), false);
+});
+
+// Refresh policy controls both retained charges and cooldown ownership at the shared deadline.
+test('charge refresh applies its named expiry policy without mutating the previous grant', () => {
+  const previous = { count: 2, expiresAt: 5, readyAt: 6 };
+  const inclusive = refreshChargeGrant(previous, 1, 10, 5, 'inclusive');
+  const exclusive = refreshChargeGrant(previous, 1, 10, 5, 'exclusive');
+  assert.deepEqual(inclusive, { count: 3, expiresAt: 10, readyAt: 6 });
+  assert.deepEqual(exclusive, { count: 1, expiresAt: 10, readyAt: 0 });
+  assert.notEqual(inclusive, previous);
+  assert.notEqual(exclusive, previous);
+  assert.deepEqual(previous, { count: 2, expiresAt: 5, readyAt: 6 });
 });
 
 test('discrete resources grant on 40 ms ticks without early tolerance or cadence drift', () => {

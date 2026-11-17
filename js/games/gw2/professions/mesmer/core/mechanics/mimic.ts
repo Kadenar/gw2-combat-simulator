@@ -1,5 +1,5 @@
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
-import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -22,7 +22,7 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
     skill.id === ID.MIMIC ||
     skill.type !== 'Utility' ||
     skill.flipParentId ||
-    !consumeCharge(core.mimic, cast.start, 0, true)
+    !consumeCharge(core.mimic, cast.start, 'inclusive', 0)
   ) {
     return;
   }
@@ -53,5 +53,5 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
 export function armMimic(context: MesmerRuntime): void {
   const expiresAt = canonicalTime(context.time + skillNumber(requireSkill(context.helpers, ID.MIMIC), 'duration'));
   // Keep the grant after expiry: an in-flight utility can still claim it using its earlier start.
-  professionCoreState(context.profession).mimic = grantCharges(expiresAt > 0 ? 1 : 0, expiresAt);
+  professionCoreState(context.profession).mimic = createChargeGrant(expiresAt > 0 ? 1 : 0, expiresAt);
 }

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
@@ -170,7 +170,7 @@ test('spear illumination expires before accepting a cast at its deadline', () =>
             const core = runtime.profession.core;
 
             if (source === 'armed') {
-              core.spearIlluminated = grantCharges(1, 5.04);
+              core.spearIlluminated = createChargeGrant(1, 5.04);
             } else core.spearLuminanceUntil = 5.04;
 
             runtime.schedule(

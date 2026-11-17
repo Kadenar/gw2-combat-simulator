@@ -1,5 +1,4 @@
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
-import { activeChargeCount } from '#gw2/platform/combat/resources/charges.js';
 import { stealthActive } from '#gw2/platform/combat/stealth.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { STATUS, WEAPON } from '#gw2/platform/constants.js';
@@ -23,6 +22,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/data/stolen-skills.js';
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefPlanningState, ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 import { activeStackCount } from '#kernel/resources/timed-stacks.js';
 
 export function thiefUiState(context: Pick<ThiefUiContext, 'professionState'>): Partial<ThiefPlanningState> {
@@ -270,7 +270,7 @@ export const thiefCoreUi = Object.freeze({
             revealedUntil: state[STATE.REVEALED_UNTIL]
           },
           now
-        ) || activeChargeCount(state[STATE.BONUS_STEALTH_ATTACK], now) > 0
+        ) || activeBatchCount(state[STATE.BONUS_STEALTH_ATTACK], now, 'exclusive') > 0
     };
   },
   // Equal-duration grants replace oldest stacks, so capping their active sum matches the engine's stack count.

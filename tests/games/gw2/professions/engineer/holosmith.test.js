@@ -143,7 +143,7 @@ test('Solar Focusing Lens enhances the earliest two interleaved impacts', () => 
       .map((event) => event.at),
     strikes.slice(0, 2).map((event) => event.at)
   );
-  assert.equal(observedRuntime(result).profession.specialization.state.solarFocusingLens.charges, 0);
+  assert.equal(observedRuntime(result).profession.specialization.state.solarFocusingLens.count, 0);
 });
 
 // Resolver-created strikes share the same charge budget as ordinary scheduled attacks.
@@ -157,7 +157,7 @@ test('Solar Focusing Lens consumes charges on Laser Disk impacts', () => {
   assert.ok(strikes.length > 2);
   assert.ok(strikes.slice(0, 2).every((event) => event.solarFocusingLens));
   assert.ok(strikes.slice(2).every((event) => !event.solarFocusingLens));
-  assert.equal(observedRuntime(result).profession.specialization.state.solarFocusingLens.charges, 0);
+  assert.equal(observedRuntime(result).profession.specialization.state.solarFocusingLens.count, 0);
 });
 
 // Expired grants cannot enhance hits, while leaving Forge starts a fresh charge window.
@@ -188,7 +188,7 @@ test('Solar Focusing Lens respects expiry and refreshes on Forge exit', () => {
     refreshed.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Sun Edge')
       .solarFocusingLens
   );
-  assert.equal(observedRuntime(refreshed).profession.specialization.state.solarFocusingLens.charges, 1);
+  assert.equal(observedRuntime(refreshed).profession.specialization.state.solarFocusingLens.count, 1);
 });
 
 test('ECSU carries pulse readiness, resets at the threshold, and restarts on a discrete crossing', () => {
@@ -688,7 +688,7 @@ test('Holosmith offensive traits consume forge heat and attack charges', () => {
   assert.equal(solarStrikes.length, 2);
   assert.equal(solarBurns.length, 2);
   assert.ok(solarBurns.every((event) => event.stacks === 1 && event.duration === 3));
-  assert.equal(observedRuntime(solar).profession.specialization.state.solarFocusingLens.charges, 0);
+  assert.equal(observedRuntime(solar).profession.specialization.state.solarFocusingLens.count, 0);
 
   const storm = simulate(
     'Holosmith',

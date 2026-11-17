@@ -32,13 +32,13 @@ function fixture() {
 test('Clarity only arms for self and reapplication replaces its single charge and authored lifetime', () => {
   const { runtime, core, apply, emitted } = fixture();
   apply(1, 9, false);
-  assert.equal(core.clarity.charges, 0);
+  assert.equal(core.clarity.count, 0);
   assert.equal(emitted.announcements.length, 0);
   apply(1, 9);
   const first = core.clarity;
   apply(2, 3);
   assert.notEqual(core.clarity, first);
-  assert.deepEqual(core.clarity, { charges: 1, expiresAt: 5, readyAt: 0 });
+  assert.deepEqual(core.clarity, { count: 1, expiresAt: 5, readyAt: 0 });
   apply(3, 99, false);
   assert.equal(core.clarity.expiresAt, 5);
   assert.equal(emitted.announcements.length, 2);
@@ -86,7 +86,7 @@ test('Clarity observation remains detached after acceptance spends the owner gra
   const effect = mesmerEffectStates(runtime)[0];
   assert.equal(projectObservedState(mesmerProfession, runtime)[STATE.CLARITY_REMAINING], 4000);
   assert.equal(consumeMesmerClarity(runtime, 1), true);
-  assert.equal(core.clarity.charges, 0);
+  assert.equal(core.clarity.count, 0);
   assert.equal(effectStateValue(effect, 1).count, 1);
   assert.equal(effectStateValue(mesmerEffectStates(runtime)[0], 1).count, 0);
   assert.equal(projectObservedState(mesmerProfession, runtime)[STATE.CLARITY_REMAINING], 0);
@@ -100,7 +100,7 @@ test('a nonqualifying spear attack preserves Clarity while a canceled qualifying
       { specialization: 'Core', primaryWeapon: 'Spear', selectedTraitIds: [], boons: {} },
       {
         initialize(runtime) {
-          runtime.profession.core.clarity = { charges: 1, expiresAt: 10 };
+          runtime.profession.core.clarity = { count: 1, expiresAt: 10 };
         }
       }
     );

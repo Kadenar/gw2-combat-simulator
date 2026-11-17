@@ -63,7 +63,7 @@ test('Renegade observations retain live charge consumption and strict Fervor exp
       initialize(runtime) {
         const state = runtime.profession.specialization.state;
         state.kallasFervor = [{ at: 0, expiresAt: 2 }];
-        state.razorclawsRage = { charges: 2, expiresAt: 2, readyAt: 0 };
+        state.razorclawsRage = { count: 2, expiresAt: 2, readyAt: 0 };
         runtime.effects.emit({ kind: 'packet', event: revenantHit(0.5) });
       }
     }

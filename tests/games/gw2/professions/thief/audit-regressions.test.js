@@ -363,7 +363,7 @@ test('THF-004: one strike consumes every active venom but emits only one player 
     assert.equal(siphons.length, 1);
     const batches = observedRuntime(result).profession.core.venomChargeBatches;
     for (const id of venoms) {
-      assert.equal(batches[id][0].charges, 1);
+      assert.equal(batches[id][0].count, 1);
       assert.ok(
         result.resolvedEvents.some(
           (event) => event.type === 'condition' && event.skillId === id && event.at === strikes[0].at

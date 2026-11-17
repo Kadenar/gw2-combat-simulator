@@ -1,4 +1,4 @@
-import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
@@ -28,7 +28,7 @@ export function createHolosmithState(): HolosmithState {
     // Initialization supplies an exit anchor only when the selected pool starts preheated.
     forgeExitedAt: null,
     overheated: false,
-    solarFocusingLens: grantCharges(0, 0),
+    solarFocusingLens: createChargeGrant(0, 0),
     kitLockoutUntil: 0
   };
 }

@@ -629,13 +629,13 @@ test("Assassin's Fury queues Might from self Fury", () => {
 test('Spider Venom remains a base effect and Leeching Venoms stays nested after it', () => {
   const strike = { type: 'damage', at: 1, actorType: 'player', coefficient: 1, skillId: 900006, skillName: 'Strike' };
   const withoutTrait = traitContext();
-  withoutTrait.core.venomChargeBatches[ID.SPIDER_VENOM] = [{ charges: 1, expiresAt: 10 }];
+  withoutTrait.core.venomChargeBatches[ID.SPIDER_VENOM] = [{ count: 1, expiresAt: 10 }];
   reactThiefCoreDamage(withoutTrait.context, strike, resolvedTestHitDetails());
   assert.equal(withoutTrait.conditions[0].skillId, ID.SPIDER_VENOM);
   assert.equal(withoutTrait.context.queue.pending().length, 0);
 
   const withTrait = traitContext([TRAIT.LEECHING_VENOMS]);
-  withTrait.core.venomChargeBatches[ID.SPIDER_VENOM] = [{ charges: 1, expiresAt: 10 }];
+  withTrait.core.venomChargeBatches[ID.SPIDER_VENOM] = [{ count: 1, expiresAt: 10 }];
   reactThiefCoreDamage(withTrait.context, strike, resolvedTestHitDetails());
   assert.equal(withTrait.conditions[0].skillId, ID.SPIDER_VENOM);
   assert.equal(withTrait.context.queue.dequeue().sourceId, TRAIT.LEECHING_VENOMS);

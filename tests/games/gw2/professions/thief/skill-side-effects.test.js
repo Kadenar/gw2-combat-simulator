@@ -4,10 +4,10 @@ import test from 'node:test';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { activeChargeCount } from '#gw2/platform/combat/resources/charges.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -190,7 +190,7 @@ test('Thief activation declarations are the sole owners of their state transitio
       config: { selectedSkillIds: [13037] },
       active: (runtime) =>
         Object.values(runtime.profession.core.venomChargeBatches).some((batches) =>
-          batches.some((grant) => activeChargeCount(grant, runtime.time) > 0)
+          batches.some((grant) => activeBatchCount(grant, runtime.time, 'exclusive') > 0)
         )
     },
     {
@@ -228,7 +228,7 @@ test('Thief activation declarations are the sole owners of their state transitio
       id: ID.MISTBURN_MORTAR,
       before: [ID.SKRITT_SWIPE],
       config: { specialization: 'Antiquary' },
-      active: (runtime) => runtime.profession.specialization.state.mistburn.charges > 0
+      active: (runtime) => runtime.profession.specialization.state.mistburn.count > 0
     },
     {
       id: ID.FORGED_SURFER_DASH,

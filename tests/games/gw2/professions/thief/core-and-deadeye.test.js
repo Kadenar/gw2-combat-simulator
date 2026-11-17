@@ -105,12 +105,12 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
               const { core, specialization: elite } = runtime.profession;
               assert.equal(Object.hasOwn(core, 'bonusStealthAttack'), false);
               Object.assign(core, {
-                bonusStealthAttack: { charges: 99, expiresAt: 100 },
+                bonusStealthAttack: { count: 99, expiresAt: 100 },
                 stealthStartedAt: 0,
                 stealthUntil: stealthed ? 6 : 0
               });
 
-              if (ownsCharges) Object.assign(elite.state, { bonusStealthAttack: { charges: 2, expiresAt } });
+              if (ownsCharges) Object.assign(elite.state, { bonusStealthAttack: { count: 2, expiresAt } });
             }
           }
         );
@@ -123,18 +123,18 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
           assert.equal(core.revealedUntil, 8);
         }
 
-        assert.equal(core.bonusStealthAttack.charges, 99);
+        assert.equal(core.bonusStealthAttack.count, 99);
         assert.equal(core.bonusStealthAttack.expiresAt, 100);
         assert.equal(
-          elite.state.bonusStealthAttack?.charges,
+          elite.state.bonusStealthAttack?.count,
           ownsCharges ? (!stealthed && available ? 1 : 2) : undefined
         );
 
         if (ownsCharges) {
           const projected = result.planningState.profession[STATE.BONUS_STEALTH_ATTACK];
           assert.deepEqual(projected, elite.state.bonusStealthAttack);
-          projected.charges = 99;
-          assert.notEqual(elite.state.bonusStealthAttack.charges, 99, 'planning grants are detached');
+          projected.count = 99;
+          assert.notEqual(elite.state.bonusStealthAttack.count, 99, 'planning grants are detached');
         }
       }
     }
@@ -185,12 +185,12 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
     runtime.time = 1;
     grant();
     const first = state.bonusStealthAttack;
-    assert.equal(first.charges, deadeye ? 1 : 2);
+    assert.equal(first.count, deadeye ? 1 : 2);
     assert.equal(first.expiresAt, 8);
     runtime.time = 2;
     grant();
     assert.notEqual(state.bonusStealthAttack, first);
-    assert.equal(state.bonusStealthAttack.charges, deadeye ? 1 : 2);
+    assert.equal(state.bonusStealthAttack.count, deadeye ? 1 : 2);
     assert.equal(state.bonusStealthAttack.expiresAt, 9);
     const before = structuredClone(state.bonusStealthAttack);
     for (const at of [8, 9, 10]) {

@@ -124,14 +124,14 @@ test('stealth entry and exits honor selected linger and venom grants without rep
     );
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(
-      grants[0].map(({ charges, expiresAt }) => [charges, expiresAt]),
+      grants[0].map(({ count, expiresAt }) => [count, expiresAt]),
       [[2, 8]]
     );
     assert.deepEqual(grants[1], grants[0]);
     const core = observedRuntime(result).profession.core;
     assert.equal(core.hiddenKillerUntil, attack ? 8 : 11);
     assert.deepEqual(
-      core.venomChargeBatches[ID.SPIDER_VENOM].map(({ charges, expiresAt }) => [charges, expiresAt]),
+      core.venomChargeBatches[ID.SPIDER_VENOM].map(({ count, expiresAt }) => [count, expiresAt]),
       attack
         ? [
             [2, 8],

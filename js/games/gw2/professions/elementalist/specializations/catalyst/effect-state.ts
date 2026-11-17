@@ -39,7 +39,7 @@ export function catalystEffectStates(runtime: MechanicQueriesOf<ElementalistRunt
     // Reporting snapshots the same refresh-all deadline used by both damage modifiers.
     timedEffectState(
       'empowering auras',
-      [{ ...state.empoweringAuras }],
+      [{ stacks: state.empoweringAuras.count, expiresAt: state.empoweringAuras.expiresAt }],
       balanceProfileNumber(balanceProfile(runtime.helpers, TRAIT.EMPOWERING_AURAS)!, 'maximumStacks')
     ),
     timedEffectState(

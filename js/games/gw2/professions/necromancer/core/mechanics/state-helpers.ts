@@ -2,7 +2,7 @@
  * Shared live Carapace, Soul Shard, and creature-summon operations.
  * Specializations register creature reactions without coupling Core to their mechanics.
  */
-import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, refreshChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -13,6 +13,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { expireBatch } from '#kernel/resources/batch.js';
 import { purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 const SOUL_SHARD_DURATION_SECONDS = 10;
@@ -50,25 +51,31 @@ export function necromancerActiveBoonCompanionIds(context: Pick<NecromancerRunti
 /** Expires timed carapace and Soul Shard stacks, then synchronizes their public resource values. */
 export function purgeTimedState(state: NecromancerCoreState, at: number): void {
   state.carapaceExpiries = purgeExpiredStacks(state.carapaceExpiries, at);
-  expireCharges(state.soulShardGrant, at);
+  expireBatch(state.soulShardGrant, at, 'exclusive');
 }
 
 /** Refreshes existing Soul Shards and admits new charges up to the selected capacity. */
 export function addSoulShards(state: NecromancerCoreState, stacks: number, at: number, maximum: number): void {
   purgeTimedState(state, at);
-  state.soulShardGrant.charges = Math.min(state.soulShardGrant.charges, maximum);
+  state.soulShardGrant.count = Math.min(state.soulShardGrant.count, maximum);
   // Refresh the shared deadline even at the cap, adding only the newly admitted shards.
-  const added = boundedInteger(stacks, 0, 0, maximum - state.soulShardGrant.charges);
+  const added = boundedInteger(stacks, 0, 0, maximum - state.soulShardGrant.count);
   // The stored deadline must equal the queue's canonical timestamp so exact expiry cannot leave floating-point residue.
-  state.soulShardGrant = grantCharges(added, canonicalTime(at + SOUL_SHARD_DURATION_SECONDS), state.soulShardGrant, at);
+  state.soulShardGrant = refreshChargeGrant(
+    state.soulShardGrant,
+    added,
+    canonicalTime(at + SOUL_SHARD_DURATION_SECONDS),
+    at,
+    'exclusive'
+  );
 }
 
 /** Removes active Soul Shards up to the requested amount and returns the amount consumed. */
 export function consumeSoulShards(state: NecromancerCoreState, stacks: number, at: number): number {
   purgeTimedState(state, at);
-  const requested = boundedInteger(stacks, 0, 0, state.soulShardGrant.charges);
+  const requested = boundedInteger(stacks, 0, 0, state.soulShardGrant.count);
   let consumed = 0;
-  while (consumed < requested && consumeCharge(state.soulShardGrant, at)) consumed += 1;
+  while (consumed < requested && consumeCharge(state.soulShardGrant, at, 'exclusive')) consumed += 1;
   return consumed;
 }
 

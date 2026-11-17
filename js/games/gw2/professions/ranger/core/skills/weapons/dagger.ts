@@ -1,4 +1,4 @@
-import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -19,6 +19,7 @@ import { deliverChargedHit, grantSkillCharges } from '#gw2/professions/ranger/co
 import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
+import { expireBatch } from '#kernel/resources/batch.js';
 
 /** Canonical Core ranger skill definitions grouped by their GW2 owner. */
 
@@ -331,7 +332,10 @@ export function handleRangerPoisonousStrikes(context: RangerResolverContext, eve
   const actor = event.summonOwner ? rangerOwningPetState(state.pet, event.summonOwner) : state.player;
 
   if (actor)
-    actor.poisonousStrikes = grantCharges(Math.max(0, Number(event.charges || 0)), event.at + (event.duration || 0));
+    actor.poisonousStrikes = createChargeGrant(
+      Math.max(0, Number(event.charges || 0)),
+      event.at + (event.duration || 0)
+    );
 }
 
 const POISONOUS_STRIKES_ATTRIBUTION = {
@@ -348,7 +352,7 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: G
   if (!pet) return;
 
   // Pet charges belong only to this activation, including their inclusive final hit.
-  expireCharges(pet.poisonousStrikes, event.at, true);
+  expireBatch(pet.poisonousStrikes, event.at, 'inclusive');
 
   if (!isActivePetStrike(context, event)) return;
 
@@ -357,7 +361,7 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: G
     event,
     ID.DOUBLE_ARC,
     'poisonous-strikes',
-    () => consumeCharge(pet.poisonousStrikes, event.at, 0, true),
+    () => consumeCharge(pet.poisonousStrikes, event.at, 'inclusive', 0),
     {
       attribution: {
         ...POISONOUS_STRIKES_ATTRIBUTION,
@@ -374,7 +378,7 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: G
 /** While Soulbeast replaces its pet in Beastmode, the merged Ranger's own strikes spend the player's charges. */
 export function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const { player } = professionCoreState(context.profession);
-  expireCharges(player.poisonousStrikes, event.at, true);
+  expireBatch(player.poisonousStrikes, event.at, 'inclusive');
 
   if (!rangerMerged(context.profession) || !isPlayerStrike(event) || !(Number(event.coefficient) > 0)) return;
 
@@ -383,7 +387,7 @@ export function triggerMergedPoisonousStrikes(context: RangerResolverContext, ev
     event,
     ID.DOUBLE_ARC,
     'poisonous-strikes',
-    () => consumeCharge(player.poisonousStrikes, event.at, 0, true),
+    () => consumeCharge(player.poisonousStrikes, event.at, 'inclusive', 0),
     {
       // While merged, the Ranger owns this poison and receives player poison and duration bonuses.
       attribution: {

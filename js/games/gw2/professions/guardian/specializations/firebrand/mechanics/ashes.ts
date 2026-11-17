@@ -1,9 +1,8 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import {
-  activeChargeCount,
   consumeCharge,
-  expireCharges,
-  grantCharges,
+  createChargeGrant,
+  refreshChargeGrant,
   type ChargeGrant
 } from '#gw2/platform/combat/resources/charges.js';
 import type { AlliedStrikeOpportunity } from '#gw2/platform/combat/state/allied-strikes.js';
@@ -32,6 +31,7 @@ import type {
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { activeBatchCount, expireBatch } from '#kernel/resources/batch.js';
 
 const ASHES = 'guardian.firebrand.ashes';
 
@@ -67,8 +67,12 @@ export function resolveAshesGrantData(
 export function grantAshes(runtime: GuardianRuntime, request: AshesGrantRequest): void {
   const expiresAt = gw2EffectExpiresAt(runtime.time, request.lifetimeSeconds);
   const state = firebrandState.from(runtime.profession);
+  // Preserve the unverified mixed policy: reads and consumes are inclusive, refresh and expiry are exclusive.
+  // At the deadline, self events before the expiry task can spend charges; events after it cannot.
   const install = (previous: ChargeGrant | undefined) =>
-    grantCharges(request.charges, expiresAt, request.source === 'epilogue' ? undefined : previous, runtime.time);
+    request.source === 'epilogue'
+      ? createChargeGrant(request.charges, expiresAt)
+      : refreshChargeGrant(previous, request.charges, expiresAt, runtime.time, 'exclusive');
 
   if (request.recipients.includesSelf) {
     state.ashes = install(state.ashes);
@@ -91,7 +95,7 @@ export function grantAshes(runtime: GuardianRuntime, request: AshesGrantRequest)
       const current = () => firebrandState.from(runtime.profession).alliedAshes[allyIndex];
       return {
         id: `ashes:${allyIndex}`,
-        isActive: (at) => activeChargeCount(current(), at, true) > 0,
+        isActive: (at) => activeBatchCount(current(), at, 'inclusive') > 0,
         trigger(opportunity) {
           const resolved = spendAshesCharge(
             { catalog: runtime.helpers, traits: runtime.traits },
@@ -119,7 +123,7 @@ export function grantAshes(runtime: GuardianRuntime, request: AshesGrantRequest)
 }
 
 /**
- * One Ashes policy for every recipient: inclusive expiry and a strict trigger interval. Most strikes find no live
+ * One Ashes policy for every recipient: inclusive reads and consumes. Most strikes find no live
  * charge, so the selected payload resolves only when one could be spent, and a removed payload spends nothing.
  */
 function spendAshesCharge(
@@ -127,11 +131,11 @@ function spendAshesCharge(
   grant: ChargeGrant | undefined,
   at: number
 ): ResolvedAshes | undefined {
-  if (activeChargeCount(grant, at, true) === 0) return;
+  if (activeBatchCount(grant, at, 'inclusive') === 0) return;
 
   const resolved = resolveAshes(context);
 
-  if (!resolved || !consumeCharge(grant, at, resolved.triggerIntervalSeconds, true)) return;
+  if (!resolved || !consumeCharge(grant, at, 'inclusive', resolved.triggerIntervalSeconds)) return;
 
   return resolved;
 }
@@ -300,7 +304,7 @@ const firebrandAshesTasks = {
     grantFirebrandAshes(runtime, (data as { cast: RuntimeCast<GuardianSkill> }).cast);
   },
   [FIREBRAND_ASHES_EXPIRE](runtime: GuardianRuntime) {
-    expireCharges(firebrandState.from(runtime.profession).ashes, runtime.time);
+    expireBatch(firebrandState.from(runtime.profession).ashes, runtime.time, 'exclusive');
   }
 };
 

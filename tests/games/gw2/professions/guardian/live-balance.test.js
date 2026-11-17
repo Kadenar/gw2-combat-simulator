@@ -164,11 +164,11 @@ test('Fervid grants two self charges and one per ally for ten seconds', () => {
   );
   assert.deepEqual(result.warnings, []);
   const state = observedRuntime(result).profession.specialization.state;
-  assert.equal(state.ashes.charges, 2);
+  assert.equal(state.ashes.count, 2);
   assert.equal(Object.keys(state.alliedAshes).length, 4);
   assert.ok(state.ashes.expiresAt >= 10.01 && state.ashes.expiresAt <= 10.05);
   for (const grant of Object.values(state.alliedAshes)) {
-    assert.equal(grant.charges, 1);
+    assert.equal(grant.count, 1);
     assert.equal(grant.expiresAt, state.ashes.expiresAt);
   }
 });

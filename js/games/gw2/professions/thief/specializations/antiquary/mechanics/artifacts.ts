@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { consumeChargeBatch } from '#gw2/platform/combat/resources/charges.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -23,6 +22,7 @@ import {
 import type { ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { consumeBatchFromList } from '#kernel/resources/batch-list.js';
 import { addCounterProgress, advanceCounter } from '#kernel/resources/counters.js';
 
 /** The slot each accepted artifact cast spent, which selects its Possessive Hoarder family boon. */
@@ -86,7 +86,10 @@ function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast<Thief
   state.initiativeSpentSincePilfer = addCounterProgress(state.initiativeSpentSincePilfer, cost);
 
   // Only paid weapon inputs consume a refund, so free skills and profession actions preserve the finite grant.
-  if (cast.skill.type === 'Weapon' && consumeChargeBatch(state.chakInitiativeRefunds, runtime.time))
+  if (
+    cast.skill.type === 'Weapon' &&
+    consumeBatchFromList(state.chakInitiativeRefunds, runtime.time, { expiry: 'exclusive' })
+  )
     runtime.resourceController.grant('initiative', cost);
 
   // Spending accrues before combat too, but it cannot trigger a pilfer until combat has begun.

@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
@@ -16,6 +15,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import { evokerCastCompleted } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { activeBatches } from '#kernel/resources/batch-list.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
@@ -85,7 +85,7 @@ test('skill and trait providers share grant announcements while retaining patche
   }
 
   assert.deepEqual(
-    state.electricEnchantmentGrants.map(({ charges, expiresAt }) => [charges, expiresAt]),
+    state.electricEnchantmentGrants.map(({ count: charges, expiresAt }) => [charges, expiresAt]),
     [
       [1, 5],
       [4, 8],
@@ -124,13 +124,40 @@ test('skill and trait providers share grant announcements while retaining patche
       skillName: 'Zap'
     });
     assert.equal(
-      activeChargeGrants(state.electricEnchantmentGrants, context.time).reduce((sum, grant) => sum + grant.charges, 0),
+      activeBatches(state.electricEnchantmentGrants, context.time, {
+        expiry: 'exclusive',
+        order: 'earliest-expiry'
+      }).reduce((sum, grant) => sum + grant.count, 0),
       remaining
     );
     const packets = emittedEvents.slice(before);
     assert.equal(packets.length > 0, at < 11);
     assert.ok(packets.every((event) => event.traitId === expectedTrait));
   }
+});
+
+// Earlier-expiring future grants must not intercept a spend, and removal must retain the selected attribution.
+test('Electric Enchantment skips pending batches and removes spent grants without losing their identity', () => {
+  const { context, state, events } = fixture();
+  const skill = { id: ID.FIRE_STRIKE, name: 'Triggering skill' };
+  grantElectricEnchantments(context, { at: 2, stacks: 1, duration: 8, skill, traitId: TRAIT.GALVANIC_ENCHANTMENT });
+  const pending = state.electricEnchantmentGrants[0];
+  grantElectricEnchantments(context, { at: 1, stacks: 1, duration: 10, skill });
+  const available = state.electricEnchantmentGrants[1];
+  const hit = { type: 'damage', at: 1, actorType: 'player', skillId: skill.id, skillName: skill.name };
+  consumeElectricEnchantment(context, hit);
+  assert.equal(available.count, 0);
+  assert.equal(pending.count, 1);
+  assert.deepEqual(state.electricEnchantmentGrants, [pending]);
+  assert.equal(state.electricEnchantmentGrants[0], pending);
+  assert.ok(events.length > 0);
+  assert.ok(events.every((event) => event.traitId === undefined));
+  const before = events.length;
+  consumeElectricEnchantment(context, { ...hit, at: 2 });
+  assert.equal(pending.count, 0);
+  assert.deepEqual(state.electricEnchantmentGrants, []);
+  assert.ok(events.length > before);
+  assert.ok(events.slice(before).every((event) => event.traitId === TRAIT.GALVANIC_ENCHANTMENT));
 });
 
 test('combat and preview share patched payloads while only combat spends a charge', () => {
@@ -153,6 +180,7 @@ test('combat and preview share patched payloads while only combat spends a charg
     const combat = fixture(catalog);
     const skill = { id: ID.FIRE_STRIKE, name: 'Triggering skill' };
     grantElectricEnchantments(combat.context, { at: 2, stacks: 1, duration: 5, skill });
+    const spent = combat.state.electricEnchantmentGrants[0];
     consumeElectricEnchantment(combat.context, {
       type: 'damage',
       at: 2,
@@ -161,7 +189,8 @@ test('combat and preview share patched payloads while only combat spends a charg
       sourceId: skill.id,
       skillName: skill.name
     });
-    assert.equal(combat.state.electricEnchantmentGrants[0].charges, 0);
+    assert.equal(spent.count, 0);
+    assert.deepEqual(combat.state.electricEnchantmentGrants, []);
     const declared = native.damageEffects.find((entry) => entry.id === 'electric-enchantment');
     for (const hasCharges of [false, true]) {
       const preview = fixture(catalog);

@@ -8,6 +8,7 @@ import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { createBatch, refreshBatch, type Batch } from '#kernel/resources/batch.js';
 
 const ARISTOCRACY_BONUS_PER_STACK = 0.03;
 const ARISTOCRACY_DURATION = 8;
@@ -22,16 +23,14 @@ interface AristocracyActivation {
 
 interface AristocracyState extends Gw2RelicState {
   readyAt: number;
-  stacks: number;
-  expiresAt: number;
+  batch: Batch;
   activations: AristocracyActivation[];
 }
 
 function createAristocracyState(): AristocracyState {
   return {
     readyAt: 0,
-    stacks: 0,
-    expiresAt: 0,
+    batch: createBatch(0, 0),
     activations: []
   };
 }
@@ -61,16 +60,19 @@ function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent
     return;
   }
 
-  if (event.at >= state.expiresAt) state.stacks = 0;
-
-  state.stacks = Math.min(ARISTOCRACY_MAX_STACKS, state.stacks + 1);
-  state.expiresAt = gw2EffectExpiresAt(event.at, ARISTOCRACY_DURATION);
+  // Refresh the shared batch while keeping the relic's cooldown and historical windows in GW2.
+  state.batch = refreshBatch(state.batch, 1, {
+    at: event.at,
+    expiresAt: gw2EffectExpiresAt(event.at, ARISTOCRACY_DURATION),
+    expiry: 'exclusive',
+    maximum: ARISTOCRACY_MAX_STACKS
+  }).batch;
   state.readyAt = event.at + ARISTOCRACY_INTERNAL_COOLDOWN;
   // Historical duration queries need stack windows, without retaining their triggering events.
   const activation = {
     at: event.at,
-    expiresAt: state.expiresAt,
-    stacks: state.stacks
+    expiresAt: state.batch.expiresAt,
+    stacks: state.batch.count
   };
   state.activations.push(activation);
   return activation;

@@ -84,7 +84,7 @@ test('Firebrand tomes consume shared pages and execute tome damage', () => {
   ]);
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession[STATE.ASHES].charges, 0);
+  assert.equal(result.planningState.profession[STATE.ASHES].count, 0);
   assert.ok(result.conditionBreakdown.some((row) => row.name === 'Burning'));
   assert.ok(result.conditionBreakdown.some((row) => row.name === 'Bleeding'));
   const ashesProc = result.procSteps.find((step) => step.skill === 'Ashes of the Just');
@@ -299,7 +299,7 @@ test('later tome pages do not restore consumed Ashes charges', () => {
   );
 
   assert.equal(personalBurns.length, 2);
-  assert.equal(result.planningState.profession[STATE.ASHES].charges, 0);
+  assert.equal(result.planningState.profession[STATE.ASHES].count, 0);
 });
 
 test('Firebrand page exhaustion keeps the tome open while pages regenerate', () => {

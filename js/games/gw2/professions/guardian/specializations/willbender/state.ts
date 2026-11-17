@@ -6,7 +6,7 @@ import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import type { RefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
+import type { Batch } from '#kernel/resources/batch.js';
 
 export interface GuardianWillbenderState {
   flameVirtue: GuardianVirtue | null;
@@ -17,7 +17,7 @@ export interface GuardianWillbenderState {
   resolveUntil: number;
   courageUntil: number;
   virtueHitCounts: Record<'justice' | 'resolve' | 'courage', number>;
-  lethalTempo: RefreshedStacks;
+  lethalTempo: Batch;
 }
 
 function createWillbenderState(): GuardianWillbenderState {
@@ -34,7 +34,7 @@ function createWillbenderState(): GuardianWillbenderState {
       resolve: 0,
       courage: 0
     },
-    lethalTempo: { stacks: 0, expiresAt: 0 }
+    lethalTempo: { count: 0, expiresAt: 0 }
   };
 }
 

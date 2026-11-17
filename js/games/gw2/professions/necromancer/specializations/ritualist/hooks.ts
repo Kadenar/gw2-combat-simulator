@@ -83,7 +83,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
   observeEffects(runtime) {
     return Object.entries(ritualistState.from(runtime.profession).weaponSpells).flatMap(([spell, state]) =>
       Object.entries(state.recipients).map(([recipient, grant]) =>
-        timedEffectState(spell + '-weapon', [{ stacks: grant.charges, expiresAt: grant.expiresAt }], null, {
+        timedEffectState(spell + '-weapon', [{ stacks: grant.count, expiresAt: grant.expiresAt }], null, {
           recipient:
             recipient === ACTOR.PLAYER
               ? RECIPIENT.SELF

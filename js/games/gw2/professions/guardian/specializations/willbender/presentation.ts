@@ -16,7 +16,7 @@ import type { GuardianSkill, GuardianUiContext, GuardianUiSlice } from '#gw2/pro
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
-import { activeRefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 
 const VIRTUE_IDS = Object.freeze([
   GUARDIAN_SKILL_IDS.RUSHING_JUSTICE,
@@ -46,7 +46,7 @@ function willbenderStateSnapshot(
 
   const lethalRemaining = (state[STATE.LETHAL_TEMPO]?.expiresAt || 0) - at;
   const maximum = balanceNumber(context.balanceContext.catalog, WILLBENDER_TRAIT.LETHAL_TEMPO, 'maximumStacks');
-  const lethalStacks = boundedInteger(activeRefreshedStacks(state[STATE.LETHAL_TEMPO], at, 'inclusive'), 0, 0, maximum);
+  const lethalStacks = boundedInteger(activeBatchCount(state[STATE.LETHAL_TEMPO], at, 'inclusive'), 0, 0, maximum);
 
   // Lethal Tempo remains available for damage and refreshes on its final tick.
   if ((state[STATE.LETHAL_TEMPO]?.expiresAt || 0) > 0 && lethalRemaining >= 0 && lethalStacks > 0) {

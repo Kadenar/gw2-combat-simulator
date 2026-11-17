@@ -36,5 +36,5 @@ export function mesmerBuffPolicies(source: BalanceProfileSource): BuffStatePolic
 /** Project the canonical grant so acceptance consumption and exclusive expiry also hide Clarity. */
 export function mesmerEffectStates(runtime: MechanicQueriesOf<MechanicContext<MesmerRuntimeState>>): EffectState[] {
   const grant = runtime.profession.core.clarity;
-  return [timedEffectState('clarity', [{ stacks: grant.charges, expiresAt: grant.expiresAt }], 1)];
+  return [timedEffectState('clarity', [{ stacks: grant.count, expiresAt: grant.expiresAt }], 1)];
 }

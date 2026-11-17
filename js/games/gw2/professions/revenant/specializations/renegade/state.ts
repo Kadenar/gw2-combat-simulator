@@ -19,7 +19,7 @@ function createRenegadeState(): RenegadeState {
     // each element records the application timestamp and expiry; the array is pruned lazily
     kallasFervor: [],
     razorclawsRage: {
-      charges: 0,
+      count: 0,
       expiresAt: 0,
       // readyAt enforces the per-hit internal cooldown between Razorclaw bleeds
       readyAt: 0

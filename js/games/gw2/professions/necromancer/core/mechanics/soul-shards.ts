@@ -1,4 +1,3 @@
-import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -15,6 +14,7 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
+import { expireBatch } from '#kernel/resources/batch.js';
 
 const SHARD_EXPIRY = 'necromancer.soul-shards-expire';
 
@@ -69,7 +69,7 @@ export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEve
 /** Expire only the current Soul Shards grant so stale scheduled tasks cannot clear refreshed charges. */
 const soulShardTasks = {
   [SHARD_EXPIRY](runtime: NecromancerRuntime) {
-    expireCharges(runtime.profession.core.soulShardGrant, runtime.time);
+    expireBatch(runtime.profession.core.soulShardGrant, runtime.time, 'exclusive');
   }
 };
 

@@ -106,7 +106,7 @@ test('Soul Shards tuning reaches target-health damage and tooltips without patch
     assert.deepEqual(result.warnings, []);
     const shard = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === NECRO.SOUL_SHARDS);
     assert.equal(shard.damage, Math.floor((payload.flatStrikeBase + payload.flatStrikePowerCoeff * 2000) * multiplier));
-    assert.equal(observedRuntime(result).profession.core.soulShardGrant.charges, 0);
+    assert.equal(observedRuntime(result).profession.core.soulShardGrant.count, 0);
     const threshold = facts(necromancerTooltips, selected, NECRO.PERFORATE).find(
       (fact) => fact.name === 'Soul Shard target health threshold'
     );
@@ -126,7 +126,7 @@ test('Soul Shards tuning reaches target-health damage and tooltips without patch
     { initialize: (owner) => grantNecromancerSoulShards(owner.mechanics, 1) }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).profession.core.soulShardGrant.charges, 0);
+  assert.equal(observedRuntime(result).profession.core.soulShardGrant.count, 0);
   assert.equal(
     result.events.some((event) => event.skillId === NECRO.SOUL_SHARDS),
     false

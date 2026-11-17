@@ -434,7 +434,7 @@ test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () =
   ]);
 
   // Helio Rush is not illuminated itself but arms the buff for the next attack.
-  assert.equal(helioAlone.planningState.profession[STATE.SPEAR_ILLUMINATED].charges, 1);
+  assert.equal(helioAlone.planningState.profession[STATE.SPEAR_ILLUMINATED].count, 1);
   assert.equal(
     helioAlone.procSteps.some((step) => step.skill === 'Illuminated'),
     false

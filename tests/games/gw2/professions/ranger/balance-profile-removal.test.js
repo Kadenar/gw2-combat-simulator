@@ -5,7 +5,7 @@ import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/pat
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -187,7 +187,7 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
   context.fireTrigger(weaponSwapped, { skill: rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), at: 1 });
   const core = context.profession.core;
   assert.equal(core.quickDraw.expiresAt, 6);
-  assert.equal(core.quickDraw.charges, 1);
+  assert.equal(core.quickDraw.count, 1);
   assert.equal(context.procs.deadline('ranger.core.quickDraw'), 10);
   assert.deepEqual(events, []);
   // The grant cannot bypass the trait's independent ICD, even when its boon packet is absent.
@@ -197,16 +197,16 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
   assert.equal(core.quickDraw.expiresAt, 6, 'the ICD remains blocked at its exact boundary');
   context.fireTrigger(weaponSwapped, { skill: rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), at: 11 });
   assert.equal(core.quickDraw.expiresAt, 16);
-  assert.equal(core.quickDraw.charges, 1);
+  assert.equal(core.quickDraw.count, 1);
 });
 
 test('removed Poisonous Strikes poison leaves its charges unspent', () => {
   const context = resolverContext({}, [], undefined, {
     [ID.DOUBLE_ARC]: { sideEffects: { 'poisonous-strikes': remove('condition', 'Poisoned') } }
   });
-  context.profession.core.pet.poisonousStrikes = grantCharges(2, 10);
+  context.profession.core.pet.poisonousStrikes = createChargeGrant(2, 10);
   triggerPoisonousStrikes(context, { type: 'damage', at: 1, source: 'ranger-pet', coefficient: 1 });
-  assert.equal(context.profession.core.pet.poisonousStrikes.charges, 2);
+  assert.equal(context.profession.core.pet.poisonousStrikes.count, 2);
   assert.deepEqual(context.queued, []);
 });
 

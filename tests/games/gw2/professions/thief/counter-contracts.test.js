@@ -24,7 +24,7 @@ test('Prodigious Pincher retains precombat gross spending, checks after Chak ref
         at,
         run(runtime) {
           const state = antiquaryState.from(runtime.profession);
-          state.chakInitiativeRefunds = [{ charges: 3, expiresAt: 10 }];
+          state.chakInitiativeRefunds = [{ count: 3, expiresAt: 10 }];
           const original = runtime.mechanics.resourceController.grant;
           // Observe that the refund sees gross progress before the pilfer replaces artifacts and clears the cycle.
           const context = {

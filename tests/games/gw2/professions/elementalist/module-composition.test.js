@@ -46,7 +46,7 @@ test('Elementalist resolver buffs update only the owned Core state', () => {
       { profession },
       { kind: 'shattering stone', at: 2, stacks: 3, duration: 5, resolvedAudience: { includesSelf: true } }
     );
-    assert.equal(profession.core.shatteringStone.charges, 3);
+    assert.equal(profession.core.shatteringStone.count, 3);
     assert.equal(profession.core.shatteringStone.expiresAt, 7);
     assert.equal(Object.hasOwn(profession, 'shatteringStone'), false);
     assert.deepEqual(profession.specialization.state, eliteBefore);

@@ -68,7 +68,7 @@ for (const [origin, produce] of [
         assert.equal(buffs(result, TRAIT.ELEMENTAL_EPITOME).length, Number(active));
         assert.equal(buffs(result, TRAIT.ELEMENTAL_SYNERGY).length, Number(active && origin === 'combo'));
         assert.equal(runtime.profession.core.activeAuras.length, Number(origin === 'aura' || active));
-        assert.equal(catalystState.from(runtime.profession).empoweringAuras.stacks, Number(active));
+        assert.equal(catalystState.from(runtime.profession).empoweringAuras.count, Number(active));
         assert.equal(catalystState.from(runtime.profession).elementalEmpowermentExpiries.length, Number(active));
         for (const trait of ['elementalEpitome', 'elementalSynergy'])
           assert.equal(runtime.procs.deadline(`elementalist.catalyst.${trait}:Fire`) > 0, active && origin === 'combo');

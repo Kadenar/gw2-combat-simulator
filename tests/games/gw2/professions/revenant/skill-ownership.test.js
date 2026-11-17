@@ -107,7 +107,7 @@ test('Crushing Abyss resolves before Brutality observes the committed weapon swa
 // Removing an intrinsic declaration must remove its transition, rather than leave a second hook dispatcher active.
 for (const [skillId, specialization, legend, active] of [
   [ID.IMPERIAL_GUARD, 'Core', LEGEND.ASSASSIN, (result) => Boolean(observedRuntime(result).flips[ID.TRUE_STRIKE])],
-  [ID.ENCHANTED_DAGGERS, 'Core', LEGEND.ASSASSIN, (result) => core(result).enchantedDaggers.charges > 0],
+  [ID.ENCHANTED_DAGGERS, 'Core', LEGEND.ASSASSIN, (result) => core(result).enchantedDaggers.count > 0],
   [
     ID.BLOSSOMING_AURA,
     'Core',
@@ -127,7 +127,7 @@ for (const [skillId, specialization, legend, active] of [
     ID.RAZORCLAWS_RAGE,
     'Renegade',
     LEGEND.RENEGADE,
-    (result) => renegadeState.from(observedRuntime(result).profession).razorclawsRage.charges > 0
+    (result) => renegadeState.from(observedRuntime(result).profession).razorclawsRage.count > 0
   ],
   [
     ID.BREAKRAZORS_BASTION,

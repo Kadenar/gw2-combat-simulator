@@ -5,7 +5,6 @@ import { authoringNumericFieldLabel } from '#gw2/app/patch-authoring/model.js';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { skillPatchableNumericFields } from '#gw2/integrations/patches/authoring/fields.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
@@ -16,6 +15,7 @@ import { prepareTrap, thiefTrapAvailability } from '#gw2/professions/thief/core/
 import { activateVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
+import { activeBatches } from '#kernel/resources/batch-list.js';
 
 // The skill's grant buff controls charge entitlement independently of its action's triggered condition duration.
 test('patched venom duration owns personal and allied charge expiry and tooltip facts', () => {
@@ -47,9 +47,9 @@ test('patched venom duration owns personal and allied charge expiry and tooltip 
     // The ally's native batches share the player's lifetime and exclusive expiry.
     const allied = runtime.profession.core.alliedVenomChargeBatches[`1:${skill.id}`];
     for (const owned of [batches, allied]) {
-      assert.equal(activeChargeGrants(owned, 11.999).length, 2);
-      assert.equal(activeChargeGrants(owned, 12).length, 1);
-      assert.equal(activeChargeGrants(owned, 13).length, 0);
+      assert.equal(activeBatches(owned, 11.999, { expiry: 'exclusive', order: 'earliest-expiry' }).length, 2);
+      assert.equal(activeBatches(owned, 12, { expiry: 'exclusive', order: 'earliest-expiry' }).length, 1);
+      assert.equal(activeBatches(owned, 13, { expiry: 'exclusive', order: 'earliest-expiry' }).length, 0);
     }
 
     const context = { catalog };

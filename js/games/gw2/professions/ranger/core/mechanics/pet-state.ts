@@ -1,9 +1,9 @@
-import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   createRangerActorProcState,
   type RangerActorProcState
 } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
-import type { RefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
+import type { Batch } from '#kernel/resources/batch.js';
 
 const RANGER_PET_ID_PREFIX = 'ranger-pet:';
 
@@ -22,7 +22,7 @@ export interface RangerPetState extends RangerActorProcState {
   readonly id: string;
   paralyzingVenom: ChargeGrant;
   sharpenSpines: ChargeGrant;
-  ferociousSymbiosis: RefreshedStacks;
+  ferociousSymbiosis: Batch;
   wutheringWindReady: boolean;
   wutheringWindReadyAt: number;
   autoStarted: boolean;
@@ -39,9 +39,9 @@ export function createRangerPetState(id: string): RangerPetState {
   return {
     ...createRangerActorProcState(),
     id,
-    paralyzingVenom: grantCharges(0, 0),
-    sharpenSpines: grantCharges(0, 0),
-    ferociousSymbiosis: { stacks: 0, expiresAt: 0 },
+    paralyzingVenom: createChargeGrant(0, 0),
+    sharpenSpines: createChargeGrant(0, 0),
+    ferociousSymbiosis: { count: 0, expiresAt: 0 },
     wutheringWindReady: false,
     wutheringWindReadyAt: 0,
     autoStarted: false,

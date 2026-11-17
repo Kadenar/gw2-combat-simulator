@@ -147,7 +147,7 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
     });
     const consumed = start <= 10.301;
     assert.equal(context.cooldownController.readyAt(utility.id), consumed ? canonicalTime(start + 2) : 99);
-    assert.equal(core.mimic.charges, consumed ? 0 : 1);
+    assert.equal(core.mimic.count, consumed ? 0 : 1);
     assert.equal(context.events.filter((event) => event.source === 'Mimic').length, consumed ? 1 : 0);
     context.cooldownController.setReadyAt(utility.id, 100);
     complete(context, {

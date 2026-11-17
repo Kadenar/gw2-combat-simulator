@@ -1,6 +1,6 @@
 // Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { appendChargeGrant, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { BoonId } from '#gw2/platform/constants.js';
 import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
@@ -26,6 +26,7 @@ import type {
   RangerRuntimeState,
   RangerSkill
 } from '#gw2/professions/ranger/types.js';
+import { appendBatch, consumeBatchFromList } from '#kernel/resources/batch-list.js';
 
 /** Canonical Core ranger skill definitions grouped by their GW2 owner. */
 
@@ -865,11 +866,11 @@ export function releaseFrostTrap(runtime: RangerRuntime): void {
 /** Apply each resolved charge grant with its own expiry so recasting does not refresh older stones. */
 export function handleRangerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context.profession);
-  state.sharpeningStoneGrants = appendChargeGrant(
+  state.sharpeningStoneGrants = appendBatch(
     state.sharpeningStoneGrants,
-    grantCharges(Math.trunc(Math.max(0, Number(event.charges || 0))), event.at + (event.duration || 0)),
+    createChargeGrant(Math.trunc(Math.max(0, Number(event.charges || 0))), event.at + (event.duration || 0)),
     event.at,
-    'earliest-expiry'
+    { expiry: 'exclusive', order: 'earliest-expiry' }
   );
 }
 
@@ -885,7 +886,7 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
     ID.SHARPENING_STONE,
     'sharpening-stone',
     // Grants stay in expiry order, so this spends the earliest live batch and skips expired ones.
-    () => consumeChargeBatch(state.sharpeningStoneGrants, event.at) !== undefined,
+    () => consumeBatchFromList(state.sharpeningStoneGrants, event.at, { expiry: 'exclusive' }) !== undefined,
     {
       attribution: {
         source: 'ranger',

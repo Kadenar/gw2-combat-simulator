@@ -206,7 +206,7 @@ test('Necromancer resources and palette change with specialization state', () =>
     professionState: {
       [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
 
-      [STATE.SOUL_SHARD_GRANT]: { charges: 4, expiresAt: 10 },
+      [STATE.SOUL_SHARD_GRANT]: { count: 4, expiresAt: 10 },
       [STATE.SHADES]: [10, 20]
     }
   });
@@ -314,7 +314,7 @@ test('Necromancer resources and palette change with specialization state', () =>
           [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
 
           [STATE.BLIGHT]: 12,
-          [STATE.SOUL_SHARD_GRANT]: { charges: 4, expiresAt: 10 }
+          [STATE.SOUL_SHARD_GRANT]: { count: 4, expiresAt: 10 }
         }
       })
       .map((resource) => resource.id),
@@ -419,7 +419,7 @@ test('Necromancer renders life force above its F-skills', async () => {
       profession: {
         [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
 
-        [STATE.SOUL_SHARD_GRANT]: { charges: 0, expiresAt: 10 },
+        [STATE.SOUL_SHARD_GRANT]: { count: 0, expiresAt: 10 },
         [STATE.SHADES]: [10, 20]
       }
     }
@@ -442,7 +442,7 @@ test('Necromancer renders life force above its F-skills', async () => {
     palette.innerHTML,
     /profession-palette-resource-group resource-beside[\s\S]*necromancer-f-skills[\s\S]*data-resource-id="soul-shards"/
   );
-  app.analysis.state.results.planningState.profession[STATE.SOUL_SHARD_GRANT].charges = 4;
+  app.analysis.state.results.planningState.profession[STATE.SOUL_SHARD_GRANT].count = 4;
   globalThis.document = {
     querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)

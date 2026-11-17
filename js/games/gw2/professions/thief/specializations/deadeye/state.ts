@@ -1,4 +1,4 @@
-import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
@@ -31,7 +31,7 @@ function createDeadeyeState(): DeadeyeState {
     // Prevents Maleficent Seven from firing more than once per mark application at full malice
     maleficentSevenTriggered: false,
     // Silent Scope owns its replacement grant; Core consumes it only for the active specialization.
-    bonusStealthAttack: grantCharges(0, 0)
+    bonusStealthAttack: createChargeGrant(0, 0)
   };
 }
 

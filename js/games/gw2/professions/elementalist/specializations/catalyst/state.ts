@@ -6,7 +6,7 @@ import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#kernel/execution/periodic-task.js';
 import { createResourceClock, type ResourceClock } from '#kernel/resources/accrual.js';
-import type { RefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
+import type { Batch } from '#kernel/resources/batch.js';
 
 /**
  * Catalyst combat bookkeeping: Jade Sphere energy, the per-attunement sphere
@@ -16,7 +16,7 @@ import type { RefreshedStacks } from '#kernel/resources/refreshed-stacks.js';
 export interface CatalystState {
   catalystEnergy: ResourceClock;
   elementalEmpowermentExpiries: number[];
-  empoweringAuras: RefreshedStacks;
+  empoweringAuras: Batch;
   baseEmpowerment: PeriodicTaskState;
   sphereActiveUntil: number;
   sphereExpiry: Record<string, number>;
@@ -29,7 +29,7 @@ export interface CatalystState {
 export const catalystState = defineProfessionSpecializationState('Catalyst', (): CatalystState => ({
   catalystEnergy: createResourceClock(),
   elementalEmpowermentExpiries: [],
-  empoweringAuras: { stacks: 0, expiresAt: 0 },
+  empoweringAuras: { count: 0, expiresAt: 0 },
   baseEmpowerment: createPeriodicTaskState(),
   sphereActiveUntil: 0,
   sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 },

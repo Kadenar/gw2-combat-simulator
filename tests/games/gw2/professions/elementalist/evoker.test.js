@@ -3,7 +3,6 @@ import test from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { GW2_ALACRITY_RECHARGE_RATE, gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
-import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
@@ -18,6 +17,7 @@ import {
 import { evokerEntryObserved } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { activeBatches } from '#kernel/resources/batch-list.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
 import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
@@ -190,9 +190,7 @@ test('Electric Enchantment consumes accepted post-grant hits chronologically and
     [3, 4]
   );
   assert.equal(
-    evokerState
-      .from(observedRuntime(result).profession)
-      .electricEnchantmentGrants.reduce((sum, g) => sum + g.charges, 0),
+    evokerState.from(observedRuntime(result).profession).electricEnchantmentGrants.reduce((sum, g) => sum + g.count, 0),
     0
   );
 });
@@ -216,7 +214,10 @@ test('Electric Enchantment keeps overlapping grants independent of future queued
         at: 8.001,
         run: (r) =>
           assert.deepEqual(
-            activeChargeGrants(evokerState.from(r.profession).electricEnchantmentGrants, r.time).map((g) => g.charges),
+            activeBatches(evokerState.from(r.profession).electricEnchantmentGrants, r.time, {
+              expiry: 'exclusive',
+              order: 'earliest-expiry'
+            }).map((g) => g.count),
             [1, 2]
           )
       },
@@ -224,7 +225,10 @@ test('Electric Enchantment keeps overlapping grants independent of future queued
         at: 9.001,
         run: (r) =>
           assert.deepEqual(
-            activeChargeGrants(evokerState.from(r.profession).electricEnchantmentGrants, r.time).map((g) => g.charges),
+            activeBatches(evokerState.from(r.profession).electricEnchantmentGrants, r.time, {
+              expiry: 'exclusive',
+              order: 'earliest-expiry'
+            }).map((g) => g.count),
             [1]
           )
       }
@@ -250,7 +254,7 @@ test('Electric Enchantment cannot spend a grant that has not arrived', () => {
   );
 });
 
-test('Electric Enchantment spends the earliest expiry even when the shorter grant arrives later', () => {
+test('Electric Enchantment removes the spent earliest expiry even when the shorter grant arrives later', () => {
   enchantments({
     hits: [[5]],
     grants: [
@@ -262,11 +266,8 @@ test('Electric Enchantment spends the earliest expiry even when the shorter gran
         at: 5.001,
         run: (r) =>
           assert.deepEqual(
-            evokerState.from(r.profession).electricEnchantmentGrants.map((g) => [g.expiresAt, g.charges]),
-            [
-              [10, 0],
-              [13, 1]
-            ]
+            evokerState.from(r.profession).electricEnchantmentGrants.map((g) => [g.expiresAt, g.count]),
+            [[13, 1]]
           )
       }
     ]

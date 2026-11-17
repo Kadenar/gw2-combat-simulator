@@ -55,8 +55,8 @@ test('Core damage reactions preserve trait and skill ordering without spending c
   // One trap activation exercises interleaved procs and independent one-use versus per-hit state.
   const config = { selectedTraitIds: [TRAIT.OPENING_STRIKE, TRAIT.TRAPPERS_EXPERTISE] };
   const state = createRangerCoreState(config);
-  state.sharpeningStoneGrants = [{ charges: 2, expiresAt: 10 }];
-  state.bloodThirst.charges = 2;
+  state.sharpeningStoneGrants = [{ count: 2, expiresAt: 10 }];
+  state.bloodThirst.count = 2;
   state.bloodThirst.expiresAt = 12;
   const queued = [];
   const context = {
@@ -106,8 +106,8 @@ test('Core damage reactions preserve trait and skill ordering without spending c
     [TRAIT.OPENING_STRIKE, ID.SHARPENING_STONE, TRAIT.TRAPPERS_EXPERTISE, ID.CRIPPLING_SHOT]
   );
   assert.ok(queued.every(({ at }) => at === event.at));
-  assert.equal(state.bloodThirst.charges, 1);
-  assert.deepEqual(state.sharpeningStoneGrants, [{ charges: 1, expiresAt: 10 }]);
+  assert.equal(state.bloodThirst.count, 1);
+  assert.deepEqual(state.sharpeningStoneGrants, [{ count: 1, expiresAt: 10 }]);
 
   queued.length = 0;
   react(context, event);
@@ -115,13 +115,13 @@ test('Core damage reactions preserve trait and skill ordering without spending c
     queued.map(({ sourceId }) => sourceId),
     [ID.SHARPENING_STONE, ID.CRIPPLING_SHOT]
   );
-  assert.equal(state.bloodThirst.charges, 0);
+  assert.equal(state.bloodThirst.count, 0);
   assert.deepEqual(state.sharpeningStoneGrants, []);
 
-  state.bloodThirst.charges = 1;
+  state.bloodThirst.count = 1;
   queued.length = 0;
   react(context, { ...event, sourceId: ID.CRIPPLING_SHOT });
-  assert.equal(state.bloodThirst.charges, 1);
+  assert.equal(state.bloodThirst.count, 1);
   assert.deepEqual(queued, []);
 });
 

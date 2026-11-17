@@ -23,7 +23,7 @@ export function necromancerEffectStates(
   const effects: EffectState[] = Object.entries(core.tasteForBloodGrants).map(([recipient, windows]) =>
     timedEffectState(
       'taste-for-blood',
-      windows.map((grant) => ({ stacks: grant.charges, expiresAt: grant.expiresAt })),
+      windows.map((grant) => ({ stacks: grant.count, expiresAt: grant.expiresAt })),
       null,
       { recipient }
     )

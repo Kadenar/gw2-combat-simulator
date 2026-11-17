@@ -1075,7 +1075,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   // Each hit consumes one dagger and schedules its siphon after the triggering strike.
   assert.ok(siphon.at > traversal.at);
   assert.ok(siphon.flatStrikeBase > 0);
-  assert.equal(daggers.planningState.profession[STATE.ENCHANTED_DAGGERS].charges, 5);
+  assert.equal(daggers.planningState.profession[STATE.ENCHANTED_DAGGERS].count, 5);
 
   const odds = simulate('Core', ['Impossible Odds', 'Phase Traversal', 'Relinquish Power', 'Impossible Odds'], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],

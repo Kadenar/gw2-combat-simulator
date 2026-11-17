@@ -373,7 +373,7 @@ test('Ashes inspection retains passive payload tuning with trait producers disab
       {
         at: 0.01,
         run(runtime) {
-          runtime.profession.specialization.state.ashes = { charges: 7, expiresAt: 9, readyAt: 3 };
+          runtime.profession.specialization.state.ashes = { count: 7, expiresAt: 9, readyAt: 3 };
           before = { ...runtime.profession.specialization.state.ashes };
           emitAshesForInspection(runtime, { type: 'damage', at: runtime.time, activationId: 'inspection' });
           after = { ...runtime.profession.specialization.state.ashes };
@@ -433,7 +433,7 @@ test('one eligible personal hit spends one charge for the selected Burning paylo
     }
   );
   const grant = result.events.find((event) => event.kind === 'ashes-of-the-just');
-  assert.equal(result.planningState.profession[STATE.ASHES].charges, grant.stacks - 1);
+  assert.equal(result.planningState.profession[STATE.ASHES].count, grant.stacks - 1);
   const burns = result.resolvedEvents.filter((event) => event.sourceId === 'guardian.ashes-of-the-just');
   assert.equal(
     burns.reduce((sum, burn) => sum + burn.stacks, 0),

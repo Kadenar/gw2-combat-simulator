@@ -1,12 +1,7 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
-import {
-  activeChargeCount,
-  appendChargeGrant,
-  consumeChargeBatch,
-  grantCharges
-} from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -38,6 +33,8 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { appendBatch, consumeBatchFromList } from '#kernel/resources/batch-list.js';
+import { activeBatchCount } from '#kernel/resources/batch.js';
 
 /** Grant Last Rites' full-health Healing Power once in either build or raw runtime attributes. */
 export const lastRites = defineTrait({
@@ -414,11 +411,14 @@ function addTasteForBloodApplication(
 ): void {
   const grants = professionCoreState(context.profession).tasteForBloodGrants;
   const application: TasteForBloodGrant = {
-    ...grantCharges(Math.max(1, event.stacks ?? 1), canonicalTime(event.at + Math.max(0, event.duration || 0))),
+    ...createChargeGrant(Math.max(1, event.stacks ?? 1), canonicalTime(event.at + Math.max(0, event.duration || 0))),
     at: canonicalTime(event.at),
     ...(cause === undefined ? {} : { cause })
   };
-  grants[recipient] = appendChargeGrant(grants[recipient] ?? [], application, event.at, 'insertion');
+  grants[recipient] = appendBatch(grants[recipient] ?? [], application, event.at, {
+    expiry: 'exclusive',
+    order: 'insertion'
+  });
 }
 
 // Trait-derived Taste for Blood packets and proc markers keep Overflowing
@@ -441,7 +441,11 @@ function consumeTasteForBlood(
   // Application time remains owner metadata: future grants cannot pay for an earlier hit.
   const grants = professionCoreState(context.profession).tasteForBloodGrants[recipient] ?? [];
 
-  if (!effect || !consumeChargeBatch(grants, event.at, (grant) => grant.at <= event.at)) return false;
+  if (
+    !effect ||
+    !consumeBatchFromList(grants, event.at, { expiry: 'exclusive', eligible: (grant) => grant.at <= event.at })
+  )
+    return false;
 
   // Taste for Blood is a power-only life siphon, so armor and weapon strength
   // must not enter its flat base plus Power damage formula.
@@ -467,7 +471,7 @@ function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: N
       addTasteForBloodApplication(context, event, recipient, cause);
       const next = (time: number) =>
         professionCoreState(context.profession).tasteForBloodGrants[recipient]?.find(
-          (grant) => grant.at <= time && activeChargeCount(grant, time) > 0
+          (grant) => grant.at <= time && activeBatchCount(grant, time, 'exclusive') > 0
         );
       return {
         id: `taste-for-blood:${allyIndex}`,

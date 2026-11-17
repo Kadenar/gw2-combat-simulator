@@ -1,4 +1,4 @@
-import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createDiscreteResourceClock, type DiscreteResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
   defineProfessionSpecializationState,
@@ -39,7 +39,7 @@ function createFirebrandState(profileContext: {
       interval,
       nextAt: pages < maximum && interval > 0 ? interval : Infinity
     },
-    ashes: grantCharges(0, 0),
+    ashes: createChargeGrant(0, 0),
     alliedAshes: {},
     swiftScholarTome: '',
     swiftScholarCount: 0

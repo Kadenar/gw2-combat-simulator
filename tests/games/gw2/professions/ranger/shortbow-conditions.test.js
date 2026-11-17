@@ -52,7 +52,7 @@ test('shortbow conditions use live base durations without retired trait extensio
 test('Blood Thirst spends only eligible pet or merged-player charges and expires before a hit at its boundary', () => {
   for (const merged of [false, true]) {
     const core = createRangerCoreState({});
-    core.bloodThirst = { charges: 3, expiresAt: 12 };
+    core.bloodThirst = { count: 3, expiresAt: 12 };
     const { effects, events: emitted } = captureEffectEmissions();
     const context = {
       config: {},
@@ -72,11 +72,11 @@ test('Blood Thirst spends only eligible pet or merged-player charges and expires
     const eligible = merged ? player : pet;
     triggerBloodThirst(context, merged ? pet : player);
     triggerBloodThirst(context, { ...eligible, coefficient: 0 });
-    assert.equal(core.bloodThirst.charges, 3);
+    assert.equal(core.bloodThirst.count, 3);
     assert.deepEqual(emitted, []);
     for (let i = 0; i < 4; i++) triggerBloodThirst(context, eligible);
 
-    assert.equal(core.bloodThirst.charges, 0);
+    assert.equal(core.bloodThirst.count, 0);
     assert.equal(emitted.length, 3);
     for (const event of emitted) {
       assert.equal(event.duration, 7.5);
@@ -87,9 +87,9 @@ test('Blood Thirst spends only eligible pet or merged-player charges and expires
       assert.equal(event.summonOwner, undefined);
     }
 
-    core.bloodThirst.charges = 1;
+    core.bloodThirst.count = 1;
     triggerBloodThirst(context, { ...eligible, at: 12 });
-    assert.equal(core.bloodThirst.charges, 0);
+    assert.equal(core.bloodThirst.count, 0);
     assert.equal(emitted.length, 3);
   }
 });

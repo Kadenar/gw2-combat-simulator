@@ -1,6 +1,6 @@
 /** Owns Legendary Assassin Stance skill definitions and their alternate identities. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
@@ -186,7 +186,7 @@ export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEve
 
   if (
     event.skillId === ID.ENCHANTED_DAGGERS ||
-    !((daggers.charges || 0) > 0) ||
+    !((daggers.count || 0) > 0) ||
     !isInternalCooldownReady(runtime.time, daggers.readyAt || 0)
   )
     return;
@@ -204,12 +204,12 @@ export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEve
   const totalHits = effectNumber(skill, buff, 'stacks');
   const delay = (strike.atMs || 0) / 1000;
 
-  if (!consumeCharge(daggers, runtime.time, delay)) return;
+  if (!consumeCharge(daggers, runtime.time, 'exclusive', delay)) return;
 
   // Preserve strict same-timestamp gating even when a patched strike has no delay.
   if (delay === 0) daggers.readyAt = runtime.time;
 
-  emitEnchantedDagger(runtime, event, totalHits - daggers.charges, totalHits);
+  emitEnchantedDagger(runtime, event, totalHits - daggers.count, totalHits);
 }
 
 /** A single delayed siphon is independent of how the healing skill armed its charges. */
@@ -256,7 +256,7 @@ function completeRevenantEnchantedDaggers(runtime: RevenantRuntime, cast: Runtim
   const charges = Math.max(0, effectNumber(cast.skill, buff, 'stacks'));
   const duration = Math.max(0, effectNumber(cast.skill, buff, 'duration'));
   runtime.profession.core.enchantedDaggers = {
-    ...grantCharges(charges, runtime.time + duration),
+    ...createChargeGrant(charges, runtime.time + duration),
     readyAt: runtime.time
   };
   runtime.effects.emit({
