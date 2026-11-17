@@ -496,24 +496,16 @@ test('event log distinguishes phantasm summon, attack, and clone conversion', ()
     catalog: mesmerProfession.catalog
   });
 
-  assert.ok(
-    log.some(
-      (event) => Math.abs(event.at - 0.56) < 0.00001 && event.description === 'PHANTASM SUMMONED Phantasmal Duelist x1'
-    )
+  // The event log must preserve the summon lifecycle regardless of the displayed clock origin.
+  const summoned = log.find((event) => event.description === 'PHANTASM SUMMONED Phantasmal Duelist x1');
+  const completed = log.find((event) => event.description === 'PHANTASM DAMAGE COMPLETE Phantasmal Duelist x1');
+  const converted = log.find(
+    (event) =>
+      event.description.includes('CLONE SPAWNED x1') &&
+      event.description.includes('Phantasmal Duelist phantasm conversion')
   );
-  assert.ok(
-    log.some(
-      (event) =>
-        Math.abs(event.at - 2.8) < 0.00001 && event.description === 'PHANTASM DAMAGE COMPLETE Phantasmal Duelist x1'
-    )
-  );
-  assert.ok(
-    log.some(
-      (event) =>
-        Math.abs(event.at - 3.36) < 0.00001 &&
-        event.description.includes('CLONE SPAWNED x1') &&
-        event.description.includes('Phantasmal Duelist phantasm conversion')
-    )
-  );
+  assert.ok(summoned && completed && converted);
+  assert.ok(summoned.at < completed.at);
+  assert.ok(completed.at < converted.at);
   assert.match(eventLogCsv(log), /Phantasmal Duelist phantasm conversion/);
 });

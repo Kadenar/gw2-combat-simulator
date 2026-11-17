@@ -910,6 +910,44 @@ test('template undo restores each tab reset target across tab switches and persi
   }
 });
 
+// Every library destination must apply saved timing before its first refresh, while build-only loads preserve it.
+test('library rotation loads apply shared timing and invalidate cached tabs', async (t) => {
+  storage(t);
+  let rotationData;
+  t.mock.method(globalThis, 'fetch', async (url) => ({
+    ok: true,
+    json: async () => (String(url).startsWith('rotation') ? rotationData : build('downloaded'))
+  }));
+  for (const action of ['template', 'rotation', 'new-tab', 'build']) {
+    for (const offset of [0, 440, undefined]) {
+      const { app, tab } = appFixture();
+      app.simulationSettings.conditionTickOffsetMs = 120;
+      rotationData = {
+        rotation: [{ type: 'wait', durationMs: 8 }],
+        ...(offset === undefined ? {} : { conditionTickOffsetMs: offset })
+      };
+      const expected = action === 'build' || offset === undefined ? 120 : offset;
+      const changed = app.changed;
+      app.changed = function (...args) {
+        assert.equal(this.simulationSettings.conditionTickOffsetMs, expected);
+
+        if (action === 'rotation' && offset !== undefined) assert.equal(args[0], true);
+
+        return changed.apply(this, args);
+      };
+
+      await loadLibraryTemplate(app, beginLibraryLoad(app, action), {
+        label: 'Example',
+        build: 'build.json',
+        rotation: 'rotation.json'
+      });
+      assert.equal(app.simulationSettings.conditionTickOffsetMs, expected);
+
+      if (action === 'new-tab' && offset !== undefined) assert.equal(tab.analysis.fresh, false);
+    }
+  }
+});
+
 test('open template in new tab commits the complete bundle and preserves the source tab', async (t) => {
   storage(t);
   const { app, tab } = appFixture();

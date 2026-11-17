@@ -21,6 +21,7 @@ function mergeThiefCompositeActions(actions: readonly RecordedLogAction[]): Reco
         maximumGapMs: COMPOSITE_SIGNAL_WINDOW_MS
       },
       { startId: 63254, finishId: 63181, maximumGapMs: COMPOSITE_SIGNAL_WINDOW_MS },
+      { startId: ID.SHADOW_SHOT, finishId: 13039, maximumGapMs: COMPOSITE_SIGNAL_WINDOW_MS },
       { startId: ID.SHADOW_STRIKE, finishId: 13051, maximumGapMs: COMPOSITE_SIGNAL_WINDOW_MS }
     ],
     (action, finish) => ({
@@ -35,20 +36,36 @@ function mergeThiefCompositeActions(actions: readonly RecordedLogAction[]): Reco
       canonicalName:
         action.rawSkillId === ID.SHADOW_STRIKE
           ? 'Shadow Strike'
-          : action.rawSkillId === 63254
-            ? 'Twilight Combo'
-            : 'Metal Legion Guitar'
+          : action.rawSkillId === ID.SHADOW_SHOT
+            ? 'Shadow Shot'
+            : action.rawSkillId === 63254
+              ? 'Twilight Combo'
+              : 'Metal Legion Guitar'
     })
   );
 }
 
-/** Combines represented Thief animations and removes swap signals caused by Shadow Shroud bar changes. */
+/** EI can report an inaccurate instant Strike marker inside its animation; both describe one initiative spend. */
+function removeInfiltratorsStrikeMarkers(actions: readonly RecordedLogAction[]): readonly RecordedLogAction[] {
+  const animations = actions.filter(
+    (action) => action.rawSkillId === ID.INFILTRATORS_STRIKE && action.end > action.start
+  );
+  return actions.filter(
+    (action) =>
+      action.rawSkillId !== ID.INFILTRATORS_STRIKE ||
+      action.status !== 'instant' ||
+      action.metadataAccurate ||
+      !animations.some((animation) => action.start >= animation.start && action.start <= animation.end)
+  );
+}
+
+/** Combines Thief animations and removes corroborating Strike markers and Shadow Shroud swap signals. */
 export function normalizeThiefLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   const shroudTransitions = context.recordedActions.filter((action) =>
     SHADOW_SHROUD_TRANSITION_IDS.has(action.rawSkillId)
   );
   return mergeThiefCompositeActions(
-    context.recordedActions.filter(
+    removeInfiltratorsStrikeMarkers(context.recordedActions).filter(
       (action) =>
         !action.isSwap ||
         SHADOW_SHROUD_TRANSITION_IDS.has(action.rawSkillId) ||

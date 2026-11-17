@@ -125,8 +125,7 @@ const EXPECTED = {
       Retribution: { strike: 'additive' },
       'Symbolic Avenger': { strike: 'additive' },
       'Symbolic Exposure': { strike: 'multiplier' },
-      // Aegis contributes an additive bonus alongside the health-or-Aegis multiplier.
-      'Unscathed Contender': { strike: ['additive', 'multiplier'] },
+      'Unscathed Contender': { strike: 'multiplier' },
       'Imbued Haste': { condition: 'multiplier' },
       'Unrelenting Criticism': { condition: 'multiplier' },
       "Zealot's Aggression": { strike: 'multiplier' }

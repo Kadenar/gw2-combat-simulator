@@ -1,6 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, COMBO_FIELD, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { effectTicks, type SkillEffect } from '#gw2/platform/effects/types.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
@@ -223,7 +223,8 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     type: 'Utility',
     slot: 'Utility',
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
-    backfireDelay: 2,
+    // Raw rifle EVTC places the explosion 1.92 seconds after the Cannon cast completes.
+    backfireDelay: 1.92,
     // Acceptance fixes the outcome; even a cancelled use fires from its effective end with fixed profile offsets.
     usableWhileRecharging: true,
     cooldown: 15,
@@ -234,9 +235,9 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
           type: 'strike' as const,
           name: 'Stone Summit Cannon - Success',
           ticks: [
-            { atMs: 440, coefficient: 1 },
-            { atMs: 720, coefficient: 1 },
-            { atMs: 1000, coefficient: 1 }
+            { atMs: 1320, coefficient: 1 },
+            { atMs: 1600, coefficient: 1 },
+            { atMs: 1880, coefficient: 1 }
           ]
         },
         // Burning owns its application timing so deleting the strike does not delete this packet.
@@ -247,7 +248,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
           stacks: 1,
           duration: 3,
           applications: 3,
-          atMs: 440,
+          atMs: 1320,
           intervalMs: 280,
           timingAnchor: 'castEnd' as const,
           timingScale: 'fixed' as const
@@ -364,7 +365,8 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     movementSkill: true,
     cooldown: 1,
     artifactKind: 'defensive',
-    castTimeMs: 240,
+    // The rifle EVTC releases the next input after the observed 200 ms dash.
+    castTimeMs: 200,
     // The arrival commits before the dash animation ends; its launched effects keep the remaining cast lockout.
     interruptCommitMs: 160,
     retainsCastLockoutAfterInterrupt: true,
@@ -546,8 +548,10 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     maximumStacks: 5,
     cooldown: 0,
     artifactKind: 'offensive',
-    // Measured Quickness timings make artifact use reserve the same cast-lane time seen in EVTC.
     castTimeMs: 600,
+    comboFields: [
+      { ownerId: 'thief', fieldType: COMBO_FIELD.FIRE, duration: 5, startAnchor: 'castStart', startMs: 520 }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart' as const, timingScale: 'fixed' as const }, [
       {

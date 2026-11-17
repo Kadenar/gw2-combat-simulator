@@ -141,14 +141,16 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     movementSkill: true,
     cooldown: 0,
     castTimeMs: 600,
+    interruptCommitMs: 480,
     // Resolve the leap at impact through the shared field-selection contract.
     comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.LEAP }],
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1 }],
+        ticks: [{ atMs: 480, coefficient: 1 }],
         name: 'Heartseeker',
         actorType: ACTOR.PLAYER,
+        persistsAfterInterrupt: true,
         // Use one matching health tier; bonuses never compound when the target crosses multiple thresholds.
         modifiers: [
           {
@@ -161,7 +163,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
             when: (context) => targetHealthBelow(context, 0.5)
           }
         ],
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
     ]

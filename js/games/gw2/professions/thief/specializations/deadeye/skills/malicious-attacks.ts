@@ -43,7 +43,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     stealthAttack: true,
     malicious: true,
     castTimeMs: 680,
-    interruptCommitMs: 560,
+    interruptCommitMs: 520,
     // The launched strike retains its captured malice after the resource is consumed.
     modifiers: [
       {
@@ -64,7 +64,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     effects: [
       {
         type: 'strike' as const,
-        ticks: [{ atMs: 560, coefficient: 2.67 }],
+        ticks: [{ atMs: 520, coefficient: 2.67 }],
         name: "Malicious Death's Judgment - Packet 1",
         actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
@@ -195,9 +195,10 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     stealthAttack: true,
     malicious: true,
     castTimeMs: 440,
-    // Once the stab commits, preserve its strike and the remaining cast lockout after interruption.
+    // Preserve the committed strike; late aftercast cuts release the next action before the full animation ends.
     interruptCommitMs: 320,
     retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 400,
     // Preserve player ownership and the defiant-target proxy for the rear-position bonus.
     modifiers: [
       // The launched strike retains its captured malice after the resource is consumed.
@@ -228,11 +229,11 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     effects: [
       {
         type: 'strike' as const,
-        ticks: [{ atMs: 0, coefficient: 1.5 }],
+        ticks: [{ atMs: 200, coefficient: 1.5 }],
         name: 'Front damage',
         actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
-        timingAnchor: 'castEnd' as const,
+        timingAnchor: 'castStart' as const,
         timingScale: 'fixed' as const
       }
     ]

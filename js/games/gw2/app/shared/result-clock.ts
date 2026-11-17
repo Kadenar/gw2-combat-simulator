@@ -1,11 +1,8 @@
+/** Keeps timeline, event-log, and warning timestamps on the same first-damage clock as DPS charts. */
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
 export function resultCombatReferenceMs(result: Gw2SimulationResult | null | undefined): number {
-  const marker = result?.events?.find((event) => event.type === 'combat_start');
-
-  if (!marker) return 0;
-
-  return Number(marker.at || 0) * 1000;
+  return (result?.dpsStartTime ?? 0) * 1000;
 }
 
 // Preserve milliseconds by default so snapshots and warnings align with the rotation.
@@ -16,7 +13,7 @@ export function formatTimelineTime(timeMs: unknown, referenceMs: unknown = 0, di
   return `${normalized.toFixed(digits)}s`;
 }
 
-/** Result timestamps use millisecond precision relative to the observed combat start. */
+/** Result timestamps use millisecond precision relative to the DPS observation start. */
 export function formatResultTimelineTime(timeMs: unknown, result: Gw2SimulationResult | null | undefined): string {
   return formatTimelineTime(timeMs, resultCombatReferenceMs(result), 3);
 }

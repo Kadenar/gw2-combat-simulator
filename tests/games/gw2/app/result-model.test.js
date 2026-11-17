@@ -65,11 +65,13 @@ test('Embrace application markers preserve pulse identity within the observation
   ]);
 });
 
-test('timeline times can reuse a precomputed combat reference', () => {
+// A combat marker can admit a condition before its first payout; displayed times still share the DPS clock.
+test('timeline times share the DPS origin even when the combat marker is earlier', () => {
   const result = {
+    dpsStartTime: 1.25,
     events: [
-      { type: 'damage', at: 0.5 },
-      { type: 'combat_start', at: 1.25 }
+      { type: 'combat_start', at: 0.5 },
+      { type: 'damage', at: 1.25 }
     ]
   };
   const referenceMs = resultCombatReferenceMs(result);
@@ -80,6 +82,11 @@ test('timeline times can reuse a precomputed combat reference', () => {
   // Preserve a full millisecond before combat while suppressing rounded negative zero.
   assert.equal(formatTimelineTime(1249, referenceMs), '-0.001s');
   assert.equal(formatTimelineTime(1249.9, referenceMs), '0.000s');
+});
+
+test('timeline clocks preserve an explicit zero origin and tolerate missing results', () => {
+  assert.equal(resultCombatReferenceMs({ dpsStartTime: 0, events: [{ type: 'combat_start', at: 1 }] }), 0);
+  assert.equal(resultCombatReferenceMs(null), 0);
 });
 
 test('total idle time excludes explicit waits before combat start', () => {

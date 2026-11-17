@@ -77,6 +77,7 @@ test('activation-owned diagnostics locate their authored step and leave unreport
 test('untimed warnings remain readable and resolver diagnostics share the same clock', () => {
   assert.deepEqual(
     rotationWarningItems({
+      dpsStartTime: 2,
       events: [{ type: 'combat_start', at: 2 }],
       warnings: [
         { message: 'Configuration needs review.' },

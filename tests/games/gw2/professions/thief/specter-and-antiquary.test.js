@@ -1036,6 +1036,26 @@ test('Venom allies spend native batches under the player expiry policy', () => {
   assert.deepEqual(procs(true), [12]);
 });
 
+// The ground field enables projectile burning independently of the artifact's charged strikes.
+test('Mistburn Mortar enables fire combos until its ground field expires', () => {
+  const result = runThief(
+    [
+      'Kneel',
+      'Skritt Swipe',
+      'Mistburn Mortar',
+      "Spotter's Shot",
+      { type: 'wait', durationMs: 6000 },
+      "Spotter's Shot"
+    ],
+    { specialization: 'Antiquary', primaryWeapon: 'Rifle', secondaryWeapon: null }
+  );
+  assert.deepEqual(result.warnings, []);
+  const combos = result.resolvedEvents.filter((event) => event.type === 'combo');
+  assert.equal(combos.length, 1);
+  assert.equal(combos[0].fieldType, 'Fire');
+  assert.equal(combos[0].finisherType, 'Projectile');
+});
+
 test('Mistburn charges are spent once by later player strikes, never by the Mortar itself', () => {
   // Five charges survive the Mortar's own packets and are consumed one per later player strike until exhausted.
   const result = simulate(

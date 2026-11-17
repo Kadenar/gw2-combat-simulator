@@ -27,6 +27,8 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
   const strike = requireEffect(profile, 'strike', packet, requireSkillAction(profile, 'surfer'));
   const burning = requireEffect(profile, 'condition', packet, requireSkillAction(profile, 'surfer'));
   const name = occurrence === 0 ? 'Forged Surfer Dash' : 'Forged Surfer Dash - Bomb';
+  // Keep each component's strikes and burning together while retaining the parent skill's cast attribution.
+  const damageBreakdownName = occurrence === 0 ? 'Forged Surfer Dash' : 'Forged Surfer Dash - Additional Bombs';
 
   if (strike)
     buildThiefStrikes({
@@ -35,6 +37,7 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
       skillId,
       skillName: 'Forged Surfer Dash',
       name,
+      damageBreakdownName,
       coefficient: effectNumber(profile, strike, 'coefficient'),
       hits: effectNumber(profile, strike, 'hits')
     }).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
@@ -47,6 +50,7 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
         skillId,
         skillName: 'Forged Surfer Dash',
         name: `${name} - Burning`,
+        damageBreakdownName,
         condition: String(burning.condition),
         stacks: effectNumber(profile, burning, 'stacks'),
         duration: effectNumber(profile, burning, 'duration')

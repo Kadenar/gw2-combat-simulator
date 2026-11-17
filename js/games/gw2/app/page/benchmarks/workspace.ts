@@ -1,8 +1,16 @@
 import { loadPresetBundle } from '#gw2/app/build/library/assets.js';
-import { addBuildTab, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
+import {
+  addBuildTab,
+  applyRotationSimulationSettings,
+  invalidateInactiveBuildTabs,
+  saveBuildWorkspace
+} from '#gw2/app/build/state/workspace.js';
 import { renderBuildTabs } from '#gw2/app/build/workspace-tabs.js';
+import { readRotationConditionTickOffset } from '#gw2/app/import-export/rotation-condition-clock.js';
+import { readRotationTransitionDelays } from '#gw2/app/import-export/rotation-transition-delays.js';
 import { readBenchmarks } from '#gw2/app/page/benchmarks/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { getRotationItems } from '#gw2/integrations/assets.js';
 
 /** Open only a manifest-listed benchmark in a new tab, preserving existing workspace builds and hosting flags. */
 export async function openBenchmarkWorkspace(app: ProfessionAppState, root: Document): Promise<void> {
@@ -23,14 +31,23 @@ export async function openBenchmarkWorkspace(app: ProfessionAppState, root: Docu
 
     if (!preset) throw new Error('This benchmark is not listed for this profession.');
 
-    const { buildData, rotationItems } = await loadPresetBundle(preset);
+    const { buildData, rotationData } = await loadPresetBundle(preset);
+    const rotationItems = getRotationItems(rotationData);
 
     if (!buildData || typeof buildData !== 'object' || Array.isArray(buildData)) throw new Error('Invalid build.');
 
     if (preset.rotation && !rotationItems) throw new Error('Benchmark rotation unavailable.');
 
     const build = app.adapter.toApplicationBuild({ ...buildData, rotation: rotationItems ?? [] });
+    // Benchmark links use the rotation's clock before the new tab starts its first simulation.
+    const settingsChanged = applyRotationSimulationSettings(app, {
+      transitionDelays: readRotationTransitionDelays(rotationData),
+      conditionTickOffsetMs: readRotationConditionTickOffset(rotationData)
+    });
     addBuildTab(app, build, `${preset.specialization} · ${preset.label}`, app.patch.id, build);
+
+    if (settingsChanged) invalidateInactiveBuildTabs(app);
+
     saveBuildWorkspace(app);
     renderBuildTabs(app);
     // Consume the request after success so a refresh does not create another copy.

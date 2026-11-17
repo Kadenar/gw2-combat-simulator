@@ -584,6 +584,26 @@ test('every terrestrial main hand exposes its normal stealth attack', () => {
   }
 });
 
+// A selected target receives the primary strike formula, never the sum of alternate-target tooltip damage.
+test("Death's Judgment applies only its primary damage formula to the selected target", () => {
+  const result = runThief(
+    [ID.DEATHS_JUDGMENT],
+    {
+      primaryWeapon: 'Rifle',
+      secondaryWeapon: '',
+      attributeInputs: baseAttributeInputs({ power: 2000, precision: 0, ferocity: 0 }),
+      target: { armor: 2597, conditions: {} }
+    },
+    {
+      initialize(runtime) {
+        Object.assign(runtime.profession.core, { stealthStartedAt: 0, stealthUntil: 10 });
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.strikeDamage, Math.floor((2.67 * 1150 * 2000) / 2597));
+});
+
 test('initiative regenerates at exact boundaries and ignores Alacrity', () => {
   const boundary = simulate('Core', ['Death Blossom'], {
     initialInitiative: 3

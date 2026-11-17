@@ -1,9 +1,21 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
+
+// Dash and additional bombs retain their own burning contributions under the same casting skill.
+test('Surfer breakdown separates the dash from additional bombs', () => {
+  const result = runThief(['Skritt Swipe', 'Forged Surfer Dash', { type: 'wait', durationMs: 16000 }], {
+    specialization: 'Antiquary'
+  });
+  assert.deepEqual(result.warnings, []);
+  const rows = skillBreakdownRows(result).filter((row) => row.skillId === ID.FORGED_SURFER_DASH);
+  assert.deepEqual(rows.map((row) => row.name).sort(), ['Forged Surfer Dash', 'Forged Surfer Dash - Additional Bombs']);
+  assert.ok(rows.every((row) => row.sourceSkill === 'Forged Surfer Dash' && row.strike > 0 && row.condition > 0));
+});
 
 // Recasts bank remaining duration up to the cap; unrelated artifact windows cannot replace Surfer's lifetime.
 test('Surfer refreshes its selected lifetime with a thirteen-second cap', () => {

@@ -16,19 +16,27 @@ const pendingWarnings = new Map([
     new Set([deadeyeStealthWarning])
   ],
   [
-    'data/gw2/builds/thief/b-power-antiquary-sword-pistol.json',
-    new Set(['Tactical Strike: Tactical Strike is unavailable - requires stealth.'])
-  ],
-  [
-    'data/gw2/builds/thief/b-condi-antiquary-dagger-dagger.json',
+    // A shortened Guitar cast loses its native grant, leaving two recorded Backstabs unavailable.
+    'data/gw2/builds/thief/b-power-antiquary-staff-dagger-pistol.json',
     new Set(['Backstab: Backstab is unavailable - requires stealth.'])
   ],
   [
+    // Preserve recorded casts while reduced autoattack completion remains unresolved.
+    'data/gw2/builds/thief/b-power-antiquary-sword-pistol.json',
+    new Set(['Slice: Slice is unavailable - cast Crippling Strike first.'])
+  ],
+  [
+    // The report continues to Wild Strike after a Double Strike shorter than the simulator's commitment boundary.
+    'data/gw2/builds/thief/b-condi-antiquary-dagger-dagger.json',
+    new Set(['Wild Strike: Wild Strike is unavailable - cast Double Strike first.'])
+  ],
+  [
+    // The source shortens a chain opener and omits a later trap activation; retain both discrepancies for review.
     'data/gw2/builds/thief/b-condi-antiquary-scepter-dagger.json',
     new Set([
-      'Summon Kryptis Turret: Summon Kryptis Turret is unavailable - this artifact is not in an available artifact slot.',
       'Double Bolt: Double Bolt is unavailable - cast Shadow Bolt first.',
-      'Triple Bolt: Triple Bolt is unavailable - cast Shadow Bolt first.'
+      'Triple Bolt: Triple Bolt is unavailable - cast Shadow Bolt first.',
+      'Prepare Thousand Needles: Prepare Thousand Needles is unavailable - activate Thousand Needles before preparing it again.'
     ])
   ],
   [

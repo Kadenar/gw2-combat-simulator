@@ -4,8 +4,14 @@ import { buildSignature } from '#gw2/app/build/library/model.js';
 import type { LibraryLoadRequest, TemplateLoadAction } from '#gw2/app/build/library/state.js';
 import { replaceBuild, replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 import { normalizeSelectedSkills } from '#gw2/app/build/state/skill-selection.js';
-import { createBuildTab } from '#gw2/app/build/state/workspace.js';
+import {
+  applyRotationSimulationSettings,
+  createBuildTab,
+  invalidateInactiveBuildTabs
+} from '#gw2/app/build/state/workspace.js';
 import type { BuildTemplatePreset, BuildTemplateSelection } from '#gw2/app/build/types.js';
+import { readRotationConditionTickOffset } from '#gw2/app/import-export/rotation-condition-clock.js';
+import { readRotationTransitionDelays } from '#gw2/app/import-export/rotation-transition-delays.js';
 import { commitBuildReplacement } from '#gw2/app/rotation/editing/commit.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
@@ -44,12 +50,14 @@ function installLibraryBuild(
     name,
     message,
     action,
-    selection
+    selection,
+    settingsChanged = false
   }: {
     name: string;
     message: string;
     action: TemplateLoadAction;
     selection: string | null;
+    settingsChanged?: boolean;
   }
 ): void {
   // Apply the selected patch's slot rules before capturing the reset target or selection signature.
@@ -73,6 +81,10 @@ function installLibraryBuild(
     tab.session.currentTemplate = currentTemplate;
     app.workspace.tabs.push(tab);
     app.activateBuildTab(tab.id);
+
+    // Activation captures the outgoing tab, whose old results must also expire after shared timing changes.
+    if (settingsChanged) invalidateInactiveBuildTabs(app);
+
     return;
   }
 
@@ -92,7 +104,7 @@ function installLibraryBuild(
   }
 
   commitBuildReplacement(app, replacement, {
-    rebuildStatic: action !== 'rotation',
+    rebuildStatic: action !== 'rotation' || settingsChanged,
     options: action === 'rotation' ? undefined : { deferRotationRender: true }
   });
 }
@@ -106,11 +118,13 @@ export async function loadLibraryTemplate(
   try {
     const action = request.action;
     let replacement: Gw2CanonicalBuild;
+    let rotationData: unknown;
 
     if (action === 'rotation') {
       if (!preset.rotation) throw new Error('Rotation asset missing.');
 
-      const rotation = getRotationItems(await fetchJsonAsset(preset.rotation));
+      rotationData = await fetchJsonAsset(preset.rotation);
+      const rotation = getRotationItems(rotationData);
 
       if (app.libraryLoad !== request) return false;
 
@@ -130,7 +144,10 @@ export async function loadLibraryTemplate(
       // Boss templates supply configuration only; their rotations belong to the encounter draft.
       if (app.workspace?.scenario) replacement.rotation = [];
     } else {
-      const { buildData, rotationItems } = await loadPresetBundle(preset);
+      const bundle = await loadPresetBundle(preset);
+      const { buildData } = bundle;
+      rotationData = bundle.rotationData;
+      const rotationItems = getRotationItems(rotationData);
 
       if (app.libraryLoad !== request) return false;
 
@@ -142,12 +159,18 @@ export async function loadLibraryTemplate(
       replacement = replaceBuild({ ...template, rotation: rotationItems ?? [] }, app.adapter);
     }
 
+    // Validate the complete import before changing shared timing, then refresh with the saved settings.
+    const settingsChanged = applyRotationSimulationSettings(app, {
+      transitionDelays: readRotationTransitionDelays(rotationData),
+      conditionTickOffsetMs: readRotationConditionTickOffset(rotationData)
+    });
     const label = preset.section ? `${preset.section} ${preset.label}` : preset.label;
     const loaded = action === 'build' ? 'build only' : action === 'rotation' ? 'rotation only' : 'template';
     installLibraryBuild(app, replacement, {
       name: [preset.section, preset.label].filter(Boolean).join(' · '),
       message: `Loaded the ${label} ${loaded}.`,
       action,
+      settingsChanged,
       selection: action === 'template' || action === 'new-tab' ? preset.build : null
     });
     return true;

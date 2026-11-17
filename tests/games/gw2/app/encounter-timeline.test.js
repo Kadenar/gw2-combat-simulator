@@ -13,6 +13,7 @@ const definitions = encounterPhasePlan('020102', 'normal').phases;
 // Synthetic action spans protect phase attribution and transition placement, independent of skill packet timing.
 function fixture() {
   return {
+    dpsStartTime: 2,
     steps: [
       { rotationCommandIndex: 0, start: 1000, end: 3000, skillName: 'Wait' },
       { rotationCommandIndex: 1, start: 3000, end: 6000, skillName: 'Wait' },

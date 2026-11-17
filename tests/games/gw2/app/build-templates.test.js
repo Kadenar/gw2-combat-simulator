@@ -122,7 +122,32 @@ test('template bundles fetch build and rotation concurrently', async (t) => {
   const loading = loadPresetBundle({ build: 'build.json', rotation: 'rotation.json' });
   assert.deepEqual(requested, ['build.json', 'rotation.json']);
   releaseBuild();
-  assert.deepEqual(await loading, { buildData: { profession: 'mesmer' }, rotationItems: [] });
+  assert.deepEqual(await loading, { buildData: { profession: 'mesmer' }, rotationData: { rotation: [] } });
+});
+
+// Invalid clock metadata must not partly install a build or change the workspace settings.
+test('library timing validation rejects the complete import before mutation', async (t) => {
+  t.mock.method(globalThis, 'fetch', async (url) => ({
+    ok: true,
+    json: async () =>
+      String(url).startsWith('rotation')
+        ? { rotation: [], conditionTickOffsetMs: 23, transitionDelays: normalizeTransitionDelays() }
+        : { profession: 'mesmer', marker: 'replacement' }
+  }));
+  for (const action of ['template', 'rotation']) {
+    const app = createApp();
+    const original = structuredClone(app.build);
+    await assert.rejects(
+      loadLibraryTemplate(app, beginLibraryLoad(app, action), {
+        label: 'Example',
+        build: 'build.json',
+        rotation: 'rotation.json'
+      })
+    );
+    assert.deepEqual(app.build, original);
+    assert.equal(app.simulationSettings, undefined);
+    assert.equal(app.changedCalls.length, 0);
+  }
 });
 
 test('template actions load paired or partial state and support undo', async (t) => {

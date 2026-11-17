@@ -103,6 +103,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
     requiredMainHand: WEAPON.RIFLE,
     stealthAttack: true,
     castTimeMs: 360,
+    // The selected target receives one strike; alternate-target damage is not an additional hit on that target.
     effects: [
       {
         type: 'strike',
@@ -117,14 +118,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
             finisherType: COMBO_FINISHER.PROJECTILE
           }
         ]
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.32 }],
-        name: 'Damage on Unmarked Foes',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
       }
     ]
   },
@@ -266,7 +259,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
     effects: [
       {
         type: 'strike',
-        ticks: [400, 560, 720].map((atMs) => ({ atMs, coefficient: 0.85 })),
+        ticks: [360, 520, 680].map((atMs) => ({ atMs, coefficient: 0.85 })),
         persistsAfterInterrupt: true,
         name: 'Three Round Burst',
         actorType: ACTOR.PLAYER,
