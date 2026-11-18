@@ -121,8 +121,10 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
         const { core, specialization: elite } = observedRuntime(result).profession;
 
         if (available) {
-          assert.equal(core.stealthUntil, 5);
-          assert.equal(core.revealedUntil, 8);
+          // Bonus admission happens at cast start; the landed Backstab owns the stealth exit.
+          const hit = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === attack);
+          assert.equal(core.stealthUntil, hit.at);
+          assert.equal(core.revealedUntil, hit.at + 3);
         }
 
         assert.equal(core.bonusStealthAttack.count, 99);

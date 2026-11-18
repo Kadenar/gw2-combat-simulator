@@ -102,16 +102,18 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
     cooldown: 1,
     requiredMainHand: WEAPON.RIFLE,
     stealthAttack: true,
-    castTimeMs: 360,
+    castTimeMs: 600,
+    interruptCommitMs: 520,
     // The selected target receives one strike; alternate-target damage is not an additional hit on that target.
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 2.67 }],
+        ticks: [{ atMs: 520, coefficient: 2.67 }],
         name: "Death's Judgment - Packet 1",
         actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         comboFinishers: [
           {
             ownerId: 'thief',

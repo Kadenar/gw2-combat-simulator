@@ -8,7 +8,7 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Compare trait power at each landed hit without depending on a skill's calibrated timing or packet count.
-function attack(skillId, weapon, specialization, trained, { repeat = false, timeline = [] } = {}) {
+function attack(skillId, weapon, specialization, trained, { repeat = false, timeline = [], bonus = false } = {}) {
   return runThief(
     repeat ? [skillId, { type: 'wait', durationMs: 4000 }, ID.BLINDING_POWDER, skillId] : [skillId],
     {
@@ -21,7 +21,10 @@ function attack(skillId, weapon, specialization, trained, { repeat = false, time
     },
     {
       initialize(runtime) {
-        runtime.profession.core.stealthUntil = 10;
+        if (!bonus) runtime.profession.core.stealthUntil = 10;
+        else if (specialization === 'Deadeye')
+          runtime.profession.specialization.state.bonusStealthAttack = { count: 1, expiresAt: 10 };
+        else runtime.profession.specialization.state.antiquaryGuitarCharges = [{ count: 1, expiresAt: 10 }];
       },
       timeline
     }
@@ -31,11 +34,37 @@ function attack(skillId, weapon, specialization, trained, { repeat = false, time
 const hits = (result, skillId) =>
   result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === skillId);
 
+// A bonus attack can use an existing Revealed bonus, but its hit cannot extend that status.
+test('a Guitar-funded Backstab uses existing Revealed Training without refreshing Revealed', () => {
+  const options = {
+    bonus: true,
+    timeline: [
+      {
+        at: 0,
+        run(runtime) {
+          runtime.profession.core.revealedUntil = 5;
+        }
+      }
+    ]
+  };
+  const baseline = attack(ID.BACKSTAB, 'Dagger', 'Antiquary', false, options);
+  const trained = attack(ID.BACKSTAB, 'Dagger', 'Antiquary', true, options);
+  assert.deepEqual(trained.warnings, []);
+  assertFlooredDamageMultiplier(
+    hits(trained, ID.BACKSTAB)[0].damage,
+    hits(baseline, ID.BACKSTAB)[0].damage,
+    2200 / 2000
+  );
+  assert.equal(observedRuntime(trained).profession.core.revealedUntil, 5);
+});
+
 for (const [skillId, weapon, specialization] of [
   [ID.SHADOWSQUALL, 'Scepter', 'Core'],
   [ID.MALICIOUS_SHADOWSQUALL, 'Scepter', 'Deadeye'],
   [ID.SNEAK_ATTACK, 'Pistol', 'Core'],
-  [ID.MALICIOUS_SNEAK_ATTACK, 'Pistol', 'Deadeye']
+  [ID.MALICIOUS_SNEAK_ATTACK, 'Pistol', 'Deadeye'],
+  [ID.ASHEN_ASSAULT, 'Spear', 'Core'],
+  [ID.MALICIOUS_ASHEN_ASSAULT, 'Spear', 'Deadeye']
 ]) {
   test(`${specialization} ${weapon} stealth channel gains Revealed Training after its first hit in each cast`, () => {
     const baseline = attack(skillId, weapon, specialization, false, { repeat: true });
@@ -57,13 +86,13 @@ for (const [skillId, weapon, specialization] of [
 }
 
 for (const [skillId, specialization] of [
-  [ID.ASHEN_ASSAULT, 'Core'],
+  [ID.ASHEN_ASSAULT, 'Antiquary'],
   [ID.MALICIOUS_ASHEN_ASSAULT, 'Deadeye']
 ]) {
-  test(`${specialization} Ashen Assault uses live Revealed on subsequent hits without revealing itself`, () => {
-    const baseline = attack(skillId, 'Spear', specialization, false);
+  test(`${specialization} bonus Ashen Assault uses live Revealed without applying it`, () => {
+    const baseline = attack(skillId, 'Spear', specialization, false, { bonus: true });
     const baselineHits = hits(baseline, skillId);
-    const noReveal = attack(skillId, 'Spear', specialization, true);
+    const noReveal = attack(skillId, 'Spear', specialization, true, { bonus: true });
     assert.deepEqual(noReveal.warnings, []);
     assert.equal(observedRuntime(noReveal).profession.core.revealedUntil, 0);
     for (const [index, hit] of hits(noReveal, skillId).entries()) {
@@ -74,6 +103,7 @@ for (const [skillId, specialization] of [
     const revealAt = (baselineHits[0].at + baselineHits[1].at) / 2;
     const expiresAt = (baselineHits.at(-2).at + baselineHits.at(-1).at) / 2;
     const trained = attack(skillId, 'Spear', specialization, true, {
+      bonus: true,
       timeline: [
         {
           at: revealAt,

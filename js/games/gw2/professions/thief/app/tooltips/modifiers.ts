@@ -19,7 +19,8 @@ export const thiefModifierDescriptions: ModifierDescriptions = {
   'thief.kryptis-turret-damage': modifierDescription({
     name: 'Summon Kryptis Turret — player damage bonus',
     skills: [ID.SUMMON_KRYPTIS_TURRET],
-    description: 'The turret artifact temporarily increases player-owned strike damage.',
+    description:
+      'While the turret artifact buff lasts, player-owned strikes deal increased damage to targets the turret has hit.',
     facts: [['factor', 'Player strike damage while active', tooltipFactorChange]]
   }),
   'thief.malicious-backstab-position': modifierDescription({

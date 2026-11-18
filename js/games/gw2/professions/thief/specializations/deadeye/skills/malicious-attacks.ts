@@ -404,8 +404,9 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
           context.event?.metadata?.thiefMaliciousPoisonDurationFactor != null
       }
     ],
+    // The outgoing axe lands before the aftercast ends, so its hit owns the earlier Revealed and refund.
     effects: impactEffects(
-      { atMs: 0, timingAnchor: 'castEnd' as const, timingScale: 'fixed' as const, persistsAfterInterrupt: true },
+      { atMs: 360, timingAnchor: 'castStart' as const, timingScale: 'fixed' as const, persistsAfterInterrupt: true },
       [
         {
           type: 'strike' as const,
@@ -484,7 +485,6 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     initiativeRefund: 4,
     coefficientPerMalice: 0.02,
     durationPerMalice: 0.5,
-    preservesStealth: true,
     spearStealthAttack: true,
     cooldown: 0,
     requiredMainHand: WEAPON.SPEAR,

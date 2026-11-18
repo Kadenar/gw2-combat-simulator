@@ -59,8 +59,6 @@ export interface ThiefCoreState extends StealthState {
   alliedVenomChargeBatches: Record<string, AlliedVenomBatch[]>;
   activeThievesGuild: ThievesGuildState | null;
   activationClaims: ActivationClaims;
-  /** Revealed Training excludes only the first landed revealing hit of each stealth activation. */
-  revealedTrainingHitActivations: Record<string, true>;
 
   /** The pending Infiltrator's Signet pulse instant; earlier queued pulses retire themselves. */
   infiltratorsSignetPassive: PeriodicTaskState;
@@ -110,7 +108,6 @@ export function createThiefCoreState(
     alliedVenomChargeBatches: {},
     activeThievesGuild: null,
     activationClaims: {},
-    revealedTrainingHitActivations: {},
 
     infiltratorsSignetPassive: createPeriodicTaskState(),
     strikeBrokeStealthAt: null,

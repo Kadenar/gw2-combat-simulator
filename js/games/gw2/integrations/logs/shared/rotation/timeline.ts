@@ -232,8 +232,10 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   for (const entry of entries) {
     const at = entry.type === 'action' ? entry.action.start : entry.at;
     const blockingEnd = Math.max(activeCastEnd, retainedCastEnd);
+    const dodge = entry.type === 'action' && entry.action.skill?.inputControl === 'dodge';
     // Combat can start on the final packet of a cast; action jitter must not postpone its observation window.
-    const overlapping = at < blockingEnd - (entry.type === 'combat-start' ? 0 : timingToleranceMs);
+    // Dodge takeoff can overlap the preceding animation, including overlaps shorter than the jitter tolerance.
+    const overlapping = at < blockingEnd - (entry.type === 'combat-start' || dodge ? 0 : timingToleranceMs);
 
     if (entry.type === 'combat-start') {
       if (previousCastStart != null && overlapping) {
@@ -256,6 +258,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
     const action = entry.action;
     const actionReplayEnd = Math.max(at, replayEnd(action));
+    const runtimeInstant = action.skill?.castTimeMs === 0;
+    const bypassesRecovery = runtimeInstant || action.skill?.inputControl === 'dodge';
 
     if (!canEmit(action)) {
       if (overlapping) appendPendingAftercastWait();
@@ -295,7 +299,10 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const swapDuringDodge = activeCast != null && actionKind(activeCast.skill, activeCast.name) === 'dodge';
     const concurrent =
       (action.name !== 'Swap Weapons' || swapDuringDodge) &&
-      (independent || action.concurrentTimeline === true || (instant && action.skill?.canCastConcurrently !== false));
+      (dodge ||
+        independent ||
+        action.concurrentTimeline === true ||
+        (instant && action.skill?.canCastConcurrently !== false));
     const boundaryTransition = policy.isBoundaryTransition?.(action, blockingEnd, previousCastStart) === true;
 
     // A companion that holds Waits can open before the player's first cast. Anchor that overlap to rotation start;
@@ -305,6 +312,15 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     } else if (independent && previousCastStart != null && at >= previousCastStart) {
       command.concurrentOffsetMs = quantizeMs(at - previousCastStart);
     } else if (previousCastStart != null && ((concurrent && overlapping) || boundaryTransition)) {
+      command.concurrentOffsetMs = quantizeMs(at - previousCastStart);
+    } else if (
+      bypassesRecovery &&
+      previousCastStart != null &&
+      projectedPreviousCastStart != null &&
+      quantizeMs(at - Math.max(projectedTime, projectedWaitJoinEnd)) <= 0 &&
+      quantizeMs(at - Math.max(projectedTime, projectedInstantReadyAt)) > 0
+    ) {
+      // Instant inputs and dodge bypass recovery that a Wait would join; preserve their observed start with an offset.
       command.concurrentOffsetMs = quantizeMs(at - previousCastStart);
     } else if (
       projectedPreviousCastStart != null &&
@@ -337,13 +353,12 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
         ? runtimeMs
         : effectiveRuntimeMs;
     // A mechanic can occupy a recorded interval while its entry command still uses the instant lane.
-    const runtimeInstant = action.skill?.castTimeMs === 0;
     const projectedStart: number =
       command.concurrentOffsetMs != null
         ? Math.max(projectedTime, (projectedPreviousCastStart ?? origin) + command.concurrentOffsetMs)
         : independent
           ? Math.max(projectedTime, projectedIndependentReadyAt)
-          : runtimeInstant
+          : bypassesRecovery
             ? Math.max(projectedTime, projectedInstantReadyAt)
             : Math.max(projectedTime, projectedBlockingEnd);
     projectedTime = projectedStart;

@@ -29,6 +29,7 @@ export interface AntiquaryState {
   combatHighExpirations: number[];
   mistburn: ChargeGrant;
   kryptisDamageUntil: number;
+  antiquaryKryptisTargetUntil: number;
   chakInitiativeRefunds: ChargeGrant[];
   holoUtilityCooldownReductionExpirations: number[];
   forgedSurferBombDropUntil: number;
@@ -49,6 +50,7 @@ export function createAntiquaryState(): AntiquaryState {
     antiquaryGuitarCharges: [],
     mistburn: createChargeGrant(0, 0),
     kryptisDamageUntil: 0,
+    antiquaryKryptisTargetUntil: 0,
     chakInitiativeRefunds: [],
     holoUtilityCooldownReductionExpirations: [],
     forgedSurferBombDropUntil: 0,

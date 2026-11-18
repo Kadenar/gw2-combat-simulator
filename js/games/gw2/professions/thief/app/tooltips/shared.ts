@@ -19,11 +19,13 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
   const selected = balanceContext.catalog.skillsById.get(entity.id) as ThiefSkill;
   let effects = (selected.effects || []).filter((effect) => effect.packetLabel !== 'malice');
   const facts: TooltipFact[] = [];
-  let description =
-    'Requires stealth or an available stealth-attack charge. Beginning the attack consumes that access.';
-  description += selected.preservesStealth
-    ? ' Leaving stealth with this attack does not apply Revealed.'
-    : ' Leaving stealth applies Revealed.';
+  let description = 'Requires stealth or an available stealth-attack charge. A charge is consumed at cast start.';
+  description +=
+    selected.id === ID.DEATHS_JUDGMENT || selected.id === ID.MALICIOUS_DEATHS_JUDGMENT
+      ? ' Applies Revealed at cast start.'
+      : ' The first landed strike ends stealth and applies Revealed.';
+
+  if (selected.spearStealthAttack) description += ' Using a charge without stealth does not apply Revealed.';
 
   if (selected.malicious)
     description +=

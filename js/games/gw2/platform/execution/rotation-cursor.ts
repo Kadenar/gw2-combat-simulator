@@ -55,13 +55,15 @@ export class RotationCursor {
     if (command?.type === 'cast' && skill) {
       const independent = skill.independentCast === true;
       const instant = Number(skill.castTimeMs) === 0;
+      const dodge = skill.inputControl === 'dodge';
 
       if (command.concurrentOffsetMs != null) {
         at = (this.previousCastStart ?? 0) + command.concurrentOffsetMs / 1000;
 
         if (instant || independent) at = Math.max(at, now);
       } else if (!independent) {
-        if (instant) at = Math.max(at, this.instantReadyAt);
+        // Dodge can follow an animation cut without waiting for recovery, but it cannot escape a stun.
+        if (instant || dodge) at = Math.max(at, this.instantReadyAt, dodge ? this.selfStunUntil : 0);
         else at = Math.max(at, this.serialReadyAt, this.blockingEnd, skill.stunbreak ? 0 : this.selfStunUntil);
       }
 

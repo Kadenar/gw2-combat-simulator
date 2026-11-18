@@ -65,18 +65,19 @@ test('Embrace application markers preserve pulse identity within the observation
   ]);
 });
 
-// A combat marker can admit a condition before its first payout; displayed times still share the DPS clock.
-test('timeline times share the DPS origin even when the combat marker is earlier', () => {
+// A delayed damage payout must not move the authored Combat Start marker away from zero.
+test('timeline times use Combat Start even when the first damage payout is later', () => {
   const result = {
-    dpsStartTime: 1.25,
+    dpsStartTime: 2,
     events: [
-      { type: 'combat_start', at: 0.5 },
-      { type: 'damage', at: 1.25 }
+      { type: 'combat_start', at: 1.25 },
+      { type: 'damage', at: 2 }
     ]
   };
   const referenceMs = resultCombatReferenceMs(result);
 
   assert.equal(referenceMs, 1250);
+  assert.equal(formatResultTimelineTime(1250, result), '0.000s');
   assert.equal(formatTimelineTime(2500, referenceMs), '1.250s');
   assert.equal(formatTimelineTime(2500, referenceMs), formatResultTimelineTime(2500, result));
   // Preserve a full millisecond before combat while suppressing rounded negative zero.
@@ -85,7 +86,7 @@ test('timeline times share the DPS origin even when the combat marker is earlier
 });
 
 test('timeline clocks preserve an explicit zero origin and tolerate missing results', () => {
-  assert.equal(resultCombatReferenceMs({ dpsStartTime: 0, events: [{ type: 'combat_start', at: 1 }] }), 0);
+  assert.equal(resultCombatReferenceMs({ dpsStartTime: 1, events: [{ type: 'combat_start', at: 0 }] }), 0);
   assert.equal(resultCombatReferenceMs(null), 0);
 });
 

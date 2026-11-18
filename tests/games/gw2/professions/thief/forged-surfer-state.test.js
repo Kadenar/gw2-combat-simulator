@@ -17,8 +17,8 @@ test('Surfer breakdown separates the dash from additional bombs', () => {
   assert.ok(rows.every((row) => row.sourceSkill === 'Forged Surfer Dash' && row.strike > 0 && row.condition > 0));
 });
 
-// Recasts bank remaining duration up to the cap; unrelated artifact windows cannot replace Surfer's lifetime.
-test('Surfer refreshes its selected lifetime with a thirteen-second cap', () => {
+// Recasts replace remaining duration; unrelated artifact windows cannot replace Surfer's lifetime.
+test('Surfer recasts replace the remaining buff with the selected lifetime', () => {
   for (const selectedTraitIds of [[], [TRAIT.METICULOUS_CUSTODIAN]]) {
     const windows = [];
     const result = runThief(
@@ -46,7 +46,7 @@ test('Surfer refreshes its selected lifetime with a thirteen-second cap', () => 
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(
       windows.map((value) => Math.round(value)),
-      [selectedTraitIds.length ? 13 : 10, 13]
+      [selectedTraitIds.length ? 13 : 10, selectedTraitIds.length ? 13 : 10]
     );
   }
 });

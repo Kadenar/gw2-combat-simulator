@@ -145,15 +145,15 @@
         "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-energy.json",
         "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-vindicator-greatsword-sword-sword",
-        "benchmarkDps": 43170,
+        "benchmarkDps": 43309,
         "upToDate": false,
-        "benchmarkApm": 66.8,
+        "benchmarkApm": 67,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 56945, "phase": 56945 },
-          "80-60": { "cumulative": 43459, "phase": 35081 },
-          "60-40": { "cumulative": 42905, "phase": 41858 },
-          "40-20": { "cumulative": 42628, "phase": 41805 },
-          "20-0": { "cumulative": 43170, "phase": 43170 }
+          "100-80": { "cumulative": 57156, "phase": 57156 },
+          "80-60": { "cumulative": 43620, "phase": 35205 },
+          "60-40": { "cumulative": 43062, "phase": 42008 },
+          "40-20": { "cumulative": 42798, "phase": 42013 },
+          "20-0": { "cumulative": 43309, "phase": 43309 }
         }
       },
       {

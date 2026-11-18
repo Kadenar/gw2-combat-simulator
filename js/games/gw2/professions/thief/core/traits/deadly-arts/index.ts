@@ -39,7 +39,7 @@ import {
 } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { thiefCastCondition } from '#gw2/professions/thief/core/traits/cast-condition.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { claimActivation } from '#kernel/execution/activation-claims.js';
 
@@ -264,17 +264,7 @@ export const revealedTraining = defineTrait<ThiefSkill>({
   attributes(context) {
     const profile = requireBalanceProfile(context.balanceContext.catalog, TRAIT.REVEALED_TRAINING);
     const state = thiefRuntimeState(context.runtime?.profession);
-    // Exclude only a revealing activation's first landed hit. Judgment reveals before firing;
-    // attacks that do not reveal and recalled axes use the live Revealed state without that exclusion.
-    const skill: ThiefSkill | undefined = skillForEvent(context.catalog, context.event, context.skillId);
-    const activationId = context.event?.activationId;
-    const revealingAttack =
-      skill?.stealthAttack &&
-      !skill.preservesStealth &&
-      skill.id !== ID.DEATHS_JUDGMENT &&
-      skill.id !== ID.MALICIOUS_DEATHS_JUDGMENT &&
-      context.event?.metadata?.recallSkillId == null &&
-      !(activationId && state.revealedTrainingHitActivations?.[activationId]);
+    // Hit-driven stealth exits occur after damage, so live Revealed alone determines the bonus.
     return {
       attributeEffects: [
         {
@@ -289,28 +279,11 @@ export const revealedTraining = defineTrait<ThiefSkill>({
           to: 'Power',
           amount: ownerAttributeBonusNumber(profile, 'power', 'conditionalAttributeBonuses'),
           feedsConversions: 'none',
-          enabled: (state.revealedUntil || 0) > context.time && !revealingAttack
+          enabled: (state.revealedUntil || 0) > context.time
         }
       ]
     };
-  },
-  triggers: [
-    onTriggerPoint(thiefStruck, {
-      run(runtime: ThiefRuntime, { cause }: ThiefStrike) {
-        // Record successful player hits after their damage resolves so only later hits can use the bonus.
-        if (
-          cause.actorType !== ACTOR.PLAYER ||
-          cause.offTarget ||
-          !cause.activationId ||
-          !(Number(cause.coefficient) > 0)
-        )
-          return;
-
-        if (skillForEvent(runtime.helpers, cause)?.stealthAttack)
-          runtime.profession.core.revealedTrainingHitActivations[cause.activationId] = true;
-      }
-    })
-  ]
+  }
 });
 
 /** Owns Serpent's Touch tuning and behavior at the existing execution boundaries. */

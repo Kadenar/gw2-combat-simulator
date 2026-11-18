@@ -115,8 +115,6 @@ export interface ThiefSkill
   /** Spends malice for its enhanced variant. */
   readonly malicious?: boolean;
   readonly movementSkill?: boolean;
-  /** Does not reveal the player when used from stealth. */
-  readonly preservesStealth?: boolean;
   readonly shadowShroudSkill?: boolean;
   /** Marks the two Shadow Shroud bar transitions so replay and live owners can order and select them. */
   readonly shadowShroudTransition?: 'enter' | 'exit';

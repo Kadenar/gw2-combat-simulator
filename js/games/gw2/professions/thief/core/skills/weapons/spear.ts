@@ -23,7 +23,6 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
     slot: 'Weapon_1',
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     initiativeRefund: 4,
-    preservesStealth: true,
     spearStealthAttack: true,
     cooldown: 0,
     requiredMainHand: WEAPON.SPEAR,

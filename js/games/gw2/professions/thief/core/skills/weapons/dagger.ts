@@ -106,8 +106,9 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 1,
     requiredMainHand: WEAPON.DAGGER,
     stealthAttack: true,
-    castTimeMs: 320,
+    castTimeMs: 440,
     interruptCommitMs: 200,
+    retainsCastLockoutAfterInterrupt: true,
     // Keep the intrinsic strike factor separate from the editable base coefficient.
     modifiers: [
       {
@@ -125,6 +126,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
         ticks: [{ atMs: 200, coefficient: 1.5 }],
         name: 'Front damage',
         actorType: ACTOR.PLAYER,
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -219,28 +221,38 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 0,
     requiredMainHand: WEAPON.DAGGER,
     requiredOffHand: WEAPON.PISTOL,
-    castTimeMs: 0,
+    // One paid input combines the opening shot and follow-up attack; an early cut retains the full recovery.
+    castTimeMs: 240 + 440,
+    interruptCommitMs: 240 + 360,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.8 }],
+        // The follow-up hits before recovery ends; the supplied EVTC places it 400 ms after the initial input.
+        ticks: [{ atMs: 400, coefficient: 1.8 }],
         name: 'Shadow Shot',
         actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        comboFinishers: [
-          {
-            ownerId: 'thief',
-            finisherType: COMBO_FINISHER.PROJECTILE
-          }
-        ]
+        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         condition: CONDITION.BLINDNESS,
         stacks: 1,
         duration: 5,
-        actorType: ACTOR.PLAYER
+        // Blindness belongs to the opening projectile, before the follow-up strike.
+        atMs: 240,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: ACTOR.PLAYER,
+        persistsAfterInterrupt: true,
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: COMBO_FINISHER.PROJECTILE
+          }
+        ]
       }
     ]
   },

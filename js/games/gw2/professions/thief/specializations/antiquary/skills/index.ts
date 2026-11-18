@@ -38,34 +38,35 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     cooldown: 0,
     artifactKind: 'offensive',
     castTimeMs: 1920,
-    effects: [
+    // A committed Smash retains its effects when the final recovery is interrupted.
+    interruptCommitMs: 1880,
+    effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike' as const,
-        coefficient: 3.2,
-        hits: 4,
-        atMs: 0,
+        // Recorded Rockout pulses span the channel; the last pulse can land after the animation ends.
+        ticks: [400, 920, 1440, 1960].map((atMs) => ({ atMs, coefficient: 0.8 })),
         name: 'Metal Legion Guitar - Packet 1',
         // Separate Rockout and its confusion from Final Smash while retaining Guitar cast attribution.
         damageBreakdownName: 'Metal Legion Guitar - Rockout',
         actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd' as const,
+        timingAnchor: 'castStart' as const,
         timingScale: 'fixed' as const
       },
       {
         type: 'strike' as const,
         // November rifle, staff, and sword reports support a 3.0 Smash; the API's 2.5 understates those hits.
-        ticks: [{ atMs: 0, coefficient: 3 }],
+        ticks: [{ atMs: 1760, coefficient: 3 }],
         name: 'Final Smash',
         damageBreakdownName: 'Metal Legion Guitar - Final Smash',
         // Meticulous Custodian keys its separate final-hit factor on this packet identity, not the display label.
         metadata: { packetKind: 'thief.metal-legion-guitar-final-smash' },
         actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd' as const,
+        timingAnchor: 'castStart' as const,
         timingScale: 'fixed' as const
       },
       {
         type: 'condition' as const,
-        ticks: [400, 920, 1400, 1920].map((atMs) => ({
+        ticks: [400, 920, 1440, 1960].map((atMs) => ({
           atMs,
           condition: CONDITION.CONFUSION,
           stacks: 1,
@@ -81,7 +82,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.STUN
       }
-    ],
+    ]),
     sideEffects: [
       ...ARTIFACT_START,
       {
@@ -149,7 +150,10 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     cooldown: 0,
     artifactKind: 'defensive',
     castTimeMs: 600,
-    effects: [
+    // The deployed decoy survives cancellation after commitment, while recovery still locks the next cast.
+    interruptCommitMs: 440,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'control' as const,
         actorType: ACTOR.PLAYER,
@@ -162,13 +166,15 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
         duration: 8,
         stacks: 2
       },
-      // The explosion shares its delayed impact with Might and Fury; the initial Might stays at cast completion.
-      ...impactEffects({ atMs: 3000, timingAnchor: 'castEnd' as const, timingScale: 'fixed' as const }, [
+      // The recorded explosion lands 3360 ms after activation, before a delay measured from full recovery would end.
+      ...impactEffects({ atMs: 3360, timingAnchor: 'castStart' as const, timingScale: 'fixed' as const }, [
         {
           type: 'strike' as const,
-          coefficient: 2,
+          coefficient: 2.5,
           hits: 1,
           name: 'Holo-Dancer Decoy',
+          // The decoy explosion uses unequipped strength instead of the other artifacts' profession profile.
+          weaponStrengthProfileId: 'nonweapon.unequipped',
           actorType: ACTOR.PLAYER
         },
         {
@@ -186,7 +192,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
           stacks: 1
         }
       ])
-    ],
+    ]),
     sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.holo' as const } }, ...ARTIFACT_END]
   },
   [ID.EXALTED_HAMMER]: {
@@ -471,7 +477,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     cooldown: 0,
     artifactKind: 'offensive',
     castTimeMs: 440,
-    // The artifact grants a timed player-owned strike bonus across skills.
+    // The player window only boosts strikes once the turret has marked the target by hitting it.
     modifiers: [
       {
         order: 403,
@@ -483,6 +489,8 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
           (thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').kryptisDamageUntil || 0) >
+            context.time &&
+          (thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').antiquaryKryptisTargetUntil || 0) >
             context.time
       }
     ],
@@ -492,7 +500,10 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
         type: 'strike' as const,
         ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 760 + index * 400, coefficient: 2.8 / 8 })),
         name: 'Summon Kryptis Turret',
-        actorType: ACTOR.PLAYER
+        actorType: ACTOR.PLAYER,
+        reactions: [
+          { on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'each', do: [{ type: 'thief.kryptis-mark' }] }
+        ]
       },
       {
         type: 'condition' as const,

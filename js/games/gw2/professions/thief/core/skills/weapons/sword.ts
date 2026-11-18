@@ -19,13 +19,15 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillD
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     castTimeMs: 360,
+    interruptCommitMs: 320,
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.85 }],
+        ticks: [{ atMs: 320, coefficient: 0.85 }],
         name: 'Slice (thief skill)',
         actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
+        persistsAfterInterrupt: true,
         timingScale: 'fixed'
       }
     ]
@@ -40,13 +42,15 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillD
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     castTimeMs: 440,
+    interruptCommitMs: 280,
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.85 }],
+        ticks: [{ atMs: 280, coefficient: 0.85 }],
         name: 'Slash (thief skill)',
         actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
+        persistsAfterInterrupt: true,
         timingScale: 'fixed'
       }
     ]
@@ -61,29 +65,33 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillD
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     castTimeMs: 520,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 1.55,
-        hits: 1,
-        name: 'Crippling Strike',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.CRIPPLED,
-        stacks: 1,
-        duration: 2,
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.WEAKNESS,
-        stacks: 1,
-        duration: 2,
-        actorType: ACTOR.PLAYER
-      }
-    ])
+    interruptCommitMs: 400,
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 1.55,
+          hits: 1,
+          name: 'Crippling Strike',
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.CRIPPLED,
+          stacks: 1,
+          duration: 2,
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.WEAKNESS,
+          stacks: 1,
+          duration: 2,
+          actorType: ACTOR.PLAYER
+        }
+      ]
+    )
   },
   [ID.TACTICAL_STRIKE]: {
     name: 'Tactical Strike',
@@ -95,12 +103,18 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillD
     cooldown: 1,
     requiredMainHand: WEAPON.SWORD,
     stealthAttack: true,
-    castTimeMs: 360,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 2, hits: 1, name: 'Tactical Strike', actorType: ACTOR.PLAYER },
-      { type: 'control', actorType: ACTOR.PLAYER, controlKind: CONTROL.DAZE },
-      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 5, actorType: ACTOR.PLAYER }
-    ])
+    castTimeMs: 440,
+    interruptCommitMs: 200,
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 400,
+    effects: impactEffects(
+      { atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 2, hits: 1, name: 'Tactical Strike', actorType: ACTOR.PLAYER },
+        { type: 'control', actorType: ACTOR.PLAYER, controlKind: CONTROL.DAZE },
+        { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 5, actorType: ACTOR.PLAYER }
+      ]
+    )
   },
   [ID.INFILTRATORS_STRIKE]: {
     name: "Infiltrator's Strike",
@@ -113,30 +127,33 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillD
     flipDuration: 15,
     movementSkill: true,
     cooldown: 0,
-    castTimeMs: 0,
-    // The strike, immobilize, and independent Swiftness grant all resolve at cast completion.
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 1.8,
-        hits: 1,
-        name: "Infiltrator's Strike",
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.IMMOBILIZED,
-        stacks: 1,
-        duration: 2,
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'boon',
-        boon: BOON.SWIFTNESS,
-        duration: 3,
-        stacks: 1
-      }
-    ]),
+    castTimeMs: 560,
+    interruptCommitMs: 320,
+    effects: impactEffects(
+      { atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 1.8,
+          hits: 1,
+          name: "Infiltrator's Strike",
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.IMMOBILIZED,
+          stacks: 1,
+          duration: 2,
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'boon',
+          boon: BOON.SWIFTNESS,
+          duration: 3,
+          stacks: 1
+        }
+      ]
+    ),
     // Expose the follow-up on commitment; its declaration owns the window.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.INFILTRATORS_RETURN } }]
   },

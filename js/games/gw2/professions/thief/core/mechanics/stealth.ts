@@ -16,7 +16,9 @@ import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefSkill } from '#gw2/professions/thief/core/events.js';
 import { stealthEntered, stealthExited } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { hiddenKillerLinger } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { claimActivation } from '#kernel/execution/activation-claims.js';
 import { consumeBatchFromList } from '#kernel/resources/batch-list.js';
 import { activeBatchCount } from '#kernel/resources/batch.js';
 
@@ -71,24 +73,49 @@ function breakThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, at: number)
 
   runtime.fireTrigger(stealthExited, { skill, at });
 
-  endStealth(core, at, !skill.preservesStealth);
+  endStealth(core, at);
   // Only a real stealth exit starts the linger; bonus attack charges do not.
   core.hiddenKillerUntil = at + hiddenKillerLinger(runtime);
 
   return true;
 }
 
-/**
- * A landed player strike from a skill that neither is a stealth attack nor grants stealth ends stealth at its impact.
- * The instant is recorded so a stealth attack commanded at the same instant can still claim the window it was queued
- * against.
- */
+/** Only Death's Judgment leaves stealth before its strike lands. */
+function revealsOnCastStart(skill: ThiefSkill): boolean {
+  return skill.id === ID.DEATHS_JUDGMENT || skill.id === ID.MALICIOUS_DEATHS_JUDGMENT;
+}
+
+/** The first landed stealth-attack packet owns its exit; later channel hits cannot restart Revealed. */
 export function reactThiefStealthBreakingStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== ACTOR.PLAYER) return;
 
   const skill = thiefSkill(runtime, event.skillId);
 
-  if (!skill || skill.stealthAttack) return;
+  if (!skill) return;
+
+  if (skill.stealthAttack) {
+    if (revealsOnCastStart(skill) || event.offTarget || !(Number(event.coefficient) > 0)) return;
+
+    // Recalled axes retain their original skill identity but are not a new stealth attack.
+    if (event.metadata?.recallSkillId != null) return;
+
+    if (
+      event.activationId &&
+      !claimActivation(runtime.profession.core.activationClaims, 'thief.stealth-exit', event.activationId)
+    )
+      return;
+
+    // Resolve the revealing strike before applying Revealed Training and leave-stealth rewards.
+    if (
+      !breakThiefStealth(runtime, skill, runtime.time) &&
+      !skill.spearStealthAttack &&
+      !revealedActive(runtime.profession.core, runtime.time)
+    )
+      // Bonus attacks cannot refresh existing Revealed; spear bonus attacks do not apply it.
+      endStealth(runtime.profession.core, runtime.time);
+
+    return;
+  }
 
   if (stealthGrantActivations.get(runtime)?.has(String(event.activationId))) return;
 
@@ -105,8 +132,8 @@ export function thiefSameInstantStealthBreak(runtime: MechanicQueriesOf<ThiefRun
 }
 
 /**
- * Consumes either active stealth or a specialization-granted attack charge, then applies leave-stealth traits and
- * Revealed from one cast-start transition.
+ * Claims any required bonus attack charge at cast start. Only Death's Judgment exits stealth here;
+ * every other stealth attack defers its exit and any Revealed application until its first landed strike.
  */
 export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const core = runtime.profession.core;
@@ -127,9 +154,11 @@ export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast
 
   core.strikeBrokeStealthAt = null;
 
+  if (!revealsOnCastStart(skill)) return;
+
   if (breakThiefStealth(runtime, skill, runtime.time)) return;
 
-  endStealth(core, runtime.time, !skill.preservesStealth);
+  endStealth(core, runtime.time);
 }
 
 // Selected stealth packets belong to their activation so either commitment or a landed hit can consume them once.

@@ -13,6 +13,7 @@ import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { event as evtcEvent, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
@@ -26,6 +27,47 @@ const fixtureSkill = {
   effects: []
 };
 const catalog = rotationCatalog([fixtureSkill]);
+
+// Recovering takeoff before a preceding animation ends must not shift the recorded combat-entry boundary.
+test('Vindicator overlap reconstruction preserves combat entry in both log formats', () => {
+  const source = log({
+    agents: [{ ...log().agents[0], profession: 9, elite: 69 }],
+    skills: [
+      { id: 62692, name: 'Mist Unleashed' },
+      { id: 62730, name: 'Death Drop' }
+    ],
+    events: [
+      evtcEvent({ time: 1000, stateChange: 67, skillId: 62692, value: 520 }),
+      evtcEvent({ time: 1520, stateChange: 68, skillId: 62692, value: 520, activation: 3 }),
+      evtcEvent({ time: 1520, stateChange: 1 }),
+      evtcEvent({ time: 2080, stateChange: 67, skillId: 62730, value: 200 }),
+      evtcEvent({ time: 2280, stateChange: 68, skillId: 62730, value: 200, activation: 3 })
+    ]
+  });
+  const report = {
+    players: [
+      {
+        name: 'Fixture',
+        profession: 'Vindicator',
+        rotation: [
+          { id: 62692, skills: [{ castTime: 1000, duration: 520 }] },
+          { id: 62730, skills: [{ castTime: 2080, duration: 200 }] }
+        ]
+      }
+    ],
+    phases: [{ start: 1520, end: 3000, name: 'Full Fight' }],
+    skillMap: { s62692: { name: 'Mist Unleashed' }, s62730: { name: 'Death Drop' } }
+  };
+  for (const imported of [
+    reconstructEvtcRotation(source, revenantCatalog),
+    reconstructDpsReportRotation(report, revenantCatalog)
+  ]) {
+    const replay = runRevenant(imported.rotation, { specialization: 'Vindicator', primaryWeapon: 'Greatsword' });
+    assert.deepEqual(replay.warnings, []);
+    assert.equal(replay.combatStartTime * 1000, imported.combatStartTimestampMs);
+    assert.ok(replay.steps.find((step) => step.skillId === -5).start < replay.combatStartTime * 1000);
+  }
+});
 
 // Split animation records must replay one accepted opener and leave its charges available to the follow-up.
 test('Shadow Strike composite import does not spend initiative or grant charges twice', () => {

@@ -16,16 +16,6 @@ const pendingWarnings = new Map([
     new Set([deadeyeStealthWarning])
   ],
   [
-    // A shortened Guitar cast loses its native grant, leaving two recorded Backstabs unavailable.
-    'data/gw2/builds/thief/b-power-antiquary-staff-dagger-pistol.json',
-    new Set(['Backstab: Backstab is unavailable - requires stealth.'])
-  ],
-  [
-    // Preserve recorded casts while reduced autoattack completion remains unresolved.
-    'data/gw2/builds/thief/b-power-antiquary-sword-pistol.json',
-    new Set(['Slice: Slice is unavailable - cast Crippling Strike first.'])
-  ],
-  [
     // The report continues to Wild Strike after a Double Strike shorter than the simulator's commitment boundary.
     'data/gw2/builds/thief/b-condi-antiquary-dagger-dagger.json',
     new Set(['Wild Strike: Wild Strike is unavailable - cast Double Strike first.'])

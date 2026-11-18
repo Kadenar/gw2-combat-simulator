@@ -1411,14 +1411,16 @@ test('Holo-Dancer separates its initial Might from the shared explosion impact',
     .filter((event) => event.skillId === ID.HOLO_DANCER_DECOY && ['control', 'damage', 'buff'].includes(event.type))
     .sort((left, right) => left.at - right.at || left.eventOrder - right.eventOrder);
   const completedAt = packets.find((event) => event.type === 'control').at;
+  const explosionAt = packets.find((event) => event.type === 'damage').at;
+  assert.ok(explosionAt > completedAt);
   assert.deepEqual(
     packets.map(({ type, at, kind }) => [type, at, kind]),
     [
       ['control', completedAt, undefined],
       ['buff', completedAt, 'might'],
-      ['damage', completedAt + 3, undefined],
-      ['buff', completedAt + 3, 'might'],
-      ['buff', completedAt + 3, 'fury']
+      ['damage', explosionAt, undefined],
+      ['buff', explosionAt, 'might'],
+      ['buff', explosionAt, 'fury']
     ]
   );
 });

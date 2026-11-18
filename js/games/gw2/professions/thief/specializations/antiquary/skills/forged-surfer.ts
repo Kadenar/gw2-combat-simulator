@@ -67,7 +67,7 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
     runtime.schedule(FORGED_SURFER, nextAt, { skillId, occurrence: occurrence + 1 }, FORGED_SURFER_OWNER);
 }
 
-/** Recasting resets pending bomb timing while the separately refreshed buff retains its capped duration. */
+/** Recasting resets pending bomb timing and uses the replacement buff's deadline. */
 export function startForgedSurfer(runtime: ThiefRuntime, skill: ThiefSkill): void {
   runtime.cancelOwner(FORGED_SURFER_OWNER);
   runtime.schedule(

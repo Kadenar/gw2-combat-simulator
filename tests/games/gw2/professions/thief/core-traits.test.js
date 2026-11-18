@@ -384,7 +384,9 @@ test('Lead Attacks records one stack per initiative spent', () => {
     selectedTraitIds: [TRAIT.LEAD_ATTACKS]
   });
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(observedRuntime(result).profession.core.leadAttackExpirations, [11, 11, 11]);
+  // Measure the trait lifetime from its grant, independently of the triggering skill's animation.
+  const grantedAt = result.events.find((event) => event.sourceId === TRAIT.LEAD_ATTACKS).at;
+  assert.deepEqual(observedRuntime(result).profession.core.leadAttackExpirations, Array(3).fill(grantedAt + 10));
 });
 
 test('Lead Attacks replaces oldest stacks across and at the cap while preserving independent expiry', () => {
@@ -434,22 +436,27 @@ test('Fluid Strikes snapshots its movement-skill duration', () => {
     selectedTraitIds: [TRAIT.FLUID_STRIKES]
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).liveEffects.queries.buffApplications('fluid-strikes').at(-1).expiresAt, 6);
+  const grantedAt = result.events.find((event) => event.kind === 'fluid-strikes').at;
+  assert.equal(
+    observedRuntime(result).liveEffects.queries.buffApplications('fluid-strikes').at(-1).expiresAt,
+    Number((grantedAt + 5).toFixed(6))
+  );
 });
 
 test('Hard to Catch no longer restores endurance on movement skills', () => {
-  for (const [selectedTraitIds, expected] of [
-    [[TRAIT.HARD_TO_CATCH], 0],
-    [[], 0]
-  ]) {
+  // Natural regeneration continues during movement animations; compare identical casts with and without the trait.
+  const endurance = [];
+  for (const selectedTraitIds of [[TRAIT.HARD_TO_CATCH], []]) {
     const result = runThief(["Infiltrator's Strike"], {
       primaryWeapon: 'Sword',
       selectedTraitIds,
       initialEndurance: 0
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession[STATE.ENDURANCE].value, expected);
+    endurance.push(result.planningState.profession[STATE.ENDURANCE].value);
   }
+
+  assert.equal(endurance[0], endurance[1]);
 });
 
 test('Deadly Ambition applies once on the first hit of each dual attack', () => {
@@ -775,8 +782,19 @@ test('cast completion grants Lead stacks before movement traits and leaves poiso
   assert.equal(lead[0].kind, 'lead-attacks');
   assert.equal(lead[0].duration, 10);
   assert.equal(lead[0].stacks, 3);
-  assert.equal(observedRuntime(result).liveEffects.queries.buffApplications('fluid-strikes').at(-1).expiresAt, 5);
-  assert.equal(result.planningState.profession[STATE.ENDURANCE].value, 0);
+  assert.equal(
+    observedRuntime(result).liveEffects.queries.buffApplications('fluid-strikes').at(-1).expiresAt,
+    Number((lead[0].at + 5).toFixed(6))
+  );
+  const baseline = runThief(["Infiltrator's Strike"], {
+    primaryWeapon: 'Sword',
+    initialEndurance: 0,
+    selectedTraitIds: []
+  });
+  assert.equal(
+    result.planningState.profession[STATE.ENDURANCE].value,
+    baseline.planningState.profession[STATE.ENDURANCE].value
+  );
   // Deadly Ambition's poison follows the activation's first landed strike, never the cast itself.
   const strikes = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillId === ID.INFILTRATORS_STRIKE && event.actorType === 'player'

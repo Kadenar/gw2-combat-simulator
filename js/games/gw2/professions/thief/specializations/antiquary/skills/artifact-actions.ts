@@ -74,6 +74,11 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       const at = runtime.time;
       state.kryptisDamageUntil = at + meticulousKryptisDuration(runtime);
     },
+    'thief.kryptis-mark'(runtime) {
+      const state = antiquaryState.from(runtime.profession);
+      // A landed turret hit enables the bonus only for the remaining player window, never a fresh full duration.
+      state.antiquaryKryptisTargetUntil = Math.max(state.antiquaryKryptisTargetUntil, state.kryptisDamageUntil);
+    },
     'thief.chak'(runtime, context) {
       const state = antiquaryState.from(runtime.profession);
       const at = runtime.time;
@@ -108,8 +113,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
         hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? 'enhancedDuration' : 'duration'
       );
       const maximum = skillNumber(context.skill, 'maximumDuration');
-      // Surfer banks remaining duration up to its own cap, independently of the other artifact windows.
-      state.forgedSurferBombDropUntil =
-        at + Math.min(maximum, Math.max(0, state.forgedSurferBombDropUntil - at) + duration);
+      // Recasting replaces the previous buff's remaining duration instead of banking it.
+      state.forgedSurferBombDropUntil = at + Math.min(maximum, duration);
     }
   };

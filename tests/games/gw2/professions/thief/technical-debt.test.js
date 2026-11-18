@@ -6,14 +6,17 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
 import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
-import { beginThiefStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import {
+  beginThiefStealthAttack,
+  reactThiefStealthBreakingStrike
+} from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { emitStealth } from '#tests/helpers/stealth.js';
-import { runThief } from '#tests/helpers/thief-simulation.js';
+import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 
 // Exercise the public patch path so runtime and presentation must resolve the same selected tuning.
 function patched(balanceProfiles) {
@@ -111,11 +114,20 @@ test('stealth entry and exits honor selected linger and venom grants without rep
             ? [
                 [
                   2,
-                  (runtime) =>
+                  (runtime) => {
                     beginThiefStealthAttack(runtime, {
                       skill: runtime.helpers.skillsById.get(ID.BACKSTAB),
                       id: 'test-attack'
-                    })
+                    });
+                    // The landed hit, rather than admission, now owns the exit rewards.
+                    reactThiefStealthBreakingStrike(
+                      runtime,
+                      thiefHit(runtime.time, {
+                        skillId: ID.BACKSTAB,
+                        activationId: 'test-attack'
+                      })
+                    );
+                  }
                 ]
               ]
             : [])

@@ -8,9 +8,9 @@ import {
   simulationEffectFacts,
   skillFact,
   skillTooltip,
-  tooltipDecimal,
   tooltipFactorChange,
   tooltipPercent,
+  tooltipPercentValue,
   tooltipProfile,
   tooltipSeconds,
   traitTooltip,
@@ -19,7 +19,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Artifact windows supplement the native cast; charges apply to later attacks rather than adding immediate damage. */
@@ -28,73 +28,185 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const facts = [
     ...simulationEffectFacts(selected.effects?.filter((effect) => effect.packetLabel !== 'meticulous')).facts
   ];
-  let description = 'Use and consume this held artifact. Artifact-use traits apply.';
-  const window = (kryptis = false) =>
-    facts.push(
-      skillFact(balanceContext, entity.id, 'duration', 'Effect window', tooltipSeconds),
-      profileFact(
+  const description = 'Use and consume this held artifact. Artifact-use traits apply.';
+  // Section headings identify the source; attack rows need only their payload and recipient information.
+  const attacks = () =>
+    simulationEffectFacts(selected.effects?.map((effect) => ({ ...effect, name: undefined }))).facts;
+  const window = (label: string, kryptis = false) => [
+    {
+      ...skillFact(balanceContext, entity.id, 'duration', label, tooltipSeconds),
+      icon: MODIFIER_EFFECT_ICONS.Lifetime
+    },
+    {
+      ...profileFact(
         balanceContext,
         TRAIT.METICULOUS_CUSTODIAN,
         kryptis ? 'kryptisDuration' : 'duration',
-        'Effect window with Meticulous Custodian',
+        'With Meticulous Custodian',
         tooltipSeconds
-      )
-    );
+      ),
+      icon: MODIFIER_EFFECT_ICONS.Lifetime
+    }
+  ];
+  const charges = (field: string, label: string) => ({
+    ...skillFact(balanceContext, entity.id, field, label),
+    icon: MODIFIER_EFFECT_ICONS['Maximum stacks']
+  });
 
-  if (entity.id === ID.HOLO_DANCER_DECOY) {
-    description +=
-      ' Adds a timed charge that reduces the recharge of the next utility cast. Repeated grants queue and consume the oldest charge first.';
-    window();
-    facts.push(
-      skillFact(
-        balanceContext,
-        entity.id,
-        'rechargeMultiplier',
-        'Next utility recharge multiplier',
-        (value) => `${tooltipDecimal(value)}×`
-      )
-    );
-  } else if (entity.id === ID.CHAK_SHIELD) {
-    description +=
-      ' Refunds initiative spent while its window lasts. Spending still advances initiative-spending traits. Meticulous Custodian also triggers an additional strike.';
-    window();
-    facts.push(
-      ...simulationEffectFacts(
-        tooltipProfile(balanceContext, TRAIT.METICULOUS_CUSTODIAN).effects,
-        'additional strike with Meticulous Custodian'
-      ).facts
-    );
+  if (entity.id === ID.CHAK_SHIELD) {
+    return {
+      description:
+        'Consume this artifact to strike foes and grant initiative-refund charges. Artifact-use traits apply.',
+      facts: [],
+      factSections: [
+        { label: 'Base attacks', facts: attacks() },
+        {
+          label: 'Initiative refunds',
+          description:
+            'Each paid weapon skill consumes a charge and refunds its full initiative cost. Reusing adds charges without refreshing older ones. Spending still counts toward initiative-spending traits.',
+          facts: [
+            charges('refundCharges', 'Charges per use'),
+            charges('maximumStacks', 'Maximum charges'),
+            ...window('Charge duration')
+          ]
+        },
+        {
+          label: 'With Meticulous Custodian',
+          description: 'Adds a strike when you use this artifact.',
+          facts: simulationEffectFacts(
+            tooltipProfile(balanceContext, TRAIT.METICULOUS_CUSTODIAN).effects?.map((effect) => ({
+              ...effect,
+              name: undefined
+            }))
+          ).facts
+        }
+      ]
+    };
   } else if (entity.id === ID.SUMMON_KRYPTIS_TURRET) {
-    description += ' Starts a temporary player strike-damage bonus.';
-    window(true);
-    facts.push(
-      modifierFact(
-        balanceContext,
-        'thief.kryptis-turret-damage',
-        'factor',
-        'Player strike damage during window',
-        tooltipFactorChange
-      )
-    );
+    return {
+      description:
+        'Consume this artifact to summon a turret that strikes and inflicts torment. Gain a temporary bonus to your strike damage. Artifact-use traits apply.',
+      facts: [],
+      factSections: [
+        { label: 'Base turret attacks', facts: attacks() },
+        {
+          label: 'Player damage bonus',
+          facts: [
+            modifierFact(balanceContext, 'thief.kryptis-turret-damage', 'factor', 'Strike damage', tooltipFactorChange),
+            ...window('Bonus duration', true)
+          ]
+        }
+      ]
+    };
   } else if (entity.id === ID.MISTBURN_MORTAR) {
-    description +=
-      ' Grants charges that add burning to later eligible player strikes. A new grant replaces remaining charges.';
-    window();
-    facts.push(
-      skillFact(balanceContext, entity.id, 'maximumStacks', 'Charged strikes'),
-      ...simulationEffectFacts(requireSkillAction(selected, 'charged').effects, 'per later charged strike').facts
-    );
+    return {
+      description:
+        'Consume this artifact to bombard foes with strikes and burning. Grants charges that add burning to later attacks. Artifact-use traits apply.',
+      facts: [],
+      factSections: [
+        { label: 'Base mortar attacks', facts: attacks() },
+        {
+          label: 'Charged strikes',
+          description: 'Each later eligible player strike consumes a charge. Reusing replaces the remaining charges.',
+          facts: [
+            charges('maximumStacks', 'Charges per use'),
+            ...simulationEffectFacts(requireSkillAction(selected, 'charged').effects).facts.map((fact) => ({
+              ...fact,
+              name: `${fact.name} per charged strike`
+            })),
+            ...window('Charge duration')
+          ]
+        }
+      ]
+    };
   } else if (entity.id === ID.ZEPHYRITE_SUN_CRYSTAL) {
-    description += ' Meticulous Custodian adds burning to each eligible strike.';
-    facts.push(
-      ...simulationEffectFacts(
-        selected.effects?.filter((effect) => effect.packetLabel === 'meticulous'),
-        'additional burning per strike with Meticulous Custodian'
-      ).facts
-    );
+    // Distinguish the base attack from the extra burning triggered by Meticulous Custodian.
+    const crystalEffects = (enhanced: boolean) =>
+      simulationEffectFacts(
+        selected.effects
+          ?.filter((effect) => (effect.packetLabel === 'meticulous') === enhanced)
+          .map((effect) => ({ ...effect, name: undefined, packetLabel: undefined }))
+      ).facts;
+    return {
+      description: 'Consume this artifact to dash, strike foes, and inflict burning and blindness.',
+      facts: [],
+      factSections: [
+        { label: 'Base attack', facts: crystalEffects(false) },
+        {
+          label: 'With Meticulous Custodian',
+          description: "Extends this skill's base burning and adds burning when its strike hits.",
+          facts: [
+            profileFact(
+              balanceContext,
+              TRAIT.METICULOUS_CUSTODIAN,
+              'sunCrystalBurningDurationMultiplier',
+              'Base burning duration',
+              tooltipFactorChange
+            ),
+            ...crystalEffects(true).map((fact) => ({ ...fact, name: `Additional ${fact.name.toLowerCase()}` }))
+          ]
+        }
+      ]
+    };
   }
 
   return { description, facts };
+};
+
+/** Keep initial boons separate from the delayed explosion and the charge spent by a later utility cast. */
+const holoDancerTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+  const skill = balanceContext.catalog.skillsById.get(entity.id)!;
+  const effects = (skill.effects ?? []).map((effect) => ({ ...effect, name: undefined }));
+  const explosion = effects.filter((effect) => (effect.atMs ?? 0) > 0);
+  return {
+    description:
+      'Consume this artifact to taunt foes and grant might. The decoy later explodes, dealing damage and granting might and fury. Artifact-use traits apply.',
+    facts: [],
+    factSections: [
+      {
+        label: 'On use',
+        facts: simulationEffectFacts(effects.filter((effect) => (effect.atMs ?? 0) === 0)).facts
+      },
+      ...(explosion.length
+        ? [
+            {
+              label: 'Explosion',
+              facts: [
+                {
+                  name: 'Delay after use',
+                  detail: tooltipSeconds(explosion[0].atMs! / 1000),
+                  icon: MODIFIER_EFFECT_ICONS.Interval
+                },
+                ...simulationEffectFacts(explosion).facts
+              ]
+            }
+          ]
+        : []),
+      {
+        label: 'Utility recharge',
+        description: 'Grants a charge for your next utility skill. Oldest charges are spent first.',
+        facts: [
+          skillFact(balanceContext, entity.id, 'rechargeMultiplier', 'Recharge reduction', (value) =>
+            tooltipPercentValue(1 - value)
+          ),
+          {
+            ...skillFact(balanceContext, entity.id, 'duration', 'Charge duration', tooltipSeconds),
+            icon: MODIFIER_EFFECT_ICONS.Lifetime
+          },
+          {
+            ...profileFact(
+              balanceContext,
+              TRAIT.METICULOUS_CUSTODIAN,
+              'duration',
+              'With Meticulous Custodian',
+              tooltipSeconds
+            ),
+            icon: MODIFIER_EFFECT_ICONS.Lifetime
+          }
+        ]
+      }
+    ]
+  };
 };
 
 /** Separate Guitar's attacks from its charge grants, keeping the final smash and charge cap distinct. */
@@ -147,14 +259,29 @@ const unstableSkrittBombTooltip: DescribeSimulationTooltip = skillTooltip(
   'Consume a held Skritt Scuffle artifact grant to explode the bomb, dealing strike damage and knocking enemies back. This backfire does not trigger regular artifact-use traits. Self-damage and incoming-damage penalties are outside simulation scope.'
 );
 
-const skrittSwipeTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Trigger stealing traits and replace held artifacts with a new choice pool. Grants the base artifact use plus supported Skritt Swipe bonuses; resets the initiative-spending counter.',
-  [
-    fromProfile(TRAIT.TRINKET_COLLECTOR, 'maximumStacks', 'Base artifact uses'),
-    fromProfile(TRAIT.PROLIFIC_PLUNDERER, 'resourceGain', 'Additional uses with Prolific Plunderer'),
-    fromProfile(TRAIT.IMPROVISATION, 'resourceGain', 'Additional uses with Improvisation')
+/** Trait bonuses add to the base artifact uses; they are not alternative totals. */
+const skrittSwipeTooltip: DescribeSimulationTooltip = (balanceContext) => ({
+  description:
+    "Steal artifacts and replace your current choices. Triggers stealing traits and resets Prodigious Pincher's initiative-spending progress.",
+  facts: [],
+  factSections: [
+    {
+      label: 'Artifact uses',
+      description: 'Selected trait bonuses add to the base amount.',
+      facts: [
+        profileFact(balanceContext, TRAIT.TRINKET_COLLECTOR, 'maximumStacks', 'Base uses'),
+        profileFact(
+          balanceContext,
+          TRAIT.PROLIFIC_PLUNDERER,
+          'resourceGain',
+          'Prolific Plunderer bonus',
+          (value) => `+${value}`
+        ),
+        profileFact(balanceContext, TRAIT.IMPROVISATION, 'resourceGain', 'Improvisation bonus', (value) => `+${value}`)
+      ].map((fact) => ({ ...fact, icon: MODIFIER_EFFECT_ICONS['Artifact uses'] }))
+    }
   ]
-);
+});
 
 const skrittScuffleTooltip: DescribeSimulationTooltip = skillTooltip(
   'Summon an assistant that immediately pilfers artifacts and repeats while active. Each pilfer replaces artifact choices, including Unstable Skritt Bomb, and resets base uses. Multiple assistants run independently.',
@@ -164,21 +291,44 @@ const skrittScuffleTooltip: DescribeSimulationTooltip = skillTooltip(
   ]
 );
 
+/** Keep base and enhanced payloads in separate tabs, with each dash and bomb labeled only once. */
 const forgedSurferTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const skill = balanceContext.catalog.skillsById.get(entity.id)!;
+  const effects = requireSkillAction(skill, 'surfer').effects;
+  const attackFacts = (packet: string, suffix: string) =>
+    simulationEffectFacts(
+      effects.filter((effect) => effect.name === packet).map((effect) => ({ ...effect, name: undefined }))
+    ).facts.map((fact) => ({ ...fact, name: `${fact.name} ${suffix}` }));
   return {
     description:
-      'Consume the artifact and schedule its dash followed by bombs while the buff lasts. Recasting restarts cadence and extends the remaining lifetime up to its cap. Each occurrence selects the current Meticulous Custodian alternative.',
+      'Consume this artifact to dash, then drop bombs at regular intervals. The dash and bombs deal strike damage and inflict burning. Using it again refreshes the duration and restarts the attacks.',
     facts: [
-      skillFact(balanceContext, entity.id, 'initialDelay', 'Dash delay', tooltipSeconds),
-      skillFact(balanceContext, entity.id, 'pulseInterval', 'Bomb interval', tooltipSeconds),
-      skillFact(balanceContext, entity.id, 'duration', 'Base buff duration', tooltipSeconds),
-      skillFact(balanceContext, entity.id, 'enhancedDuration', 'Enhanced buff duration', tooltipSeconds),
-      skillFact(balanceContext, entity.id, 'maximumDuration', 'Maximum remaining buff duration', tooltipSeconds),
-      ...requireSkillAction(skill, 'surfer').effects.flatMap(
-        (effect) => simulationEffectFacts([effect], effect.name).facts
-      )
-    ]
+      {
+        ...skillFact(balanceContext, entity.id, 'initialDelay', 'Delay before dash', tooltipSeconds),
+        icon: MODIFIER_EFFECT_ICONS.Interval
+      },
+      {
+        ...skillFact(balanceContext, entity.id, 'pulseInterval', 'Time between bombs', tooltipSeconds),
+        icon: MODIFIER_EFFECT_ICONS.Interval
+      }
+    ],
+    factTabs: [false, true].map((enhanced) => ({
+      label: enhanced ? 'Meticulous Custodian' : 'Base',
+      facts: [
+        {
+          name: 'Duration',
+          detail: tooltipSeconds(
+            Math.min(
+              skillNumber(skill, enhanced ? 'enhancedDuration' : 'duration'),
+              skillNumber(skill, 'maximumDuration')
+            )
+          ),
+          icon: MODIFIER_EFFECT_ICONS.Lifetime
+        },
+        ...attackFacts(enhanced ? 'Meticulous Dash' : 'Dash', 'on dash'),
+        ...attackFacts(enhanced ? 'Meticulous Bomb' : 'Bomb', 'per bomb')
+      ]
+    }))
   };
 };
 
@@ -240,15 +390,11 @@ const doubleEdgeTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
 export const antiquaryTooltips = {
   skills: {
     ...Object.fromEntries(
-      [
-        ID.HOLO_DANCER_DECOY,
-        ID.EXALTED_HAMMER,
-        ID.CHAK_SHIELD,
-        ID.ZEPHYRITE_SUN_CRYSTAL,
-        ID.SUMMON_KRYPTIS_TURRET,
-        ID.MISTBURN_MORTAR
-      ].map((id) => [id, artifactTooltip])
+      [ID.EXALTED_HAMMER, ID.CHAK_SHIELD, ID.ZEPHYRITE_SUN_CRYSTAL, ID.SUMMON_KRYPTIS_TURRET, ID.MISTBURN_MORTAR].map(
+        (id) => [id, artifactTooltip]
+      )
     ),
+    [ID.HOLO_DANCER_DECOY]: holoDancerTooltip,
     [ID.METAL_LEGION_GUITAR]: guitarTooltip,
     [ID.RESHUFFLE]: reshuffleTooltip,
     [ID.UNSTABLE_SKRITT_BOMB]: unstableSkrittBombTooltip,

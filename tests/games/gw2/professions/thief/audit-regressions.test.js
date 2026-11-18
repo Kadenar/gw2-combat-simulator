@@ -5,7 +5,10 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
-import { beginThiefStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import {
+  beginThiefStealthAttack,
+  reactThiefStealthBreakingStrike
+} from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -281,7 +284,25 @@ test('THF-001: Hidden Killer requires stealth and lingers after either natural e
       live('Core', [wait(2000)], config, {
         probes: [
           [1, (runtime) => emitStealth(runtime, skill, 3)],
-          ...(attack ? [[2, (runtime) => beginThiefStealthAttack(runtime, { skill, id: 'test-attack' })]] : [])
+          ...(attack
+            ? [
+                [
+                  2,
+                  (runtime) => {
+                    beginThiefStealthAttack(runtime, { skill, id: 'test-attack' });
+                    // A landed strike starts the linger; accepting the cast does not end stealth.
+                    reactThiefStealthBreakingStrike(runtime, {
+                      type: 'damage',
+                      actorType: 'player',
+                      at: runtime.time,
+                      skillId: skill.id,
+                      activationId: 'test-attack',
+                      coefficient: 1
+                    });
+                  }
+                ]
+              ]
+            : [])
         ]
       })
     );
