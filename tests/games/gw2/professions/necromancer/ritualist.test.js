@@ -483,6 +483,12 @@ test('exit cancels spirit attacks while Lingering preserves creatures until depl
     exited.resolvedEvents.some((event) => event.type === 'damage' && event.actorType === 'summon'),
     false
   );
+  const exitedAt = exited.steps.find((step) => step.skillId === ID.EXIT_RITUALISTS_SHROUD).end / 1000;
+  const grant = exited.resolvedEvents.find(
+    (event) => event.type === 'buff' && event.kind === 'necromancer-painful-bond'
+  );
+  assert.ok(grant.at > exitedAt);
+  assert.ok(bondDamage(exited).length > 0);
   const config = { ...base, initialResource: 12, selectedTraitIds: [TRAIT.LINGERING_SPIRITS] };
   const living = run(rotation.slice(0, 3), { config });
   assert.deepEqual(Object.keys(state(living).activeSpirits), ['anguish']);
@@ -495,6 +501,27 @@ test('exit cancels spirit attacks while Lingering preserves creatures until depl
   assert.equal(lifeForcePercent(depleted.planningState.profession[STATE.LIFE_FORCE]), 0);
   assert.equal(depleted.planningState.profession[STATE.LIFE_FORCE].unitsPerSecond, 0);
   assert.equal(depleted.steps.at(-1).invalid, true);
+});
+
+// Party boons use selected tuning and include the spirit created by the same summon.
+test('Preservation grants selected boons to its newly committed spirit', () => {
+  const result = run([cast(ID.RITUALISTS_SHROUD), cast(ID.PRESERVATION)], {
+    config: { ...base, allies: { count: 0 } },
+    skills: {
+      [ID.PRESERVATION]: { effects: [{ type: 'boon', boon: 'protection', duration: 7 }] }
+    }
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.planningState.profession[STATE.ACTIVE_SPIRITS].preservation);
+  for (const kind of ['protection', 'vigor']) {
+    const grant = result.resolvedEvents.find(
+      (event) => event.type === 'buff' && event.skillId === ID.PRESERVATION && event.kind === kind
+    );
+    assert.ok(grant);
+    assert.ok(grant.audience.eligibleCompanionIds.includes('spirit:preservation'));
+
+    if (kind === 'protection') assert.equal(grant.duration, 7);
+  }
 });
 
 test('replacement cancels a prior spirit generation without resetting the shared autonomous cadence', () => {

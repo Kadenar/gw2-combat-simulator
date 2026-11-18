@@ -1,15 +1,11 @@
+/** Compose spirit execution, player actions, and independent weapon-spell effects through their runtime hooks. */
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
-import { balanceNumber, requireSkill as damageSkill } from '#gw2/platform/skills/balance-profiles.js';
-import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
+import { requireSkill as damageSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { setNecromancerCreatureStrikeScaling } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import {
-  NECROMANCER_SKILL_IDS as DAMAGE_SKILL,
-  NECROMANCER_TRAIT_IDS as TRAIT
-} from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as DAMAGE_SKILL } from '#gw2/professions/necromancer/data/ids.js';
 import { ritualistBuffPolicies } from '#gw2/professions/necromancer/specializations/ritualist/effect-state.js';
 import {
   emitPainfulBond,
@@ -19,24 +15,14 @@ import {
   queueNightmareWeapon,
   queueSplinterWeapon
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
-import {
-  initializeRitualistSpiritLifecycle,
-  ritualistSpiritTasks,
-  startRitualistSpirits
-} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-lifecycle.js';
-import {
-  INNERVATE,
-  ritualistSpiritActions
-} from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-actions.js';
+import { ritualistSpiritHooks } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-lifecycle.js';
+import { ritualistPlayerActionHooks } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-actions.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import {
-  lingeringSpiritsActive,
-  spiritsStrengthCreatureMultiplier
-} from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
+import { spiritsStrengthCreatureMultiplier } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
-/** Ritualist uses the shared Core resource owner and actual creature callbacks, with specialization-owned lifetimes. */
-const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
+/** Expose independent effect previews and grants, and apply Ritualist scaling to the shared creature owner. */
+const ritualistEffectHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   // Each weapon-spell charge is a known effect, independent of who could consume it.
   damageEffects: [
     {
@@ -94,42 +80,15 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
       )
     );
   },
-  resources: {
-    lifeForce: {
-      ...necromancerLifeForce,
-      recovery(runtime) {
-        if (
-          !runtime.profession.core.activeShroud &&
-          Object.keys(ritualistState.from(runtime.profession).activeSpirits).length &&
-          lingeringSpiritsActive(runtime)
-        )
-          return (
-            (-runtime.profession.core.lifeForce.maximum *
-              balanceNumber(runtime.helpers, TRAIT.SPAWNING_POWER, 'lifeForceDrain')) /
-            100
-          );
-
-        return necromancerLifeForce.recovery(runtime);
-      }
-    }
-  },
-  onCombatStart: startRitualistSpirits,
   initialize(runtime) {
-    initializeRitualistSpiritLifecycle(runtime);
     setNecromancerCreatureStrikeScaling(runtime, () => spiritsStrengthCreatureMultiplier(runtime.queries));
-  },
-  availability(runtime, skill) {
-    const key = INNERVATE.get(skill.id);
-    return key && !ritualistState.from(runtime.profession).activeSpirits[key]
-      ? denySkillCast(skill, 'necromancer.spirit', `requires an active ${key} spirit.`)
-      : { ready: true };
-  },
-  sideEffectHandlers: ritualistSpiritActions,
-  tasks: ritualistSpiritTasks
+  }
 };
 
 /** Compose independent weapon-spell and spirit owners without hiding duplicate registries. */
 export const ritualistHooks = composeRuntimeHooks<NecromancerRuntimeState, NecromancerSkill>([
   ritualistSpellHooks,
-  spiritLifecycle
+  ritualistSpiritHooks,
+  ritualistEffectHooks,
+  ritualistPlayerActionHooks
 ]);

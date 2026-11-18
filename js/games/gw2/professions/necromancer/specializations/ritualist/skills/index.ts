@@ -168,7 +168,7 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
       {
         on: 'castCommit',
         do: {
-          type: 'ritualist.summon-anguish',
+          type: 'ritualist.summon-spirit',
           id: 'opening',
           effects: [
             {
@@ -296,7 +296,7 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
       {
         on: 'castCommit',
         do: {
-          type: 'ritualist.summon-wanderlust',
+          type: 'ritualist.summon-spirit',
           id: 'opening',
           effects: [
             {
@@ -393,7 +393,7 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
     ],
     effectVariants: [{ when: () => true, transform: () => [] }],
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-preservation', id: 'opening', effects: [] } }]
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-spirit', id: 'opening', effects: [] } }]
   },
   [ID.SPLINTER_WEAPON]: {
     name: 'Splinter Weapon',

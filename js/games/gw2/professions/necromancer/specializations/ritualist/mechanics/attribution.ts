@@ -1,9 +1,16 @@
+/** Share cast attribution and impact offsets across Ritualist player actions and spirit execution. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { copyStrikePayload, type StrikePayloadFields } from '#gw2/platform/effects/strike-payload.js';
 import type { StrikeEffect, StrikeTick } from '#gw2/platform/effects/types.js';
 import type { EffectMetadata } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+
+/** Apply the authored attack offset and optional travel delay on the canonical clock. */
+export function spiritImpactAt(at: number, cast: RuntimeCast<NecromancerSkill>, offsetMs: number): number {
+  return gw2Time(at + offsetMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000);
+}
 
 export function attribution(cast: RuntimeCast<NecromancerSkill>) {
   return {
