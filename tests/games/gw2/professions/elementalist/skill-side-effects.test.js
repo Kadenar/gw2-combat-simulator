@@ -9,50 +9,46 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Live skill fields remain the one amount source; eligibility is commitment, and the shared pool still caps rewards.
 test('Elementalist endurance declarations retain patched amounts and committed-cast eligibility', () => {
-  for (const [skillId, specialization] of [
-    [ID.AQUATIC_STANCE, 'Weaver'],
-    [ID.HARES_AGILITY, 'Evoker']
+  const skillId = ID.HARES_AGILITY;
+  for (const [mode, amount, initial] of [
+    ['full', 23, 0],
+    ['committed', 23, 0],
+    ['cancelled', 23, 0],
+    ['full', 23, 95],
+    ['full', 0, 0]
   ]) {
-    for (const [mode, amount, initial] of [
-      ['full', 23, 0],
-      ['committed', 23, 0],
-      ['cancelled', 23, 0],
-      ['full', 23, 95],
-      ['full', 0, 0]
-    ]) {
-      const profession = {
-        ...elementalistProfession,
-        runtimeFor(config) {
-          const native = elementalistProfession.runtimeFor(config);
-          // A synthetic interruptible reward isolates the commit contract without asserting production animation values.
-          return {
-            ...native,
-            catalog: withSkill(native.catalog, skillId, {
-              castTimeMs: 1000,
-              interruptCommitMs: 200,
-              resourceGain: amount
-            })
-          };
-        }
-      };
-      const result = runElementalist(
-        [{ type: 'cast', skillId, ...(mode === 'full' ? {} : { interruptAfterMs: mode === 'committed' ? 400 : 100 }) }],
-        {
-          specialization,
-          primaryWeapon: 'Dagger',
-          selectedTraitIds: [],
-          initialEndurance: initial,
-          selectedSkillIds: [skillId === ID.AQUATIC_STANCE ? 44239 : 77038]
-        },
-        { profession }
-      );
-      assert.deepEqual(result.warnings, []);
-      const runtime = observedRuntime(result);
-      assert.equal(
-        runtime.profession.core.endurance.value,
-        Math.min(100, initial + runtime.time * 5 + (mode === 'cancelled' ? 0 : amount))
-      );
-    }
+    const profession = {
+      ...elementalistProfession,
+      runtimeFor(config) {
+        const native = elementalistProfession.runtimeFor(config);
+        // A synthetic interruptible reward isolates the commit contract without asserting production animation values.
+        return {
+          ...native,
+          catalog: withSkill(native.catalog, skillId, {
+            castTimeMs: 1000,
+            interruptCommitMs: 200,
+            resourceGain: amount
+          })
+        };
+      }
+    };
+    const result = runElementalist(
+      [{ type: 'cast', skillId, ...(mode === 'full' ? {} : { interruptAfterMs: mode === 'committed' ? 400 : 100 }) }],
+      {
+        specialization: 'Evoker',
+        primaryWeapon: 'Dagger',
+        selectedTraitIds: [],
+        initialEndurance: initial,
+        selectedSkillIds: [skillId]
+      },
+      { profession }
+    );
+    assert.deepEqual(result.warnings, []);
+    const runtime = observedRuntime(result);
+    assert.equal(
+      runtime.profession.core.endurance.value,
+      Math.min(100, initial + runtime.time * 5 + (mode === 'cancelled' ? 0 : amount))
+    );
   }
 });
 

@@ -21,6 +21,11 @@ const DUAL_ATTUNEMENT_NAME = /^Dual (Fire|Water|Air|Earth) Attunement$/i;
 // EI derives Unravel and its generated Dual attunement from separate buff gains that can land a millisecond apart.
 const UNRAVEL_TRANSITION_WINDOW_MS = 5;
 const ATTUNEMENT_SUFFIX_SKILLS = new Set(['Glyph of Elemental Power', 'Deploy Jade Sphere']);
+// Logs identify the player's command separately from the elemental attack used by the simulator.
+const ELEMENTAL_COMMANDS = new Map<number, ElementalistSkillIdentity>([
+  [25499, { name: 'Flame Barrage', skillId: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND }],
+  [25498, { name: 'Stomp', skillId: ID.STOMP_ELEMENTAL_COMMAND }]
+]);
 const GLYPH_OF_STORMS = new Map<string, ElementalistSkillIdentity>([
   ['Firestorm', { name: 'Glyph of Storms (Fire)', skillId: ID.GLYPH_OF_STORMS_FIRE }],
   ['Ice Storm', { name: 'Glyph of Storms (Water)', skillId: ID.GLYPH_OF_STORMS_WATER }],
@@ -136,9 +141,12 @@ function normalizeRecordedActions(context: LogActionNormalizationContext): Recor
     let normalizedAction = action;
 
     const glyph = GLYPH_OF_STORMS.get(action.rawName);
+    const elementalCommand = ELEMENTAL_COMMANDS.get(action.rawSkillId);
     const element = swappedElement(action);
 
-    if (glyph) {
+    if (elementalCommand) {
+      normalizedAction = canonicalize(normalizedAction, elementalCommand);
+    } else if (glyph) {
       normalizedAction = canonicalize(normalizedAction, glyph);
     } else if (element) {
       normalizedAction = canonicalize(normalizedAction, {

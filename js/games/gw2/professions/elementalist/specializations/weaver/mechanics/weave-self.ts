@@ -23,6 +23,12 @@ import type {
 import { canonicalTime } from '#kernel/core/clock.js';
 
 const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
+const WOVEN_BUFFS = ['weave self fire', 'weave self water', 'weave self air', 'weave self earth'];
+
+/** Replacing or consuming the form ends old applications before granting another window. */
+function endWovenBuffs(context: ElementalistRuntime, at: number): void {
+  for (const kind of ['perfect weave', ...WOVEN_BUFFS]) context.combat.endBuffs(kind, at, () => true);
+}
 
 /**
  * Schedules Weave Self's activation at the same partial-cast point where the platform starts its recharge
@@ -52,12 +58,11 @@ function handleWeaveSelfActivation(
   const at = context.time;
   const sourceId = data as Skill['id'];
   const duration = skillNumber(requireSkill(context.helpers, ID.WEAVE_SELF), 'duration');
+  endWovenBuffs(context, at);
   // Availability and emitted temporary buffs expire on the same combat tick.
   state.weaveSelfUntil = gw2TimerDeadline(at, duration);
   state.weaveSelfVisited = [core.primaryAttunement];
   state.perfectWeaveUntil = 0;
-
-  if (core.primaryAttunement !== 'Fire' && core.primaryAttunement !== 'Air') return;
 
   context.effects.emit(
     elementalistBuffRequest(
@@ -97,7 +102,7 @@ export function applyWeaveSelfAttunement(
   // Partial elemental bonuses share the original deadline, so revisiting an element cannot extend Weave Self.
   const remaining = Math.max(0, state.weaveSelfUntil - at);
 
-  if (target === 'Fire' || target === 'Air') {
+  if (visited.size < ELEMENTALIST_ATTUNEMENTS.length) {
     context.effects.emit(
       elementalistBuffRequest({
         cause,
@@ -112,16 +117,16 @@ export function applyWeaveSelfAttunement(
         skillName: source
       })
     );
+    return;
   }
 
-  if (visited.size < ELEMENTALIST_ATTUNEMENTS.length) return;
-
+  endWovenBuffs(context, at);
   state.weaveSelfUntil = 0;
   state.weaveSelfVisited = [];
   // Perfect Weave is Weave Self's follow-up window: Tailored Victory stays available for its flip duration.
   const perfectWeaveDuration = skillNumber(requireSkill(context.helpers, ID.WEAVE_SELF), 'flipDuration');
   state.perfectWeaveUntil = gw2TimerDeadline(at, perfectWeaveDuration);
-  for (const kind of ['perfect weave', 'weave self fire', 'weave self air']) {
+  for (const kind of ['perfect weave', ...WOVEN_BUFFS]) {
     context.effects.emit(
       elementalistBuffRequest({
         cause,
@@ -159,6 +164,7 @@ const weaveSelfTasks = {
   [WEAVE_SELF_ACTIVATION_TASK]: handleWeaveSelfActivation,
   'elementalist.weaver.consume-perfect-weave'(runtime) {
     weaverState.from(runtime.profession).perfectWeaveUntil = 0;
+    endWovenBuffs(runtime, runtime.time);
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['tasks']>;
 

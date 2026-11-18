@@ -4,7 +4,9 @@ import { defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
 export const WEAVER_SKILL_FIELDS = defineFields(
   {
     // Purblinding Plasma's factor, applied only while reserving recharge with an Air bullet loaded.
-    airBulletRechargeMultiplier: numberField({ patch: 'primary' })
+    airBulletRechargeMultiplier: numberField({ patch: 'primary' }),
+    // Woven Water's boon-duration bonus stays editable with Weave Self.
+    weaverWaterBoonDuration: numberField({ patch: 'primary' })
   },
   'Weaver'
 );

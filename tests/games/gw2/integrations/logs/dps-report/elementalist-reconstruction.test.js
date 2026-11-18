@@ -15,6 +15,19 @@ import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 
+// Command IDs must resolve without relying on EI's translated or missing skill names.
+test('Elementalist summon commands resolve through their recorded player IDs', () => {
+  for (const [rawSkillId, skillId] of [
+    [25499, ID.FLAME_BARRAGE_ELEMENTAL_COMMAND],
+    [25498, ID.STOMP_ELEMENTAL_COMMAND]
+  ]) {
+    const report = reportFixture('Evoker', [{ id: rawSkillId, skills: [{ castTime: 0, duration: 0 }] }], {});
+    const result = reconstructDpsReportRotation(report, elementalistCatalog);
+    assert.ok(result.rotation.some((command) => command.type === 'cast' && command.skillId === skillId));
+    assert.equal(result.actions[0].supportedByCatalog, true);
+  }
+});
+
 // Current staff IDs must load directly instead of resolving to retired skills with matching names.
 test('replacement staff IDs reconstruct as current Elementalist weapon skills', () => {
   for (const [id, name] of [

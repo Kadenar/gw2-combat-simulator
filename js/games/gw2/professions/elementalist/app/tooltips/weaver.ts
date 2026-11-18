@@ -108,16 +108,19 @@ export const weaverTooltips = {
       "Apply the dual attack's effects. Consume each stored Water and Earth bullet, or gain a bullet for any missing element. These bullet bonuses add no extra damage in the simulation."
     ),
     [ID.WEAVE_SELF]: skillTooltip(
-      `Begin Weave Self and rapidly cycle attunements; attunements recharge in ${WEAVE_SELF_ATTUNEMENT_RECHARGE_SECONDS} seconds while it is active. Fire increases condition damage; Air increases strike damage. Visiting every element grants Perfect Weave and unlocks Tailored Victory. Recharge begins when Weave Self activates.`,
+      `Begin Weave Self and rapidly cycle attunements; attunements recharge in ${WEAVE_SELF_ATTUNEMENT_RECHARGE_SECONDS} seconds while it is active. Fire increases condition damage; Air increases strike damage; Water increases boon duration. Visiting every element replaces these buffs with Perfect Weave and unlocks Tailored Victory. Recharge begins when Weave Self activates.`,
       [
         fromSkill(ID.WEAVE_SELF, 'duration', 'Weave Self window', tooltipSeconds),
         fromSkill(ID.WEAVE_SELF, 'flipDuration', 'Perfect Weave window', tooltipSeconds),
         fromModifier('elementalist.weave-self-air', 'amount', 'Air strike damage'),
-        fromModifier('elementalist.weave-self-fire', 'amount', 'Fire condition damage')
+        fromModifier('elementalist.weave-self-fire', 'amount', 'Fire condition damage'),
+        fromSkill(ID.WEAVE_SELF, 'weaverWaterBoonDuration', 'Water boon duration', (value) =>
+          tooltipPercent(value / 100)
+        )
       ]
     ),
     [ID.TAILORED_VICTORY]: skillTooltip(
-      'Consume Perfect Weave and apply the control effect. Requires an active Perfect Weave window.'
+      'Apply the control effect and end Perfect Weave and its elemental bonuses when the cast completes. Requires an active Perfect Weave window.'
     ),
     [ID.UNRAVEL]: skillTooltip(
       'Align both hands to your primary attunement and reset all attunement recharges. Gain the matching elemental boon; the hands remain aligned during the window.',

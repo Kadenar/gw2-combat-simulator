@@ -1,6 +1,9 @@
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { TRAIT_LINES } from '#gw2/professions/elementalist/data/trait-lines.js';
 import { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/catalog-fields.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
@@ -29,6 +32,17 @@ export const weaverModule = defineNativeModule({
   }),
   state: { create: weaverState.create, project: projectWeaverPlanningState },
   traitDefinitions: weaverTraits,
+  // Woven Water adds percentage points through the shared boon-duration calculation and cap.
+  attributes: (context) => [
+    {
+      traitDurations: {
+        'Boon Duration':
+          activeBuffStacks(context, 'weave self water', 1) > 0
+            ? skillNumber(requireSkill(context.balanceContext.catalog, ID.WEAVE_SELF), 'weaverWaterBoonDuration')
+            : 0
+      }
+    }
+  ],
   hooks: weaverHooks,
   presentation: weaverUi
 });

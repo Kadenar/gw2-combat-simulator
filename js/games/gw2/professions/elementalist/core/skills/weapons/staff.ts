@@ -19,36 +19,19 @@ import {
 } from '#gw2/platform/constants.js';
 import { impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
-import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
+import { selectMeteorShowerImpacts } from '#gw2/professions/elementalist/core/mechanics/staff.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
-// Each cast owns its falloff, starting at 2.0 and dropping 10% per hit to a 20% floor.
-const METEOR_SHOWER_STRIKE_TICKS = [
-  { atMs: 2320, coefficient: 2.0 },
-  { atMs: 2600, coefficient: 1.8 },
-  { atMs: 2920, coefficient: 1.6 },
-  { atMs: 3240, coefficient: 1.4 },
-  { atMs: 3400, coefficient: 1.2 },
-  { atMs: 3880, coefficient: 1.0 },
-  { atMs: 4480, coefficient: 0.8 },
-  { atMs: 4760, coefficient: 0.6 },
-  { atMs: 5080, coefficient: 0.4 },
-  { atMs: 5400, coefficient: 0.4 },
-  { atMs: 5560, coefficient: 0.4 },
-  { atMs: 6040, coefficient: 0.4 },
-  { atMs: 6640, coefficient: 0.4 },
-  { atMs: 6920, coefficient: 0.4 },
-  { atMs: 7240, coefficient: 0.4 },
-  { atMs: 7560, coefficient: 0.4 },
-  { atMs: 7720, coefficient: 0.4 },
-  { atMs: 8200, coefficient: 0.4 },
-  { atMs: 8800, coefficient: 0.4 },
-  { atMs: 9080, coefficient: 0.4 },
-  { atMs: 9400, coefficient: 0.4 },
-  { atMs: 9720, coefficient: 0.4 },
-  { atMs: 9880, coefficient: 0.4 },
-  { atMs: 10360, coefficient: 0.4 }
+// Frame estimates commit one meteor per wave at each stage
+// Impact offsets come from the supplied logs; commitment and impact are independent.
+const METEOR_SHOWER_STAGES = [
+  { commitMs: 980, impacts: [2320, 4480, 6640, 8800] },
+  { commitMs: 1270, impacts: [2600, 4760, 6920, 9080] },
+  { commitMs: 1580, impacts: [2920, 5080, 7240, 9400] },
+  { commitMs: 1900, impacts: [3240, 5400, 7560, 9720] },
+  { commitMs: 2050, impacts: [3400, 5560, 7720, 9880] },
+  { commitMs: 2550, impacts: [3880, 6040, 8200, 10360] }
 ] as const;
 
 /**
@@ -68,9 +51,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
 
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    // The shorter windup advances both the projectile release and the next cast.
-    castTimeMs: 710,
-    effects: impactEffects({ atMs: 470, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    castTimeMs: 840,
+    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.4 },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1 }
     ])
@@ -92,7 +74,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         ownerId: 'elementalist',
         fieldType: COMBO_FIELD.FIRE,
         duration: 4,
-        startAnchor: 'castEnd'
+        startAnchor: 'castStart',
+        startMs: 160
       }
     ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -104,7 +87,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         damageKind: 'field-tick',
         atMs: 1160,
         applications: 4,
-        intervalMs: 1000
+        intervalMs: 1000,
+        intervalTimingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -113,7 +97,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         duration: 1,
         atMs: 1160,
         applications: 4,
-        intervalMs: 1000
+        intervalMs: 1000,
+        intervalTimingScale: 'fixed'
       }
     ])
   },
@@ -129,7 +114,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 10,
     skillFamily: 'Weapon skill',
     castTimeMs: 600,
-    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.75, projectile: true },
       {
         type: 'condition',
@@ -157,7 +142,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         ownerId: 'elementalist',
         fieldType: COMBO_FIELD.FIRE,
         duration: 6,
-        startAnchor: 'castEnd'
+        startAnchor: 'castStart',
+        startMs: 80
       }
     ],
     effects: [
@@ -172,6 +158,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         atMs: 1080,
         applications: 6,
         intervalMs: 1000,
+        intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -183,35 +170,42 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         atMs: 1080,
         applications: 6,
         intervalMs: 1000,
+        intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
     ]
   },
-  // Twenty-four meteors over roughly ten seconds; the shared tick table decays the coefficient
-  // from 2.0 down to a 0.4 floor.
-  [ID.METEOR_SHOWER]: withSmallHitboxCap(
-    {
-      name: 'Meteor Shower',
-      icon: 'https://render.guildwars2.com/file/660B4E695A6026F9D70CA6B0D7565774805C6B0E/103255.png',
+  // Each committed stage survives cancellation; only landed meteors advance the cast's damage falloff.
+  [ID.METEOR_SHOWER]: {
+    name: 'Meteor Shower',
+    icon: 'https://render.guildwars2.com/file/660B4E695A6026F9D70CA6B0D7565774805C6B0E/103255.png',
 
-      type: 'Weapon',
-      slot: 'Weapon_5',
-      weapon: WEAPON.STAFF,
-      attunement: 'Fire',
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    weapon: WEAPON.STAFF,
+    attunement: 'Fire',
 
-      cooldown: 30,
-      skillFamily: 'Weapon skill',
-      castTimeMs: 2640,
-      effects: [
-        strikeTimeline(METEOR_SHOWER_STRIKE_TICKS, {
+    cooldown: 30,
+    skillFamily: 'Weapon skill',
+    castTimeMs: 2840,
+    meteorCancelCooldown: 4,
+    meteorSmallTargetHitChance: 0.25,
+    meteorDamageReductionPerHit: 0.1,
+    meteorMinimumDamageFactor: 0.2,
+    effectVariants: [{ when: () => true, transform: selectMeteorShowerImpacts }],
+    effects: METEOR_SHOWER_STAGES.map(({ commitMs, impacts }) =>
+      strikeTimeline(
+        impacts.map((atMs) => ({ atMs, coefficient: 2 })),
+        {
           timingAnchor: 'castStart',
-          timingScale: 'cast'
-        })
-      ]
-    },
-    12
-  ),
+          timingScale: 'fixed',
+          persistsAfterInterrupt: true,
+          interruptCommitMs: commitMs
+        }
+      )
+    )
+  },
   [ID.WATER_BLAST]: {
     name: 'Water Blast',
     icon: 'https://render.guildwars2.com/file/FE0B500420CE04976E45D370B0EC6EC874B1E5FE/103184.png',
@@ -283,12 +277,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         ownerId: 'elementalist',
         fieldType: COMBO_FIELD.WATER,
         duration: 4,
-        startAnchor: 'castEnd'
+        startAnchor: 'castStart',
+        startMs: 440
       }
     ],
     effects: []
   },
-  // Ice field for combo purposes; only the initial Chilled application is emitted.
+  // Opening the ice field grants an aura; enemies remaining in it receive recurring Chill.
   [ID.FROZEN_GROUNDS]: {
     name: 'Frozen Grounds',
     icon: 'https://render.guildwars2.com/file/5EE193655A445A5E9ED31EE7121E01C0B113907E/103217.png',
@@ -305,20 +300,28 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         ownerId: 'elementalist',
         fieldType: COMBO_FIELD.ICE,
         duration: 5,
-        startAnchor: 'castEnd'
+        startAnchor: 'castStart',
+        startMs: 160
       }
     ],
     effects: [
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 160,
-            condition: CONDITION.CHILLED,
-            stacks: 1,
-            duration: 2
-          }
-        ],
+        atMs: 160,
+        condition: CONDITION.CHILLED,
+        stacks: 1,
+        duration: 2,
+        applications: 6,
+        intervalMs: 1000,
+        intervalTimingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'aura',
+        aura: AURA.FROST,
+        duration: 3,
+        atMs: 160,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -340,7 +343,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         ownerId: 'elementalist',
         fieldType: COMBO_FIELD.WATER,
         duration: 6,
-        startAnchor: 'castEnd'
+        startAnchor: 'castStart',
+        startMs: 720
       }
     ],
     effects: [
@@ -350,7 +354,11 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         // Share this support boon with affected allies within its recipient cap.
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         stacks: 1,
-        duration: 13,
+        // Each rain pulse grants its own boon rather than front-loading future regeneration.
+        duration: 4,
+        applications: 3,
+        intervalMs: 3000,
+        intervalTimingScale: 'fixed',
         atMs: 720,
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -423,7 +431,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: WEAPON.STAFF,
     attunement: 'Air',
 
-    cooldown: 25,
+    cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 480,
     effects: [
@@ -476,13 +484,15 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         ownerId: 'elementalist',
         fieldType: COMBO_FIELD.LIGHTNING,
         duration: 4,
-        startAnchor: 'castEnd'
+        startAnchor: 'castStart',
+        startMs: 560
       }
     ],
     effects: [
-      ...impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast' }, [
-        { type: 'strike', coefficient: 0.5, canCrit: true },
-        { type: 'control', controlKind: CONTROL.STUN }
+      // Centered stationary targets do not cross the perimeter; the existing movement assumption admits contact.
+      ...impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.5, canCrit: true, when: (runtime) => runtime.config.target?.moving === true },
+        { type: 'control', controlKind: CONTROL.STUN, when: (runtime) => runtime.config.target?.moving === true }
       ])
     ]
   },
@@ -498,8 +508,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
 
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    // Only recovery shortens; projectile release keeps its existing timing.
-    castTimeMs: 680,
+    castTimeMs: 840,
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -601,6 +610,16 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast'
+      },
+      {
+        type: 'boon',
+        boon: BOON.STABILITY,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        stacks: 2,
+        duration: 6,
+        atMs: 840,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ],
     // Consume all live matching auras on commitment, regardless of which skill or trait granted them.
@@ -616,10 +635,12 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
 
     cooldown: 30,
     skillFamily: 'Weapon skill',
-    castTimeMs: 720,
+    castTimeMs: 480,
     effects: [
       {
         type: 'control',
+        // A stationary target inside the wall does not attempt to cross it.
+        when: (runtime) => runtime.config.target?.moving === true,
         atMs: 400,
         applications: 1,
         timingAnchor: 'castStart',

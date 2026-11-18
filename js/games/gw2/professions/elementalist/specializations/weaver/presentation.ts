@@ -415,7 +415,9 @@ export const weaverUi: ElementalistUiSlice = Object.freeze({
   prepareSkillDamagePreview({ values }: SkillDamagePreviewPreparation) {
     return {
       initialBuffs: values.perfectWeave
-        ? ['perfect weave', 'weave self air', 'weave self fire'].map((kind) => ({ kind, stacks: 1, duration: 3600 }))
+        ? ['perfect weave', 'weave self air', 'weave self fire', 'weave self water', 'weave self earth'].map(
+            (kind) => ({ kind, stacks: 1, duration: 3600 })
+          )
         : []
     };
   },

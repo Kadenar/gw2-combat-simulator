@@ -64,11 +64,8 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
       }
     ]
   },
-  // Fire+Earth. The only staff dual that lays a field: a four-second Fire field
-  // opening at cast end, backed by an impact hit at 720 ms and then four
-  // one-second `field-tick` pulses (1720-4720 ms), each stacking one second of
-  // Burning. Named in the core Persisting Flames list, so that trait can extend
-  // both the field and these tick packets.
+  // Fire+Earth. Impact opens the field; Persisting Flames extends it and its periodic damage.
+  // The observed impact includes projectile travel at the logged range.
   [ID.PYROCLASTIC_BLAST]: {
     name: 'Pyroclastic Blast',
     icon: 'https://render.guildwars2.com/file/03920A0BA342FF9BAEF0B19A4CEC6008D061F821/1770352.png',
@@ -85,11 +82,12 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
         ownerId: 'elementalist',
         fieldType: COMBO_FIELD.FIRE,
         duration: 4,
-        startAnchor: 'castEnd'
+        startAnchor: 'castStart',
+        startMs: 920
       }
     ],
     effects: [
-      ...impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      ...impactEffects({ atMs: 920, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.8 },
         { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3 }
       ]),
@@ -97,9 +95,10 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
         type: 'strike',
         coefficient: 0.4,
         damageKind: 'field-tick',
-        atMs: 1720,
+        atMs: 1920,
         applications: 4,
         intervalMs: 1000,
+        intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -108,9 +107,10 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
         condition: CONDITION.BURNING,
         stacks: 1,
         duration: 1,
-        atMs: 1720,
+        atMs: 1920,
         applications: 4,
         intervalMs: 1000,
+        intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -161,8 +161,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
       }
     ]
   },
-  // Water and Earth. Five one-second pulses occur from 1280 ms to 5280 ms,
-  // after the 640 ms cast. Each pulse reapplies Cripple and Immobilize.
+  // Water and Earth. Stability protects the cast; only the first pulse immobilizes.
   [ID.LAHAR]: {
     name: 'Lahar',
     icon: 'https://render.guildwars2.com/file/063CA2E1A6EEA00EB1AADE09C80C77D5D8222EBA/1770350.png',
@@ -176,6 +175,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     castTimeMs: 640,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5, atMs: 0 },
       {
         type: 'strike',
         ticks: [1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 0.25 }))
@@ -191,12 +191,10 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
       },
       {
         type: 'condition',
-        ticks: [1280, 2280, 3280, 4280, 5280].map((atMs) => ({
-          atMs,
-          condition: CONDITION.IMMOBILIZED,
-          stacks: 1,
-          duration: 2
-        }))
+        atMs: 1280,
+        condition: CONDITION.IMMOBILIZED,
+        stacks: 1,
+        duration: 2
       }
     ])
   },

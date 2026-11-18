@@ -34,22 +34,6 @@ const PRIMORDIAL_STANCE_EFFECTS = {
 /** Declares Weaver-owned non-weapon skills for composition by `index.ts`. */
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
-  [ID.AQUATIC_STANCE]: {
-    name: 'Aquatic Stance',
-    icon: 'https://render.guildwars2.com/file/9C99AE9FFAFE0EFE34F52377D7DAE3375A2F989B/1770328.png',
-    type: 'Heal',
-    slot: 'Heal',
-
-    cooldown: 20,
-    resourceGain: 50,
-    skillFamily: 'Stance',
-    castTimeMs: 640,
-    effects: [],
-    // Committed activations restore endurance using this skill's editable amount.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } } }
-    ]
-  },
   // One input and ammunition pool remain stable while pulses follow both live attunements.
   [ID.PRIMORDIAL_STANCE]: {
     name: 'Primordial Stance',
@@ -59,6 +43,7 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
 
     cooldown: 20,
     ammo: 2,
+    ammoCastLockout: 5,
 
     skillFamily: 'Stance',
     castTimeMs: 0,
@@ -114,6 +99,7 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
     // Weave Self lasts `duration`; completing every attunement opens Tailored Victory for `flipDuration`.
     duration: 20,
     flipDuration: 10,
+    weaverWaterBoonDuration: 20,
     // The form activates, and recharge starts, at this fraction of the cast.
     rechargeProgress: 0.65,
     type: 'Elite',

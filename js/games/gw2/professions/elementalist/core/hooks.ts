@@ -35,6 +35,7 @@ import {
 import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
 import { elementalistRockBarrierLifecycle } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
 import { createElementalistSpearLifecycle } from '#gw2/professions/elementalist/core/mechanics/spear.js';
+import { elementalistStaffLifecycle } from '#gw2/professions/elementalist/core/mechanics/staff.js';
 import {
   auraAccepted,
   controlAccepted,
@@ -57,6 +58,7 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
   elementalistConjureLifecycle,
   elementalistHammerOrbLifecycle,
   elementalistPistolLifecycle,
+  elementalistStaffLifecycle,
   createElementalistSpearLifecycle({
     buffPolicies: (runtime) => elementalistBuffPolicies(runtime.helpers),
     observeEffects: elementalistEffectStates,
