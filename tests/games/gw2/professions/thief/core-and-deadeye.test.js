@@ -756,15 +756,27 @@ test('weapon swap preserves shared initiative', () => {
   assert.equal(resetChain.steps.filter((step) => step.skillName === 'Double Strike').length, 2);
 });
 
-test('a pre-commit cancellation does not advance the Thief autoattack chain', () => {
-  const result = simulate('Core', [{ name: 'Double Strike', interruptMs: 1 }, 'Double Strike'], {
-    primaryWeapon: 'Dagger',
-    secondaryWeapon: 'Dagger'
-  });
+// Stopping before any strike leaves the chain on its opener.
+test('interrupting Double Strike before it lands does not advance the autoattack chain', () => {
+  const result = runThief([{ type: 'cast', skillId: ID.DOUBLE_STRIKE, interruptAfterMs: 40 }]);
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.events.find((event) => event.type === 'action').cancelled, true);
-  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.DOUBLE_STRIKE], ID.WILD_STRIKE);
+  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.DOUBLE_STRIKE], ID.DOUBLE_STRIKE);
+});
+
+// A partially landed Double Strike unlocks Wild Strike even when the remaining strike is interrupted.
+test('an interrupted Double Strike advances the chain after a landed strike', () => {
+  const result = runThief(
+    [
+      { type: 'cast', skillId: ID.DOUBLE_STRIKE, interruptAfterMs: 240 },
+      { type: 'cast', skillId: ID.WILD_STRIKE }
+    ],
+    { boons: { quickness: true } }
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.DOUBLE_STRIKE));
+  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.DOUBLE_STRIKE], ID.LOTUS_STRIKE);
 });
 
 test('stealth attacks remove stealth, apply Revealed, and block replacement', () => {

@@ -16,11 +16,6 @@ const pendingWarnings = new Map([
     new Set([deadeyeStealthWarning])
   ],
   [
-    // The report continues to Wild Strike after a Double Strike shorter than the simulator's commitment boundary.
-    'data/gw2/builds/thief/b-condi-antiquary-dagger-dagger.json',
-    new Set(['Wild Strike: Wild Strike is unavailable - cast Double Strike first.'])
-  ],
-  [
     // The source shortens a chain opener and omits a later trap activation; retain both discrepancies for review.
     'data/gw2/builds/thief/b-condi-antiquary-scepter-dagger.json',
     new Set([

@@ -5,7 +5,7 @@
     "benchmarkDurationSeconds": 101.009,
     "benchmarkDamage": 3951962,
     "benchmarkDps": 39125,
-    "note": "The existing preparation and 30-second precombat wait are retained. Caltrops moves before the imported opening Swipe because the report omits its precast. Food and utility match the report. Combat casts follow the supplied report. Unspecified equipment is retained from the existing preset. Simulator metrics are recorded separately in the build manifest."
+    "note": "The existing preparation and 30-second precombat wait are retained. Caltrops moves before the imported opening Swipe because the report omits its precast. Food and utility match the report. Combat casts follow the supplied report, with three omitted Chak Shield activations restored from the supplied EVTC using placement effects and refund buffs. Unspecified equipment is retained from the existing preset. Simulator metrics are recorded separately in the build manifest."
   },
   "rotation": [
     {
@@ -40,6 +40,10 @@
     {
       "type": "cast",
       "skillId": 13026
+    },
+    {
+      "type": "cast",
+      "skillId": 76816
     },
     {
       "type": "cast",
@@ -496,6 +500,11 @@
     },
     {
       "type": "cast",
+      "skillId": 76816,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
       "skillId": 73076
     },
     {
@@ -832,6 +841,11 @@
     {
       "type": "cast",
       "skillId": 72927
+    },
+    {
+      "type": "cast",
+      "skillId": 76816,
+      "concurrentOffsetMs": 80
     },
     {
       "type": "cast",

@@ -5,8 +5,8 @@ import { blightbringer } from '#gw2/platform/equipment/relics/rules/blightbringe
 import { visionary } from '#gw2/platform/equipment/relics/rules/visionary.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 
-// The payload cooldown gates consumption, not accumulation; its own effect-owned Poison cannot reenter progress.
-test('Blightbringer counts distinct activations, banks at cap during ICD and resets before reward reactions', () => {
+// The cooldown blocks buildup, and the relic's own Poison cannot advance the next cycle.
+test('Blightbringer counts distinct activations only outside ICD and resets before reward reactions', () => {
   const state = blightbringer.createState();
   const observations = [];
   const ctx = {
@@ -42,16 +42,19 @@ test('Blightbringer counts distinct activations, banks at cap during ICD and res
   assert.equal(state.count, 0);
   assert.equal(state.readyAt, 13);
   assert.ok(observations.every(([count, readyAt]) => count === 0 && readyAt === 13));
-  for (let i = 0; i < 8; i++) apply(6, `banked-${i}`);
-  assert.equal(state.count, 6);
-  apply(13, 'boundary');
-  assert.equal(state.count, 6);
-  apply(14, 'banked-0');
-  assert.equal(state.count, 6, 'An already counted activation cannot release a banked reward');
-  apply(14, 'release');
+  for (let i = 0; i < 8; i++) apply(6, `blocked-${i}`);
   assert.equal(state.count, 0);
-  assert.equal(state.readyAt, 22);
-  assert.deepEqual(observations.at(-1), [0, 22]);
+  apply(13, 'boundary');
+  assert.equal(state.count, 0);
+  apply(14, 'blocked-0');
+  assert.equal(state.count, 0, 'A repeated activation cannot become eligible after the cooldown');
+  apply(14, 'second-cycle-0');
+  apply(14, 'second-cycle-0');
+  assert.equal(state.count, 1);
+  for (let i = 1; i <= 5; i++) apply(14 + i, `second-cycle-${i}`);
+  assert.equal(state.count, 0);
+  assert.equal(state.readyAt, 27);
+  assert.deepEqual(observations.at(-1), [0, 27]);
 });
 
 // Buildup consumption must be visible before the new damage window, and historical queries retain the old window.

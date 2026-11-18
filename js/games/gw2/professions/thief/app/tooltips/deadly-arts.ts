@@ -36,7 +36,7 @@ export const thiefDeadlyArtsTooltips = {
     'Stealing deals an additional strike that cannot critically strike. Healing is outside combat simulation scope.'
   ),
   [TRAIT.DEADLY_AMBITION]: traitTooltip(
-    'Gain condition damage. The first landed player strike of a dual attack poisons the target. Potent Poison replaces the base application with more stacks.',
+    "Gain condition damage. The first landed player strike of a dual attack poisons the target. Potent Poison replaces the base application with more stacks. Current in-game bug: another player-owned strike landing during Death Blossom before its first hit consumes that cast's poison proc without applying poison.",
     [
       ['attributeBonuses.conditionDamage', 'Condition damage'],
       ['playerStacks', 'Poison stacks with Potent Poison']
@@ -44,7 +44,7 @@ export const thiefDeadlyArtsTooltips = {
     'base application'
   ),
   [TRAIT.EVEN_THE_ODDS]: traitTooltip('Stealing inflicts vulnerability.'),
-  // The strike trigger has a cooldown; poison follows any player-applied immobilize independently.
+  // Distinguish the strike cooldown from poison on every immobilize, including the live stack-count bug.
   [TRAIT.PANIC_STRIKE]: (balanceContext, entity) => {
     const profile = tooltipProfile(balanceContext, entity.id);
     const effects = (condition: string) =>
@@ -69,7 +69,8 @@ export const thiefDeadlyArtsTooltips = {
         },
         {
           label: 'Poison on immobilize',
-          description: 'Potent Poison increases the poison stack count.',
+          description:
+            'Current in-game bug: Potent Poison does not grant its extra stack here. The simulator uses one poison stack per immobilize.',
           facts: [
             ...effects(CONDITION.POISONED),
             {
@@ -86,7 +87,7 @@ export const thiefDeadlyArtsTooltips = {
     ['conditionalAttributeBonuses.power', 'Additional power while revealed']
   ]),
   [TRAIT.POTENT_POISON]: traitTooltip(
-    "Poison deals increased damage and lasts longer. Serpent's Touch, Deadly Ambition, and Panic Strike apply additional poison stacks.",
+    "Poison deals increased damage and lasts longer. Serpent's Touch and Deadly Ambition apply additional poison stacks. Current in-game bug: Panic Strike does not receive its extra stack.",
     [
       fromProfile(TRAIT.POTENT_POISON, 'conditionDamageMultiplier', 'Poison damage', tooltipFactorChange),
       ['conditionDurationBonus', 'Poison duration', tooltipPercent]

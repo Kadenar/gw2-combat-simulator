@@ -40,7 +40,7 @@ import {
 } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { thiefCastCondition } from '#gw2/professions/thief/core/traits/cast-condition.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { claimActivation } from '#kernel/execution/activation-claims.js';
 
@@ -69,7 +69,7 @@ export const daggerTraining = defineTrait({
 });
 
 /** Owns Deadly Ambition tuning and behavior at the existing execution boundaries. */
-export const deadlyAmbition = defineTrait({
+export const deadlyAmbition = defineTrait<ThiefSkill>({
   id: TRAIT.DEADLY_AMBITION,
   balance: {
     attributeBonuses: { conditionDamage: 180 },
@@ -88,7 +88,20 @@ export const deadlyAmbition = defineTrait({
       ]
     };
   },
-  triggers: [onTriggerPoint(thiefStruck, { run: applyDeadlyAmbition })]
+  triggers: [
+    {
+      on: 'castStart',
+      when: (_runtime, cast) => cast.skill.id === ID.DEATH_BLOSSOM,
+      run(runtime: ThiefRuntime, cast) {
+        // A foreign player strike during Death Blossom consumes its poison opportunity in the live game.
+        professionCoreState(runtime.profession).deadlyAmbitionBlossom = {
+          id: cast.id,
+          start: cast.start
+        };
+      }
+    },
+    onTriggerPoint(thiefStruck, { run: applyDeadlyAmbition })
+  ]
 });
 
 /** Owns Even the Odds tuning and behavior at the existing execution boundaries. */
@@ -210,7 +223,8 @@ export const panicStrike = defineTrait({
   balance: {
     threshold: 3,
     internalCooldown: 20,
-    playerStacks: 2,
+    // Match the live bug: Potent Poison currently grants no extra stack to Panic Strike.
+    playerStacks: 1,
     effects: [
       {
         type: 'condition',
@@ -358,14 +372,23 @@ function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStri
 
   if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
+  const state = professionCoreState(context.profession);
+  const blossom = state.deadlyAmbitionBlossom;
+
+  // Only Death Blossom has reproduced this bug; other dual attacks retain their own activation claims.
+  if (
+    blossom &&
+    event.at >= blossom.start &&
+    (event.activationId !== blossom.id || event.skillId !== ID.DEATH_BLOSSOM || event.sourceId !== ID.DEATH_BLOSSOM)
+  )
+    claimActivation(state.activationClaims, 'thief.deadly-ambition', blossom.id);
+
   const skill: ThiefSkill | undefined = skillForEvent(context.helpers, event);
 
   if (!skill || event.sourceId !== skill.id) return;
 
   // The skill owns eligibility, including empty-offhand variants and newer weapon pairs.
   if (!skill.dualWieldAttack) return;
-
-  const state = professionCoreState(context.profession);
 
   const deadlyAmbitionProfile = requireBalanceProfile(context.helpers, TRAIT.DEADLY_AMBITION);
   const poison = requireEffect(deadlyAmbitionProfile, 'condition', CONDITION.POISONED);
@@ -499,6 +522,7 @@ function applyPanicStrike(context: ThiefResolverContext, { cause: event }: Venom
   });
 }
 
+/** Player immobilize applications grant poison independently of the strike threshold. */
 function applyPanicStrikePoison(
   context: ThiefResolverContext,
   { cause: application }: ThiefConditionApplication

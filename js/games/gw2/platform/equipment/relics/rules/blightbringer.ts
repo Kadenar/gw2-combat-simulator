@@ -32,11 +32,14 @@ export const blightbringer = defineRelic({
     if (tracked?.has(key)) return;
 
     tracked?.add(key);
-    // Accepted activations bank up to the cap even while the payload cooldown blocks consumption.
+
+    // Poison applied during the payload cooldown cannot build progress toward the next proc.
+    if (!isInternalCooldownReady(application.at, state.readyAt)) return;
+
     const progress = advanceCounter(state.count || 0, 1, REQUIRED_ACTIVATIONS, 'cap');
     state.count = progress.value;
 
-    if (!progress.reached || !isInternalCooldownReady(application.at, state.readyAt)) {
+    if (!progress.reached) {
       return;
     }
 

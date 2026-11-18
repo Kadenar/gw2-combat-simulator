@@ -57,6 +57,36 @@ test('Deadly Ambition preserves component eligibility and its ID-less identity r
   assert.equal(emitted.length, 3);
 });
 
+// Shared activation IDs do not make trait strikes native hits; older timestamps cannot consume the new cast.
+test('Death Blossom suppression checks activation, skill, source and cast start', () => {
+  for (const [fields, expected] of [
+    [{ sourceId: TRAIT.MUG }, 0],
+    [{ skillId: ID.HEARTSEEKER }, 0],
+    [{ activationId: 'foreign', skillId: ID.DOUBLE_STRIKE, sourceId: ID.DOUBLE_STRIKE }, 0],
+    [{ sourceId: TRAIT.MUG, at: 0.5 }, 1],
+    [{}, 1]
+  ]) {
+    const runtime = observedRuntime(runThief([], { selectedTraitIds: [TRAIT.DEADLY_AMBITION] }));
+    runtime.profession.core.deadlyAmbitionBlossom = { id: 'blossom', start: 1 };
+    const emitted = [];
+    const context = bindTriggerContext({
+      config: runtime.config,
+      traits: runtime.traits,
+      profession: runtime.profession,
+      helpers: runtime.helpers,
+      effects: captureEffectEmissions({ submit: (packet) => emitted.push(packet) }).effects
+    });
+    const hit = thiefHit(2, {
+      activationId: 'blossom',
+      skillId: ID.DEATH_BLOSSOM,
+      sourceId: ID.DEATH_BLOSSOM
+    });
+    context.fireTrigger(thiefStruck, { cause: { ...hit, at: 1.5, ...fields }, details: {} });
+    context.fireTrigger(thiefStruck, { cause: hit, details: {} });
+    assert.equal(emitted.length, expected);
+  }
+});
+
 /** Patch fixtures use the same selection and ordering as the real mechanic boundary. */
 function bindTriggerContext(context) {
   bindTriggerPoints(context, thiefProfession);

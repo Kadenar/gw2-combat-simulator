@@ -1056,6 +1056,64 @@ test('Mistburn Mortar enables fire combos until its ground field expires', () =>
   assert.equal(combos[0].finisherType, 'Projectile');
 });
 
+test('Death Blossom rechecks the active field for each whirl', () => {
+  // A field that expires during the attack must stop later whirls without discarding earlier combos.
+  for (const [durationMs, expectedCombos] of [
+    [0, 3],
+    [4200, 2],
+    [6000, 0]
+  ]) {
+    const result = runThief(['Skritt Swipe', 'Mistburn Mortar', { type: 'wait', durationMs }, 'Death Blossom'], {
+      specialization: 'Antiquary'
+    });
+    assert.deepEqual(result.warnings, []);
+    const combos = result.resolvedEvents.filter(
+      (event) => event.type === 'combo' && event.skillId === ID.DEATH_BLOSSOM
+    );
+    assert.equal(combos.length, expectedCombos);
+    assert.equal(new Set(combos.map((event) => event.attemptId)).size, expectedCombos);
+    assert.ok(
+      combos.every(
+        (event) =>
+          event.finisherType === 'Whirl' && event.fieldType === 'Fire' && event.fieldSourceId === ID.MISTBURN_MORTAR
+      )
+    );
+    assert.equal(
+      result.resolvedEvents.filter((event) => event.type === 'condition' && event.name === 'Burning Bolts').length,
+      expectedCombos
+    );
+  }
+});
+
+test('Chak Shield whirls use Light until the field expires, then select overlapping Fire', () => {
+  // The artifact-duration trait must not extend the field or let a newer field replace it before expiry.
+  for (const selectedTraitIds of [[], [TRAIT.METICULOUS_CUSTODIAN]]) {
+    const result = runThief(
+      [
+        'Skritt Swipe',
+        'Chak Shield',
+        { type: 'wait', durationMs: 3000 },
+        'Mistburn Mortar',
+        'Death Blossom',
+        { type: 'wait', durationMs: 500 },
+        'Death Blossom'
+      ],
+      { specialization: 'Antiquary', selectedTraitIds: [TRAIT.PROLIFIC_PLUNDERER, ...selectedTraitIds] }
+    );
+    assert.deepEqual(result.warnings, []);
+    const combos = result.resolvedEvents.filter(
+      (event) => event.type === 'combo' && event.skillId === ID.DEATH_BLOSSOM
+    );
+    assert.deepEqual(
+      combos.map((event) => [event.fieldSourceId, event.name]),
+      [
+        ...Array.from({ length: 3 }, () => [ID.CHAK_SHIELD, 'Cleansing Bolts']),
+        ...Array.from({ length: 3 }, () => [ID.MISTBURN_MORTAR, 'Burning Bolts'])
+      ]
+    );
+  }
+});
+
 test('Mistburn charges are spent once by later player strikes, never by the Mortar itself', () => {
   // Five charges survive the Mortar's own packets and are consumed one per later player strike until exhausted.
   const result = simulate(

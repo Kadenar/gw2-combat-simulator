@@ -150,7 +150,18 @@ const meticulousCustodian = defineTrait({
     holoFactor: 2.4 / 2,
     // Enhanced artifact packets remain part of the artifact's measured cast.
     kryptisTormentDurationMultiplier: 5 / 4,
-    effects: [{ type: 'strike', name: 'Meticulous Custodian', coefficient: 0.3, hits: 1 }]
+    // Custodian appends the shield's sixth pulse after its five native pulses.
+    effects: [
+      {
+        type: 'strike',
+        name: 'Meticulous Custodian',
+        coefficient: 0.3,
+        hits: 1,
+        atMs: 5000,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   modifierRules: [
     {
@@ -360,7 +371,7 @@ function grantScoundrelsLuck(runtime: ThiefRuntime): void {
   state.scoundrelsLuck = balanceNumber(runtime.helpers, TRAIT.SCOUNDRELS_LUCK, 'maximumStacks');
 }
 
-/** Applies meticulous custodian at the original artifact boundary. */
+/** Queue the final shield pulse at activation while preserving its artifact ownership. */
 function applyMeticulousChakShield(runtime: ThiefRuntime, { cast }: ArtifactActivation): void {
   // Only this committed artifact receives the strike component, under its own skill identity.
   if (cast.skill.id !== ID.CHAK_SHIELD) return;

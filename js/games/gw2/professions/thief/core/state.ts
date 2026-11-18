@@ -59,6 +59,8 @@ export interface ThiefCoreState extends StealthState {
   alliedVenomChargeBatches: Record<string, AlliedVenomBatch[]>;
   activeThievesGuild: ThievesGuildState | null;
   activationClaims: ActivationClaims;
+  /** Retain the latest Death Blossom opportunity; late claims on finished casts are harmless. */
+  deadlyAmbitionBlossom: { id: string; start: number } | null;
 
   /** The pending Infiltrator's Signet pulse instant; earlier queued pulses retire themselves. */
   infiltratorsSignetPassive: PeriodicTaskState;
@@ -108,6 +110,7 @@ export function createThiefCoreState(
     alliedVenomChargeBatches: {},
     activeThievesGuild: null,
     activationClaims: {},
+    deadlyAmbitionBlossom: null,
 
     infiltratorsSignetPassive: createPeriodicTaskState(),
     strikeBrokeStealthAt: null,

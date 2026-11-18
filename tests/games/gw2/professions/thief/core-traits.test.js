@@ -331,7 +331,8 @@ for (const [name, traitId, verify] of stealTraitCases) {
   });
 }
 
-test('Potent Poison adjusts each moved player poison packet', () => {
+// Preserve the working stack bonuses while matching Panic Strike's current in-game exception.
+test("Potent Poison increases Serpent's Touch and Deadly Ambition stacks but not bugged Panic Strike", () => {
   const serpent = stealPackets([TRAIT.SERPENTS_TOUCH, TRAIT.POTENT_POISON]);
   assert.equal(serpent.find((event) => event.sourceId === TRAIT.SERPENTS_TOUCH).stacks, 3);
 
@@ -364,7 +365,7 @@ test('Potent Poison adjusts each moved player poison packet', () => {
   });
   const poison = panic.context.queue.dequeue();
   assert.equal(poison.sourceId, TRAIT.PANIC_STRIKE);
-  assert.equal(poison.stacks, 2);
+  assert.equal(poison.stacks, 1);
 });
 
 test('Kleptomaniac restores initiative on steal completion', () => {
@@ -498,6 +499,49 @@ test('Deadly Ambition applies once on the first hit of each dual attack', () => 
     ]
   );
 });
+
+// Foreign strikes consume only the current Blossom's opportunity; independent damage and later casts survive.
+for (const [name, fields, at, suppressed] of [
+  ['player strike before impact', {}, 1.1, true],
+  ['player strike after impact', {}, 1.9, false],
+  ['strike before cast start', {}, 0.5, false],
+  ['independent summon strike', { actorType: 'summon' }, 1.1, false],
+  ['off-target strike', { offTarget: true }, 1.1, false],
+  ['zero-coefficient packet', { coefficient: 0 }, 1.1, false],
+  ['condition damage', { type: 'condition', condition: 'Burning', stacks: 1, duration: 5 }, 0.1, false]
+]) {
+  test(`Deadly Ambition Death Blossom opportunity handles ${name}`, () => {
+    for (const specialization of ['Core', 'Deadeye', 'Antiquary']) {
+      const result = runThief(
+        [wait(1000), 'Death Blossom', 'Death Blossom'],
+        { specialization, selectedTraitIds: [TRAIT.DEADLY_AMBITION, TRAIT.POTENT_POISON] },
+        {
+          initialize(runtime) {
+            runtime.effects.emit({ kind: 'packet', event: thiefHit(at, { activationId: 'foreign', ...fields }) });
+          }
+        }
+      );
+      assert.deepEqual(result.warnings, []);
+      const hits = result.resolvedEvents.filter(
+        (event) => event.type === 'damage' && event.skillId === ID.DEATH_BLOSSOM
+      );
+      const activations = [...new Set(hits.map((event) => event.activationId))];
+      const poison = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.DEADLY_AMBITION);
+      assert.equal(activations.length, 2);
+      assert.deepEqual(
+        poison.map((event) => event.activationId),
+        (suppressed ? activations.slice(1) : activations).flatMap((id) => [id, id])
+      );
+      assert.ok(poison.every((event) => event.condition === 'Poisoned' && event.stacks === 1));
+
+      if (!fields.offTarget && fields.coefficient !== 0) {
+        const foreign = result.resolvedEvents.find((event) => event.activationId === 'foreign');
+        assert.ok(foreign);
+        assert.ok(fields.type === 'condition' ? foreign.damageTicks.length > 0 : foreign.damage > 0);
+      }
+    }
+  });
+}
 
 test('Unrelenting Strikes grants party Fury from the accepted critical fact', () => {
   const { context } = traitContext([TRAIT.UNRELENTING_STRIKES]);

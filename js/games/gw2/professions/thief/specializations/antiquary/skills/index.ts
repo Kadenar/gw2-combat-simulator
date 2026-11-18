@@ -318,12 +318,11 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     cooldown: 0,
     artifactKind: 'defensive',
     castTimeMs: 0,
+    comboFields: [{ ownerId: 'thief', fieldType: COMBO_FIELD.LIGHT, duration: 5, startAnchor: 'castStart' }],
     effects: [
       {
         type: 'strike' as const,
-        coefficient: 1.5,
-        hits: 5,
-        atMs: 0,
+        ticks: [0, 1000, 2000, 3000, 4000].map((atMs) => ({ atMs, coefficient: 0.3 })),
         name: 'Chak Shield',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd' as const,

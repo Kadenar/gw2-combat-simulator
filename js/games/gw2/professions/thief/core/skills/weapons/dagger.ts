@@ -20,6 +20,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     castTimeMs: 360,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
@@ -186,17 +187,16 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     requiredMainHand: WEAPON.DAGGER,
     requiredOffHand: WEAPON.DAGGER,
     castTimeMs: 1040,
-    comboFinishers: [
-      {
-        ownerId: 'thief',
-        finisherType: COMBO_FINISHER.WHIRL
-      }
-    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [560, 640, 800].map((atMs) => ({ atMs, coefficient: 0.21 })),
+        // Each strike attempts its own whirl, using the field active when that strike lands.
+        ticks: [560, 640, 800].map((atMs) => ({
+          atMs,
+          coefficient: 0.21,
+          comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.WHIRL }]
+        })),
         name: 'Death Blossom',
         actorType: ACTOR.PLAYER
       },
