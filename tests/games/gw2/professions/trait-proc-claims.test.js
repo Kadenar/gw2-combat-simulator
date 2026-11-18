@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { skillEffectKey } from '#gw2/platform/effects/validation.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { mechStruck } from '#gw2/professions/engineer/core/mechanics/mech-strikes.js';
@@ -118,7 +119,7 @@ for (const entry of cases) {
     const capture = captureEffectEmissions({
       now: () => runtime.time,
       submit(event) {
-        assert.equal(runtime.procs.deadline(entry.key), runtime.time + 2);
+        assert.equal(runtime.procs.deadline(entry.key), gw2Time(runtime.time + 2));
 
         // Derived effects may synchronously cause another opportunity; the first claim must already be visible.
         if (!reentered) {
@@ -134,16 +135,16 @@ for (const entry of cases) {
     assert.equal(runtime.procs.deadline(entry.key), 3);
     assert.ok(capture.events.length > 0);
     const count = capture.events.length;
-    for (const at of [1, 2.999999, 3]) {
+    for (const at of [1, 2.96, 3]) {
       runtime.time = at;
       entry.invoke(runtime);
       assert.equal(runtime.procs.deadline(entry.key), 3);
       assert.equal(capture.events.length, count);
     }
 
-    runtime.time = 3.000001;
+    runtime.time = 3.04;
     entry.invoke(runtime);
-    assert.equal(runtime.procs.deadline(entry.key), 5.000001);
+    assert.equal(runtime.procs.deadline(entry.key), 5.04);
     assert.ok(capture.events.length > count);
   });
 

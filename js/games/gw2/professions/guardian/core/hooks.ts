@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -57,7 +59,7 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
 
         runtime.profession.core.symbolicAvengerExpirations = grantTimedStacks([], {
           at: runtime.time,
-          expiresAt: runtime.time + buff.duration,
+          expiresAt: gw2Time(runtime.time + buff.duration),
           count: buff.stacks,
           maximumStacks: balanceNumber(runtime.helpers, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER, 'maximumStacks'),
           retain: 'latest-expiry'

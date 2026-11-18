@@ -1,5 +1,6 @@
 /** Own facet activation, consumption, retained passives, and their shared pulse cadence. */
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Interval, gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, BOON_NAMES, RECIPIENT } from '#gw2/platform/constants.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -16,7 +17,6 @@ import { facetConsumed } from '#gw2/professions/revenant/specializations/herald/
 import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalInterval, canonicalTime } from '#kernel/core/clock.js';
 
 const FACET_PULSE = 'revenant.herald-facet-pulse';
 const RETENTION_EXPIRY = 'revenant.herald-facet-retention-expiry';
@@ -49,7 +49,7 @@ export function heraldFacetPassiveLegend(
 /** Retention preserves the existing pulse phase without keeping an Energy-draining upkeep alive. */
 export function retainHeraldFacet(runtime: RevenantRuntime, facet: RevenantSkill, duration: number): void {
   const state = heraldState.from(runtime.profession);
-  const expiresAt = canonicalTime(runtime.time + duration);
+  const expiresAt = gw2Time(runtime.time + duration);
   state.lingeringFacets[facet.id] = {
     startsAt: runtime.time,
     expiresAt,
@@ -106,7 +106,7 @@ function facetPulse(runtime: RevenantRuntime, data: unknown): void {
     ],
     transform: (event) => ({ ...event, name: `${skill.name} - ${BOON_NAMES[pulse.kind]}` })
   });
-  const next = canonicalTime(runtime.time + canonicalInterval(skill.pulseInterval ?? 3));
+  const next = gw2Time(runtime.time + gw2Interval(skill.pulseInterval ?? 3));
 
   if (heraldFacetPassiveLegend(runtime.profession.core, state, skillId, next) !== undefined)
     scheduleFacetPulse(runtime, skillId, next);
@@ -126,7 +126,7 @@ function startFacet(runtime: RevenantRuntime, skill: RevenantSkill): void {
 
   if (!skill.upkeepPulse) return;
 
-  scheduleFacetPulse(runtime, skill.id, canonicalTime(runtime.time + canonicalInterval(skill.pulseInterval ?? 3)));
+  scheduleFacetPulse(runtime, skill.id, gw2Time(runtime.time + gw2Interval(skill.pulseInterval ?? 3)));
 }
 
 // A committed consume's facet and prior activity are acceptance facts reused at its completion.

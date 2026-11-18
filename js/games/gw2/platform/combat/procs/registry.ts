@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
@@ -6,7 +7,7 @@ import {
   type BalanceProfileSource
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { projectWorkCompletion, type RateInterval } from '#kernel/core/rate-intervals.js';
 
 /** Proc deadlines read only the live clock, selected balance data, and received recharge rates. */
@@ -41,7 +42,7 @@ export function createProcRegistry(context: () => ProcRegistryContext): ProcRegi
     if (timer.kind === 'fixed') return timer.readyAt;
 
     const { skill, progress } = timer;
-    return canonicalTime(
+    return gw2Time(
       projectWorkCompletion(
         progress,
         context().query.timeline.rechargeIntervals(skill, progress.workAnchorAt, Infinity, progress.companionId)
@@ -59,9 +60,8 @@ export function createProcRegistry(context: () => ProcRegistryContext): ProcRegi
     if (!Number.isFinite(duration) || duration < 0)
       throw new TypeError('Proc cooldown duration must be a finite non-negative number.');
 
-    const readyAt = at + duration;
-    timeKey(readyAt);
-    // Preserve caller arithmetic; comparisons canonicalize, and zero at time zero remains unarmed.
+    const readyAt = gw2Time(at + duration);
+    // Claims and scheduled work observe the same tick; zero at time zero remains unarmed.
     timers.set(String(key), { kind: 'fixed', readyAt });
     return true;
   };
@@ -71,7 +71,7 @@ export function createProcRegistry(context: () => ProcRegistryContext): ProcRegi
     setDeadline(key: SkillId, at: number): void {
       if (typeof at !== 'number' || Number.isNaN(at)) throw new TypeError('Proc cooldown readyAt must be a number.');
 
-      timers.set(String(key), { kind: 'fixed', readyAt: at });
+      timers.set(String(key), { kind: 'fixed', readyAt: Number.isFinite(at) ? gw2Time(at) : at });
     },
     /** Unarmed owners are ready at zero; callers with mechanic-specific boundary rules can inspect the deadline. */
     deadline,

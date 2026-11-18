@@ -109,7 +109,7 @@ test('Reaper Chilled gates see only accepted target applications', () => {
 
 test('Reaper Chilled gates share reapplication and exclusive expiry', () => {
   for (const [at, expected] of [
-    [0.999999, true],
+    [0.96, true],
     [1, false]
   ]) {
     checkChilled({ applications: [{ at: 0, duration: 1 }], at, expected });
@@ -117,8 +117,8 @@ test('Reaper Chilled gates share reapplication and exclusive expiry', () => {
 
   for (const [at, expected] of [
     [1, true],
-    [2.499999, true],
-    [2.5, false]
+    [2.48, true],
+    [2.52, false]
   ]) {
     checkChilled({
       applications: [
@@ -133,17 +133,17 @@ test('Reaper Chilled gates share reapplication and exclusive expiry', () => {
 
 test('Reaper Chilled gates respect removal while permanent assumptions remain active', () => {
   for (const [at, expected] of [
-    [0.499999, true],
-    [0.5, false],
+    [0.48, true],
+    [0.52, false],
     [1, false]
   ]) {
-    checkChilled({ applications: [{ at: 0, duration: 2 }], removedAt: 0.5, at, expected });
+    checkChilled({ applications: [{ at: 0, duration: 2 }], removedAt: 0.52, at, expected });
   }
 
   checkChilled({
     conditions: { Chilled: true },
     applications: [{ at: 0, duration: 2 }],
-    removedAt: 0.5,
+    removedAt: 0.52,
     expected: true
   });
 });

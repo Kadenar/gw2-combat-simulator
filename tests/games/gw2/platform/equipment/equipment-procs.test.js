@@ -58,10 +58,10 @@ test('Mischief shares its nine-second cooldown across equipped copies', () => {
   for (const at of [2, 9.999, 10]) runtime.sigil.swap(runtime, { ...swap, at });
   assert.equal(emitted.length, firstProcPackets);
   assert.equal(procs.length, 1);
-  runtime.sigil.swap(runtime, { ...swap, at: 10.001 });
+  runtime.sigil.swap(runtime, { ...swap, at: 10.04 });
   assert.equal(emitted.length, firstProcPackets * 2);
   assert.equal(procs.length, 2);
-  assert.ok(Math.abs(runtime.procs.deadline(`sigil.${SIGIL_IDS.MISCHIEF}`) - 19.001) < 1e-9);
+  assert.ok(Math.abs(runtime.procs.deadline(`sigil.${SIGIL_IDS.MISCHIEF}`) - 19.04) < 1e-9);
 });
 
 // Ice checks defiance before claiming its cooldown, independently of the sampled critical outcome.
@@ -95,7 +95,7 @@ test('Ice rejects non-defiant hits without consuming its shared cooldown', () =>
 
     runtime.sigil.strike(runtime, { ...hit, at: 12 });
     assert.equal(emitted.length, 1);
-    runtime.sigil.strike(runtime, { ...hit, at: 12.001 });
+    runtime.sigil.strike(runtime, { ...hit, at: 12.04 });
     assert.equal(emitted.length, 2);
   }
 });
@@ -929,11 +929,11 @@ test('Relic of Aristocracy requires more than its one-second ICD', () => {
       config: { relic: 'Aristocracy', target: {}, sigilSets: [{ names: [] }] }
     }).procSteps.filter((proc) => proc.skill === 'Relic of Aristocracy');
 
-  assert.equal(aristocracyProcs(0.999999).length, 1);
+  assert.equal(aristocracyProcs(0.96).length, 1);
   assert.equal(aristocracyProcs(1).length, 1);
-  assert.equal(aristocracyProcs(1.000001).length, 2);
+  assert.equal(aristocracyProcs(1.04).length, 2);
   assert.deepEqual(
-    aristocracyProcs(1.000001).map((proc) => proc.detail),
+    aristocracyProcs(1.04).map((proc) => proc.detail),
     ['1/5 stacks', '2/5 stacks']
   );
 });

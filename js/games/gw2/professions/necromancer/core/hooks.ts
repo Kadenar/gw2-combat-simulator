@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR, WEAPON } from '#gw2/platform/constants.js';
@@ -199,7 +201,7 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
 
       const { cast, skill } = context;
       runtime.armFlip(skill.flipSkillId!, {
-        expiresAt: cast.rechargeStart + Math.max(1, skill.flipDuration ?? skill.cooldown ?? 5)
+        expiresAt: gw2Time(cast.rechargeStart + Math.max(1, skill.flipDuration ?? skill.cooldown ?? 5))
       });
     },
     'necromancer.axe-health'(runtime, context) {

@@ -1,5 +1,7 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -33,7 +35,6 @@ import {
 import type { GaleshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import type { RangerModifierContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { claimActivation } from '#kernel/execution/activation-claims.js';
 import { advanceCounter } from '#kernel/resources/counters.js';
 
@@ -296,7 +297,7 @@ function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEvent): vo
 
   const activationId = event.activationId || '';
 
-  if (!pet.wutheringWindReady || canonicalTime(at) < pet.wutheringWindReadyAt) {
+  if (!pet.wutheringWindReady || gw2Time(at) < pet.wutheringWindReadyAt) {
     return;
   }
 
@@ -404,7 +405,7 @@ function applyGaleForce(context: RangerRuntime, skill: RangerSkill): void {
     if (effect) {
       const duration = effectNumber(profile, effect, 'duration');
       // galeForceUntil is a timestamp, not a duration; compare against context.time in modifiers.
-      state.galeForceUntil = context.time + duration;
+      state.galeForceUntil = gw2Time(context.time + duration);
       emitTraitProfile(context, TRAIT.GALE_FORCE, TRAIT.GALE_FORCE, undefined, {
         at: context.time,
         fullEnd: context.time,

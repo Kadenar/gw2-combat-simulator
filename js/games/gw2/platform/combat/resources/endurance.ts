@@ -1,5 +1,6 @@
-import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { boonIntervalsFromWindows, prepareBoonWindows, type BoonWindow } from '#gw2/platform/combat/boons.js';
+import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -185,7 +186,7 @@ export function enduranceIntervalsReadyAt(
       const tickAt = gw2CooldownReadyAt(readyAt);
       // Clock rounding cannot turn a real shortage into present affordability, even below microsecond precision.
       return tickAt <= start && !resourceAtLeast(current.value, cost)
-        ? gw2CooldownReadyAt(start + GW2_ACTION_TICK_MS / 1000)
+        ? gw2CooldownReadyAt(start + GW2_TICK_MS / 1000)
         : tickAt;
     }
 

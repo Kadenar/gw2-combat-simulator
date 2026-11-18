@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -53,7 +54,6 @@ import type {
   ElementalistRuntime,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { RECORD_OBSERVATION_EVENT_HANDLER } from '#kernel/events/handler-registry.js';
 
 /** Air definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
@@ -490,12 +490,12 @@ function observeFreshAirCandidate(runtime: ElementalistRuntime, event: Simulatio
     event.type === 'damage' &&
     event.actorType === ACTOR.PLAYER &&
     Number(event.coefficient) > 0 &&
-    canonicalTime(event.at) > runtime.time
+    gw2Time(event.at) > runtime.time
   ) {
     // Only Fresh Air needs strike wakes; retire elapsed times as new work arrives.
     const core = runtime.profession.core;
     core.freshAirCandidates = core.freshAirCandidates.filter((at) => at > runtime.time);
-    core.freshAirCandidates.push(canonicalTime(event.at));
+    core.freshAirCandidates.push(gw2Time(event.at));
   }
 }
 

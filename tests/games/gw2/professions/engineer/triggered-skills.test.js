@@ -4,6 +4,7 @@ import test from 'node:test';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
@@ -224,7 +225,7 @@ test('Explosive Entrance reads patched skill recharge and reserves it before ree
     now: () => runtime.time,
     submit(event) {
       assert.equal(runtime.profession.core.explosiveEntranceFired, true);
-      assert.equal(runtime.cooldownController.readyAt(skillId), runtime.time + 2 / 1.25);
+      assert.equal(runtime.cooldownController.readyAt(skillId), gw2Time(runtime.time + 2 / 1.25));
       emitted += 1;
       invoke();
       return event;

@@ -81,7 +81,7 @@ test('batch output clips condition observations and detaches them from live sett
   assert.deepEqual(comparisonResult(batch), comparisonResult(detailed));
   const condition = batch.resolvedEvents.find((event) => event.type === 'condition');
   const live = observedRuntime(batch).resolved.find((event) => event.type === 'condition');
-  assert.equal(condition.expiresAt, 0.75);
+  assert.equal(condition.expiresAt, 0.76);
   assert.ok(live.naturalExpiresAt > condition.expiresAt);
   condition.damageTicks.push({ at: 99, damage: 999, fraction: 1 });
   assert.ok(live.damageTicks.every((tick) => tick.at !== 99));

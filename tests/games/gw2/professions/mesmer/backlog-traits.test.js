@@ -122,7 +122,7 @@ test('Critical Infusion grants scaled Vigor only on player critical hits', () =>
       precision === 3000
         ? [
             [1, 'vigor', 7.5],
-            [11.01, 'vigor', 7.5]
+            [11.04, 'vigor', 7.5]
           ]
         : []
     );

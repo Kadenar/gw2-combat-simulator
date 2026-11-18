@@ -6,6 +6,7 @@ import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette
 import { applyMightAttributes, attributeContext } from '#gw2/platform/attributes/evaluation.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { durationStackState, timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
@@ -343,10 +344,10 @@ test('energy accumulates fractionally with elapsed time and skills pay their exp
   // Store fractional accumulation even between action ticks; availability owns when it can be spent.
   for (const [durationMs, energy] of [
     [40, 0.2],
-    [100, 0.5],
-    [499, 2.495],
-    [500, 2.5],
-    [999, 4.995],
+    [100, 0.6],
+    [499, 2.6],
+    [500, 2.6],
+    [999, 5],
     [1000, 5]
   ]) {
     const ticked = simulate('Core', ['__combat_start', { type: 'wait', durationMs }], { initialEnergy: 0 });
@@ -373,7 +374,7 @@ test('Energy affordability rounds up to the absolute action tick regardless of i
     assert.deepEqual(result.warnings, []);
     assert.equal(
       result.steps.at(-1).start,
-      Math.max(120, Math.ceil(waits.reduce((sum, wait) => sum + wait, 0) / 40) * 40)
+      Math.max(120, Math.ceil(waits.reduce((sum, wait) => sum + Math.ceil(wait / 40) * 40, 0) / 40) * 40)
     );
   }
 });
@@ -412,7 +413,7 @@ test('Revenant energy regenerates up to 50 out of combat and up to 100 in combat
   // Precombat uses the same elapsed-time regeneration, capped at 50.
   const ticked = simulate('Core', [{ type: 'wait', durationMs: 550 }, '__combat_start'], { initialEnergy: 0 });
 
-  assert.equal(ticked.planningState.profession[STATE.ENERGY].value, 2.75);
+  assert.equal(ticked.planningState.profession[STATE.ENERGY].value, 5 * 0.56);
 
   for (const specialization of ['Core', 'Renegade', 'Conduit']) {
     const legends =
@@ -1043,7 +1044,7 @@ test('Vicious Reprisal preserves its hit gate and expands authored repetitions',
   const boons = result.events.filter((event) => event.sourceId === TRAIT.VICIOUS_REPRISAL);
   assert.deepEqual(
     boons.map((event) => event.at),
-    [0.6, 0.8]
+    [0.64, 0.84]
   );
 });
 
@@ -1148,7 +1149,7 @@ test('out-of-combat upkeep drain continues after activation', () => {
 });
 
 test('upkeep release settles the old drain rate before resuming regeneration', () => {
-  // 1.1 after activation, minus 0.16 drain, then plus 0.5 regeneration after release.
+  // 1.1 after activation, minus 0.16 drain, then plus 0.6 regeneration after release.
   const result = simulate(
     'Core',
     [
@@ -1161,7 +1162,7 @@ test('upkeep release settles the old drain rate before resuming regeneration', (
     { initialEnergy: 6.1 }
   );
   assert.deepEqual(result.warnings, []);
-  assert.ok(Math.abs(result.planningState.profession[STATE.ENERGY].value - 1.44) < 1e-9);
+  assert.ok(Math.abs(result.planningState.profession[STATE.ENERGY].value - 1.54) < 1e-9);
 });
 
 test('starvation waits for the absolute action tick and preserves its boundary across reads', () => {
@@ -1172,17 +1173,22 @@ test('starvation waits for the absolute action tick and preserves its boundary a
       ['__combat_start', 'Impossible Odds', ...waits.map((durationMs) => ({ type: 'wait', durationMs }))],
       { initialEnergy: 5.1 }
     );
-    const elapsedMs = waits.reduce((sum, wait) => sum + wait, 0);
+    const elapsedMs = waits.reduce((sum, wait) => sum + Math.ceil(wait / 40) * 40, 0);
     const starvationReadyAt = observedRuntime(result).cooldownController.readyAt(SKILL.IMPOSSIBLE_ODDS);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession[STATE.ACTIVE_UPKEEPS].length, elapsedMs < 120 ? 1 : 0);
+    assert.equal(
+      result.planningState.profession[STATE.ACTIVE_UPKEEPS].length,
+      Math.ceil(elapsedMs / 40) * 40 < 120 ? 1 : 0
+    );
 
-    if (elapsedMs < 120) {
+    if (Math.ceil(elapsedMs / 40) * 40 < 120) {
       assert.equal(starvationReadyAt, undefined);
     } else {
       // Shutdown at 120 ms starts the four-second starvation cooldown from that tick.
       assert.equal(starvationReadyAt, 3.32);
-      assert.ok(Math.abs(result.planningState.profession[STATE.ENERGY].value - 5 * (elapsedMs / 1000 - 0.12)) < 1e-9);
+      assert.ok(
+        Math.abs(result.planningState.profession[STATE.ENERGY].value - 5 * (gw2Time(elapsedMs / 1000) - 0.12)) < 1e-9
+      );
     }
   }
 });

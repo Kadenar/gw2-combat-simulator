@@ -1,5 +1,5 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
@@ -14,7 +14,6 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Each signet owns an independent cadence; suppression never advances resources or shifts the anchor. */
 function defineSignetPassive(passive: 'undeath' | 'vampirism') {
@@ -26,8 +25,9 @@ function defineSignetPassive(passive: 'undeath' | 'vampirism') {
     rearmBeforeRun: true,
     nextAt(runtime) {
       const state = runtime.profession.core.signetPassives[passive];
-      state.deadline = canonicalTime(state.deadline + state.interval);
-      return gw2CooldownReadyAt(state.deadline);
+      // Count ideal occurrences so rounded delivery never shifts the resource cadence.
+      state.occurrence++;
+      return gw2Time(state.occurrence * state.interval);
     },
     run(runtime) {
       const policy = NECROMANCER_SIGNET_PASSIVES.find((policy) => policy.passive === passive)!;
@@ -63,8 +63,8 @@ export function initializeNecromancerPassives(runtime: NecromancerRuntime): void
     if (interval > 0) {
       const state = runtime.profession.core.signetPassives[passive];
       state.interval = interval;
-      state.deadline = interval;
-      signetPassives[passive].restart(runtime, gw2CooldownReadyAt(state.deadline));
+      state.occurrence = 1;
+      signetPassives[passive].restart(runtime, gw2Time(interval));
     }
   }
 

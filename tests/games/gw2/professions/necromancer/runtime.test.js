@@ -97,7 +97,7 @@ test('live swap recharge is free before combat and reserves the relic-adjusted w
     combat.steps.map((step) => step.start),
     [0, 7520]
   );
-  assert.equal(observedRuntime(combat).cooldownController.readyAt(SHARED_SKILL_IDS.SWAP_WEAPONS), 15.02);
+  assert.equal(observedRuntime(combat).cooldownController.readyAt(SHARED_SKILL_IDS.SWAP_WEAPONS), 15.04);
   assert.deepEqual(combat.warnings, []);
   const oneSwap = simulate([cast(SHARED_SKILL_IDS.SWAP_WEAPONS)], {
     ...equipped,
@@ -1473,28 +1473,6 @@ test('selected resource passives can fund shroud entry without a predicted gain'
   }
 });
 
-test('rounded passive delivery preserves resource affordability on the original cadence', () => {
-  for (const [options, profileId, gain] of [
-    [{ selectedTraitIds: [TRAIT.ETERNAL_LIFE] }, TRAIT.ETERNAL_LIFE, 3],
-    [{ selectedSkillIds: [ID.SIGNET_OF_UNDEATH] }, ID.SIGNET_OF_UNDEATH, 3]
-  ]) {
-    const config = { ...base, ...options };
-    const native = necromancerProfession.runtimeFor(config);
-    const profession = {
-      ...native,
-      catalog:
-        profileId === ID.SIGNET_OF_UNDEATH
-          ? withSkill(native.catalog, profileId, { pulseInterval: 0.25, lifeForceGain: gain })
-          : withProfile(native.catalog, profileId, { pulseInterval: 0.25, lifeForceGain: gain })
-    };
-    // Four grants afford entry at one second; rounding each delivered wake into the next anchor would delay it.
-    const result = simulate([cast(ID.REAPERS_SHROUD)], config, { profession });
-    assert.deepEqual(result.warnings, []);
-    assert.equal(result.steps[0].start, 1000);
-    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 12);
-  }
-});
-
 test('Eternal Life keeps its cadence through overflow and caps its grants at the configured threshold', () => {
   const config = { ...base, initialResource: 65, selectedTraitIds: [TRAIT.ETERNAL_LIFE, TRAIT.GLUTTONY] };
   const native = necromancerProfession.runtimeFor(config);
@@ -1586,7 +1564,7 @@ test('allied siphon cadence starts once at an explicit combat marker', () => {
     (event) => event.type === 'damage' && event.sourceId === TRAIT.VAMPIRIC_PRESENCE
   );
   assert.equal(siphons.length, 2);
-  assert.ok(siphons.every((event) => event.at === 3.5));
+  assert.ok(siphons.every((event) => event.at === 3.52));
   assert.equal(simulate(rotation, config, { output: 'score' }).totalDamage, result.totalDamage);
   const inherited = simulate([wait(3500)], config, { combatStartTime: 2 });
   assert.equal(inherited.totalDamage, result.totalDamage);

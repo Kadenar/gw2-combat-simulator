@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { guardianUiSkillIds } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -27,8 +28,8 @@ test('Guardian weapon flips share exact deadlines across availability, snapshots
     const flip = guardianCatalog.skillsById.get(parent.flipSkillId);
     const window = runtime.flips[flip.id];
     const end = result.events.find((event) => event.type === 'action').endsAt;
-    assert.equal(window.expiresAt, end + duration);
-    for (const at of [window.expiresAt - 0.000001, window.expiresAt, window.expiresAt + 0.000001]) {
+    assert.equal(window.expiresAt, gw2Time(end + duration));
+    for (const at of [window.expiresAt - 0.04, window.expiresAt, window.expiresAt + 0.04]) {
       const current = { ...runtime, time: at };
       const active = at < window.expiresAt;
       assert.equal(native.availability(current, flip).ready, active);
@@ -212,7 +213,7 @@ test('all six finite Guardian follow-ups retain deadline state until queued game
       ],
       probes: [
         [
-          deadline + 0.000001,
+          deadline + 0.04,
           (runtime) => {
             assert.equal(runtime.flips[flipId], undefined);
             checked.push('retired');

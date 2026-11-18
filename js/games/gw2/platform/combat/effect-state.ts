@@ -6,9 +6,9 @@ import {
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
 import { buffApplicationExpiry, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Detached observations of existing gameplay owners; these are never a second mutable combat pool. */
 export interface EffectState<Source = SimulationEvent> {
@@ -140,7 +140,7 @@ export function observeBuffState(
     // Keep a stable execution-clock deadline so floating-point drift cannot create extra chart transitions.
     windows: duration
       ? pool!.active
-        ? [{ stacks: 1, expiresAt: canonicalTime(at + pool!.remaining) }]
+        ? [{ stacks: 1, expiresAt: gw2Time(at + pool!.remaining) }]
         : []
       : applications
           .filter(

@@ -8,6 +8,7 @@ import {
 } from '#gw2/app/results/skill-breakdown.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
@@ -232,7 +233,7 @@ test('Leader of the Pack shares half the base stance window with independent all
       const firstAttack = (Math.floor(shared.at / 0.25) + 1) * 0.25;
       const firstOffset = firstAttack - shared.at;
       const expected = Array.from({ length: Math.floor((shared.duration - firstOffset) / procInterval) + 1 }, (_, i) =>
-        Number((firstOffset + i * procInterval).toFixed(6))
+        Number((gw2Time(firstAttack + i * procInterval) - shared.at).toFixed(6))
       );
       assert.deepEqual(times, expected);
     }
@@ -289,7 +290,7 @@ test('precast shared stances start allied attacks in combat without extending ex
         event.metadata?.triggeredByAlly && event.type === (skillId === ID.ONE_WOLF_PACK ? 'damage' : 'condition')
     );
     assert.ok(procs.length > 0);
-    assert.ok(Math.abs(procs[0].at - delay - result.combatStartTime - interval) < 1e-9);
+    assert.ok(Math.abs(procs[0].at - delay - gw2Time(result.combatStartTime + interval)) < 1e-9);
     assert.ok(
       procs.every(
         (event) =>

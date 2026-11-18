@@ -204,7 +204,7 @@ test('Earth familiar Protection shares an internal cooldown across accepted play
     const grants = result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'protection');
     assert.deepEqual(
       grants.map((event) => event.at),
-      evokerElement === 'Earth' ? [0.2, 0.5] : []
+      evokerElement === 'Earth' ? [0.2, 0.52] : []
     );
   }
 });

@@ -34,7 +34,7 @@ test('Flow waits for accepted combat and preserves the absolute 40 ms cadence', 
   close(state(run([wait(39), combat, wait(1)])).flow.value, 0.08);
   close(state(run([wait(40), combat])).flow.value, 0);
   close(state(run([wait(40), combat, wait(40)])).flow.value, 0.08);
-  close(state(run([combat, wait(119)])).flow.value, 0.16);
+  close(state(run([combat, wait(80)])).flow.value, 0.16);
   close(state(run([combat, wait(120)])).flow.value, 0.24);
 });
 
@@ -223,13 +223,13 @@ test('Unseen Sword defers impact without delaying its entry rewards or extending
   // Both entry paths queue the strike independently of the immediate Flow grant and trait cooldown.
   for (const entry of ['Unsheathe Gunsaber', 'Dragon Trigger']) {
     const config = { initialResource: 100, selectedTraitIds: [TRAIT.UNSEEN_SWORD] };
-    const before = run([combat, entry, wait(719)], config);
+    const before = run([combat, entry, wait(680)], config);
     assert.deepEqual(before.warnings, []);
     assert.equal(
       before.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === 62847),
       false
     );
-    close(before.observationEndTime, 0.719);
+    close(before.observationEndTime, 0.68);
     assert.equal(state(before).traitPositiveFlowUntil, 5);
     assert.equal(observedRuntime(before).procs.deadline('warrior.bladesworn.gunsaberSwapTrait'), 4);
     const impact = run([combat, entry, wait(720)], config);

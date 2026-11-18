@@ -1,5 +1,6 @@
 /** Own Mirage ambush admission, cast occupancy, and pending mirror creation alongside cloak and pickup effects. */
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
@@ -44,7 +45,7 @@ import type {
   MesmerMirageController
 } from '#gw2/professions/mesmer/specializations/mirage/types.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { isTimeInWindow } from '#kernel/core/clock.js';
 
 /** Selected catalog profiles supply player and clone ambushes without mutable runtime lookup tables. */
 export function mesmerAmbushAttacks(context: MesmerRuntime) {
@@ -70,14 +71,14 @@ export function createMirageMechanics(state: MesmerRuntime): MesmerMirageControl
 
     if (!mirror) return;
 
-    at = canonicalTime(at);
+    at = gw2Time(at);
     // Every creation path discards expired mirrors so no expiry task is needed to bound the live collection.
     const owner = mirageState.from(state.profession);
     owner.mirrors = owner.mirrors.filter((mirror) => mirror.expiresAt > at);
     for (let index = 0; index < Math.max(0, count); index += 1) {
       owner.mirrors.push({
         availableAt: at,
-        expiresAt: canonicalTime(at + mirror.duration)
+        expiresAt: gw2Time(at + mirror.duration)
       });
     }
   };
@@ -102,10 +103,10 @@ export function createMirageMechanics(state: MesmerRuntime): MesmerMirageControl
   // The selected balance profile sets every ambush window; refresh it without shortening a surviving deadline.
   const grantAmbushWindow = (at: number, source: string, delivery: EffectDelivery = {}) => {
     const duration = balanceNumber(state.helpers, TRAIT.MIRAGE_CLOAK, 'durationPerTier');
-    at = canonicalTime(at);
+    at = gw2Time(at);
     mirageState.from(state.profession).ambushUntil = Math.max(
       mirageState.from(state.profession).ambushUntil,
-      canonicalTime(at + duration)
+      gw2Time(at + duration)
     );
     mirageState.from(state.profession).ambushSource = source;
     {
@@ -130,7 +131,7 @@ export function createMirageMechanics(state: MesmerRuntime): MesmerMirageControl
     { duration = balanceNumber(state.helpers, TRAIT.MIRAGE_CLOAK, 'duration') }: MesmerMirageCloakOptions = {},
     delivery: EffectDelivery = {}
   ) => {
-    at = canonicalTime(at);
+    at = gw2Time(at);
     grantAmbushWindow(at, source, delivery);
     {
       const packet = buildMesmerPacket({
@@ -160,7 +161,7 @@ export function createMirageMechanics(state: MesmerRuntime): MesmerMirageControl
 
     if (!ambush || skill.id !== ambush.id) return;
 
-    const impactAt = ambush.player.damageAtMs == null ? at : castStart + ambush.player.damageAtMs / 1000;
+    const impactAt = gw2Time(ambush.player.damageAtMs == null ? at : castStart + ambush.player.damageAtMs / 1000);
     state.fireTrigger(mirageAmbushAccepted, { ambush, impactAt, delivery });
 
     mirageState.from(state.profession).ambushUntil = 0;
@@ -316,7 +317,7 @@ export function executeMirageCloneAmbushPackets(
       blade: false
     };
     // Explicit summon ownership keeps clone ambush packets independent of their display labels.
-    const impactAt = at + (ambush.clone.castTimeMs || 0) / 1000;
+    const impactAt = gw2Time(at + (ambush.clone.castTimeMs || 0) / 1000);
     // Clone ambushes use the weapon's authored control and retain summon ownership.
     const skill = state.helpers.skillsById.get(ambush.id);
     for (const effect of skill?.effects || []) {

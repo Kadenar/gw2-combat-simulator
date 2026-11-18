@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
@@ -115,7 +116,7 @@ function queueMirror(context, activationId, at) {
 }
 
 test('Mimic accepts utility starts through its exact deadline and consumes the reduction once', () => {
-  for (const start of [10.300999, 10.301, 10.301001]) {
+  for (const start of [10.28, 10.32, 10.36]) {
     const context = lifetimeContext();
     const core = context.profession.core;
     const mimic = context.catalog.skillsById.get(ID.MIMIC);
@@ -131,7 +132,7 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
       rechargeWork: 0,
       skill: mimic
     });
-    assert.equal(core.mimic.expiresAt, 10.301);
+    assert.equal(core.mimic.expiresAt, 10.32);
     context.start = start;
     context.fullEnd = start + 1;
     context.cooldownController.setReadyAt(utility.id, 99);
@@ -145,8 +146,8 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
       rechargeWork: 0,
       skill: utility
     });
-    const consumed = start <= 10.301;
-    assert.equal(context.cooldownController.readyAt(utility.id), consumed ? canonicalTime(start + 2) : 99);
+    const consumed = start <= 10.32;
+    assert.equal(context.cooldownController.readyAt(utility.id), gw2Time(consumed ? canonicalTime(start + 2) : 99));
     assert.equal(core.mimic.count, consumed ? 0 : 1);
     assert.equal(context.events.filter((event) => event.source === 'Mimic').length, consumed ? 1 : 0);
     context.cooldownController.setReadyAt(utility.id, 100);
@@ -179,7 +180,7 @@ test('Mimic gives one second of base recharge and adds the original utility rech
     context.cooldownController.startRecharge(utility, 5, 7);
     complete(context, { skill: utility, start: 4, fullEnd: 5, rechargeWork: 7 });
     assert.deepEqual(context.cooldownController.rechargeFor(utility.id), { workAnchorAt: 5, work: 1 });
-    assert.equal(context.cooldownController.readyAt(utility.id), canonicalTime(5 + 1 / rate));
+    assert.equal(context.cooldownController.readyAt(utility.id), gw2Time(5 + 1 / rate));
     assert.deepEqual(context.cooldownController.rechargeFor(mimic.id), {
       workAnchorAt: 5,
       work: 20 - 4 * rate + 30
@@ -196,7 +197,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
   const context = lifetimeContext();
   const core = context.profession.core;
   const mimic = context.catalog.skillsById.get(ID.MIMIC);
-  context.fullEnd = 0.301;
+  context.fullEnd = 0.32;
   complete(context, {
     start: context.start,
     fullEnd: context.fullEnd,
@@ -218,7 +219,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
     rechargeWork: 0,
     skill: mimic
   });
-  assert.equal(core.mimic.expiresAt, 11.301);
+  assert.equal(core.mimic.expiresAt, 11.32);
   context.action.cancelled = true;
   context.fullEnd = 2.301;
   complete(context, {
@@ -241,7 +242,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
     rechargeWork: 0,
     skill: context.catalog.skillsById.get(ID.SIGNET_OF_ILLUSIONS)
   });
-  assert.equal(core.mimic.expiresAt, 11.301);
+  assert.equal(core.mimic.expiresAt, 11.32);
   context.action.cancelled = false;
   complete(context, {
     start: context.start,
@@ -253,7 +254,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
     rechargeWork: 0,
     skill: { id: -1, type: 'Utility', flipParentId: 1 }
   });
-  assert.equal(core.mimic.expiresAt, 11.301);
+  assert.equal(core.mimic.expiresAt, 11.32);
 });
 
 // Shortening availability must leave independently recharging ammunition spent.
@@ -300,21 +301,21 @@ test('Mimic rearming during overlapping utilities rewards the first successful c
 });
 
 test('Mirror availability, palette, projection, and one-time pickup agree on exact half-open boundaries', () => {
-  for (const at of [0.300999, 0.301, 8.300999, 8.301, 8.301001]) {
+  for (const at of [0.28, 0.32, 8.28, 8.32, 8.36]) {
     const context = lifetimeContext();
     const controller = createMirageMechanics(context);
     const state = context.profession.specialization.state;
     const skill = context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR);
     controller.createMirrors(0.1 + 0.201, 1);
-    assert.deepEqual(state.mirrors[0], { availableAt: 0.301, expiresAt: 8.301 });
+    assert.deepEqual(state.mirrors[0], { availableAt: 0.32, expiresAt: 8.32 });
     context.start = context.time = at;
-    const active = at >= 0.301 && at < 8.301;
+    const active = at >= 0.32 && at < 8.32;
     const availability = mirageAvailability(context, skill);
     assert.equal(availability.ready, active);
 
-    if (at < 0.301) assert.equal(availability.retryAt, 0.301);
+    if (at < 0.32) assert.equal(availability.retryAt, 0.32);
 
-    if (at >= 8.301) assert.equal(availability.retryAt, null);
+    if (at >= 8.32) assert.equal(availability.retryAt, null);
 
     context.time = at;
     assert.equal(state.mirrors.length, 1, 'Availability does not purge the live owner');
@@ -359,19 +360,19 @@ test('pending mirrors use task anchors, cast scaling, and the live-clock clamp',
 test('Mirror retry retains pending creation and overlapping mirrors expire independently', () => {
   const context = lifetimeContext();
   const skill = context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR);
-  const pending = queueMirror(context, 'mirror-cast', 0.301);
-  assert.equal(mirageAvailability(context, skill).retryAt, 0.301);
+  const pending = queueMirror(context, 'mirror-cast', 0.32);
+  assert.equal(mirageAvailability(context, skill).retryAt, 0.32);
   const controller = createMirageMechanics(context);
-  context.time = 0.301;
+  context.time = 0.32;
   mirageHooks.tasks['mesmer.mirage.create-mirror'](context, pending);
   controller.createMirrors(1.301, 1);
-  context.time = 8.301;
+  context.time = 8.32;
   assert.equal(mirageAvailability(context, skill).ready, true);
-  assert.equal(controller.pickUpMirror(8.301, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), true);
-  assert.equal(controller.pickUpMirror(8.301, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), false);
-  controller.createMirrors(8.301, 1);
+  assert.equal(controller.pickUpMirror(8.32, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), true);
+  assert.equal(controller.pickUpMirror(8.32, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), false);
+  controller.createMirrors(8.32, 1);
   // Replacement leaves only its own pickup window after older mirrors expire or are consumed.
-  assert.deepEqual(context.profession.specialization.state.mirrors, [{ availableAt: 8.301, expiresAt: 16.301 }]);
+  assert.deepEqual(context.profession.specialization.state.mirrors, [{ availableAt: 8.32, expiresAt: 16.32 }]);
 });
 
 // Same-time work must consume only its own activation, and replaying a retired task cannot create another mirror.
@@ -408,28 +409,28 @@ test('cancelled mirror admissions cannot supply retry readiness or create mirror
   assert.equal(mirageAvailability(context, pickup).retryAt, 2);
 });
 
-test('player ambush availability and projection preserve the final live microsecond and refresh exactly', () => {
+test('player ambush availability and projection preserve the last live tick and refresh exactly', () => {
   const context = lifetimeContext();
   const controller = createMirageMechanics(context);
   const state = context.profession.specialization.state;
   const skill = mesmerAmbushAttacks(context).Sword;
   controller.grantMirageCloak(0.1 + 0.201, 'first');
-  assert.equal(state.ambushUntil, 1.801);
-  for (const at of [1.800999, 1.801, 1.801001]) {
+  assert.equal(state.ambushUntil, 1.84);
+  for (const at of [1.8, 1.84, 1.88]) {
     context.start = context.time = at;
-    assert.equal(mirageAvailability(context, skill).ready, at < 1.801);
+    assert.equal(mirageAvailability(context, skill).ready, at < 1.84);
     assert.equal(
       Boolean(
         projectObservedState(mesmerProfession, { ...context, config: context.config, catalog: context.catalog })[
           STATE.AVAILABLE_AMBUSH
         ]
       ),
-      at < 1.801
+      at < 1.84
     );
   }
 
-  controller.grantMirageCloak(1.800999, 'refresh');
-  assert.equal(state.ambushUntil, 3.300999);
+  controller.grantMirageCloak(1.8, 'refresh');
+  assert.equal(state.ambushUntil, 3.32);
   controller.acceptPlayerAmbush(skill, 2, 1.9);
   assert.equal(state.ambushUntil, 0);
   assert.equal(state.ambushSource, '');
@@ -438,24 +439,24 @@ test('player ambush availability and projection preserve the final live microsec
 });
 
 test('queued ambush admission uses accepted cast occupancy without consulting action history', () => {
-  for (const castStart of [1.800999, 1.801, 1.801001]) {
+  for (const castStart of [1.8, 1.84, 1.88]) {
     const context = lifetimeContext();
     const skill = mesmerAmbushAttacks(context).Sword;
-    createMirageMechanics(context).grantMirageCloak(0.301, 'test');
+    createMirageMechanics(context).grantMirageCloak(0.32, 'test');
     context.time = castStart;
     mirageHooks.onCastStart(context, {
       id: 'preceding',
       skill: context.catalog.skillsById.get(ID.CRYSTAL_SANDS),
       command: {},
       start: castStart,
-      fullEnd: 2.5,
-      effectiveEnd: 2.5,
-      laneEnd: 2.5
+      fullEnd: 2.52,
+      effectiveEnd: 2.52,
+      laneEnd: 2.52
     });
     context.facts = { read: () => assert.fail('Mirage admission must use its accepted state.') };
-    context.time = 2.5;
-    assert.equal(mirageAvailability(context, skill).ready, castStart < 1.801);
-    context.time = 2.501;
+    context.time = 2.52;
+    assert.equal(mirageAvailability(context, skill).ready, castStart < 1.84);
+    context.time = 2.56;
     assert.equal(mirageAvailability(context, skill).ready, false);
   }
 });
@@ -497,17 +498,17 @@ test('Infinite Horizon clone gains include exact cloak expiry but reject later g
   gain(0);
   assert.equal(ambushes().length, 0);
   controller.grantMirageCloak(0.1 + 0.201, 'test');
-  assert.equal(state.cloneAmbushUntil, 1.051);
-  gain(1.050999);
+  assert.equal(state.cloneAmbushUntil, 1.08);
+  gain(1.04);
   const first = ambushes().length;
   assert.ok(first > 0);
   gain(1.051);
   assert.equal(ambushes().length, 2 * first);
-  gain(1.051001);
+  gain(1.12);
   assert.equal(ambushes().length, 2 * first);
   controller.grantMirageCloak(1.051, 'refresh');
-  assert.equal(state.cloneAmbushUntil, 1.801);
-  gain(1.051001);
+  assert.equal(state.cloneAmbushUntil, 1.84);
+  gain(1.12);
   assert.equal(ambushes().length, 3 * first);
 });
 

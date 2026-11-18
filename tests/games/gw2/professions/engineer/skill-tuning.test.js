@@ -377,7 +377,7 @@ for (const id of [
     );
     assert.deepEqual(
       procs.map((event) => event.at),
-      [0.25, 1]
+      [0.28, 1]
     );
     assert.ok(procs.every((event) => event.coefficient === 0.9));
     const selected = family.resolvePatch({ id: 'engineer-ownership' }).balanceContext;
@@ -496,7 +496,7 @@ test('Rapacious regrants from another slot retain the shared cooldown and canoni
     result.events
       .filter((event) => event.sourceId === 'engineer.rapacious-strain' && event.type === 'damage')
       .map((event) => event.at),
-    [0.1, 1.2]
+    [0.12, 1.2]
   );
   for (const id of slots) {
     assert.equal(engineerCatalog.skillsById.get(id).rapaciousInternalCooldown, undefined);

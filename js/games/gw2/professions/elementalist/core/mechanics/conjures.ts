@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -81,9 +83,9 @@ function finishConjureSwap(
 ): void {
   const state = professionCoreState(context.profession);
   const at = cast.effectiveEnd;
-  state.conjureExpiresAt = state.conjureEquipped
-    ? at + skillNumber(conjureSkill(context.helpers, skill)!, 'duration')
-    : 0;
+  state.conjureExpiresAt = gw2Time(
+    state.conjureEquipped ? at + skillNumber(conjureSkill(context.helpers, skill)!, 'duration') : 0
+  );
   context.schedule('elementalist.conjure-expire', state.conjureExpiresAt || at, null);
   for (const deadline of Object.values(state.conjurePickups))
     context.schedule('elementalist.conjure-expire', deadline, null);

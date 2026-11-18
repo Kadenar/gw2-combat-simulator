@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -50,7 +52,7 @@ export function mesmerRelease(runtime: RevenantRuntime, data: unknown): void {
   if (event.target === RECIPIENT.SELF) {
     const duration = Number(event.duration) * Math.max(0, 1 - affinity * durationReductionPerAffinity);
     runtime.profession.core.selfConditions.push({
-      expiresAt: event.at + duration
+      expiresAt: gw2Time(event.at + duration)
     });
     return;
   }

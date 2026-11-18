@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
@@ -8,17 +9,16 @@ import {
 import { mesmerRechargeWork } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Keep the parent's authored window while the shared runtime owns identity-safe expiry. */
 export function armMesmerSkillFlip(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const arm = cast.skill.flipArm!;
   const at = context.time;
   const start = arm.anchor === 'castCommit' ? at : cast.start;
-  const availableAt = canonicalTime(start + (arm.delay ?? 0));
-  const expiresAt = canonicalTime(start + arm.duration);
+  const availableAt = gw2Time(start + (arm.delay ?? 0));
+  const expiresAt = gw2Time(start + arm.duration);
 
-  if (expiresAt <= canonicalTime(at)) return;
+  if (expiresAt <= gw2Time(at)) return;
 
   context.armFlip(arm.skillId, {
     availableAt,

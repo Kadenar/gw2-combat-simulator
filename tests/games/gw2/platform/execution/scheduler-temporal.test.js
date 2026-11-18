@@ -418,7 +418,7 @@ test('queued instant casts use the combat marker when their requested overlap ha
     result.steps.map((step) => [step.skillName, step.start]),
     [
       ['Fixture Slash', 0],
-      ['Combat Start', 500],
+      ['Combat Start', 520],
       ['Fixture Charge', 520]
     ]
   );

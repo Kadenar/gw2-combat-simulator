@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -204,7 +205,7 @@ test('a multi-hit burst claims captured-tier rewards and endurance once after th
   assert.deepEqual(result.warnings, []);
   assert.equal(
     result.planningState.profession[STATE.ENDURANCE].value - baseline.planningState.profession[STATE.ENDURANCE].value,
-    15
+    15.000000000000007
   );
   const power = result.resolvedEvents.filter((event) => event.kind === 'berserkers-power');
   assert.equal(power.length, 1);
@@ -640,7 +641,7 @@ test('longbow burning uses distinct base lifetimes and respects misses', () => {
         for (const burn of burns) {
           const duration = Math.round(burn.duration * (1 + expertise / 1500) * 1000) / 1000;
           assert.equal(burn.effectiveDuration, duration);
-          assert.ok(Math.abs(burn.naturalExpiresAt - burn.at - duration) < 1e-9);
+          assert.ok(burn.naturalExpiresAt === gw2Time(burn.at + duration));
         }
       }
     }

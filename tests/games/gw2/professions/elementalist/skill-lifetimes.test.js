@@ -4,6 +4,7 @@ import test from 'node:test';
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import {
@@ -50,7 +51,7 @@ test('Core and Weaver orb skills own refresh duration and expiry', () => {
             canonicalTime(effectiveEnd + 0.5),
             (runtime) => {
               for (const element of ['Air', ...elements])
-                assert.equal(runtime.profession.core.hammerOrbs[element], expiresAt);
+                assert.equal(runtime.profession.core.hammerOrbs[element], gw2Time(expiresAt));
             }
           ],
           [
@@ -137,8 +138,8 @@ test('Shattering Ice action rewards share the selected interval and independent 
         skillName: 'Trigger'
       });
     arm(0);
-    for (const at of [1, 3, 3.001]) hit(at);
-    assert.equal(context.procs.deadline('elementalist.catalyst.shatteringIce'), 3.001 + 2);
+    for (const at of [1, 3, 3.04]) hit(at);
+    assert.equal(context.procs.deadline('elementalist.catalyst.shatteringIce'), 3.04 + 2);
     assert.equal(events.filter((event) => event.type === 'damage').length, removed.includes('strike') ? 0 : 2);
     assert.equal(events.filter((event) => event.type === 'condition').length, removed.includes('condition') ? 0 : 2);
     for (const event of events) {
@@ -182,9 +183,9 @@ test('Calcify owns its passive Protection without requiring a cast, and removal 
       'Evoker',
       state
     );
-    for (const at of [1, 3, 3.001]) applyCalcifyProtection(context, { type: 'control', at, actorType: 'player' });
+    for (const at of [1, 3, 3.04]) applyCalcifyProtection(context, { type: 'control', at, actorType: 'player' });
     assert.equal(events.length, removed ? 0 : 2);
-    assert.equal(context.procs.deadline('elementalist.evoker.calcifyPassive'), removed ? 0 : 3.001 + 2);
+    assert.equal(context.procs.deadline('elementalist.evoker.calcifyPassive'), removed ? 0 : 3.04 + 2);
     assert.ok(events.every((event) => event.duration === 7 && event.audience.recipients === 'self'));
     state.element = 'Air';
     applyCalcifyProtection(context, { type: 'control', at: 10, actorType: 'player' });
@@ -215,7 +216,7 @@ test('Evocation patches its Fire-familiar Might interval independently of its en
     },
     {
       profession,
-      timeline: [1, 3, 3.001].map((at) => ({
+      timeline: [1, 3, 3.04].map((at) => ({
         at,
         run(runtime) {
           runtime.mechanics.effects.emit({
@@ -241,7 +242,7 @@ test('Evocation patches its Fire-familiar Might interval independently of its en
   const grants = result.resolvedEvents.filter((event) => event.type === 'buff' && event.skillName === 'Fire Familiar');
   assert.deepEqual(
     grants.map((event) => event.at),
-    [1, 3.001]
+    [1, 3.04]
   );
   const context = profession.resolvePatch({ id: 'evocation-interval' }).balanceContext;
   const model = describeSimulationTrait(

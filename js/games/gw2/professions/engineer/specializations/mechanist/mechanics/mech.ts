@@ -1,4 +1,6 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -32,7 +34,6 @@ import type {
   EngineerRuntimeState,
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Initialization without deferred combat, or explicit combat entry, admits trait-owned background work. */
 export const mechanistCombatReady = defineTriggerPoint<Record<string, never>>('engineer.mechanist-combat-ready', [
@@ -311,7 +312,7 @@ function completeEngineerMechCast(context: EngineerRuntime, skill: EngineerSkill
     // The command cast already reserves its measured animation on the mech lane;
     // only its recovery extends the pause before the basic attack chain resumes.
     // Instant support commands neither occupy this lane nor reset the melee chain.
-    const busyUntil = at + MECHANIST_ATTACK_TIMING.commandRecovery;
+    const busyUntil = gw2Time(at + MECHANIST_ATTACK_TIMING.commandRecovery);
     state.mech.busyUntil = Math.max(state.mech.busyUntil || 0, busyUntil);
   }
 
@@ -325,7 +326,7 @@ function initializeEngineerMech(context: EngineerRuntime): void {
   if (!autonomousActionsAllowed(context) || state.mech.attackLoopStarted) return;
 
   state.mech.attackLoopStarted = true;
-  const firstAttackAt = Math.max(context.time + MECHANIST_ATTACK_TIMING.initialDelay, state.mech.busyUntil);
+  const firstAttackAt = gw2Time(Math.max(context.time + MECHANIST_ATTACK_TIMING.initialDelay, state.mech.busyUntil));
   context.schedule('engineer.mech-attack', firstAttackAt, { phase: 0, previousCommandEnd: 0 });
 }
 
@@ -352,7 +353,7 @@ function stepMechAttack(
 
   const castMs = quickness ? summonQuicknessCastTimeMs(skill) : skill.castTimeMs || 0;
   const recovery = cannon?.recovery ?? MECHANIST_ATTACK_TIMING.meleeChainRecovery[phase];
-  const nextAt = at + castMs / 1000 + recovery;
+  const nextAt = gw2Time(at + castMs / 1000 + recovery);
   return {
     at: nextAt,
     state: { phase: cannon?.nextPhase ?? (phase + 1) % 3, previousCommandEnd: state.mech.busyUntil }
@@ -366,7 +367,7 @@ function activateOverclockSignet(context: EngineerRuntime, skill: EngineerSkill)
   const at = context.time;
   const rate = mechAttackRate(context, at);
   const cannon = context.helpers.skillsById.get(ID.JADE_BUSTER_CANNON)!;
-  const fullEnd = at + Number(cannon.castTimeMs) / 1000 / rate;
+  const fullEnd = gw2Time(at + Number(cannon.castTimeMs) / 1000 / rate);
   // The lane reservation survives effect removal; cadence and payload both come from the canonical cannon.
   state.mech.busyUntil = Math.max(state.mech.busyUntil || 0, fullEnd);
   context.effects.emit({
@@ -418,7 +419,7 @@ export const engineerMechLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerS
     const mech = mechanistState.from(runtime.profession).mech;
 
     if (isEngineerMechCommand(cast.skill) && cast.fullEnd > cast.start)
-      mech.busyUntil = Math.max(mech.busyUntil, cast.effectiveEnd + MECHANIST_ATTACK_TIMING.commandRecovery);
+      mech.busyUntil = gw2Time(Math.max(mech.busyUntil, cast.effectiveEnd + MECHANIST_ATTACK_TIMING.commandRecovery));
   },
   sideEffectHandlers: {
     'engineer.overclock-signet'(runtime, context) {
@@ -450,7 +451,7 @@ export const engineerMechLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerS
       const phase = data as MechAttackPayload;
 
       // The autonomous attack waits until the same canonical instant as lane release.
-      if (runtime.time < canonicalTime(mech.busyUntil)) {
+      if (runtime.time < gw2Time(mech.busyUntil)) {
         // Preserve the pending chain phase while a command owns the lane; waiting does not count as an executed attack.
         runtime.schedule('engineer.mech-attack', mech.busyUntil, phase);
         return;

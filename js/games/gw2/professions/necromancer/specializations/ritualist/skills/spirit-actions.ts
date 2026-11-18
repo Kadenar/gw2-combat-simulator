@@ -1,4 +1,5 @@
 /** Apply skill-specific effects while the spirit lifecycle admits and owns pending attacks. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
@@ -19,7 +20,6 @@ import { spiritDefinition } from '#gw2/professions/necromancer/specializations/r
 import { painfulBondSkill } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
 import { spiritImpactAt } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-packets.js';
 import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export const INNERVATE = new Map<SkillId, string>([
   [ID.INNERVATE_ANGUISH, 'anguish'],
@@ -122,7 +122,7 @@ export const ritualistSpiritActions: NonNullable<
           at: runtime.time,
           attribution: { ...attribution(cast), ...spiritFields(innervate, 'innervate') },
           skillWeaponFallback: 'Profession mechanic',
-          transform: (event) => ({ ...event, at: canonicalTime(event.at + (cast.command.impactDelayMs ?? 0) / 1000) })
+          transform: (event) => ({ ...event, at: gw2Time(event.at + (cast.command.impactDelayMs ?? 0) / 1000) })
         });
     }
   },

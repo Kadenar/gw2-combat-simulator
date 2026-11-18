@@ -17,7 +17,7 @@ import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import { WAIT_ICON } from '#gw2/app/shared/icons.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
+import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';
@@ -236,8 +236,8 @@ export function dispatchPaletteAction(
       icon: WAIT_ICON,
       label: 'Duration',
       value: 1000,
-      minimumMs: GW2_ACTION_TICK_MS,
-      stepMs: GW2_ACTION_TICK_MS,
+      minimumMs: GW2_TICK_MS,
+      stepMs: GW2_TICK_MS,
       onApply: (durationMs) => insert({ durationMs })
     });
     return;

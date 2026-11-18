@@ -86,12 +86,12 @@ test('explicit preparation preserves live charges and real expiry without a catc
   f.engage();
   f.controller.start();
   assert.equal(f.queue.length, 1);
-  f.advance(3.5);
+  f.advance(3.52);
   assert.deepEqual(
     f.triggered.map(({ id, at }) => [id, at]),
-    [['live', 3.5]]
+    [['live', 3.52]]
   );
-  f.advance(4.5);
+  f.advance(4.52);
   assert.deepEqual(
     f.triggered.map(({ id }) => id),
     ['live', 'live']
@@ -111,13 +111,13 @@ test('pending markers and late registration use the canonical engagement boundar
   assert.equal(f.runtime.engagement.combatMechanicsAllowed(), true);
   f.advance(3);
   f.grant('late');
-  assert.equal(f.queue[0].at, 3.5, 'the original combat boundary owns the cadence');
+  assert.equal(f.queue[0].at, 3.52, 'the original combat boundary owns the cadence');
   const late = fixture();
   late.advance(2);
   late.engage();
-  late.advance(3.1);
+  late.advance(3.12);
   late.grant('first-after-marker');
-  assert.equal(late.queue[0].at, 3.5, 'first registration must not become a new engagement anchor');
+  assert.equal(late.queue[0].at, 3.52, 'first registration must not become a new engagement anchor');
 });
 
 // Rejected recipients cannot run state-producing callbacks when allies have no strike opportunities.
@@ -181,12 +181,12 @@ test('implicit combat starts without damage and a later combat notification cann
   const f = fixture({ explicit: false });
   f.grant('live', { charges: 3 });
   f.controller.start();
-  f.advance(0.5);
+  f.advance(0.52);
   f.engage();
   f.advance(1);
   assert.deepEqual(
     f.triggered.map(({ at }) => at),
-    [0.5, 1]
+    [0.52, 1]
   );
   assert.equal(f.queue.length, 1);
 });
@@ -199,13 +199,13 @@ test('application, replacement and exhaustion preserve one shared causal strike 
   f.grant('second');
   f.advance(0.4);
   f.grant('first');
-  f.advance(0.5);
+  f.advance(0.52);
   assert.equal(f.triggered.length, 2);
   assert.equal(f.triggered[0].activationId, f.triggered[1].activationId);
   f.advance(1.2);
   f.grant('later', { allyIndex: 2 });
-  f.advance(1.5);
-  assert.equal(f.triggered.at(-1).at, 1.5);
+  f.advance(1.52);
+  assert.equal(f.triggered.at(-1).at, 1.52);
   assert.equal(f.triggered.at(-1).allyIndex, 2);
 });
 
@@ -247,7 +247,7 @@ test('owners answer liveness at actual and scheduled opportunity times', () => {
     () => ({
       id: 'window',
       // An inclusive native window admits the strike landing exactly at its end.
-      isActive: (at) => at <= 0.3,
+      isActive: (at) => at <= 0.32,
       trigger: (event) => {
         f.triggered.push(event);
       }
@@ -255,10 +255,10 @@ test('owners answer liveness at actual and scheduled opportunity times', () => {
     { alliedPlayerIndex: 1 }
   );
   f.engage();
-  f.advance(0.3);
+  f.advance(0.32);
   assert.deepEqual(
     f.triggered.map(({ at }) => at),
-    [0.1, 0.2, 0.3]
+    [0.12, 0.2, 0.32]
   );
   assert.deepEqual(f.queue, [], 'no opportunity is scheduled after the window closes');
 });
@@ -275,7 +275,7 @@ test('failed eligibility keeps charges and death stops consumption and reschedul
     }
   });
   f.engage();
-  f.advance(0.5);
+  f.advance(0.52);
   eligible = true;
   f.advance(1);
   assert.equal(spent, 1);
@@ -331,7 +331,7 @@ test('reentrant grants wait for the next opportunity without splitting the curre
     }
   });
   f.grant('existing');
-  f.advance(0.5);
+  f.advance(0.52);
   assert.deepEqual(
     f.triggered.map(({ id }) => id),
     ['existing']

@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -445,7 +447,7 @@ function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2Res
     // A player hit builds Pet stacks (cross-buff: player hits power the pet).
     pet.ferociousSymbiosis = refreshBatch(pet.ferociousSymbiosis, 1, {
       at: event.at,
-      expiresAt: event.at + duration,
+      expiresAt: gw2Time(event.at + duration),
       maximum: maximumStacks
     }).batch;
   } else if (isPetStrike(event) && event.actorType === ACTOR.SUMMON && event.summonOwner === pet.id) {
@@ -454,7 +456,7 @@ function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2Res
     // A pet hit builds Player stacks (cross-buff: pet hits power the player).
     state.ferociousSymbiosisPlayer = refreshBatch(state.ferociousSymbiosisPlayer, 1, {
       at: event.at,
-      expiresAt: event.at + duration,
+      expiresAt: gw2Time(event.at + duration),
       maximum: maximumStacks
     }).batch;
   }

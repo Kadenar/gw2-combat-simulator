@@ -39,7 +39,7 @@ for (const [specialization, trait, profile, type, name] of [
         {
           catalog: patched({ [profile]: { fields: { internalCooldown: 2 }, ...(removed ? remove(type, name) : {}) } }),
           initialize(runtime) {
-            for (const at of [1, 3, 3.001])
+            for (const at of [1, 3, 3.04])
               runtime.effects.emit({
                 kind: 'packet',
                 event: {
@@ -59,9 +59,9 @@ for (const [specialization, trait, profile, type, name] of [
       const packets = result.events.filter((event) => event.sourceId === trait);
       assert.deepEqual(
         packets.map((event) => event.at),
-        removed ? [] : [1, 3.001]
+        removed ? [] : [1, 3.04]
       );
-      assert.equal(observedRuntime(result).procs.deadline(profile), removed ? 0 : 3.001 + 2);
+      assert.equal(observedRuntime(result).procs.deadline(profile), removed ? 0 : 5.04);
 
       if (trait === TRAIT.BRUTAL_MOMENTUM) assert.ok(packets.every((event) => event.skillId === profile));
 
@@ -308,9 +308,9 @@ test('Twin Moon Sweep selects patchable Shared Wisdom Might independently of tar
       might.map((event) => [event.at, event.stacks]),
       mode === 'selected'
         ? [
-            [0.3, 7],
-            [0.42, 7],
-            [0.54, 7]
+            [0.32, 7],
+            [0.44, 7],
+            [0.56, 7]
           ]
         : []
     );

@@ -1,3 +1,4 @@
+import { gw2Interval, gw2Time } from '#gw2/platform/combat/clock.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -39,7 +40,7 @@ import {
 import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/battle-scars.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalInterval, canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { timeKey } from '#kernel/core/clock.js';
 import { addTimedStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Combat suppression skips the boon while the combat-anchored cadence keeps advancing. */
@@ -50,9 +51,7 @@ const assassinsPresencePassive = definePeriodicTask<RevenantRuntime>({
   state: (runtime) => runtime.profession.core.assassinsPresence,
   rearmBeforeRun: true,
   nextAt: (runtime) =>
-    canonicalTime(
-      runtime.time + canonicalInterval(balanceNumber(runtime.helpers, TRAIT.ASSASSINS_PRESENCE, 'cooldown'))
-    ),
+    gw2Time(runtime.time + gw2Interval(balanceNumber(runtime.helpers, TRAIT.ASSASSINS_PRESENCE, 'cooldown'))),
   run: revenantAssassinsPresencePulse
 });
 
@@ -344,12 +343,12 @@ function thrillOfCombat(runtime: RevenantRuntime, { cause: event }: RevenantStri
   // The cadence exists only to grant this buff, so a removed buff neither grants nor advances it.
   if (!buff) return;
 
-  const interval = canonicalInterval(balanceProfileNumber(profile, 'cooldown'));
+  const interval = gw2Interval(balanceProfileNumber(profile, 'cooldown'));
   const duration = Math.max(0, effectNumber(profile, buff, 'duration'));
   const maximum = skillNumber(requireSkill(runtime.helpers, battleScarsSkill.id), 'maximumStacks');
 
   if (core.nextThrillOfCombatAt == null)
-    core.nextThrillOfCombatAt = canonicalTime((core.combatBeganAt ?? runtime.time) + interval);
+    core.nextThrillOfCombatAt = gw2Time((core.combatBeganAt ?? runtime.time) + interval);
 
   const next = core.nextThrillOfCombatAt;
 
@@ -363,15 +362,15 @@ function thrillOfCombat(runtime: RevenantRuntime, { cause: event }: RevenantStri
     const result = addTimedStacks(
       core.battleScars,
       effectNumber(profile, buff, 'stacks'),
-      canonicalTime(next + index * interval),
-      duration,
+      gw2Time(next + index * interval),
+      gw2Time(duration),
       maximum
     );
     core.battleScars = result.expiries;
     granted += result.added;
   }
 
-  core.nextThrillOfCombatAt = canonicalTime(next + elapsed * interval);
+  core.nextThrillOfCombatAt = gw2Time(next + elapsed * interval);
 
   if (!granted) return;
 
@@ -454,7 +453,7 @@ function grantBattleScars(
     core.battleScars,
     stacks,
     runtime.time,
-    duration,
+    gw2Time(duration),
     skillNumber(requireSkill(runtime.helpers, battleScarsSkill.id), 'maximumStacks')
   );
   core.battleScars = expiries;

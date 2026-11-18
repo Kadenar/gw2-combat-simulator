@@ -77,7 +77,7 @@ test('Lock On invokes the patched Controlled Analysis payload and shared cooldow
     const fury = packets.filter((event) => event.kind === 'fury');
     assert.deepEqual(
       fury.map((event) => event.at),
-      selected ? [1, 3.1] : []
+      selected ? [1, 3.12] : []
     );
     assert.ok(fury.every((event) => event.duration === 7));
     assert.equal(
@@ -91,7 +91,7 @@ test('Lock On invokes the patched Controlled Analysis payload and shared cooldow
     );
     assert.equal(
       observedRuntime(result).cooldownController.readyAt(ID.CONTROLLED_ANALYSIS),
-      selected ? 4.7 : undefined
+      selected ? 4.72 : undefined
     );
   }
 });

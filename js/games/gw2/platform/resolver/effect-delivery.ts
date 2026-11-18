@@ -1,5 +1,6 @@
 /** Retain planned boon yields for reports while admission and resolution keep their existing combat rules. */
 import { isStandardBoon, normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { LiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { targetHealthReached } from '#gw2/platform/combat/state/target-health.js';
@@ -40,7 +41,6 @@ import type { ScheduledBoonApplication } from '#gw2/platform/results/sustained-b
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { RuntimeWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { HandlerRegistry, OBSERVABLE_EVENT_HANDLER } from '#kernel/events/handler-registry.js';
 
 /** Derived copies cannot reuse the parent's declaration, including after serialization or deferral. */
@@ -171,12 +171,12 @@ export function createEffectDelivery<T extends object>(
       delivery.cast?.effectiveEnd != null &&
       // Committed actor lifetimes explicitly use Infinity to allow their independent follow-up work.
       delivery.cast.effectiveEnd !== Infinity &&
-      canonicalTime(event.at) > canonicalTime(delivery.cast.effectiveEnd) &&
+      gw2Time(event.at) > gw2Time(delivery.cast.effectiveEnd) &&
       event.persistsAfterInterrupt !== true;
 
     // Apply travel after cast eligibility, once at admission, so custom packets land before their derived reactions.
     if (delivery.cast?.impactDelayMs && isHostileTargetEvent(event))
-      event = { ...event, at: canonicalTime(event.at + delivery.cast.impactDelayMs / 1000) };
+      event = { ...event, at: gw2Time(event.at + delivery.cast.impactDelayMs / 1000) };
 
     if (cause)
       event = {
@@ -204,7 +204,7 @@ export function createEffectDelivery<T extends object>(
 
     // Encounter packets must sample the target at delivery, after any intervening phase transition.
     const deferPreparation =
-      (owner != null || event.type === 'buff' || runtime.encounter != null) && canonicalTime(event.at) > runtime.time;
+      (owner != null || event.type === 'buff' || runtime.encounter != null) && gw2Time(event.at) > runtime.time;
     const prepared =
       cancelledByCast || deferPreparation
         ? event
@@ -233,7 +233,7 @@ export function createEffectDelivery<T extends object>(
     const packet = assertSimulationEvent({
       ...identified,
       ...(equippedProfileId ? { weaponStrengthProfileId: equippedProfileId } : {}),
-      at: canonicalTime(event.at)
+      at: gw2Time(event.at)
     });
 
     if (packet.at < runtime.time) throw new RangeError('Events cannot backdate the live clock.');
@@ -273,7 +273,7 @@ export function createEffectDelivery<T extends object>(
 
   function announceEffect(request: AnnouncementEmission): Gw2ResolverEvent {
     const { announcement } = request;
-    const at = canonicalTime(announcement.at);
+    const at = gw2Time(announcement.at);
 
     // Retrospective timeline annotations describe completed combat; visible activations must respect the live clock.
     if (at < runtime.time && request.log) throw new RangeError('Visible announcements cannot backdate the live clock.');
@@ -303,7 +303,7 @@ export function createEffectDelivery<T extends object>(
     const cancelled =
       request.cast?.effectiveEnd != null &&
       request.cast.effectiveEnd !== Infinity &&
-      canonicalTime(at) > canonicalTime(request.cast.effectiveEnd);
+      gw2Time(at) > gw2Time(request.cast.effectiveEnd);
 
     if (cancelled) return event;
 
@@ -333,8 +333,7 @@ export function createEffectDelivery<T extends object>(
   // Both callers supply admitted packets: reaction settlement and the queued condition handler.
   function applyConditionNow(event: SimulationEventBase) {
     // Immediate derived applications obey the same live clock and target gates as queued applications.
-    if (canonicalTime(event.at) !== runtime.time)
-      throw new RangeError('Immediate conditions must apply at the live clock.');
+    if (gw2Time(event.at) !== runtime.time) throw new RangeError('Immediate conditions must apply at the live clock.');
 
     if (
       ('offTarget' in event && event.offTarget === true) ||
@@ -492,7 +491,7 @@ export function createEffectDelivery<T extends object>(
           detail: event.detail,
           icon: event.icon,
           cooldownReduction: event.cooldownReduction,
-          expiresAt: Number(event.duration) > 0 ? event.at + Number(event.duration) : null
+          expiresAt: Number(event.duration) > 0 ? gw2Time(event.at + Number(event.duration)) : null
         },
         runtime.deathTime
       );

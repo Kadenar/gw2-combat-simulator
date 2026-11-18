@@ -183,7 +183,7 @@ test('delayed packets resolve during later casts and lethal packets clip them', 
 
   assert.equal(lethal.deathTime, 0.8);
   assert.equal(lethal.rotationEndTime, 2.2);
-  assert.ok(Math.abs(lethal.dpsWindow - 0.7) < 1e-12);
+  assert.ok(Math.abs(lethal.dpsWindow - 0.68) < 1e-12);
   assert.equal(
     lethal.resolvedEvents.some((event) => event.at > 0.8),
     false
@@ -221,7 +221,7 @@ test('terminal packets require an explicit observation tail or wait', () => {
 
   assert.equal(tailed.rotationEndTime, 0.2);
   assert.ok(tailed.resolvedEvents.some((event) => event.at === 0.8));
-  assert.ok(Math.abs(tailed.dpsWindow - 1.1) < 1e-12);
+  assert.ok(Math.abs(tailed.dpsWindow - 1.08) < 1e-12);
 
   const waited = simulateGw2({
     profession,

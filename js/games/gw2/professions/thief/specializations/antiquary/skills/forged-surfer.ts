@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -7,7 +8,6 @@ import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/c
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export const FORGED_SURFER = 'thief.forged-surfer';
 
@@ -58,12 +58,12 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
     });
 
   const interval = skillNumber(requireSkill(runtime.helpers, ID.FORGED_SURFER_DASH), 'pulseInterval');
-  const nextAt = canonicalTime(runtime.time + interval);
+  const nextAt = gw2Time(runtime.time + interval);
 
   // A duration-driven sequence must advance its clock even when authoring a patched skill.
   if (nextAt <= runtime.time) throw new RangeError('Forged Surfer bomb interval must advance time.');
 
-  if (nextAt <= canonicalTime(antiquaryState.from(runtime.profession).forgedSurferBombDropUntil))
+  if (nextAt <= gw2Time(antiquaryState.from(runtime.profession).forgedSurferBombDropUntil))
     runtime.schedule(FORGED_SURFER, nextAt, { skillId, occurrence: occurrence + 1 }, FORGED_SURFER_OWNER);
 }
 

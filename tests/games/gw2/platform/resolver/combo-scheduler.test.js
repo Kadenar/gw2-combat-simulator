@@ -145,7 +145,7 @@ test('precombat combo boons carry into combat without counting precombat hits', 
   const hits = result.resolvedEvents.filter((event) => event.type === 'damage');
   assert.deepEqual(
     hits.map((event) => event.at),
-    [2.5]
+    [2.52]
   );
   assert.equal(hits[0].criticalChance, 1);
   // Only the combat hit may apply Earth; a precombat claim would block it on cooldown.
@@ -153,7 +153,7 @@ test('precombat combo boons carry into combat without counting precombat hits', 
     result.resolvedEvents
       .filter((event) => event.type === 'condition' && event.sourceId === `sigil.${SIGIL_IDS.EARTH}`)
       .map((event) => event.at),
-    [2.5]
+    [2.52]
   );
 });
 

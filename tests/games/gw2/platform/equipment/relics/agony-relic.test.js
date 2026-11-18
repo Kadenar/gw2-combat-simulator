@@ -50,7 +50,7 @@ test('Agony is selectable and shares Severance control eligibility with a strict
   });
   assert.deepEqual(
     result.procSteps.filter((proc) => proc.skill === 'Relic of Agony').map((proc) => proc.start),
-    [0, 3001]
+    [0, 3040]
   );
   assert.ok(result.procSteps.some((proc) => proc.skill === 'Sigil of Severance' && proc.start === 0));
 });

@@ -188,8 +188,8 @@ test('Nova and Chilling Victory retain patched cooldowns with an exclusive deadl
     }
   );
   assert.equal(lifeForcePercent(runtime.profession.core.lifeForce, runtime.resourceController.value('lifeForce')), 14);
-  assert.equal(runtime.procs.deadline(novaDeadline), 5.25);
-  assert.equal(runtime.procs.deadline(victoryDeadline), 5.25);
+  assert.equal(runtime.procs.deadline(novaDeadline), 5.28);
+  assert.equal(runtime.procs.deadline(victoryDeadline), 5.28);
   assert.equal(
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.sourceId === TRAIT.CHILLING_NOVA).length,
     2

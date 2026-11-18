@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import {
   consumeCharge,
@@ -30,7 +31,6 @@ import type {
   GuardianRuntimeState,
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { activeBatchCount, expireBatch } from '#kernel/resources/batch.js';
 
 const ASHES = 'guardian.firebrand.ashes';
@@ -242,7 +242,7 @@ function emitPersonalAshes(
 
 /** Accepted Ashes casts grant after 560 ms, without exposing charges at acceptance or waiting for animation end. */
 export function startFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
-  runtime.scheduleForCast(ASHES, canonicalTime(cast.start + 0.56), cast);
+  runtime.scheduleForCast(ASHES, gw2Time(cast.start + 0.56), cast);
 }
 
 /** The application boundary grants Might and installs the selected charge components together. */

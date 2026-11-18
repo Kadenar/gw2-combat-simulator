@@ -4,6 +4,7 @@ import test from 'node:test';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
@@ -244,7 +245,7 @@ test('Bestial Rage keeps its sibling boon and cooldown, and releases the cooldow
       result.events.filter((event) => event.sourceId === TRAIT.BESTIAL_RAGE).map((event) => event.kind),
       both ? [] : ['fury']
     );
-    assert.equal(observedRuntime(result).procs.deadline(TRAIT.BESTIAL_RAGE), both ? 0 : 1.25);
+    assert.equal(observedRuntime(result).procs.deadline(TRAIT.BESTIAL_RAGE), gw2Time(both ? 0 : 1.25));
     assert.deepEqual(result.warnings, []);
   }
 });

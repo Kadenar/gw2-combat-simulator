@@ -1,4 +1,5 @@
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -39,7 +40,6 @@ import type {
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 // Base attunement recharge after a dual swap.
 const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
@@ -105,7 +105,7 @@ export function settleWeaverAttunement(
   applyWeaveSelfAttunement(context, at, target, source, sourceId, cause);
 
   // Pre-combat setup swaps must not generate trait procs.
-  if (canonicalTime(at) < (context.engagement.startTime || 0)) return;
+  if (gw2Time(at) < (context.engagement.startTime || 0)) return;
 
   context.fireTrigger(weaverAttunementCompleted, { transition, cause });
   // A normal Weaver swap moves both hands and so counts as two attunement

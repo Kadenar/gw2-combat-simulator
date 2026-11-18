@@ -1,5 +1,6 @@
+import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 /** Owns Dragon Slash editor choices, command intent, and interpretation of recorded release outcomes. */
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
+
 import type { CastEditorPreparation, ProfessionCastEditor } from '#gw2/platform/profession-presentation/cast-editor.js';
 import type {
   ProfessionTimelineAnnotation,
@@ -47,14 +48,14 @@ export function dragonSlashEditor(skill: WarriorSkill): ProfessionCastEditor | n
           help: 'Optional hold after the selected charges are ready. No additional Flow is consumed by charging.',
           valueMs: command?.releaseDelayMs ?? 0,
           minimumMs: 0,
-          stepMs: GW2_ACTION_TICK_MS
+          stepMs: GW2_TICK_MS
         },
         apply(choiceId, delayMs) {
           if (
             !choices.some((choice) => choice.id === choiceId && !choice.disabled) ||
             !Number.isFinite(delayMs) ||
             delayMs < 0 ||
-            delayMs % GW2_ACTION_TICK_MS !== 0
+            delayMs % GW2_TICK_MS !== 0
           )
             return null;
 

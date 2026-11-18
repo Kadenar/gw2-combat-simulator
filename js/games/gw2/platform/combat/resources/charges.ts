@@ -1,5 +1,5 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { consumeBatch, createBatch, refreshBatch, type Batch } from '#kernel/resources/batch.js';
 
 /** One recipient's finite grant, consumed and expired directly by its owning mechanic. */
@@ -11,7 +11,7 @@ export interface ChargeGrant extends Batch {
 export function createChargeGrant(charges: number, expiresAt: number): ChargeGrant {
   if (!Number.isFinite(expiresAt)) throw new TypeError('Charge grants require a finite expiry.');
 
-  return { ...createBatch(charges, expiresAt), readyAt: 0 };
+  return { ...createBatch(charges, gw2Time(expiresAt)), readyAt: 0 };
 }
 
 /** Returns a new grant, retaining charges and cooldown only when the previous grant is still live. */
@@ -23,7 +23,7 @@ export function refreshChargeGrant(
 ): ChargeGrant {
   if (!Number.isFinite(expiresAt)) throw new TypeError('Charge grants require a finite expiry.');
 
-  const { batch, refreshed } = refreshBatch(previous, charges, { at, expiresAt });
+  const { batch, refreshed } = refreshBatch(previous, charges, { at: gw2Time(at), expiresAt: gw2Time(expiresAt) });
   return { ...batch, readyAt: refreshed ? (previous?.readyAt ?? 0) : 0 };
 }
 
@@ -33,7 +33,7 @@ export function consumeCharge(grant: ChargeGrant | undefined, at: number, cooldo
 
   if (!consumeBatch(grant, 1, at)) return false;
 
-  if (cooldown > 0) grant.readyAt = canonicalTime(at + cooldown);
+  if (cooldown > 0) grant.readyAt = gw2Time(at + cooldown);
 
   return true;
 }

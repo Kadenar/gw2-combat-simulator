@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
@@ -12,7 +13,6 @@ import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechan
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Match the player and pet skill bars to the current unleash owner, with a separate deadline for player ambushes. */
 export function untamedCastAvailability(
@@ -55,9 +55,7 @@ export function untamedCastAvailability(
 /** Each ambush window expires only its own grant, preserving the independent grant cooldown. */
 export function grantAmbush(runtime: RangerRuntime): void {
   const state = untamedState.from(runtime.profession);
-  state.ambushReadyUntil = canonicalTime(
-    runtime.time + balanceNumber(runtime.helpers, TRAIT.UNLEASHED_POWER, 'duration')
-  );
+  state.ambushReadyUntil = gw2Time(runtime.time + balanceNumber(runtime.helpers, TRAIT.UNLEASHED_POWER, 'duration'));
 }
 
 /** Accepted player and pet strikes advance cross-buffs before player-only ambush rewards. */
@@ -74,7 +72,7 @@ export const untamedUnleashed = defineTriggerPoint<{ readonly skill: RangerSkill
 /** Both toggles share fixed recharge; only an eligible transfer to Ranger claims a new ambush. */
 function unleash(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, rangerUnleashed: boolean): void {
   untamedState.from(runtime.profession).rangerUnleashed = rangerUnleashed;
-  const readyAt = cast.start + skillNumber(cast.skill, 'cooldown');
+  const readyAt = gw2Time(cast.start + skillNumber(cast.skill, 'cooldown'));
   // Both directions share one ready time; changing the visible toggle must not allow an immediate transfer back.
   runtime.cooldownController.setReadyAt(ID.UNLEASH_RANGER, readyAt);
   runtime.cooldownController.setReadyAt(ID.UNLEASH_PET, readyAt);

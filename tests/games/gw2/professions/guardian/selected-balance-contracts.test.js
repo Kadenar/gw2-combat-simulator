@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/combat/recharge.js';
 import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -192,7 +193,7 @@ test('Luminary linked effects follow the selected packet anchor and scaling', ()
         effectiveEnd: 10.8,
         skill: { castTimeMs: 2000, effects: [{ type: 'strike', timingAnchor, timingScale, ...payload }] }
       };
-      assert.equal(luminaryImpactAt(cast), expected);
+      assert.equal(luminaryImpactAt(cast), gw2Time(expected));
     }
   }
 

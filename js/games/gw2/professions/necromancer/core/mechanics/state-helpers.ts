@@ -2,6 +2,7 @@
  * Shared live Carapace, Soul Shard, and creature-summon operations.
  * Specializations register creature reactions without coupling Core to their mechanics.
  */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { consumeCharge, refreshChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -11,7 +12,6 @@ import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 import { purgeExpiredBatch } from '#kernel/resources/batch.js';
 import { purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
@@ -61,12 +61,7 @@ export function addSoulShards(state: NecromancerCoreState, stacks: number, at: n
   // Refresh the shared deadline even at the cap, adding only the newly admitted shards.
   const added = boundedInteger(stacks, 0, 0, maximum - state.soulShardGrant.count);
   // The stored deadline must equal the queue's canonical timestamp so exact expiry cannot leave floating-point residue.
-  state.soulShardGrant = refreshChargeGrant(
-    state.soulShardGrant,
-    added,
-    canonicalTime(at + SOUL_SHARD_DURATION_SECONDS),
-    at
-  );
+  state.soulShardGrant = refreshChargeGrant(state.soulShardGrant, added, gw2Time(at + SOUL_SHARD_DURATION_SECONDS), at);
 }
 
 /** Removes active Soul Shards up to the requested amount and returns the amount consumed. */

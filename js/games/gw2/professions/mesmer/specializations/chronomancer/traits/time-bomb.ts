@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { balanceProfileNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
@@ -7,7 +8,6 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** After trait admission, arm Time Bomb for a completed Time Sink and attribute its delayed explosion to that cast. */
 export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
@@ -29,7 +29,7 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
 
   const duration = balanceProfileNumber(profile, 'duration');
   // This is the delayed explosion timer; rearming is allowed exactly when it detonates.
-  state.timeBombUntil = canonicalTime(at + duration);
+  state.timeBombUntil = gw2Time(at + duration);
   const delivery = mesmerCastDelivery(cast, skill, Infinity);
   {
     const packet = buildMesmerPacket({

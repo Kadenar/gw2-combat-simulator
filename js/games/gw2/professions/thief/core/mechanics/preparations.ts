@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
@@ -42,7 +44,11 @@ export function prepareTrap(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>
   const delay =
     requireBalanceNumber(skill.duration, `skill=${skill.id} field=duration`) / runtime.cooldownController.rate(skill);
 
-  runtime.armFlip(triggerId, { availableAt: runtime.time + delay, expiresAt: Infinity, visibleAt: runtime.time });
+  runtime.armFlip(triggerId, {
+    availableAt: gw2Time(runtime.time + delay),
+    expiresAt: Infinity,
+    visibleAt: runtime.time
+  });
 }
 
 /** Triggering consumes the trap and mirrors its short rearm onto an already-recharged placement skill. */

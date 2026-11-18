@@ -319,7 +319,7 @@ test('manual Shadow Shroud exit cancels depletion and preserves remaining force'
 test('Specter percentage drain is independent of vitality and observation boundaries', () => {
   // Fractional waits must preserve the same 2%-per-second drain at any maximum health.
   for (const vitality of [1000, 2000]) {
-    for (const waits of [[1000], [125, 375, 500]]) {
+    for (const waits of [[1000], [120, 360, 520]]) {
       const result = simulate(
         'Specter',
         ['Enter Shadow Shroud', ...waits.map((durationMs) => ({ type: 'wait', durationMs })), 'Exit Shadow Shroud'],
@@ -549,7 +549,7 @@ test('scepter chain expires three seconds after its last successful cast complet
   // Other skills cannot refresh the modeled retention window; advancing invalidates the previous expiry.
   const wait = (durationMs) => ({ type: 'wait', durationMs });
   for (const [rotation, expected] of [
-    [['Shadow Bolt', wait(2999)], ID.DOUBLE_BOLT],
+    [['Shadow Bolt', wait(2960)], ID.DOUBLE_BOLT],
     [['Shadow Bolt', wait(3000)], ID.SHADOW_BOLT],
     [['Shadow Bolt', 'Double Bolt', wait(3000)], ID.SHADOW_BOLT],
     [['Shadow Bolt', wait(2000), 'Double Bolt', wait(1000)], ID.TRIPLE_BOLT],
@@ -1383,7 +1383,8 @@ test('Specter Thieves Guild Well of Sorrow chooses conditions from target state 
       ['Torment', 2, 4],
       ['Torment', 1, 4],
       ['Torment', 1, 4],
-      ['Torment', 1, 4]
+      // Bleeding expires before the final pulse, restoring its selection priority.
+      ['Bleeding', 2, 4]
     ]
   );
   assert.deepEqual(

@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 /** Canonical Core revenant skill definitions grouped by their GW2 owner. */
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
@@ -17,7 +19,6 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import {
   activeStackCount,
   addTimedStacks,
@@ -429,7 +430,7 @@ function startRevenantAbyssalRaze(runtime: RevenantRuntime, cast: RuntimeCast<Re
   if (!strike) throw new Error('Abyssal Raze is missing its strike effect.');
 
   // Carry the activation identity, but defer reading stacks until impact so intervening expiry or swaps take effect.
-  runtime.schedule(REVENANT_ABYSSAL_RAZE, canonicalTime(cast.start + (effectFirstAtMs(strike) || 0) / 1000), {
+  runtime.schedule(REVENANT_ABYSSAL_RAZE, gw2Time(cast.start + (effectFirstAtMs(strike) || 0) / 1000), {
     activationId: cast.id
   });
 }
@@ -449,7 +450,7 @@ function revenantAbyssalRazeImpact(runtime: RevenantRuntime, data: unknown): voi
 
   const maximum = Math.max(0, skill.maximumStacks || 0);
   const duration = Math.max(0, effect.duration || 0);
-  const grant = addTimedStacks(activeCrushingAbyss(runtime), 1, runtime.time, duration, maximum);
+  const grant = addTimedStacks(activeCrushingAbyss(runtime), 1, runtime.time, gw2Time(duration), maximum);
 
   // At the cap the grant lands nothing, and the buff must not be published either.
   if (grant.added === 0) return;
@@ -568,7 +569,7 @@ export const spearLifecycle = {
       const skill = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE)!;
       runtime.profession.core.crushingAbyss = grantTimedStacks([], {
         at: runtime.time,
-        expiresAt: runtime.time + buff.duration,
+        expiresAt: gw2Time(runtime.time + buff.duration),
         count: buff.stacks,
         maximumStacks: Number(skill.maximumStacks),
         retain: 'latest-expiry'

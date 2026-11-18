@@ -1,4 +1,7 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, BOON, BOON_NAMES, COMBO_FINISHER, CONTROL } from '#gw2/platform/constants.js';
@@ -195,7 +198,7 @@ function prepareEngineerHghEvent(
   if (event.type === 'combo_field') {
     const duration = Number(event.expiresAt) - event.at;
 
-    if (duration > 0) return { ...event, expiresAt: event.at + duration * durationMultiplier };
+    if (duration > 0) return { ...event, expiresAt: gw2Time(event.at + duration * durationMultiplier) };
   } else if ((event.type === 'buff' || event.type === 'condition') && Number(event.duration) > 0) {
     return { ...event, duration: Number(event.duration) * durationMultiplier };
   }

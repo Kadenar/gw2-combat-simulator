@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 // Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
@@ -858,7 +860,7 @@ export function releaseFrostTrap(runtime: RangerRuntime): void {
       event: {
         ...event,
         at: event.at + delay,
-        ...(event.type === 'combo_field' ? { expiresAt: Number(event.expiresAt) + delay } : {})
+        ...(event.type === 'combo_field' ? { expiresAt: gw2Time(Number(event.expiresAt) + delay) } : {})
       }
     });
 }

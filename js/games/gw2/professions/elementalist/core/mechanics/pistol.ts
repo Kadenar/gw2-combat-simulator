@@ -1,5 +1,6 @@
 /** Owns pistol enhancement actions, charge rewards, recharge grants, and deferred tasks. */
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, COMBO_FINISHER, WEAPON } from '#gw2/platform/constants.js';
@@ -84,11 +85,12 @@ const pistolSideEffectHandlers: RuntimeHooks<ElementalistRuntimeState, Elemental
     // Anchor the selected detonation delay to release so aftercast length and
     // cancellation cannot move the enhanced reward.
     const delay = skillNumber(skill, 'detonationDelay');
-    const detonationAt =
+    const detonationAt = gw2Time(
       cast.start +
-      projectCastRelativeEffectTimingMs(skill, (cast.fullEnd - cast.start) * 1000, Number(skill.interruptCommitMs)) /
-        1000 +
-      delay;
+        projectCastRelativeEffectTimingMs(skill, (cast.fullEnd - cast.start) * 1000, Number(skill.interruptCommitMs)) /
+          1000 +
+        delay
+    );
     const frozenFusilladeWaterBulletStrike = requireEffect(skill, 'strike', 'Water Bullet', action);
 
     if (frozenFusilladeWaterBulletStrike) {

@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { ConditionEffect } from '#gw2/platform/effects/types.js';
@@ -9,7 +10,6 @@ import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/c
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefRuntimeState, ThiefSkill, ThiefSummonDefinition } from '#gw2/professions/thief/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const THIEF_GUILD_ATTACK = 'thief.thieves-guild-attack';
 const THIEF_GUILD_EXPIRY = 'thief.thieves-guild-expire';
@@ -49,7 +49,7 @@ export function createThievesGuildHooks(
     if (!profile) return;
 
     const core = runtime.profession.core;
-    const expiresAt = canonicalTime(cast.start + skillNumber(cast.skill, 'duration'));
+    const expiresAt = gw2Time(cast.start + skillNumber(cast.skill, 'duration'));
     core.activeThievesGuild = {
       ownerId: `${cast.id}:thieves-guild`,
       expiresAt,
@@ -68,7 +68,7 @@ export function createThievesGuildHooks(
     active.started = true;
     for (const [summonIndex, summon] of thievesGuildSummons(runtime).entries())
       for (const [attackIndex, attack] of summon.attacks.entries()) {
-        const at = canonicalTime(runtime.time + (attack.initialDelay || 0));
+        const at = gw2Time(runtime.time + (attack.initialDelay || 0));
 
         if (at < active.expiresAt)
           runtime.schedule(THIEF_GUILD_ATTACK, at, {
@@ -155,7 +155,7 @@ export function createThievesGuildHooks(
         })
       });
     const interval = skillNumber(actorSkill, 'cooldown');
-    const next = canonicalTime(runtime.time + interval);
+    const next = gw2Time(runtime.time + interval);
 
     if (interval > 0 && next < active.expiresAt)
       runtime.schedule(THIEF_GUILD_ATTACK, next, {

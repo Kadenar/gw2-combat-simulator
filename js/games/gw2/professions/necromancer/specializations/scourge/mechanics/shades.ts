@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -22,7 +23,6 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { grantTimedStacks } from '#kernel/resources/timed-stacks.js';
 
 const EXPIRE = 'scourge.shade-expiry';
@@ -52,7 +52,7 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
   // Desert Shroud's shared shade hit lands with its first pulse, so hit-triggered traits wait for impact.
   const impactDelayMs = cast.skill.id === ID.DESERT_SHROUD ? skillNumber(cast.skill, 'impactDelayMs') : 0;
   const attribution = {
-    at: canonicalTime(runtime.time + impactDelayMs / 1000),
+    at: gw2Time(runtime.time + impactDelayMs / 1000),
     source: 'necromancer',
     sourceId: ID.MANIFEST_SAND_SHADE,
     actorType: ACTOR.PLAYER,
@@ -85,7 +85,7 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
         ...emissionEvent,
         activationId: emissionCast.id,
         offTarget: emissionCast.command.offTarget,
-        at: canonicalTime(
+        at: gw2Time(
           emissionEvent.at +
             (isHostileTargetEvent(emissionEvent) ? (emissionCast.command.impactDelayMs ?? 0) / 1000 : 0)
         )
@@ -112,7 +112,7 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
         ...emissionEvent,
         activationId: emissionCast.id,
         offTarget: emissionCast.command.offTarget,
-        at: canonicalTime(
+        at: gw2Time(
           emissionEvent.at +
             (isHostileTargetEvent(emissionEvent) ? (emissionCast.command.impactDelayMs ?? 0) / 1000 : 0)
         )
@@ -140,7 +140,7 @@ function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast<Necromance
     const state = scourgeState.from(runtime.profession);
     state.shades = grantTimedStacks(state.shades, {
       at: runtime.time,
-      expiresAt: canonicalTime(runtime.time + effectNumber(profile, lifetime, 'duration')),
+      expiresAt: gw2Time(runtime.time + effectNumber(profile, lifetime, 'duration')),
       count: 1,
       maximumStacks: Number(profile.maximumStacks),
       retain: 'latest-expiry'
@@ -157,7 +157,7 @@ const scourgeShadeActions = {
     if (context.kind === 'cast' && !context.cast.cancelledBeforeCommit)
       runtime.scheduleForCast(
         MANIFEST,
-        canonicalTime(context.cast.start + ((context.cast.fullEnd - context.cast.start) * 11) / 12),
+        gw2Time(context.cast.start + ((context.cast.fullEnd - context.cast.start) * 11) / 12),
         context.cast
       );
   },

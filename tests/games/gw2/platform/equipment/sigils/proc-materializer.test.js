@@ -37,21 +37,21 @@ test('critical sigils commit deduplicated procs and preserve strict cooldowns ac
   const trigger = (at) => sigil.criticalHit(context, { ...criticalHit, at }, { chance: 0.5, didCrit: true });
   trigger(2);
   assert.deepEqual(events, []);
-  trigger(2.000001);
+  trigger(2.04);
   assert.deepEqual(
     events.map(({ sourceId }) => sourceId),
     [`sigil.${SIGIL_IDS.EARTH}`]
   );
-  assert.equal(procs.deadline(`sigil.${SIGIL_IDS.EARTH}`), 4.000001);
+  assert.equal(procs.deadline(`sigil.${SIGIL_IDS.EARTH}`), 4.04);
   context.activeWeaponSet = 2;
   trigger(3);
   assert.equal(events.length, 1);
-  trigger(3.000001);
+  trigger(3.04);
   assert.deepEqual(
     events.map(({ sourceId }) => sourceId),
     [`sigil.${SIGIL_IDS.EARTH}`, `sigil.${SIGIL_IDS.AIR}`]
   );
-  assert.equal(procs.deadline(`sigil.${SIGIL_IDS.AIR}`), 6.000001);
+  assert.equal(procs.deadline(`sigil.${SIGIL_IDS.AIR}`), 6.04);
   assert.equal(procs.deadline(`sigil.${SIGIL_IDS.DOOM}`), 9);
   assert.equal(announcements.length, 2);
 });
@@ -232,7 +232,7 @@ test('critical sigil cooldowns persist across weapon swaps and cannot proc while
       for (const events of [scheduled.events, resolved.resolvedEvents]) {
         assert.deepEqual(
           events.filter((event) => event.sourceId === `sigil.${SIGIL_IDS.EARTH}`).map((event) => event.at),
-          [startsEquipped ? 0.1 : 0.3]
+          [startsEquipped ? 0.12 : 0.32]
         );
       }
     }
@@ -241,9 +241,9 @@ test('critical sigil cooldowns persist across weapon swaps and cannot proc while
 
 test('sigil cooldown boundaries use exact canonical instants', () => {
   // Equivalent floating-point timestamps share a blocked deadline; the next canonical instant is ready.
-  assert.equal(isInternalCooldownReady(5.999999, 6), false);
+  assert.equal(isInternalCooldownReady(5.96, 6), false);
   assert.equal(isInternalCooldownReady(6, 6), false);
-  assert.equal(isInternalCooldownReady(6.000001, 6), true);
+  assert.equal(isInternalCooldownReady(6.04, 6), true);
   assert.equal(isInternalCooldownReady(0.1 + 0.2, 0.3), false);
 });
 

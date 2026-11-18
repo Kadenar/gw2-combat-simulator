@@ -26,7 +26,7 @@ export interface TasteForBloodGrant extends ChargeGrant {
 
 /** Preserve accepted cadence independently of action-tick-rounded queue deadlines. */
 export interface NecromancerPassiveState extends PeriodicTaskState {
-  deadline: number;
+  occurrence: number;
   interval: number;
 }
 

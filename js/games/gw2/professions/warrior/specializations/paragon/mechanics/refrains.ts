@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -15,7 +16,6 @@ import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js
 import { paragonRefrains } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const REFRAIN = 'warrior.paragon-refrain';
 
@@ -29,7 +29,7 @@ export function startRefrain(runtime: WarriorRuntime): void {
   if (interval > 0)
     runtime.schedule(
       REFRAIN,
-      canonicalTime(runtime.time + interval),
+      gw2Time(runtime.time + interval),
       null,
       { id: REFRAIN, generation: state.refrainGeneration },
       -200
@@ -134,7 +134,7 @@ function pulseRefrain(runtime: WarriorRuntime): void {
   if (state.activeRefrainId != null && interval > 0)
     runtime.schedule(
       REFRAIN,
-      canonicalTime(runtime.time + interval),
+      gw2Time(runtime.time + interval),
       null,
       { id: REFRAIN, generation: state.refrainGeneration },
       -200

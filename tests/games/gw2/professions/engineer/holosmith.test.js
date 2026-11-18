@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -224,7 +225,7 @@ test('ECSU carries pulse readiness, resets at the threshold, and restarts on a d
     result.events
       .filter((event) => event.type === 'buff' && event.sourceId === TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
       .map((event) => event.at),
-    [0, 1, 2.1, 3.1]
+    [0, 1, 2.12, 3.12]
   );
 });
 
@@ -242,10 +243,10 @@ test('ECSU emits a due boundary pulse before same-time cooling drops heat to the
 });
 
 test('Photon Forge heat generation and cooling use current piecewise rates', () => {
-  const beforeFirstTick = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 99 }]);
+  const beforeFirstTick = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 80 }]);
   const firstTick = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 100 }]);
 
-  // Forge heat is discrete: no passive gain occurs before 100 ms, then the base rate contributes 0.2%.
+  // Forge heat is discrete: no passive gain occurs before the 120 ms delivery, then the base rate contributes 0.2%.
   assert.equal(beforeFirstTick.planningState.profession[STATE.HEAT].value, 0);
   assert.equal(firstTick.planningState.profession[STATE.HEAT].value, 0.2);
 
@@ -470,7 +471,7 @@ test('Photon Forge waits for its resource tick before overheating at maximum hea
 
   assert.equal(result.warnings.length, 0);
   assert.equal(barrage.start, 520);
-  assert.equal(overheat.at, 0.6);
+  assert.equal(overheat.at, 0.52);
   assert.equal(result.planningState.profession[STATE.PHOTON_FORGE_ACTIVE], true);
 });
 
@@ -496,11 +497,11 @@ test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
   const overheat = result.events.find((event) => event.type === 'engineer.heat' && event.reason === 'overheat');
 
   assert.equal(result.warnings.length, 0);
-  assert.ok(barrage.start / 1000 < overheat.at);
+  assert.ok(barrage.start / 1000 <= overheat.at);
   const entry = result.events
     .filter((event) => event.type === 'action' && event.skillName === 'Engage Photon Forge')
     .at(-1);
-  assert.equal(Number((overheat.at - entry.at).toFixed(6)), 0.6);
+  assert.equal(Number((overheat.at - entry.at).toFixed(6)), 0.52);
   assert.equal(result.planningState.profession[STATE.PHOTON_FORGE_ACTIVE], true);
 });
 
@@ -516,7 +517,7 @@ test('Photon Forge waits one more resource tick when passive heat fills the bar'
 
   assert.equal(passiveHeat.at, 1);
   assert.equal(passiveHeat.heat, 100);
-  assert.equal(overheat.at, 1.1);
+  assert.equal(overheat.at, 1.12);
   assert.equal(result.planningState.profession[STATE.PHOTON_FORGE_ACTIVE], true);
 });
 
@@ -538,7 +539,7 @@ test('Photon Forge passive heat restarts its cadence on each entry', () => {
   const entries = result.events.filter((event) => event.type === 'action' && event.skillName === 'Engage Photon Forge');
   assert.deepEqual(
     passiveHeatTimes,
-    entries.map((entry) => Number((entry.at + 0.1).toFixed(6)))
+    entries.map((entry) => gw2Time(entry.at + 0.1))
   );
 });
 
@@ -613,7 +614,7 @@ test('Overheat delays its tool-belt minimum cooldown until the damage effect', (
     (event) => event.type === 'damage' && event.name === 'Photonic Blasting Module'
   );
 
-  assert.equal(overheat.at, 5.1);
+  assert.equal(overheat.at, 5.12);
   assert.ok(damageEffect.at > overheat.at);
 
   const grenadeBarrageStarts = (rotation, selectedTraitIds = []) => {

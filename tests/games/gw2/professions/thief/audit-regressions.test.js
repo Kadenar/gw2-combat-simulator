@@ -56,7 +56,7 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
   const initiative = (result) => observedRuntime(result).resourceController.value('initiative');
   const nextPulse = (result) => observedRuntime(result).profession.core.infiltratorsSignetPassive.nextAt;
   // Splitting waits cannot change the pulse, and the normal resource cap still applies.
-  for (const rotation of [[wait(10000)], [wait(9999), wait(1)]]) {
+  for (const rotation of [[wait(10000)], [wait(9960), wait(40)]]) {
     const result = live('Core', rotation, { selectedSkillIds, initialInitiative: 0 });
     assert.deepEqual(result.warnings, []);
     assert.equal(initiative(result), 11);
@@ -702,7 +702,7 @@ test('guild combat activation starts parallel streams once and replacement retir
     guildPackets(first).map((event) => [event.at, event.damageBreakdownName]),
     [
       [1, 'Test thief - Fast'],
-      [1.5, 'Test thief - Slow'],
+      [1.52, 'Test thief - Slow'],
       [2, 'Test thief - Fast']
     ]
   );
@@ -729,7 +729,7 @@ test('guild combat activation starts parallel streams once and replacement retir
   const packets = guildPackets(replaced);
   assert.deepEqual(
     packets.filter((event) => event.at > 2 && event.at < 3.5).map((event) => event.at),
-    [2.28, 2.78, 3.28]
+    [2.28, 2.8, 3.28]
   );
   assert.equal(new Set(packets.map((event) => event.activationId)).size, packets.length);
   assert.ok(packets.every((event) => event.at < 8.28));

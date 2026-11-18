@@ -72,7 +72,7 @@ test('boon grants round durations to milliseconds and expirations up to action t
         (event) => event.type === 'buff'
       );
       assert.equal(event.duration, expected);
-      assert.equal(event.at, 0.375);
+      assert.equal(event.at, 0.4);
       assert.equal(input.duration, duration);
     }
   }
@@ -87,7 +87,7 @@ test('resolver boon grants and extensions retain rounded expiry in detailed and 
     const owner = { source: 'Player', sourceId: 'probe', actorType: 'player' };
     const events = [
       Object.freeze({ ...owner, type: 'buff', at: 0.375, kind: 'might', duration: 1.01, stacks: 1 }),
-      ...[0.375, 1.399999, 1.4, 1.439999, 1.44].map((at) => ({ ...owner, type: 'damage', at, flatDamage: 1 }))
+      ...[0.375, 1.36, 1.4, 1.44, 1.52].map((at) => ({ ...owner, type: 'damage', at, flatDamage: 1 }))
     ];
     const result = resolveTestGw2Events({
       output,
@@ -95,7 +95,7 @@ test('resolver boon grants and extensions retain rounded expiry in detailed and 
       config: {},
       professionReactions: {
         'damage.resolved': (ctx, event) => {
-          if (event.at === 0.375) {
+          if (event.at === 0.4) {
             ctx.effects.emit({
               kind: 'packet',
               event: { ...owner, type: 'buff', at: event.at, kind: 'fury', duration: 1.01, stacks: 1 }
@@ -121,10 +121,10 @@ test('resolver boon grants and extensions retain rounded expiry in detailed and 
       }
     });
     assert.deepEqual(seen, [
-      [1.399999, 1, true],
+      [1.36, 1, true],
       [1.4, 1, true],
-      [1.439999, 1, true],
-      [1.44, 1, true]
+      [1.44, 1, true],
+      [1.52, 0, false]
     ]);
     assert.equal(events[0].duration, 1.01);
 

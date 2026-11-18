@@ -230,7 +230,7 @@ test('precombat auras retain state without publishing trait rewards and later ap
       ],
       probes: [
         [2, (runtime) => assert.equal(runtime.profession.core.activeAuras.length, 1)],
-        [5.02, (runtime) => assert.equal(runtime.profession.core.activeAuras.length, 2)],
+        [5, (runtime) => assert.equal(runtime.profession.core.activeAuras.length, 2)],
         [
           5.04,
           (runtime) =>
@@ -248,8 +248,8 @@ test('precombat auras retain state without publishing trait rewards and later ap
   assert.deepEqual(
     rewards.map((event) => [event.kind, event.at]),
     [
-      ['vigor', 4.001],
-      ['regeneration', 4.001]
+      ['vigor', 4.04],
+      ['regeneration', 4.04]
     ]
   );
 });

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import {
   controlAccepted,
   elementalistCastCompleted,
@@ -110,7 +111,7 @@ for (const [trait, traitId, key, profile, invoke] of [
       context.effects = {
         emit(request) {
           const event = request.event ?? request.announcement ?? { at: request.at };
-          assert.equal(context.procs.deadline(key), event.at + elapsed);
+          assert.equal(context.procs.deadline(key), gw2Time(event.at + elapsed));
           return emit(request);
         }
       };
@@ -121,7 +122,7 @@ for (const [trait, traitId, key, profile, invoke] of [
       context.effectiveEnd = 1 + elapsed;
       invoke(context);
       assert.equal(events.length, count);
-      context.effectiveEnd += 0.000001;
+      context.effectiveEnd += 0.04;
       invoke(context);
       assert.ok(events.length > count);
       assert.equal(contextFor().context.procs.deadline(key), 0);
@@ -165,10 +166,10 @@ test('Catalyst combo claims stay per element, and per trait, including Water', (
         const count = events.length;
         invoke(context, { ...combo, attunement: element, at: 1 + duration });
         assert.equal(events.length, count);
-        invoke(context, { ...combo, attunement: element, at: 1 + duration + 0.000001 });
+        invoke(context, { ...combo, attunement: element, at: 1 + duration + 0.04 });
         assert.equal(
           context.procs.deadline(`elementalist.catalyst.elementalSynergy:${element}`),
-          1 + duration + 0.000001 + duration
+          1 + duration + 0.04 + duration
         );
       }
 
@@ -198,7 +199,7 @@ test('Evoker real and synthetic entry share selected profile timers', () => {
   context.effectiveEnd = 6;
   reenterEvokerAttunement(context, castFor(context, skill), skill, 'Earth');
   assert.equal(context.procs.deadline(TRAIT.ROCK_SOLID), 6);
-  context.effectiveEnd += 0.000001;
+  context.effectiveEnd += 0.04;
   reenterEvokerAttunement(context, castFor(context, skill), skill, 'Earth');
   assert.equal(context.procs.deadline(TRAIT.ROCK_SOLID), context.effectiveEnd + 5);
   assert.equal(context.procs.deadline(TRAIT.EARTHEN_BLAST), context.effectiveEnd + 5);

@@ -1,6 +1,7 @@
 /** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { buffDeadlineActive, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -20,7 +21,6 @@ import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { slashEffects } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import { activeCartridgeWindow, bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const CARTRIDGE_ACTIVATE = 'warrior.cartridges-activate';
 
@@ -929,11 +929,7 @@ const bladeswornSkillActions: RuntimeHooks<WarriorRuntimeState, WarriorSkill>['s
     if (context.kind !== 'cast') return;
 
     const cast = context.cast;
-    runtime.scheduleForCast(
-      CARTRIDGE_ACTIVATE,
-      canonicalTime(cast.start + (cast.fullEnd - cast.start) * (420 / 900)),
-      cast
-    );
+    runtime.scheduleForCast(CARTRIDGE_ACTIVATE, gw2Time(cast.start + (cast.fullEnd - cast.start) * (420 / 900)), cast);
   },
   'warrior.flow-snapshot'(runtime, context) {
     if (context.kind !== 'cast') return;

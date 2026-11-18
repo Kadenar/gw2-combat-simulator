@@ -1,6 +1,7 @@
 // Trait IDs own balance lookup and emission so patches and runtime share the same trait definition.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { gw2Interval, gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
@@ -33,7 +34,6 @@ import {
 import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/index.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalInterval, canonicalTime } from '#kernel/core/clock.js';
 
 const COMPASSION = 'revenant.herald-elevated-compassion';
 
@@ -280,7 +280,7 @@ function grantCompassion(runtime: RevenantRuntime): void {
   });
   runtime.procs.setDeadline(
     'revenant.herald.elevatedCompassion',
-    canonicalTime(runtime.time + canonicalInterval(balanceProfileNumber(profile, 'cooldown')))
+    gw2Time(runtime.time + gw2Interval(balanceProfileNumber(profile, 'cooldown')))
   );
 }
 

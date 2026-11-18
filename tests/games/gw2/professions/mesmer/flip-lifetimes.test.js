@@ -36,19 +36,19 @@ function parentCast(id = 'parent', start = 0.1 + 0.2, arm = {}) {
 
 test('Mesmer flip creation, availability, projection, and cleanup share exact boundaries', () => {
   const checks = [
-    [0.349999, false, false, 'mesmer.flip-not-armed'],
-    [0.35, true, false, 'mesmer.flip-not-ready'],
-    [0.399999, true, false, 'mesmer.flip-not-ready'],
+    [0.32, false, false, 'mesmer.flip-not-armed'],
+    [0.36, true, false, 'mesmer.flip-not-ready'],
+    [0.36, true, false, 'mesmer.flip-not-ready'],
     [0.4, true, true],
-    [0.499999, true, true],
-    [0.5, false, false, 'mesmer.flip-not-armed']
+    [0.48, true, true],
+    [0.52, false, false, 'mesmer.flip-not-armed']
   ];
   const checked = [];
   const runtime = flipScenario(
     (context) => {
       context.schedule('test.arm', 0.35);
       checks.forEach(([at], index) => context.schedule('test.check', at, { index }, undefined, 1));
-      context.schedule('test.after-expiry', 0.500001);
+      context.schedule('test.after-expiry', 0.56);
     },
     {
       'test.arm'(context) {
@@ -56,9 +56,9 @@ test('Mesmer flip creation, availability, projection, and cleanup share exact bo
         assert.deepEqual(context.flips[ID.COUNTERSPELL], {
           identity: 'parent',
           remainingUses: 1,
-          visibleAt: 0.35,
+          visibleAt: 0.36,
           availableAt: 0.4,
-          expiresAt: 0.5
+          expiresAt: 0.52
         });
       },
       'test.check'(context, { index }) {
@@ -107,7 +107,7 @@ test('Mesmer completion cannot arm an already expired flip and cleanup preserves
   assert.equal(runtime.flips[ID.POWER_SPIKE].expiresAt, null);
 });
 
-test('Mesmer flip endpoints canonicalize arithmetic residue without snapping to action ticks', () => {
+test('Mesmer flip endpoints canonicalize arithmetic residue on the GW2 tick grid', () => {
   let checked = false;
   flipScenario((context) => context.schedule('test.arm', 0.15), {
     'test.arm'(context) {
@@ -115,9 +115,9 @@ test('Mesmer flip endpoints canonicalize arithmetic residue without snapping to 
       assert.deepEqual(context.flips[ID.COUNTERSPELL], {
         identity: 'parent',
         remainingUses: 1,
-        visibleAt: 0.15,
-        availableAt: 0.3,
-        expiresAt: 0.433333
+        visibleAt: 0.16,
+        availableAt: 0.32,
+        expiresAt: 0.44
       });
       checked = true;
     }
@@ -133,7 +133,7 @@ test('a replaced Mesmer flip survives its predecessor expiry until its later dea
     (context) => {
       armMesmerSkillFlip(context, parentCast('old', -1, arm));
       context.schedule('test.rearm', 0.25);
-      context.schedule('test.after-old-expiry', 0.500001);
+      context.schedule('test.after-old-expiry', 0.56);
     },
     {
       'test.rearm'(context) {
@@ -141,7 +141,7 @@ test('a replaced Mesmer flip survives its predecessor expiry until its later dea
       },
       'test.after-old-expiry'(context) {
         assert.equal(context.flips[ID.COUNTERSPELL].identity, 'new');
-        assert.equal(context.flips[ID.COUNTERSPELL].expiresAt, 0.75);
+        assert.equal(context.flips[ID.COUNTERSPELL].expiresAt, 0.8);
         assert.equal(mesmerAvailability(context, context.helpers.skillsById.get(ID.COUNTERSPELL)).ready, true);
         checked = true;
       }

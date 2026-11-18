@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { effectFirstAtMs } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -11,7 +12,6 @@ import {
   saintsShieldDodge
 } from '#gw2/professions/revenant/specializations/vindicator/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export const VINDICATOR_LANDING_TASK = 'revenant.vindicator-landing';
 
@@ -29,7 +29,7 @@ export function scheduleLanding(runtime: RevenantRuntime, cast: RuntimeCast<Reve
   if (!profile || !effect) return;
 
   const offset = effect.type === 'strike' ? effectFirstAtMs(effect) : effect.atMs;
-  runtime.schedule(VINDICATOR_LANDING_TASK, canonicalTime(origin + Math.max(0, offset || 0) / 1000), {
+  runtime.schedule(VINDICATOR_LANDING_TASK, gw2Time(origin + Math.max(0, offset || 0) / 1000), {
     origin,
     skillId: cast.skill.id,
     activationId: cast.id

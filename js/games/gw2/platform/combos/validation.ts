@@ -1,9 +1,9 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { ComboFieldSelectionAnchor } from '#gw2/platform/combos/types.js';
 import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 import type { ComboFieldType, ComboFinisherType, SimulationActorType } from '#gw2/platform/constants.js';
 import { ACTOR_TYPES } from '#gw2/platform/constants.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 /**
@@ -68,7 +68,7 @@ export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEven
     const expiresAt = Number(event.expiresAt);
     const comboBindingPriority = event.comboBindingPriority == null ? null : Number(event.comboBindingPriority);
 
-    if (!Number.isFinite(expiresAt) || !(canonicalTime(expiresAt) > canonicalTime(at))) {
+    if (!Number.isFinite(expiresAt) || !(gw2Time(expiresAt) > gw2Time(at))) {
       throw new TypeError('Combo field expiresAt must be later than at.');
     }
 
@@ -88,7 +88,7 @@ export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEven
       priority: event.priority ?? -1,
       fieldId: requiredString(event.fieldId, 'Combo field fieldId'),
       fieldType: normalizeComboFieldType(event.fieldType),
-      expiresAt: canonicalTime(expiresAt),
+      expiresAt: gw2Time(expiresAt),
       ownerId: requiredString(event.ownerId, 'Combo field ownerId'),
       ...(comboBindingPriority == null ? {} : { comboBindingPriority })
     };

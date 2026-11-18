@@ -1,4 +1,5 @@
 /** Owns Legendary Assassin Stance skill definitions and their alternate identities. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -15,7 +16,7 @@ import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { timeKey } from '#kernel/core/clock.js';
 
 export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
   [ID.ENCHANTED_DAGGERS]: {
@@ -224,7 +225,7 @@ function emitEnchantedDagger(runtime: RevenantRuntime, event: Gw2ResolverEvent, 
     kind: 'packet',
     cause: event,
     event: buildResolverStrike({
-      at: canonicalTime(runtime.time + delay),
+      at: gw2Time(runtime.time + delay),
       source: 'revenant',
       sourceId: ID.ENCHANTED_DAGGERS,
       actorType: ACTOR.EFFECT,
@@ -329,12 +330,12 @@ export function reactRevenantImpossibleOdds(runtime: RevenantRuntime, event: Gw2
   // The trigger interval gates only this strike, so a removed strike leaves it ready.
   if (!impossible || !strike) return;
 
-  runtime.procs.setDeadline('impossibleOdds', canonicalTime(runtime.time + (impossible.triggerIntervalMs || 0) / 1000));
+  runtime.procs.setDeadline('impossibleOdds', gw2Time(runtime.time + (impossible.triggerIntervalMs || 0) / 1000));
   runtime.effects.emit({
     kind: 'packet',
     cause: event,
     event: buildResolverStrike({
-      at: canonicalTime(runtime.time + (effectFirstAtMs(strike) || 0) / 1000),
+      at: gw2Time(runtime.time + (effectFirstAtMs(strike) || 0) / 1000),
       source: 'revenant',
       sourceId: impossible.id,
       actorType: ACTOR.EFFECT,

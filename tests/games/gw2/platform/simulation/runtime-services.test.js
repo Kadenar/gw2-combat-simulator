@@ -211,8 +211,8 @@ test('live modifier hooks read executed history independently of report collecti
       output
     });
     assert.deepEqual(observations, [
-      [0.5, false],
-      [1.5, true]
+      [0.52, false],
+      [1.52, true]
     ]);
   }
 });
@@ -387,10 +387,10 @@ test('declarative recharge anchors govern cooldown eligibility and composed comp
   assert.deepEqual(result.warnings, []);
   assert.equal(result.steps[1].start, 2120);
   assert.deepEqual(completions, [
-    ['Core', 0.5, 0.5],
-    ['Elite', 0.5, 0.5],
-    ['Core', 2.62, 2.62],
-    ['Elite', 2.62, 2.62]
+    ['Core', 0.52, 0.52],
+    ['Elite', 0.52, 0.52],
+    ['Core', 2.64, 2.64],
+    ['Elite', 2.64, 2.64]
   ]);
 });
 
@@ -754,7 +754,7 @@ test('Peitha effects wait for impact and cannot leak beyond the observation wind
 
 // Landed grants amplify strikes through removal; pending refreshes cannot fill the gap after expiry.
 test('Peitha preserves expiry-boundary damage without extending buff lifetimes or applying pending refreshes', () => {
-  const times = [0, 0.23, 0.24, 4.001, 4.23, 4.24, 4.240001, 5.039999, 5.04, 9.039999, 9.04, 9.040001];
+  const times = [0, 0.2, 0.24, 4.04, 4.2, 4.24, 4.28, 5, 5.04, 9, 9.04, 9.08];
   const active = [false, false, true, true, true, false, false, false, true, true, false, false];
   const amplified = [false, false, true, true, true, true, false, false, true, true, true, false];
   const profession = native({

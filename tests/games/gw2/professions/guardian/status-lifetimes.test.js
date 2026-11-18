@@ -27,7 +27,7 @@ const cause = {
 
 // Native tasks let microsecond lifetime checks avoid depending on skill animation lengths.
 test('Empowered Armaments extends only its live remainder and shares the displayed capped deadline', () => {
-  for (const at of [6.039999, 6.04, 6.040001]) {
+  for (const at of [6, 6.04, 6.08]) {
     const run = (extra) =>
       runGuardian(
         [wait((at + 0.1) * 1000)],
@@ -35,7 +35,7 @@ test('Empowered Armaments extends only its live remainder and shares the display
         {
           initialize: (runtime) => {
             const equip = { skill: guardianCatalog.skillsById.get(ID.DAZZLING_HAMMER), id: 'fixture-equip' };
-            runtime.scheduleForCast('guardian.luminary.equip-traits', 0.001, equip);
+            runtime.scheduleForCast('guardian.luminary.equip-traits', 0.04, equip);
             for (let index = 0; index < extra + 1; index++)
               runtime.scheduleForCast('guardian.luminary.equip-traits', at, equip);
           }
@@ -81,7 +81,7 @@ test('Radiant Armaments includes tied damage while chart intervals end at expiry
   const track = result.effectReport.tracks.find(
     (track) => track.kind === buff.kind && track.recipient === 'self' && track.origin === 'simulated'
   );
-  for (const time of [expiry - 0.000001, expiry, expiry + 0.000001]) {
+  for (const time of [expiry - 0.04, expiry, expiry + 0.04]) {
     assert.equal(rule.when({ events: result.events, time }), time <= expiry);
     assert.equal(effectStateAt(result.effectReport, track, time).count > 0, time < expiry);
   }
@@ -93,19 +93,19 @@ test('Radiant Armaments includes tied damage while chart intervals end at expiry
 test('Light Aura refreshes on the effect clock and can be consumed only once before expiry', () => {
   const settings = { ...config, selectedTraitIds: [TRAIT.SOVEREIGN_OF_LIGHT] };
   const initialize = (runtime) => {
-    runtime.schedule('guardian.luminary.aura-grant', 0.001, {
-      cause: { ...cause, at: 0.001 },
+    runtime.schedule('guardian.luminary.aura-grant', 0.04, {
+      cause: { ...cause, at: 0.04 },
       traitId: TRAIT.SOVEREIGN_OF_LIGHT
     });
-    runtime.schedule('guardian.luminary.aura-grant', 1.001, {
-      cause: { ...cause, at: 1.001 },
+    runtime.schedule('guardian.luminary.aura-grant', 1.04, {
+      cause: { ...cause, at: 1.04 },
       traitId: TRAIT.SOVEREIGN_OF_LIGHT
     });
   };
 
   const granted = runGuardian([wait(1100)], settings, { initialize: initialize });
   assert.equal(state(granted).lightAuraUntil, 5.04);
-  for (const at of [5.039999, 5.04, 5.040001]) {
+  for (const at of [5, 5.04, 5.08]) {
     const snapshot = ui.rotationStateSnapshot({ professionState: granted.planningState.profession, atSeconds: at });
     assert.equal(
       snapshot.some((item) => item.id === 'luminary-light-aura'),
@@ -128,7 +128,7 @@ test('Light Aura refreshes on the effect clock and can be consumed only once bef
 test('Effulgent counts tied hits before its detonation but excludes later hits', () => {
   const result = runGuardian([wait(1), ID.EFFULGENT_STANCE, wait(4100)], config, {
     initialize: (runtime) => {
-      for (const at of [4.039999, 4.04, 4.040001])
+      for (const at of [4, 4.04, 4.08])
         runtime.effects.emit({
           kind: 'packet',
           event: {

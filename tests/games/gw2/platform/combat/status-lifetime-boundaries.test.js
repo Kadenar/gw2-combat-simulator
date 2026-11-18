@@ -99,12 +99,12 @@ function elementalistContext(specialization, selectedTraitIds = []) {
 test('temporary Elemental Empowerment stacks survive the final microsecond and expire on their buff tick', () => {
   const context = elementalistContext('Catalyst');
   const state = context.profession.specialization.state;
-  grantCatalystElementalEmpowerment(state, 0.001, 1, 1, 10);
+  grantCatalystElementalEmpowerment(state, 0.04, 1, 1, 10);
   assert.deepEqual(state.elementalEmpowermentExpiries, [1.04]);
-  grantCatalystElementalEmpowerment(state, 1.039999, 1, 1, 10);
-  assert.deepEqual(state.elementalEmpowermentExpiries, [1.04, 2.04]);
+  grantCatalystElementalEmpowerment(state, 1, 1, 1, 10);
+  assert.deepEqual(state.elementalEmpowermentExpiries, [1.04, 2]);
   grantCatalystElementalEmpowerment(state, 1.04, 1, 1, 10);
-  assert.deepEqual(state.elementalEmpowermentExpiries, [1.04, 2.04, 2.04]);
+  assert.deepEqual(state.elementalEmpowermentExpiries, [1.04, 2, 2.04]);
 });
 
 // Each grant evicts before insertion, so shorter replacements may evict one another while older long stacks survive.
@@ -123,11 +123,11 @@ test('Elemental Empowerment preserves expiry ordering and per-grant replacement 
 });
 
 test('Shattering Ice uses the same tick deadline for grants and hits', () => {
-  for (const at of [1.039999, 1.04, 1.040001]) {
+  for (const at of [1, 1.04, 1.08]) {
     const context = elementalistContext('Catalyst');
     applyShatteringIce(context, {
       kind: 'shattering ice',
-      at: 0.001,
+      at: 0.04,
       duration: 1,
       resolvedAudience: { includesSelf: true }
     });
@@ -145,14 +145,14 @@ test('Perfect Weave grant and Tailored Victory gate share the emitted buff expir
   const state = context.profession.specialization.state;
   state.weaveSelfUntil = 10;
   state.weaveSelfVisited = ['Fire', 'Air', 'Water'];
-  applyWeaveSelfAttunement(context, 0.001, 'Earth', 'Earth Attunement', E.EARTH_ATTUNEMENT, {
+  applyWeaveSelfAttunement(context, 0.04, 'Earth', 'Earth Attunement', E.EARTH_ATTUNEMENT, {
     type: 'elementalist.attunement',
-    at: 0.001,
+    at: 0.04,
     sourceId: E.EARTH_ATTUNEMENT,
     actorType: 'player'
   });
   assert.equal(state.perfectWeaveUntil, 10.04);
-  for (const at of [10.039999, 10.04, 10.040001]) {
+  for (const at of [10, 10.04, 10.08]) {
     context.time = at;
     assert.equal(
       weaverHooks.availability(context, context.helpers.skillsById.get(E.TAILORED_VICTORY)).ready,
@@ -162,13 +162,13 @@ test('Perfect Weave grant and Tailored Victory gate share the emitted buff expir
 });
 
 test('Elemental Balance is consumable through its final microsecond and only once', () => {
-  for (const at of [5.039999, 5.04, 5.040001]) {
+  for (const at of [5, 5.04, 5.08]) {
     const context = elementalistContext('Evoker', [ET.ELEMENTAL_BALANCE]);
     const state = context.profession.specialization.state;
     state.elementalBalanceProgress = 1;
     context.fireTrigger(evokerEntryObserved, {
-      transition: { kind: 'reentry', at: 0.001, to: state.element, source: 'Test entry', sourceId: 'test-entry' },
-      cause: { type: 'elementalist.attunement-enter', at: 0.001, sourceId: 'test-entry', actorType: 'player' }
+      transition: { kind: 'reentry', at: 0.04, to: state.element, source: 'Test entry', sourceId: 'test-entry' },
+      cause: { type: 'elementalist.attunement-enter', at: 0.04, sourceId: 'test-entry', actorType: 'player' }
     });
     assert.equal(state.elementalBalanceUntil, 5.04);
     context.time = at;
@@ -179,7 +179,7 @@ test('Elemental Balance is consumable through its final microsecond and only onc
 });
 
 test('Electric Enchantment cannot consume hits before its grant, at its exact boundaries', () => {
-  for (const at of [0.300999, 0.301, 1.319999, 1.32]) {
+  for (const at of [0.28, 0.32, 1.28, 1.32]) {
     const context = elementalistContext('Evoker');
     const state = context.profession.specialization.state;
     grantElectricEnchantments(context, {
@@ -189,23 +189,23 @@ test('Electric Enchantment cannot consume hits before its grant, at its exact bo
       skill: { id: E.HARES_AGILITY, name: "Hare's Agility" },
       procType: 'skill'
     });
-    assert.equal(state.electricEnchantmentGrants[0].at, 0.301);
+    assert.equal(state.electricEnchantmentGrants[0].at, 0.32);
     assert.equal(state.electricEnchantmentGrants[0].expiresAt, 1.32);
     const event = { type: 'damage', at, actorType: 'player', coefficient: 1 };
     context.time = at;
     consumeElectricEnchantment(context, event);
     assert.equal(
       context.events.some((event) => event.type === 'damage' && event.source === 'Electric Enchantment'),
-      at >= 0.301 && at <= 1.32
+      at >= 0.32 && at <= 1.32
     );
   }
 });
 
 test('Solar Focusing Lens preserves inclusive expiry without early activation or a grace period', () => {
-  for (const at of [0.000999, 0.001, 1.039999, 1.04, 1.040001]) {
+  for (const at of [0, 0.04, 1, 1.04, 1.08]) {
     const context = contextFor(engineerProfession, 'Holosmith', [HT.SOLAR_FOCUSING_LENS]);
     solarFocusingLens.lifetime.eventHandlers['engineer.solar-focusing-lens'](context, {
-      at: 0.001,
+      at: 0.04,
       duration: 1,
       stacks: 1
     });
@@ -213,19 +213,19 @@ test('Solar Focusing Lens preserves inclusive expiry without early activation or
     const hit = { actorType: 'player', coefficient: 1, at };
     assert.equal(
       Boolean(solarFocusingLens.lifetime.reactions['damage.resolving'](context, hit)),
-      at >= 0.001 && at <= 1.04
+      at >= 0.04 && at <= 1.04
     );
     assert.equal(solarFocusingLens.lifetime.reactions['damage.resolving'](context, hit), undefined);
   }
 });
 
-test('Righteous Instincts extends Resolution at the last live microsecond and stops at expiry', () => {
+test('Righteous Instincts extends Resolution at the last live tick and stops at expiry', () => {
   const result = runGuardian(
     [{ type: 'wait', durationMs: 2100 }],
     { selectedTraitIds: [GT.RIGHTEOUS_INSTINCTS] },
     {
       initialize: (runtime) => {
-        for (const at of [0.001, 1.039999])
+        for (const at of [0.04, 1])
           runtime.effects.emit({
             kind: 'packet',
             event: {
@@ -246,19 +246,19 @@ test('Righteous Instincts extends Resolution at the last live microsecond and st
   const might = result.events.filter((event) => event.type === 'buff' && event.kind === 'might');
   assert.deepEqual(
     might.map((event) => event.at),
-    [0.001, 1.001, 2.001]
+    [0.04, 1.04, 2.04]
   );
 });
 
 test('Symbol of Ignition includes its endpoint while Dragonhunter tether stops at its deadline', () => {
-  for (const at of [0.000999, 0.001, 1.000999, 1.001, 1.001001]) {
+  for (const at of [0, 0.04, 1, 1.04, 1.08]) {
     const result = runGuardian(
       [{ type: 'wait', durationMs: 1100 }],
       { specialization: 'Dragonhunter' },
       {
         initialize: (runtime) => {
-          runtime.profession.core.symbolIgnitionStartsAt = 0.001;
-          runtime.profession.core.symbolIgnitionUntil = 1.001;
+          runtime.profession.core.symbolIgnitionStartsAt = 0.04;
+          runtime.profession.core.symbolIgnitionUntil = 1.04;
           runtime.effects.emit({
             kind: 'packet',
             event: {
@@ -273,7 +273,7 @@ test('Symbol of Ignition includes its endpoint while Dragonhunter tether stops a
           });
           const state = runtime.profession.specialization.state;
           state.tetherActivationId = 'fixture-tether';
-          state.tetherUntil = 1.001;
+          state.tetherUntil = 1.04;
           runtime.schedule('guardian.dragonhunter.tether-burn', at, {
             activationId: state.tetherActivationId,
             deadline: state.tetherUntil,
@@ -285,19 +285,19 @@ test('Symbol of Ignition includes its endpoint while Dragonhunter tether stops a
     const ignition = result.resolvedEvents.some(
       (event) => event.type === 'condition' && event.skillName === 'Symbol of Ignition'
     );
-    assert.equal(ignition, at >= 0.001 && at <= 1.001);
+    assert.equal(ignition, at >= 0.04 && at <= 1.04);
     const tether = result.events.some(
       (event) => event.type === 'condition' && event.name === 'Spear of Justice - Active Burning' && event.at === at
     );
-    assert.equal(tether, at < 1.001);
+    assert.equal(tether, at < 1.04);
   }
 });
 
 test('Mistral requires an armed window and shares inclusive expiry with its display', () => {
   for (const [deadline, at, active] of [
     [0, 0, false],
-    [1.001, 1.001, true],
-    [1.001, 1.001001, false]
+    [1.04, 1.04, true],
+    [1.04, 1.08, false]
   ]) {
     const result = runRanger(
       [{ type: 'wait', durationMs: 1100 }],
@@ -351,8 +351,8 @@ test('Reavers Curse requires an arm, includes the final landing, and cannot be c
   const deadline = armedState.specialization.state.reaversCurseUntil;
   assert.ok(deadline > 0);
   for (const armed of [false, true]) {
-    for (const delta of [0, 0.000001]) {
-      const at = armed ? deadline + delta : 0.001;
+    for (const delta of [0, 0.04]) {
+      const at = armed ? deadline + delta : 0.04;
       assert.equal(
         vindicatorUi.rotationStateSnapshot({
           professionState: {
@@ -381,7 +381,7 @@ test('Reavers Curse requires an arm, includes the final landing, and cannot be c
 });
 
 test('tracked Mesmer hits expire at their exact age limit', () => {
-  for (const at of [0.300999, 0.301, 0.301001]) {
+  for (const at of [0.32, 0.36, 0.4]) {
     const context = observedRuntime(runMesmer([], { specialization: 'Core' }));
     const capture = captureEffectEmissions();
     context.effects = capture.effects;
@@ -390,10 +390,10 @@ test('tracked Mesmer hits expire at their exact age limit', () => {
       name: 'Tracked fixture',
       trackedHitDamage: { duration: 0.3, hitsRequired: 2, coefficient: 1 }
     };
-    recordMesmerTrackedHit(context, skill, 0.001);
+    recordMesmerTrackedHit(context, skill, 0.04);
     recordMesmerTrackedHit(context, skill, at);
-    assert.equal(capture.events.length, at < 0.301 ? 1 : 0);
-    assert.deepEqual(context.profession.core.trackedSkillHits[skill.id], at < 0.301 ? [] : [at]);
+    assert.equal(capture.events.length, at < 0.36 ? 1 : 0);
+    assert.deepEqual(context.profession.core.trackedSkillHits[skill.id], at < 0.36 ? [] : [at]);
   }
 });
 
@@ -428,7 +428,7 @@ test('Time Bomb cannot rearm early and its marker shares the exact detonation de
   const state = context.profession.specialization.state;
   const deadline = state.timeBombUntil;
   assert.equal(context.history.find((event) => event.kind === 'time-bomb').expiresAt, deadline);
-  completeChronomancerTimeBomb(context, castAt(deadline - 0.000001));
+  completeChronomancerTimeBomb(context, castAt(deadline - 0.04));
   assert.equal(state.timeBombUntil, deadline);
   completeChronomancerTimeBomb(context, castAt(deadline));
   assert.ok(state.timeBombUntil > deadline);
@@ -456,14 +456,14 @@ test('Skritt Scuffle allows the final pilfer without a grace period', () => {
 });
 
 test('Nourys recurring damage windows have exact starts and exclusive tick-aligned ends', () => {
-  const context = { engagement: enteredCombat(0.001) };
+  const context = { engagement: enteredCombat(0.04) };
   for (const [at, bonus] of [
     [30, 0],
-    [30.001, 0.25],
-    [35.039999, 0.25],
+    [30.04, 0.25],
+    [35, 0.25],
     [35.04, 0],
-    [65.000999, 0],
-    [65.001, 0.25]
+    [65, 0],
+    [65.04, 0.25]
   ]) {
     assert.equal(nourys.outgoingDamageBonus(context, {}, at), bonus);
   }
@@ -474,11 +474,11 @@ test('Aristocracy excludes its own trigger instant but benefits the following mi
   aristocracy.condition({ engagement: enteredCombat(), effects: captureEffectEmissions().effects }, state, {
     type: 'condition',
     actorType: 'player',
-    at: 0.001,
+    at: 0.04,
     condition: 'Vulnerability',
     duration: 1,
     stacks: 1
   });
-  assert.equal(aristocracy.conditionDurationBonus({}, state, 0.001), 0);
-  assert.equal(aristocracy.conditionDurationBonus({}, state, 0.001001), 0.03);
+  assert.equal(aristocracy.conditionDurationBonus({}, state, 0.04), 0);
+  assert.equal(aristocracy.conditionDurationBonus({}, state, 0.08), 0.03);
 });

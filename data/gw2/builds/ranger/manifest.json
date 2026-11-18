@@ -7,14 +7,14 @@
         "build": "data/gw2/builds/ranger/b-condi-druid-dagger-torch-axe-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-druid-dagger-torch-axe-dagger-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-druid-dagger-torch-axe-dagger",
-        "benchmarkDps": 45013,
+        "benchmarkDps": 45039,
         "benchmarkApm": 103.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42403, "phase": 42403 },
-          "80-60": { "cumulative": 43666, "phase": 45000 },
-          "60-40": { "cumulative": 43745, "phase": 43908 },
-          "40-20": { "cumulative": 44502, "phase": 46950 },
-          "20-0": { "cumulative": 45013, "phase": 47177 }
+          "100-80": { "cumulative": 42419, "phase": 42419 },
+          "80-60": { "cumulative": 43687, "phase": 45026 },
+          "60-40": { "cumulative": 43769, "phase": 43939 },
+          "40-20": { "cumulative": 44526, "phase": 46975 },
+          "20-0": { "cumulative": 45039, "phase": 47209 }
         },
         "upToDate": true
       },
@@ -23,15 +23,15 @@
         "build": "data/gw2/builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-alacrity-druid-dagger-torch-axe-dagger",
-        "benchmarkDps": 37181,
+        "benchmarkDps": 37222,
         "upToDate": true,
         "benchmarkApm": 106.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 34063, "phase": 34063 },
-          "80-60": { "cumulative": 36342, "phase": 39076 },
-          "60-40": { "cumulative": 36454, "phase": 36679 },
-          "40-20": { "cumulative": 37033, "phase": 38945 },
-          "20-0": { "cumulative": 37181, "phase": 37181 }
+          "100-80": { "cumulative": 34091, "phase": 34091 },
+          "80-60": { "cumulative": 36375, "phase": 39117 },
+          "60-40": { "cumulative": 36490, "phase": 36719 },
+          "40-20": { "cumulative": 37073, "phase": 38998 },
+          "20-0": { "cumulative": 37222, "phase": 37222 }
         }
       }
     ]
@@ -43,14 +43,14 @@
         "label": "Condition (Shortbow / Dagger-Dagger) (Janthiri Bee)",
         "build": "data/gw2/builds/ranger/b-condi-soulbeast-shortbow-dagger-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-soulbeast-shortbow-dagger-dagger.json",
-        "benchmarkDps": 37593,
+        "benchmarkDps": 37626,
         "benchmarkApm": 65.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35512, "phase": 35512 },
-          "80-60": { "cumulative": 37168, "phase": 39072 },
-          "60-40": { "cumulative": 37833, "phase": 39265 },
-          "40-20": { "cumulative": 37934, "phase": 38235 },
-          "20-0": { "cumulative": 37593, "phase": 37593 }
+          "100-80": { "cumulative": 35532, "phase": 35532 },
+          "80-60": { "cumulative": 37194, "phase": 39106 },
+          "60-40": { "cumulative": 37863, "phase": 39301 },
+          "40-20": { "cumulative": 37965, "phase": 38272 },
+          "20-0": { "cumulative": 37626, "phase": 37626 }
         },
         "upToDate": true
       },
@@ -142,15 +142,15 @@
         "label": "Power (Hammer / Sword-Axe) (Beastmastery, Hawk)",
         "build": "data/gw2/builds/ranger/b-power-untamed-hawk-beastmastery-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-untamed-hawk-beastmastery-hammer-sword-axe.json",
-        "benchmarkDps": 33676,
+        "benchmarkDps": 33675,
         "upToDate": false,
         "benchmarkApm": 77.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44573, "phase": 44573 },
-          "80-60": { "cumulative": 35344, "phase": 29251 },
-          "60-40": { "cumulative": 34966, "phase": 34236 },
-          "40-20": { "cumulative": 33364, "phase": 29368 },
-          "20-0": { "cumulative": 33676, "phase": 33676 }
+          "100-80": { "cumulative": 44563, "phase": 44563 },
+          "80-60": { "cumulative": 35341, "phase": 29251 },
+          "60-40": { "cumulative": 34963, "phase": 34236 },
+          "40-20": { "cumulative": 33363, "phase": 29368 },
+          "20-0": { "cumulative": 33675, "phase": 33675 }
         }
       },
       {
@@ -158,15 +158,15 @@
         "build": "data/gw2/builds/ranger/b-power-untamed-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-untamed-beastmastery-hammer-sword-axe",
-        "benchmarkDps": 35835,
+        "benchmarkDps": 35834,
         "upToDate": false,
         "benchmarkApm": 85.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44641, "phase": 44641 },
-          "80-60": { "cumulative": 37520, "phase": 32319 },
-          "60-40": { "cumulative": 36057, "phase": 33457 },
-          "40-20": { "cumulative": 35774, "phase": 34953 },
-          "20-0": { "cumulative": 35835, "phase": 35835 }
+          "100-80": { "cumulative": 44632, "phase": 44632 },
+          "80-60": { "cumulative": 37516, "phase": 32319 },
+          "60-40": { "cumulative": 36054, "phase": 33457 },
+          "40-20": { "cumulative": 35773, "phase": 34953 },
+          "20-0": { "cumulative": 35834, "phase": 35834 }
         }
       },
       {
@@ -220,14 +220,14 @@
         "label": "Condition Quickness (Axe-Dagger / Dagger-Torch) (Carrion Devourer)",
         "build": "data/gw2/builds/ranger/b-condi-quick-untamed-axe-dagger-dagger-torch.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-quick-untamed-axe-dagger-dagger-torch-bench.json",
-        "benchmarkDps": 28909,
+        "benchmarkDps": 28940,
         "benchmarkApm": 90.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 31180, "phase": 31180 },
-          "80-60": { "cumulative": 30264, "phase": 29383 },
-          "60-40": { "cumulative": 29508, "phase": 28077 },
-          "40-20": { "cumulative": 28952, "phase": 27399 },
-          "20-0": { "cumulative": 28909, "phase": 28730 }
+          "100-80": { "cumulative": 31212, "phase": 31212 },
+          "80-60": { "cumulative": 30296, "phase": 29414 },
+          "60-40": { "cumulative": 29540, "phase": 28109 },
+          "40-20": { "cumulative": 28984, "phase": 27430 },
+          "20-0": { "cumulative": 28940, "phase": 28762 }
         },
         "upToDate": false
       }

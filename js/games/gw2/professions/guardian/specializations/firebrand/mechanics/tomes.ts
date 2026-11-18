@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -36,7 +37,6 @@ import type {
   GuardianVirtueContext
 } from '#gw2/professions/guardian/types.js';
 import { guardianVirtueReadyAt } from '#gw2/professions/guardian/virtue-readiness.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** The tome passive tracks the shared Justice hit counter; Righteous Flames keeps it through dormancy. */
 export function reactToTomeJusticeHit(context: GuardianVirtueContext, event: GuardianResolverEvent): void {
@@ -61,7 +61,7 @@ function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, vi
 
   if (ready) {
     const multiplier = powerOfTheVirtuousRechargeMultiplier(runtime);
-    state.tomeDormantReadyAt[virtue] = canonicalTime(
+    state.tomeDormantReadyAt[virtue] = gw2Time(
       runtime.time + skillNumber(requireSkill(runtime.helpers, TOMES[virtue]), 'dormantCooldown') * multiplier
     );
     // Ready tomes receive the same unconditional Resolve regeneration as the other virtue owners.

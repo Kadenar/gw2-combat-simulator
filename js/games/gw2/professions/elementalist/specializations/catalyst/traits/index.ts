@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -42,7 +43,6 @@ import {
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { sphereSpecialistDuration } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { activeBatchCount, refreshBatch } from '#kernel/resources/batch.js';
 
 /** Owns Empowering Auras tuning and its existing execution behavior. */
@@ -136,7 +136,7 @@ export const baseEmpowermentPassive = definePeriodicTask<ElementalistRuntime>({
 });
 
 function nextBaseEmpowermentAt(runtime: ElementalistRuntime): number {
-  const next = canonicalTime(runtime.time + balanceNumber(runtime.helpers, TRAIT.ELEMENTAL_EMPOWERMENT, 'duration'));
+  const next = gw2Time(runtime.time + balanceNumber(runtime.helpers, TRAIT.ELEMENTAL_EMPOWERMENT, 'duration'));
 
   if (next <= runtime.time) throw new RangeError('Elemental Empowerment renewal must advance the simulation clock.');
 

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
@@ -110,8 +111,8 @@ test('swapping Aether Hunter cancels its vortex and retires its applied conditio
   assert.ok(vortex.some((event) => event.damage > 0));
   assert.ok(vortex.every((event) => event.at < swappedAt));
   for (const condition of vortex.filter((event) => event.type === 'condition')) {
-    assert.equal(condition.removedAt, swappedAt);
-    assert.equal(condition.expiresAt, swappedAt);
-    assert.ok(condition.damageTicks.every((tick) => tick.at <= swappedAt));
+    assert.equal(condition.removedAt, gw2Time(swappedAt));
+    assert.equal(condition.expiresAt, gw2Time(swappedAt));
+    assert.ok(condition.damageTicks.every((tick) => tick.at <= gw2Time(swappedAt)));
   }
 });

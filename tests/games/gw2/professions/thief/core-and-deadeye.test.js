@@ -1428,7 +1428,7 @@ test('Malicious Intent grants malice after a stealth attack consumes its existin
   // Malice is held through the attack and replaced at its impact by the spend and the Malicious Intent grant.
   const malice = [];
   const result = runThief(rotation, config, {
-    probes: [hit.at - 0.001, hit.at].map((at) => [
+    probes: [hit.at - 0.04, hit.at].map((at) => [
       at,
       (runtime) => malice.push(runtime.profession.specialization.state.malice.value)
     ])
@@ -1479,17 +1479,17 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
   };
   const earlyMercy = runThief(earlyMercyRotation, earlyMercyConfig);
   const mercyAt = earlyMercy.steps.find((step) => step.skillName === 'Mercy').end / 1000;
-  // Observe half a millisecond either side of the instant Mercy, removing that interval's regeneration.
+  // Observe the previous tick and the instant Mercy, removing that interval's regeneration.
   const around = [];
   runThief(earlyMercyRotation, earlyMercyConfig, {
-    probes: [mercyAt - 0.0005, mercyAt + 0.0005].map((at) => [
+    probes: [mercyAt - 0.04, mercyAt].map((at) => [
       at,
       (runtime) =>
         around.push([runtime.resourceController.value('initiative'), runtime.profession.core.initiative.unitsPerSecond])
     ])
   });
   // Two malice stacks refund five initiative independently of the preceding regeneration wait.
-  assert.ok(Math.abs(around[1][0] - around[0][0] - around[0][1] * 0.001 - 5) < 1e-9);
+  assert.ok(Math.abs(around[1][0] - around[0][0] - around[0][1] * 0.04 - 5) < 1e-9);
   assert.equal(earlyMercy.planningState.profession[STATE.MALICE].value, 2);
 
   const rifleRotation = ["Deadeye's Mark", 'Kneel', 'Three Round Burst', 'Shadow Meld', "Malicious Death's Judgment"];
@@ -1564,7 +1564,7 @@ test('Deadeye rifle stance rejects every inactive replacement', () => {
 // A fractional observation must not bypass the recovery threshold's detection tick.
 test('initiative-funded casts retain readiness across intermediate observations', () => {
   const catalog = (live) => withSkill(live, ID.DOUBLE_STRIKE, { cost: { resource: 'initiative', amount: 0.1 } });
-  for (const waits of [[100], [50, 50]]) {
+  for (const waits of [[120], [40, 80]]) {
     const result = runThief(
       [...waits.map((durationMs) => ({ type: 'wait', durationMs })), 'Double Strike'],
       { ...baseConfig, initialInitiative: 0 },

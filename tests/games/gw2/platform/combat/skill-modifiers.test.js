@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
@@ -629,7 +630,7 @@ test('skill and effect condition duration preserve the cap separately from base 
   ]) {
     const application = result.resolvedEvents.find((event) => event.type === 'condition' && event.name === name);
     assert.equal(application.effectiveDuration, duration, name);
-    assert.equal(application.naturalExpiresAt - application.at, duration, name);
+    assert.equal(application.naturalExpiresAt - application.at, gw2Time(duration), name);
   }
 });
 

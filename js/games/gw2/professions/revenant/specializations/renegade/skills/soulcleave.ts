@@ -1,10 +1,10 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { SOULCLEAVE_PROC_ID } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Soulcleave's Summit's player proc fires once per cooldown from a landed player strike while active. */
 export function soulcleavePlayer(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
@@ -42,7 +42,7 @@ export function soulcleavePlayer(runtime: RevenantRuntime, event: Gw2ResolverEve
  * on the deadline.
  */
 function claimSoulcleave(runtime: RevenantRuntime, key: string, proc: { readonly cooldown?: number }): boolean {
-  if (canonicalTime(runtime.time) < canonicalTime(runtime.procs.deadline(key))) return false;
+  if (gw2Time(runtime.time) < gw2Time(runtime.procs.deadline(key))) return false;
 
   runtime.procs.setDeadline(key, runtime.time + Math.max(0, proc.cooldown || 0));
   return true;

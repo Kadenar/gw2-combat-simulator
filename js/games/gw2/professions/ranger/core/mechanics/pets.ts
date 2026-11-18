@@ -1,5 +1,7 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
 import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import { gw2BoonDurationMultiplier, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
@@ -49,7 +51,6 @@ import {
 } from '#gw2/professions/ranger/data/pet-commands.js';
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 
@@ -344,7 +345,7 @@ function emitRangerPetSkill(
           cast &&
           castWasInterrupted(cast) &&
           (timing || skill.interruptMode === 'per-packet') &&
-          canonicalTime(at) > canonicalTime(cast.effectiveEnd + (start - cast.start)) &&
+          gw2Time(at) > gw2Time(cast.effectiveEnd + (start - cast.start)) &&
           !effect.persistsAfterInterrupt
         )
           return null;
@@ -398,7 +399,7 @@ function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast<RangerS
   const start = petCommandStart(context, skill);
   const recovery = petCommandRecovery(context, cast);
   // Reserve before queuing the task so two player commands cannot both claim the same future opening.
-  state.pet!.commandReadyAt = start + recovery;
+  state.pet!.commandReadyAt = gw2Time(start + recovery);
 
   context.scheduleForCast(PET_COMMAND_START_TASK, start, cast, {}, owner(context));
 }
@@ -409,7 +410,7 @@ const rangerPetTasks = {
 
     if (!autonomousActionsAllowed(context) || !state.pet || state.pet.autoNextAt !== data) return;
 
-    if (context.time < canonicalTime(state.pet.busyUntil)) {
+    if (context.time < gw2Time(state.pet.busyUntil)) {
       schedulePet(context, state.pet.busyUntil);
       return;
     }
@@ -454,7 +455,7 @@ const rangerPetTasks = {
       emitRangerPetSkill(context, skill, context.time, fullEnd, activationId);
     }
 
-    state.pet.busyUntil = context.time + recovery;
+    state.pet.busyUntil = gw2Time(context.time + recovery);
 
     if (skill) {
       // Ordinary recharge follows the active catalog; the Iboga owns its measured autonomous exceptions.
@@ -485,7 +486,7 @@ const rangerPetTasks = {
     // Acceptance reserves the pet lane; execution alone spends the shared cooldown.
     const readyAt = petRechargeReadyAt(context, cast.skill.id);
 
-    if (context.time < canonicalTime(state.pet!.busyUntil) || context.time < readyAt) {
+    if (context.time < gw2Time(state.pet!.busyUntil) || context.time < readyAt) {
       context.scheduleForCast(
         PET_COMMAND_START_TASK,
         Math.max(state.pet!.busyUntil, readyAt),
@@ -498,7 +499,7 @@ const rangerPetTasks = {
 
     // Every queued pet command samples its companion at execution, after any intervening boon changes.
     // ponytail: speed stays fixed during an activation; in-flight boon retiming needs a live animation clock.
-    const fullEnd = cast.start + rangerPetCastDurationMs(context, cast.skill, 0) / 1000;
+    const fullEnd = gw2Time(cast.start + rangerPetCastDurationMs(context, cast.skill, 0) / 1000);
     cast = {
       ...cast,
       fullEnd,

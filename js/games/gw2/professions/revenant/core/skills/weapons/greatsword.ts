@@ -1,4 +1,5 @@
 /** Canonical Core revenant skill definitions grouped by their GW2 owner. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
@@ -11,7 +12,6 @@ import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
   [ID.MIST_SWING]: {
@@ -283,7 +283,7 @@ function startRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast<
   // The follow-up window belongs to this channel; a later channel's rearm survives this deadline.
   runtime.armFlip(ID.TRUE_STRIKE, {
     availableAt: cast.start,
-    expiresAt: canonicalTime(cast.effectiveEnd + 4),
+    expiresAt: gw2Time(cast.effectiveEnd + 4),
     identity: cast.id
   });
   runtime.effects.emit({

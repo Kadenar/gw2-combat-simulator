@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
 import { mesmerEffectStates } from '#gw2/professions/mesmer/core/effect-state.js';
 import { applyMesmerClarity, consumeMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
@@ -51,15 +52,15 @@ test('Clarity only arms for self and reapplication replaces its single charge an
 test('Clarity cannot empower a cast accepted after its fractional expiry', () => {
   for (const [at, duration, expiry] of [
     [0.56, 0.04, 0.6],
-    [0.137, 5, 5.137]
+    [0.137, 5, 5.16]
   ]) {
     const { runtime, core, apply } = fixture();
     apply(at, duration);
-    assert.equal(core.clarity.expiresAt, expiry);
-    assert.equal(effectStateValue(mesmerEffectStates(runtime)[0], expiry + 0.000001).count, 0);
-    assert.equal(consumeMesmerClarity(runtime, expiry + 0.000001), false);
+    assert.equal(core.clarity.expiresAt, gw2Time(expiry));
+    assert.equal(effectStateValue(mesmerEffectStates(runtime)[0], expiry + 0.04).count, 0);
+    assert.equal(consumeMesmerClarity(runtime, expiry + 0.04), false);
     apply(at, duration);
-    assert.equal(consumeMesmerClarity(runtime, expiry - 0.000001), true);
+    assert.equal(consumeMesmerClarity(runtime, expiry - 0.04), true);
   }
 });
 

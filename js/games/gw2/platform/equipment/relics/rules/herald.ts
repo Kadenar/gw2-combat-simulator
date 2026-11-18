@@ -1,6 +1,7 @@
 /** Player boon applications earn concentration and refresh the entire pool, without an internal cooldown. */
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR } from '#gw2/platform/constants.js';
@@ -33,7 +34,7 @@ export const herald = defineRelic({
     }).batch;
     state.refreshedStacks = buff;
     // Keep accepted windows so reordered attribute observations cannot see future grants or lose earlier stacks.
-    state.activations!.push({ at: canonicalTime(event.at), stacks: buff.count, expiresAt: buff.expiresAt });
+    state.activations!.push({ at: gw2Time(event.at), stacks: buff.count, expiresAt: buff.expiresAt });
     announceRelic(ctx, event, 'Relic of the Herald', {
       detail: `${buff.count}/${MAXIMUM_STACKS} stacks`,
       icon: '',

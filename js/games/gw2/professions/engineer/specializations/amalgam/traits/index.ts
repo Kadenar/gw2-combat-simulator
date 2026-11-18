@@ -1,5 +1,8 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+
 /** Trait grants retain finite profile occurrences alongside their existing source and duration rules. */
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -230,9 +233,8 @@ export const amalgamTraits = [
 /** Willing Host's damage window extends from each committed Morph. */
 function extendWillingHost(context: EngineerRuntime, { at }: AmalgamMorph): void {
   const state = amalgamState.from(context.profession);
-  state.willingHostUntil = Math.max(
-    state.willingHostUntil,
-    at + balanceNumber(context.helpers, TRAIT.WILLING_HOST, 'duration')
+  state.willingHostUntil = gw2Time(
+    Math.max(state.willingHostUntil, at + balanceNumber(context.helpers, TRAIT.WILLING_HOST, 'duration'))
   );
 }
 

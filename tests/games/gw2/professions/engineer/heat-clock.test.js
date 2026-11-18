@@ -37,7 +37,7 @@ test('Holosmith initializes one capped heat clock before preheated cooling', () 
     assert.equal(state.heat.maximum, maximum);
     assert.equal(state.heat.unitsPerSecond, 0);
     assert.equal(state.forgeExitedAt, 0);
-    assert.equal(state.passiveHeatAt, 0.1);
+    assert.equal(state.passiveHeatAt, 0.12);
     assert.equal(state.overheated, false);
     assert.equal(Object.hasOwn(state, 'maximumHeat'), false);
     assert.equal(Object.hasOwn(projected, 'maximumHeat'), false);

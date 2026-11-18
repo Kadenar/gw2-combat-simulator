@@ -1,10 +1,10 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castReachedFullDuration } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Which authored effects a cast fires: the variant selected at acceptance, and what survives an interruption. */
 
@@ -38,10 +38,7 @@ export function cancelledBeforeInterruptCommit(
 
   // Compare absolute canonical launch deadlines so subtraction cannot create a grace window.
   const cutoffs = interruptCommitCutoffs(skill);
-  return (
-    cutoffs.length === 0 ||
-    cutoffs.every((cutoff) => canonicalTime(effectiveEnd) < canonicalTime(start + cutoff / 1000))
-  );
+  return cutoffs.length === 0 || cutoffs.every((cutoff) => gw2Time(effectiveEnd) < gw2Time(start + cutoff / 1000));
 }
 
 /** Returns whether an interrupted cast ended before this persistent effect launched. */
@@ -59,5 +56,5 @@ export function cancelledBeforeEffectCommit(
   if (cutoff == null) return true;
 
   // Compare absolute canonical launch deadlines so subtraction cannot create a grace window.
-  return canonicalTime(effectiveEnd) < canonicalTime(start + cutoff / 1000);
+  return gw2Time(effectiveEnd) < gw2Time(start + cutoff / 1000);
 }

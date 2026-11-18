@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -292,7 +294,7 @@ function grantLeadAttacks(runtime: ThiefRuntime, { cast, initiativeCost: cost }:
   // A patched fractional cost grants a whole stack for its remainder, so round up before the integer boundary.
   core.leadAttackExpirations = grantTimedStacks(core.leadAttackExpirations, {
     at: runtime.time,
-    expiresAt: runtime.time + duration,
+    expiresAt: gw2Time(runtime.time + duration),
     count: Math.ceil(cost),
     maximumStacks,
     retain: 'newest-grant'

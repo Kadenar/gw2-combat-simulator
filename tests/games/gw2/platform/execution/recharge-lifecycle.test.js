@@ -111,15 +111,15 @@ test('retiring a magazine also discards its cooldown deadline and use lockout', 
   assert.equal(controller.isOnCooldown(magazine.id), false);
 });
 
-// Formula readiness keeps sub-tick precision and refreshes only the requested magazine on the live clock.
+// GW2 readiness waits for the next game tick and refreshes only the requested magazine on the live clock.
 test('live readiness owns ordinary progress and ammo settlement', () => {
   const { state, controller } = fixture();
   controller.startRecharge(ordinary, 0, 0.015);
-  state.time = 0.01;
+  state.time = 0;
   assert.equal(controller.isOnCooldown(ordinary.id), true);
-  state.time = 0.02;
+  state.time = 0.04;
   assert.equal(controller.isOnCooldown(ordinary.id), false);
-  assert.equal(controller.readyAt(ordinary.id), 0.015);
+  assert.equal(controller.readyAt(ordinary.id), 0.04);
   assert.throws(() => controller.isOnCooldown(ordinary.id, 1), /current clock/);
 
   const other = { ...magazine, id: 99 };

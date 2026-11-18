@@ -104,8 +104,8 @@ test('transition preferences are detached before initialization and recaptured f
   });
   const first = simulateGw2({ profession: source, config, rotation: ['Swap Weapons'] });
   const second = simulateGw2({ profession: source, config, rotation: ['Swap Weapons'] });
-  assert.equal(first.rotationEndTime, 0.125);
-  assert.equal(second.rotationEndTime, 0.3);
+  assert.equal(first.rotationEndTime, 0.16);
+  assert.equal(second.rotationEndTime, 0.32);
 });
 
 test('instant, concurrent, and independent inputs cannot bypass transition recovery', () => {
@@ -127,7 +127,7 @@ test('logged legacy waits and canonical waits count toward recovery instead of a
       const result = simulate(rotation);
       assert.equal(result.steps[2].start, Math.ceil(Math.max(waitMs, 100) / 40) * 40);
       assert.equal(result.steps[1].start, 0);
-      assert.equal(result.steps[1].end, waitMs);
+      assert.equal(result.steps[1].end, Math.ceil(waitMs / 40) * 40);
       assert.deepEqual(rotation, before);
       assert.deepEqual(result.warnings, []);
     }
@@ -135,7 +135,7 @@ test('logged legacy waits and canonical waits count toward recovery instead of a
 });
 
 test('last-transition recovery contributes to rotation completion while an absolute horizon stays fixed', () => {
-  assert.equal(simulate(['Swap Weapons']).rotationEndTime, 0.1);
+  assert.equal(simulate(['Swap Weapons']).rotationEndTime, 0.12);
   assert.equal(
     simulate(['Swap Weapons'], 100, { observationPolicy: { kind: 'absolute', endTimeMs: 1000 } }).planningState
       .atSeconds,

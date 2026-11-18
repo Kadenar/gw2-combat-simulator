@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
@@ -81,10 +82,10 @@ test('condition duration preserves phase context, fixed durations, and natural e
 
     const [application] = resolution.applyCondition(resolver, event);
     assert.equal(application.effectiveDuration, expectedDuration);
-    assert.equal(application.expiresAt, 4 + expectedDuration);
-    assert.equal(application.naturalExpiresAt, 4 + expectedDuration);
+    assert.equal(application.expiresAt, gw2Time(4 + expectedDuration));
+    assert.equal(application.naturalExpiresAt, gw2Time(4 + expectedDuration));
     for (const runtime of [resolver]) {
-      assert.equal(runtime.conditionState.get('Bleeding').stacks[0].naturalExpiresAt, 4 + expectedDuration);
+      assert.equal(runtime.conditionState.get('Bleeding').stacks[0].naturalExpiresAt, gw2Time(4 + expectedDuration));
     }
 
     // Process real buffer events before inspecting the scheduled owner payout.
@@ -100,9 +101,9 @@ test('condition duration preserves phase context, fixed durations, and natural e
     assert.equal(application.effectiveDuration, expectedDuration);
     // Reporting clips detached observations, preserving the live lifetime and nested settlement records.
     const [projected] = projectResolvedEvents([application], 5.5);
-    assert.equal(projected.expiresAt, Math.min(5.5, 4 + expectedDuration));
-    assert.equal(application.expiresAt, 4 + expectedDuration);
-    assert.ok(Math.abs(projected.activeDuration - Math.min(1.5, expectedDuration)) < 1e-9);
+    assert.equal(projected.expiresAt, Math.min(5.5, gw2Time(4 + expectedDuration)));
+    assert.equal(application.expiresAt, gw2Time(4 + expectedDuration));
+    assert.ok(Math.abs(projected.activeDuration - Math.min(1.5, gw2Time(expectedDuration))) < 1e-9);
     assert.notEqual(projected.damageTicks, application.damageTicks);
     const liveTicks = application.damageTicks.length;
     projected.damageTicks.push({ at: 99, damage: 1, fraction: 1 });

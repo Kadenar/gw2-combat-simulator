@@ -1,4 +1,5 @@
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
@@ -20,7 +21,6 @@ import type {
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
 const WOVEN_BUFFS = ['weave self fire', 'weave self water', 'weave self air', 'weave self earth'];
@@ -42,7 +42,7 @@ export function startWeaveSelfCast(
   const at = cast.start + (cast.fullEnd - cast.start) * skillNumber(skill, 'rechargeProgress');
 
   // Activation must occur within the cast lifetime, including its exact final instant.
-  if (canonicalTime(at) > cast.effectiveEnd) return;
+  if (gw2Time(at) > cast.effectiveEnd) return;
 
   context.schedule(WEAVE_SELF_ACTIVATION_TASK, at, skill.id, { id: cast.id, generation: 0 });
 }

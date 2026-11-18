@@ -1,4 +1,6 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
@@ -26,7 +28,6 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const ATTACK = 'necromancer.minion-attack';
 const COMMAND = 'necromancer.minion-command-impact';
@@ -58,7 +59,7 @@ function spawnHorror(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as HorrorWork;
   const skill = runtime.helpers.skillsById.get(work.skillId)!;
   const key = `unstable-horror:${work.activationId}:${work.index}`;
-  const expiresAt = canonicalTime(runtime.time + Number(skill.summonDuration));
+  const expiresAt = gw2Time(runtime.time + Number(skill.summonDuration));
   runtime.profession.core.activeMinions[key] = 1;
   runtime.fireTrigger(creatureSummoned, {
     skill: skill,
@@ -106,7 +107,7 @@ function emitHorrorEffects(runtime: NecromancerRuntime, key: string, terminal: b
       effects: [effect],
       at: runtime.time,
       attribution,
-      transform: (event) => (canonicalTime(event.at) <= expiresAt ? event : null)
+      transform: (event) => (gw2Time(event.at) <= expiresAt ? event : null)
     });
   }
 }
@@ -371,7 +372,7 @@ export function commandNecromancerMinion(runtime: NecromancerRuntime, cast: Runt
     for (let index = 0; index < state.activeMinions[key]; index++) {
       const cursor = state.minionAttackCursors[companion(key, index)];
       cursor.started = false;
-      cursor.busyUntil = runtime.time + definition.commandRecoveryDelay;
+      cursor.busyUntil = gw2Time(runtime.time + definition.commandRecoveryDelay);
     }
 
     startNecromancerMinions(runtime, key);

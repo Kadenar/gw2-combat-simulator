@@ -274,12 +274,12 @@ test('new conditions advance the queued sampler only for an earlier expiry', () 
       }
     );
     assert.deepEqual(samples, [
-      ['earlier', 0.25],
-      ['middle', 0.65],
+      ['earlier', 0.28],
+      ['middle', 0.68],
       ['original', 0.8],
       ['later', 1]
     ]);
-    assert.equal(result.conditionDamage, 63);
+    assert.equal(result.conditionDamage, 64);
   }
 });
 
@@ -288,7 +288,7 @@ test('condition sampling restarts after an idle gap and preserves an unpaid hori
   for (const output of ['detailed', 'score']) {
     const samples = [];
     const result = resolve(
-      [condition(0, { duration: 0.2 }), condition(0.4, { duration: 0.1 }), condition(1.25, { duration: 0.25 })],
+      [condition(0, { duration: 0.2 }), condition(0.4, { duration: 0.1 }), condition(1.28, { duration: 0.24 })],
       {
         output,
         end: 1.5,
@@ -300,7 +300,7 @@ test('condition sampling restarts after an idle gap and preserves an unpaid hori
         }
       }
     );
-    assert.deepEqual(samples, [0.2, 0.5, 1.5]);
+    assert.deepEqual(samples, [0.2, 0.52, 1.52]);
     assert.equal(result.conditionDamage, 9);
     assert.equal(result.lastHitTime, 1);
   }
@@ -323,9 +323,9 @@ test('one expiry instant samples every owner ending there and skips removed appl
           summonOwner: 'removed-pet'
         }),
         condition(0, { sourceId: 'long', duration: 0.7 }),
-        condition(0.1, {
+        condition(0.12, {
           sourceId: 'pet',
-          duration: 0.3,
+          duration: 0.28,
           actorType: 'summon',
           independentConditionOwner: true,
           summonOwner: 'pet'
@@ -370,7 +370,7 @@ test('one expiry instant samples every owner ending there and skips removed appl
     );
     assert.deepEqual(
       samples.filter(([at]) => at !== 0.4),
-      [[0.7, 'long']]
+      [[0.72, 'long']]
     );
   }
 });
@@ -444,7 +444,7 @@ test('non-damaging conditions preserve other skills modifiers, expiry, and repor
         ...statuses.map((name) =>
           condition(0.04, { sourceId: name, condition: name, duration: 0.12, stacks: name === 'Vulnerability' ? 5 : 1 })
         ),
-        ...[0.02, 0.12, 0.28].map((at) => ({
+        ...[0, 0.12, 0.28].map((at) => ({
           type: 'damage',
           at,
           source: 'Player',
@@ -585,7 +585,7 @@ test('first damage anchors combat across empty condition windows', () => {
         target: { conditions: { Bleeding: 1 } }
       }
     );
-    assert.equal(result.firstHitTime, 0.375);
+    assert.equal(result.firstHitTime, 0.4);
     assert.ok(result.conditionDamage > 0);
     assert.ok(result.environmentDamage > 0);
   }
@@ -614,8 +614,8 @@ test('first damage replaces existing condition wakes while preserving precombat 
     ],
     { combatStartTime: 0.2, end: 3.375 }
   );
-  assert.equal(result.firstHitTime, 0.375);
-  assert.equal(paidStackSeconds(applications(result)[0]), 2.625);
+  assert.equal(result.firstHitTime, 0.4);
+  assert.equal(paidStackSeconds(applications(result)[0]), 2.6);
   assert.equal(applications(result)[1].damage, 0);
 });
 
@@ -789,7 +789,7 @@ test('short lifetimes settle once on the shared pulse without rounding both spli
     condition(0.8, { duration: 0.04 })
   ]);
   const [, split, short] = applications(result);
-  assert.equal(paidStackSeconds(split), 0.5);
+  assert.equal(paidStackSeconds(split), 0.52);
   assert.equal(paidStackSeconds(short), 0.04);
   assert.equal(resolve([condition(0, { duration: 0.52 })], { end: 0.8 }).conditionDamage, 0);
   assert.equal(resolve([condition(0, { duration: 0.52 })], { end: 1 }).conditionDamage, 15);
@@ -963,7 +963,7 @@ test('settlement reactions inherit their phase while future buffs use the buff p
             /rewind/
           );
           assert.throws(
-            () => ctx.effects.emit({ kind: 'packet', settlement: 'reaction', event: condition(0.999999) }),
+            () => ctx.effects.emit({ kind: 'packet', settlement: 'reaction', event: condition(0.96) }),
             /live clock/
           );
         },
@@ -1077,8 +1077,8 @@ test('companion retirement discards unsettled condition damage', () => {
       }
     );
     assert.equal(original.damage, 0);
-    // Replacement samples two half-second intervals, each rounding 14.75 to 15.
-    assert.equal(result.conditionDamage, 30);
+    // Replacement samples 0.52 and 0.48 seconds, rounding to 15 and 14.
+    assert.equal(result.conditionDamage, 29);
   }
 });
 
@@ -1337,14 +1337,14 @@ test('same-time companion retirement preserves completed payouts and cancels lat
 
 // Offset payouts preserve expiry remainders, first-damage reporting, and one shared player/environment phase.
 test('condition offsets pay expired exposure once at the shared observation boundary', () => {
-  for (const firstHit of [0, 0.25, 0.68, 1]) {
+  for (const firstHit of [0, 0.28, 0.68, 1]) {
     const events = [
       { type: 'damage', at: firstHit, actorType: 'player', source: 'Player', sourceId: 'opening', flatDamage: 1 },
       condition(firstHit + 0.2, { duration: 0.2 })
     ];
     const boundary = firstHit + 0.68;
     const settings = { conditionTickOffsetMs: 320, target: { conditions: { Bleeding: 1 } } };
-    const before = resolve(events, { ...settings, end: boundary - 0.001 });
+    const before = resolve(events, { ...settings, end: boundary - 0.04 });
     const paid = resolve(events, { ...settings, end: boundary });
     const after = resolve(events, { ...settings, end: boundary + 1 });
     assert.equal(before.conditionDamage, 0, 'expired exposure waits for payout');
@@ -1388,6 +1388,6 @@ test('offset strike openers discard earlier exposure on matching and shifted pha
       { conditionTickOffsetMs: 320, end: 6 }
     );
     assert.equal(result.dpsStartTime, firstHit);
-    assert.ok(Math.abs(paidStackSeconds(applications(result)[0]) - (3.7 - firstHit)) < 1e-9, String(firstHit));
+    assert.ok(Math.abs(paidStackSeconds(applications(result)[0]) - (3.72 - firstHit)) < 1e-9, String(firstHit));
   }
 });

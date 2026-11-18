@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import {
   defineProfessionSpecializationState,
@@ -9,7 +10,6 @@ import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 import { consumeNewestStacks, expireStacks, purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
@@ -91,7 +91,7 @@ export function addBlight(state: HarbingerState, stacks: number, at: number, max
   const expiries = state.blightExpiries;
   const count = boundedInteger(stacks, 0, 0, maximum);
   for (let index = 0; index < count; index += 1) {
-    const expiresAt = canonicalTime(at + BLIGHT_DURATION_SECONDS);
+    const expiresAt = gw2Time(at + BLIGHT_DURATION_SECONDS);
 
     if (expiries.length < maximum) expiries.push(expiresAt);
     else expiries[expiries.indexOf(Math.min(...expiries))] = expiresAt;

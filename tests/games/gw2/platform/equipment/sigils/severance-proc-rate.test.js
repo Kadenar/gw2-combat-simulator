@@ -61,7 +61,7 @@ test('Severance failed rolls leave cooldowns free and blocked controls never con
   assert.equal(runtime.procs.deadline(cooldownKey), 0);
   assert.equal(events.length, 0);
   trigger(0.1);
-  assert.equal(runtime.procs.deadline(cooldownKey), 1.1);
+  assert.equal(runtime.procs.deadline(cooldownKey), 1.12);
   assert.equal(events.length, 1);
   // Both sets share the cooldown, including its exclusive boundary.
   runtime.activeWeaponSet = 2;

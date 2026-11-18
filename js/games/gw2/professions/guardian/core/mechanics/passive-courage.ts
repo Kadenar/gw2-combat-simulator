@@ -1,9 +1,9 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { BOON } from '#gw2/platform/constants.js';
 import type { StatusEffect } from '#gw2/platform/effects/types.js';
 import { requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 interface PassiveCouragePolicy {
   readonly taskId: string;
@@ -25,6 +25,6 @@ export function createPassiveCourageTask(policy: PassiveCouragePolicy): (runtime
 
     if (policy.ready(runtime)) policy.deliver(runtime, skill, effect);
 
-    runtime.schedule(policy.taskId, canonicalTime(runtime.time + interval), undefined, undefined, -200);
+    runtime.schedule(policy.taskId, gw2Time(runtime.time + interval), undefined, undefined, -200);
   };
 }

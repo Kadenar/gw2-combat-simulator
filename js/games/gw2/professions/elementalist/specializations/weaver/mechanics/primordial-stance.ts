@@ -2,6 +2,7 @@
  * Owns Primordial Stance's scheduled pulses against the live Weaver attunement pair.
  * Skill packet templates remain in `skills/slot-skills.ts`.
  */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
@@ -14,7 +15,6 @@ import { elementalistConditionRequest, elementalistStrikeRequest } from '#gw2/pr
 import { primordialStancePayload } from '#gw2/professions/elementalist/specializations/weaver/skills/slot-skills.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Reads canonical condition timing without emitting packets that the live-attunement tasks replace. */
 export function schedulePrimordialStance(
@@ -36,7 +36,7 @@ export function schedulePrimordialStance(
     });
     for (const { at } of applications) {
       // Exclude only the canonical activation instant and coalesce coincident condition applications.
-      if (canonicalTime(at) > cast.effectiveEnd) tickTimes.add(at);
+      if (gw2Time(at) > cast.effectiveEnd) tickTimes.add(at);
     }
   }
 

@@ -77,7 +77,7 @@ test('Wanderlust field creation wins a simultaneous auto opportunity', () => {
   const recovery = necromancerProfession.catalog.skillsById.get(skill.summonAttackId).initialBusyMs;
   const delayMs = opportunityMs - summon.end - recovery;
   assert.ok(delayMs >= 0);
-  const stopBeforeNextAutoMs = opportunityMs + interval * 1000 - 1;
+  const stopBeforeNextAutoMs = opportunityMs + interval * 1000 - 40;
   const result = run([opening[0], wait(delayMs), opening[1], wait(stopBeforeNextAutoMs - summon.end - delayMs)]);
   assert.deepEqual(result.warnings, []);
   const auto = result.resolvedEvents.find(

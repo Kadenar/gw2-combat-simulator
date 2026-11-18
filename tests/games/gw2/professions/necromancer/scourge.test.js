@@ -152,13 +152,13 @@ test('Garish Pillar delays or misses both strikes and only the shared hit trigge
   const result = run([{ ...cast(ID.GARISH_PILLAR), impactDelayMs: 500 }, wait(1000)], config);
   const strikes = result.resolvedEvents.filter((event) => event.type === 'damage');
   assert.equal(strikes.length, 2);
-  assert.ok(strikes.every((event) => event.at === 0.5));
+  assert.ok(strikes.every((event) => event.at === 0.52));
   assert.equal(strikes.filter((event) => event.metadata?.necromancerShroudSkillOne).length, 1);
   const burning = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === TRAIT.DHUUMFIRE
   );
   assert.equal(burning.length, 1);
-  assert.equal(burning[0].at, 0.5);
+  assert.equal(burning[0].at, 0.52);
 
   const missed = run([{ ...cast(ID.GARISH_PILLAR), offTarget: true }, wait(1000)], config);
   assert.equal(missed.totalDamage, 0);
@@ -350,7 +350,7 @@ test('Desert Shroud pulses preserve selected conditions after strike removal and
     false
   );
   assert.ok(result.resolvedEvents.some((event) => event.type === 'condition' && event.sourceId === ID.DESERT_SHROUD));
-  assert.ok(result.events.every((event) => event.at <= 1.5));
+  assert.ok(result.events.every((event) => event.at <= 1.52));
   assert.deepEqual(result.warnings, []);
 });
 

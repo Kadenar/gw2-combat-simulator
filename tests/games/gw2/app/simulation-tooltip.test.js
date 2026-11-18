@@ -14,6 +14,7 @@ import {
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { BOON_NAMES } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -1111,7 +1112,7 @@ test('Amalgam strain tooltips and activation use the same patched Stability pack
       const buff = result.events.find((event) => event.type === 'buff' && event.skillName === 'Berserker Strain');
       assert.equal(buff?.stacks, stacks);
       assert.equal(buff.duration, duration);
-      assert.equal(result.planningState.profession[STATE.BERSERKER_UNTIL], buff.at + duration);
+      assert.equal(result.planningState.profession[STATE.BERSERKER_UNTIL], gw2Time(buff.at + duration));
     }
   }
 });

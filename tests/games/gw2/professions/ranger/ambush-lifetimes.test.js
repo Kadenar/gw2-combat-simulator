@@ -17,7 +17,7 @@ const ui = bindUntamedUi(rangerCatalog);
 
 // Availability and presentation read the same executed deadline; equality closes the occurrence.
 test('ambush cast, palette, and display agree at expiry', () => {
-  for (const durationMs of [3999, 4000, 4001]) {
+  for (const durationMs of [3960, 4000, 4040]) {
     const result = runRanger([ID.UNLEASH_RANGER, wait(durationMs)], config);
     const runtime = observedRuntime(result);
     const context = {

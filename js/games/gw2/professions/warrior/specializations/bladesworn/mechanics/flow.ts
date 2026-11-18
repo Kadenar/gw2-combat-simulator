@@ -1,5 +1,5 @@
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
@@ -13,8 +13,8 @@ const FLOW_TICK = 'warrior.flow-tick';
 
 /** Flow uses the absolute action grid; a grant at a tick cannot receive regeneration for that same tick. */
 function scheduleFlowTick(runtime: WarriorRuntime): void {
-  const tick = Math.floor(timeKey(runtime.time) / (GW2_ACTION_TICK_MS * 1000)) + 1;
-  runtime.schedule(FLOW_TICK, (tick * GW2_ACTION_TICK_MS) / 1000, null, undefined, -250);
+  const tick = Math.floor(timeKey(runtime.time) / (GW2_TICK_MS * 1000)) + 1;
+  runtime.schedule(FLOW_TICK, (tick * GW2_TICK_MS) / 1000, null, undefined, -250);
 }
 
 /** Credit the interval ending now before closing its windows; no future rate or event-history projection is needed. */
@@ -31,7 +31,7 @@ function flowTick(runtime: WarriorRuntime): void {
     (active(state.traitPositiveFlowStartedAt, state.traitPositiveFlowUntil)
       ? state.traitPositiveFlowStacks * balanceProfileNumber(profile, 'attributePerStack')
       : 0);
-  runtime.resourceController.grant('flow', rate * (GW2_ACTION_TICK_MS / 1000));
+  runtime.resourceController.grant('flow', rate * (GW2_TICK_MS / 1000));
   // Keep tied grants visible to gameplay; the next tick can discard their expired records.
   state.flowStabilizerWindows = state.flowStabilizerWindows.filter((window) =>
     buffDeadlineActive(window.expiresAt, runtime.time)

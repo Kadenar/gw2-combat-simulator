@@ -196,13 +196,13 @@ test('Last Tyrant rounds its 250ms stack marker to 40ms ticks and lets the sixth
   assert.equal(conditions.length, 1);
   assert.equal(queued.length, 1);
 
-  // Tick rounding is absolute: a marker started at 41ms expires at 320ms.
+  // Tick rounding is absolute: a 41 ms application arrives at 80 ms and its marker expires at 360 ms.
   const second = relicHarness('Last Tyrant');
   const applySecond = (at) => second.relic.condition(second.ctx, burning(at), second.helpers);
   applySecond(0.041);
-  applySecond(0.319);
-  assert.equal(second.stacks(), 1);
   applySecond(0.32);
+  assert.equal(second.stacks(), 1);
+  applySecond(0.36);
   assert.equal(second.stacks(), 2);
 });
 

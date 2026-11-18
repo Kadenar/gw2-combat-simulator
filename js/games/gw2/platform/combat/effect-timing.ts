@@ -1,14 +1,13 @@
-import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
 
 /** Expires temporary effects on the next absolute action tick without changing their stored duration. */
 export function gw2EffectExpiresAt(at: number, duration: number): number {
-  const appliedAt = canonicalTime(at);
+  const appliedAt = gw2Time(at);
 
   if (!(duration > 0)) return appliedAt;
 
-  return canonicalTime(quantizeGw2ActionDurationUp((appliedAt + duration) * 1000) / 1000);
+  return gw2Time(appliedAt + duration);
 }
 
 /** Private timers store zero for an absent window, so a zero-duration grant never reads as live. */

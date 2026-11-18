@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 /** Core ranger spear mechanics; observed attacks separate contact offsets from their recovery windows. */
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
@@ -391,7 +393,7 @@ function synchronizeSpearRecharge(runtime: RangerRuntime, cast: RuntimeCast<Rang
 /** Reuse the shared flip ledger so stale expiry cannot clear a later Prowess grant. */
 function armHuntersProwess(runtime: RangerRuntime): void {
   for (const flip of Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT))
-    runtime.armFlip(flip, { availableAt: runtime.time, expiresAt: runtime.time + 3 });
+    runtime.armFlip(flip, { availableAt: runtime.time, expiresAt: gw2Time(runtime.time + 3) });
 }
 
 /** Spending either Prowess or external stealth uses the shared reveal transition and closes all spear alternatives. */

@@ -237,7 +237,7 @@ test('scepter chain expiry resets the pending step at the deadline', () => {
   const config = defaultSimulationConfig({ specialization: 'Core', primaryWeapon: 'Scepter', initialResource: 0 });
   const wait = (durationMs) => ({ type: 'wait', durationMs });
   for (const [rotation, expected] of [
-    [['Ether Bolt', wait(2799)], ID.ETHER_BLAST],
+    [['Ether Bolt', wait(2760)], ID.ETHER_BLAST],
     [['Ether Bolt', wait(2800)], ID.ETHER_BOLT],
     [['Ether Bolt', 'Ether Blast', wait(2800)], ID.ETHER_BOLT],
     [['Ether Bolt', wait(2760), 'Ether Blast'], ID.ETHER_CLONE],
@@ -277,11 +277,11 @@ test('Continuum Split and Shift do not extend scepter chain expiry', () => {
   const wait = (durationMs) => ({ type: 'wait', durationMs });
   for (const [exit, elapsed] of [
     [[wait(1000), 'Continuum Shift'], 1000],
-    [[wait(1500)], 1500]
+    [[wait(1520)], 1520]
   ]) {
     const prefix = ['Ether Bolt', wait(1000), 'Continuum Split', ...exit];
     for (const [delay, expected] of [
-      [1799 - elapsed, ID.ETHER_BLAST],
+      [1760 - elapsed, ID.ETHER_BLAST],
       [1800 - elapsed, ID.ETHER_BOLT]
     ]) {
       const result = simulateMesmer([...prefix, wait(delay)], config);
@@ -303,7 +303,7 @@ test('Continuum Shift preserves live scepter progression and its latest expiry',
   for (const [rotation, expected] of [
     [['Ether Bolt', 'Continuum Split', wait(3000), 'Continuum Shift'], ID.ETHER_BOLT],
     [['Ether Bolt', 'Continuum Split', 'Ether Blast', 'Ether Clone', 'Continuum Shift'], ID.ETHER_BOLT],
-    [['Ether Bolt', 'Continuum Split', wait(2000), 'Ether Blast', 'Continuum Shift', wait(2799)], ID.ETHER_CLONE],
+    [['Ether Bolt', 'Continuum Split', wait(2000), 'Ether Blast', 'Continuum Shift', wait(2760)], ID.ETHER_CLONE],
     [['Ether Bolt', 'Continuum Split', wait(2000), 'Ether Blast', 'Continuum Shift', wait(2800)], ID.ETHER_BOLT],
     [['Continuum Split', 'Ether Bolt', 'Continuum Shift'], ID.ETHER_BLAST]
   ]) {

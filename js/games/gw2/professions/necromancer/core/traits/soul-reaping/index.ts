@@ -1,6 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -36,7 +36,6 @@ import type {
   NecromancerRuntime,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Dhuumfire tuning and behavior at its existing execution boundaries. */
 export const dhuumfire = defineTrait({
@@ -205,8 +204,9 @@ export const eternalLifePassive = definePeriodicTask<NecromancerRuntime>({
   rearmBeforeRun: true,
   nextAt(runtime) {
     const state = runtime.profession.core.eternalLife;
-    state.deadline = canonicalTime(state.deadline + state.interval);
-    return gw2CooldownReadyAt(state.deadline);
+    // Count ideal occurrences so rounded delivery never shifts the resource cadence.
+    state.occurrence++;
+    return gw2Time(state.occurrence * state.interval);
   },
   run(runtime) {
     if (hasTrait(runtime, TRAIT.ETERNAL_LIFE)) applyEternalLifePulse(runtime);
@@ -452,7 +452,7 @@ function startEternalLife(runtime: NecromancerRuntime): void {
   if (interval > 0 && balanceProfileNumber(profile, 'lifeForceGain') !== 0) {
     const state = runtime.profession.core.eternalLife;
     state.interval = interval;
-    state.deadline = interval;
-    eternalLifePassive.restart(runtime, gw2CooldownReadyAt(state.deadline));
+    state.occurrence = 1;
+    eternalLifePassive.restart(runtime, gw2Time(interval));
   }
 }

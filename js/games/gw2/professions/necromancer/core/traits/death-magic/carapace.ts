@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -28,7 +29,7 @@ export function addCarapace(
     state.carapaceExpiries,
     stacks,
     at,
-    duration,
+    gw2Time(duration),
     Math.max(0, carapaceCapacity(context.helpers) - minionCarapaceStacks(context.helpers, context, state))
   ).expiries;
 }

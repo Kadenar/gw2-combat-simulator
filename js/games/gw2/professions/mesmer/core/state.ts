@@ -1,9 +1,9 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#kernel/execution/periodic-task.js';
 
 /** Keep accepted cast facts with Core state for later settlement and trait queries. */
@@ -50,7 +50,7 @@ export function createMesmerCoreState(): MesmerCoreState {
 /** Derive public display values without copying private cast or illusion history. */
 export function projectMesmerCorePlanningState(input: Gw2PlanningStateInput) {
   const state = (input.profession as { core: ReturnType<typeof createMesmerCoreState> }).core;
-  const at = canonicalTime(input.time);
+  const at = gw2Time(input.time);
   return {
     // Clone counts remain entity observations; elite numeric pools are projected by their owners.
     ...(mesmerResourceKind(input.config.specialization ?? 'Core') === 'clones'

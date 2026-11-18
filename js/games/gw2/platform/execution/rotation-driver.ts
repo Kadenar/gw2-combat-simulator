@@ -1,5 +1,6 @@
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
-import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { GW2_TICK_MS, gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type {
   RuntimeDriver,
@@ -12,7 +13,6 @@ import {
   type TraitSelectionContext
 } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Rotation commands enter through equipment, resource, and timing gates at each live boundary. */
 export function createRotationDriver<T extends object>(
@@ -115,7 +115,7 @@ export function createRotationDriver<T extends object>(
         advanceFrontier('command');
 
         if (command.type === 'wait') {
-          const end = canonicalTime(runtime.time + command.durationMs / 1000);
+          const end = gw2Time(runtime.time + command.durationMs / 1000);
 
           // Every authored command retains its timeline row, including waits and environment controls.
           if (runtime.output !== 'score')
@@ -195,7 +195,7 @@ export function createRotationDriver<T extends object>(
 
           // GW2 retries wait for an absolute action tick, including deadlines less than a microsecond after a tick.
           const tickAt = gw2CooldownReadyAt(availability.retryAt);
-          nextCommandAt = tickAt < availability.retryAt ? canonicalTime(tickAt + GW2_ACTION_TICK_MS / 1000) : tickAt;
+          nextCommandAt = tickAt < availability.retryAt ? gw2Time(tickAt + GW2_TICK_MS / 1000) : tickAt;
         } else {
           acceptCast(skill, command);
           return 'handled';

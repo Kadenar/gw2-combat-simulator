@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
@@ -13,7 +14,6 @@ import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/prof
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { activeBatchCount } from '#kernel/resources/batch.js';
 
 /** Decodes the selected grant, lifetime, and live cap for a single Tempo trigger. */
@@ -34,7 +34,7 @@ export function lethalTempoParameters(source: BalanceProfileSource, context: unk
 
 export function activeLethalTempo(state: GuardianWillbenderState, at: number): number {
   // Damage on the final effect tick still receives the bonus, matching the refresh boundary.
-  return activeBatchCount(state.lethalTempo, canonicalTime(at));
+  return activeBatchCount(state.lethalTempo, gw2Time(at));
 }
 
 export function lethalTempoStacks(context: Gw2ModifierContext): number {

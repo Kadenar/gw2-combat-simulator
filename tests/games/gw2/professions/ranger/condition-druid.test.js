@@ -163,7 +163,7 @@ test('Light on Your Feet respects ownership, expiry, and the condition duration 
               duration: 6,
               stacks: 1
             },
-            ...[1, 6, 6.000001].flatMap((at) => [
+            ...[1, 6, 6.04].flatMap((at) => [
               {
                 type: 'damage',
                 at,
@@ -190,7 +190,7 @@ test('Light on Your Feet respects ownership, expiry, and the condition duration 
         });
       const baseline = run([]);
       const boosted = run([TRAIT.LIGHT_ON_YOUR_FEET]);
-      for (const at of [1, 6, 6.000001]) {
+      for (const at of [1, 6, 6.04]) {
         const strike = (result) =>
           result.resolvedEvents.find((event) => event.sourceId === 'fixture.strike' && event.at === at);
         const condition = boosted.resolvedEvents.find(

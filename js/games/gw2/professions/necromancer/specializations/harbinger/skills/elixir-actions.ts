@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -14,7 +15,6 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const COMMIT = 'harbinger.blight-commit';
 
@@ -39,8 +39,8 @@ const harbingerElixirActions = {
     const impactAt = strike
       ? effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, strike))
       : cast.fullEnd;
-    const at = canonicalTime(cast.start + 0.36);
-    runtime.scheduleForCast(COMMIT, at, cast, { impactAt: Math.max(at, canonicalTime(impactAt)) });
+    const at = gw2Time(cast.start + 0.36);
+    runtime.scheduleForCast(COMMIT, at, cast, { impactAt: Math.max(at, gw2Time(impactAt)) });
   }
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['sideEffectHandlers']>;
 

@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MesmerQueueResources } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
@@ -35,10 +36,11 @@ export function scheduleDirectSkillResources(
   }
 
   if (skill.resource?.mode === 'add') {
-    const resourceAt =
+    const resourceAt = gw2Time(
       skill.resource.timingAnchor === 'castStart'
         ? castStart + (skill.resource.atMs || 0) / 1000
-        : at + (skill.resource.atMs || 0) / 1000;
+        : at + (skill.resource.atMs || 0) / 1000
+    );
     queueResources(
       resourceAt,
       skill.resource.count || 0,

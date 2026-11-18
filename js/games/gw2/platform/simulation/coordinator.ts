@@ -1,3 +1,4 @@
+import { gw2Event, gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { PacketIdentity } from '#gw2/platform/events/identity.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -12,8 +13,7 @@ import {
   type RuntimeQueueEntry,
   type RuntimeWork
 } from '#gw2/platform/simulation/work-contract.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { canonicalEvent, StableEventQueue } from '#kernel/events/queue.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
 import { DEFAULT_EXECUTION_ITERATION_LIMIT } from '#kernel/execution/limits.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import { observationEndTime } from '#kernel/execution/observation.js';
@@ -36,7 +36,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
       if (Number(event.priority) === FLIP_EXPIRY_PRIORITY)
         throw new RangeError('Priority is reserved for flip expiry.');
 
-      let packet = canonicalEvent(identify(event));
+      let packet = gw2Event(identify(event));
 
       // Immediate buff reactions keep their grant ahead of tied strikes, including further buff reactions.
       if (
@@ -284,7 +284,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
         if (nextCommandAt <= runtime.time) {
           runtime.rotationEndTime = runtime.time;
           // A fixed safety horizon keeps condition scheduling live while an occurrence finishes early below.
-          runtime.horizon = canonicalTime(completion ? runtime.time + 120 : observationEndTime(policy, runtime.time));
+          runtime.horizon = gw2Time(completion ? runtime.time + 120 : observationEndTime(policy, runtime.time));
           nextCommandAt = Infinity;
         }
       }
@@ -311,7 +311,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
 
       // Observe the settled timestamp before the clock and time-dependent resources move forward.
       flushEffects();
-      runtime.time = canonicalTime(next);
+      runtime.time = gw2Time(next);
       runtime.resourceController.advance();
       runtime.endurance.advance();
       runtime.cooldownController.refresh(runtime.time);

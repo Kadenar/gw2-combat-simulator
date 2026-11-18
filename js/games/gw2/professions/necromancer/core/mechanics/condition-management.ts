@@ -1,5 +1,6 @@
 /** Own self-condition storage and selection so forms, traits, and skills retain only their delivery and reward rules. */
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { effectFirstAtMs } from '#gw2/platform/effects/authoring.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -18,7 +19,7 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { isTimeInWindow } from '#kernel/core/clock.js';
 
 const CORRUPTION = 'necromancer.corruption';
 const DEVOURING = 'necromancer.devouring-impact';
@@ -88,7 +89,7 @@ function applySelfCondition(
   if (!(effectiveDuration > 0) || !(stacks > 0)) return;
 
   purgeNecromancerSelfConditions(runtime);
-  const expiresAt = canonicalTime(runtime.time + effectiveDuration);
+  const expiresAt = gw2Time(runtime.time + effectiveDuration);
   runtime.profession.core.selfConditions.push({
     condition,
     stacks,
@@ -266,7 +267,7 @@ export function completeNecromancerCorruption(runtime: NecromancerRuntime, cast:
 export function scheduleBloodIsPowerLaunch(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const first = cast.skill.effects?.find((effect) => effect.type === 'strike');
   const timing = first && scaleCastBoundTiming(cast, cast.skill, first);
-  const launchAt = timing?.type === 'strike' ? canonicalTime(cast.start + (effectFirstAtMs(timing) ?? 0) / 1000) : null;
+  const launchAt = timing?.type === 'strike' ? gw2Time(cast.start + (effectFirstAtMs(timing) ?? 0) / 1000) : null;
 
   if (launchAt != null && launchAt <= cast.effectiveEnd)
     // Self-conditions must exist before the same-time hit can consume Plague Sending's armed transfer.
@@ -287,7 +288,7 @@ export function resolvePlagueSignetTransfer(runtime: NecromancerRuntime, cast: R
 
 /** Devouring Darkness samples live conditions at its precommit impact, independently of its selected strike. */
 export function scheduleDevouringDarkness(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  const impactAt = canonicalTime(cast.start + (cast.fullEnd - cast.start) * 0.8);
+  const impactAt = gw2Time(cast.start + (cast.fullEnd - cast.start) * 0.8);
 
   if (impactAt <= cast.effectiveEnd)
     runtime.schedule(DEVOURING, impactAt + (cast.command.impactDelayMs ?? 0) / 1000, {

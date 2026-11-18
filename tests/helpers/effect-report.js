@@ -1,4 +1,5 @@
 import { applyBoonExtension, recordBuffApplication, standardBoonPresentation } from '#gw2/platform/combat/boons.js';
+import { gw2Event, gw2Time } from '#gw2/platform/combat/clock.js';
 import { observeBuffState, timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { conditionStackLimit } from '#gw2/platform/combat/state/targets.js';
 import { buildBoonGeneration, projectedPartyEffects } from '#gw2/platform/results/boon-generation.js';
@@ -11,6 +12,8 @@ export function effectFields(applications = [], end = 120, { policies = [], fram
   const conditions = new Map();
   const selected = new Map(policies.map((policy) => [policy.kind, policy]));
   const ordered = applications
+    // Capture grants on their delivery tick while retaining raw report fixtures and sample cursors.
+    .map(gw2Event)
     .filter((event) => !event.cancelled && event.actorType !== 'environment')
     .toSorted((a, b) => a.at - b.at || (a.causalOrder ?? a.eventOrder ?? 0) - (b.causalOrder ?? b.eventOrder ?? 0));
   const times = [...new Set([0, end, ...ordered.map((event) => event.at), ...frames.map((frame) => frame.at)])]
@@ -25,9 +28,10 @@ export function effectFields(applications = [], end = 120, { policies = [], fram
 
       if (event.type === 'boon_extension') applyBoonExtension(boons, event);
 
-      if (event.type === 'condition') {
+      // Damage-only report fixtures carry no live condition lifetime.
+      if (event.type === 'condition' && event.duration > 0) {
         const windows = conditions.get(event.condition) ?? [];
-        windows.push({ stacks: event.stacks ?? 1, expiresAt: event.at + event.duration });
+        windows.push({ stacks: event.stacks ?? 1, expiresAt: gw2Time(event.at + event.duration) });
         conditions.set(event.condition, windows);
       }
     }

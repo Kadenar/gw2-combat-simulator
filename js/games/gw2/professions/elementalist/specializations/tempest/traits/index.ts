@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -375,7 +376,9 @@ function applyTempestuousAria(context: ElementalistResolverContext, { cause: eve
   // Extend the newest live application instead of stacking a second one, clamping the new expiry
   // to the maximum window measured from this aura; with none live, start a fresh application.
   const current = activeElementalistBuffs(context, 'Tempestuous Aria', event.at).at(-1);
-  const expiresAt = current ? Math.min(event.at + maximum, current.expiresAt + extension) : event.at + extension;
+  const expiresAt = gw2Time(
+    current ? Math.min(event.at + maximum, current.expiresAt + extension) : event.at + extension
+  );
 
   if (current) {
     refreshElementalistBuffs(context, 'Tempestuous Aria', event.at, (previousExpiry) =>

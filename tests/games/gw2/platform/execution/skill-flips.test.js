@@ -40,21 +40,21 @@ test('flip visibility and readiness use separate half-open windows', () => {
   const flips = {};
   const window = armSkillFlip(flips, 1, 0.1 + 0.2, 0.6, 0.1);
   for (const [at, visible, ready] of [
-    [0.099999, false, false],
-    [0.1, true, false],
-    [0.299999, true, false],
-    [0.3, true, true],
-    [0.300001, true, true],
-    [0.599999, true, true],
+    [0.08, false, false],
+    [0.12, true, false],
+    [0.28, true, false],
+    [0.32, true, true],
+    [0.36, true, true],
+    [0.56, true, true],
     [0.6, false, false],
-    [0.600001, false, false]
+    [0.64, false, false]
   ]) {
     assert.equal(skillFlipVisible(window, at), visible);
     assert.equal(skillFlipReady(window, at), ready);
   }
 
   assert.deepEqual(JSON.parse(JSON.stringify(flips)), flips);
-  assert.equal(expireSkillFlip(flips, 1, 0.599999), undefined);
+  assert.equal(expireSkillFlip(flips, 1, 0.56), undefined);
   assert.equal(expireSkillFlip(flips, 1, 0.6), window);
   assert.equal(flips[1], undefined);
 });

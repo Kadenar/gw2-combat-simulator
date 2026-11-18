@@ -215,7 +215,7 @@ test('Stoic Demeanor reduces recharge by three seconds with a quarter-second int
       initialize(runtime) {
         runtime.cooldownController.setReadyAt(ID.UNBROKEN_LINES, 20);
       },
-      timeline: [0.01, 0.2, 0.261].map((at) => ({
+      timeline: [0.04, 0.2, 0.36].map((at) => ({
         at,
         run(runtime) {
           const before = runtime.cooldownController.readyAt(ID.UNBROKEN_LINES);

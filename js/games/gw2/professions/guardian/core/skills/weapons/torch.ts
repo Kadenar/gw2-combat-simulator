@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -11,7 +12,6 @@ import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Canonical Core guardian skill definitions grouped by their GW2 owner. */
 
@@ -109,11 +109,11 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
 const guardianTorchActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.arm-zealots-fire'(runtime, context) {
     const duration = Number(context.skill.flipDuration) * radiantFireDurationMultiplier(runtime.helpers, runtime);
-    runtime.armFlip(ID.ZEALOTS_FIRE, { expiresAt: canonicalTime(runtime.time + duration) });
+    runtime.armFlip(ID.ZEALOTS_FIRE, { expiresAt: gw2Time(runtime.time + duration) });
   },
   'guardian.zealots-fire-lockout'(runtime) {
     for (const lockout of runtime.helpers.skillsById.get(ID.ZEALOTS_FLAME)?.lockouts ?? [])
-      runtime.castController.setLockout(lockout.group, canonicalTime(runtime.time + lockout.durationMs / 1000));
+      runtime.castController.setLockout(lockout.group, gw2Time(runtime.time + lockout.durationMs / 1000));
   }
 };
 

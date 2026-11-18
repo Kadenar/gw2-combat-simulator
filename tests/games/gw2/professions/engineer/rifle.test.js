@@ -48,7 +48,7 @@ test('either rifle trigger loses its unused charge at its five-second deadline',
     const [expiresAt] = charges(armed);
     assert.equal(Math.round((expiresAt - grantedAt) * 1000), 5000);
 
-    const before = simulate('Core', [...rotation, waitUntil(armed, expiresAt - 0.001)]);
+    const before = simulate('Core', [...rotation, waitUntil(armed, expiresAt - 0.04)]);
     assert.deepEqual(before.warnings, []);
     assert.equal(before.planningState.availability[ID.ROCKET_BURST].ready, true);
 

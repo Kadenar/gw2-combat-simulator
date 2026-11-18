@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { observationEndTime } from '#kernel/execution/observation.js';
 import { testProfession } from '#tests/fixtures/profession.js';
@@ -22,11 +23,11 @@ test('absolute observation uses exact canonical rotation boundaries', () => {
       const baseline = simulateGw2(options);
       assert.deepEqual(baseline.warnings, []);
       const endMs = baseline.rotationEndTime * 1000;
-      for (const offsetMs of [-0.2, -0.05, -0.001, -0.0004, 0, 0.001, 0.05]) {
+      for (const offsetMs of [-40.001, -40, -0.001, -0.0004, 0, 0.001, 0.05]) {
         const policy = { kind: 'absolute', endTimeMs: endMs + offsetMs };
         const run = () => simulateGw2({ ...options, observationPolicy: policy });
 
-        if (offsetMs <= -0.001) {
+        if (gw2Time((endMs + offsetMs) / 1000) < baseline.rotationEndTime) {
           assert.throws(run, {
             name: 'RangeError',
             message: 'Absolute observation endTimeMs cannot precede rotation end.'
@@ -35,7 +36,13 @@ test('absolute observation uses exact canonical rotation boundaries', () => {
           const result = run();
           assert.deepEqual(result.warnings, []);
           assert.equal(result.rotationEndTime, baseline.rotationEndTime);
-          assert.equal(result.observationEndTime, observationEndTime(policy, baseline.rotationEndTime));
+          assert.equal(
+            result.observationEndTime,
+            observationEndTime(
+              { ...policy, endTimeMs: gw2Time(policy.endTimeMs / 1000) * 1000 },
+              baseline.rotationEndTime
+            )
+          );
         }
       }
     }
@@ -61,7 +68,7 @@ test('absolute observation respects final input recovery and drains the inclusiv
         flatDamage: 1
       }))
     };
-    assert.throws(() => resolveTestGw2Events({ ...options, observation: { kind: 'absolute', endTimeMs: 1199.999 } }), {
+    assert.throws(() => resolveTestGw2Events({ ...options, observation: { kind: 'absolute', endTimeMs: 1160 } }), {
       name: 'RangeError',
       message: 'Absolute observation endTimeMs cannot precede rotation end.'
     });
@@ -187,8 +194,8 @@ test('offset combat starts respect the clock and keep sigil procs aligned with r
         sigilSets: [{ names: ['Ice'] }]
       }
     });
-    const expectedStart = Math.max(2, concurrentOffsetMs / 1000);
-    assert.equal(result.combatStartTime, expectedStart);
+    const expectedStart = gw2Time(Math.max(2, concurrentOffsetMs / 1000));
+    assert.equal(result.combatStartTime, gw2Time(expectedStart));
     assert.equal(result.events.find((event) => event.type === 'combat_start').at, expectedStart);
     assert.equal(result.steps.find((step) => step.skillName === 'Combat Start').start, expectedStart * 1000);
     assert.equal(result.firstHitTime, Math.ceil(expectedStart / 0.04) * 0.04 + 1);
@@ -454,9 +461,9 @@ test('generic simulation starts combat at a delayed marker within a cast', () =>
 
   assert.deepEqual(result.warnings, []);
   assert.ok(result.totalDamage > 0);
-  assert.equal(result.combatStartTime, 0.1);
+  assert.equal(result.combatStartTime, 0.12);
   assert.equal(result.hasExplicitCombatStart, true);
-  assert.equal(marker.at, 0.1);
+  assert.equal(marker.at, 0.12);
   assert.equal(result.firstHitTime, 1);
   assert.equal(result.dpsStartTime, 1);
   assert.equal(result.dpsWindow, 1);

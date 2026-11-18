@@ -1,11 +1,12 @@
 /** Dragon Trigger charge timing shared by Bladesworn simulation and combat-log replay. */
-import { GW2_ACTION_TICK_MS, quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
+import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 
 const DRAGON_TRIGGER_CHARGE_INTERVAL_MS = 240;
 
 /** Daring Dragon starts conversion one action tick earlier; Reload changes charge yield, not the 240 ms cadence. */
 export function dragonChargeTickOffsetSeconds(tickIndex: number, daringDragon: boolean): number {
-  return (DRAGON_TRIGGER_CHARGE_INTERVAL_MS * Math.max(1, tickIndex) - (daringDragon ? GW2_ACTION_TICK_MS : 0)) / 1000;
+  return (DRAGON_TRIGGER_CHARGE_INTERVAL_MS * Math.max(1, tickIndex) - (daringDragon ? GW2_TICK_MS : 0)) / 1000;
 }
 
 /** Resolves an observed charge duration to the nearest reachable Dragon Charge threshold. */

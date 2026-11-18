@@ -261,7 +261,7 @@ test('explicit precombat and target death cannot spend allied weapon spell charg
     combatStartTime: 0,
     events: [hit(0.5)]
   });
-  assert.equal(dead.deathTime, 0.5);
+  assert.equal(dead.deathTime, 0.52);
   assert.equal(state(dead).weaponSpells.nightmare.recipients['ally:1'].count, 3);
 });
 

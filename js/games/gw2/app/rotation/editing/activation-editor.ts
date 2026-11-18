@@ -1,5 +1,6 @@
+import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 /** Validates activation timing and mounts the rotation activation editor. */
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
+
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { DurationValidation } from '#ui/rotation/editing/duration-editor.js';
 import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/editing/floating-editor.js';
@@ -44,7 +45,7 @@ export function suggestedActivationInterruptMs(
   fallbackCastMs: number | null | undefined = null
 ): number {
   const duration = Number(fullCastMs) || Number(fallbackCastMs) || 0;
-  return Math.max(GW2_ACTION_TICK_MS, Math.floor((Math.round(duration) - 1) / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS);
+  return Math.max(GW2_TICK_MS, Math.floor((Math.round(duration) - 1) / GW2_TICK_MS) * GW2_TICK_MS);
 }
 
 /** Returns zero for per-packet channels or the earliest cutoff that commits a damage or condition effect. */
@@ -105,10 +106,10 @@ export function validateActivationInterruptMs(
 ): DurationValidation {
   const parsed = Number(rawValue);
 
-  if (!Number.isFinite(parsed) || parsed < GW2_ACTION_TICK_MS) {
+  if (!Number.isFinite(parsed) || parsed < GW2_TICK_MS) {
     return {
       valid: false,
-      error: `Enter an interruption time of at least ${GW2_ACTION_TICK_MS} ms.`
+      error: `Enter an interruption time of at least ${GW2_TICK_MS} ms.`
     };
   }
 
@@ -122,10 +123,10 @@ export function validateActivationInterruptMs(
   const value = parsed;
   const fullDuration = Math.round(Number(fullCastMs) || 0);
 
-  if (value % GW2_ACTION_TICK_MS !== 0) {
+  if (value % GW2_TICK_MS !== 0) {
     return {
       valid: false,
-      error: `Enter an interruption time divisible by ${GW2_ACTION_TICK_MS} ms.`
+      error: `Enter an interruption time divisible by ${GW2_TICK_MS} ms.`
     };
   }
 
@@ -161,10 +162,10 @@ export function validateActivationConcurrentOffsetMs(
     };
   }
 
-  if (!Number.isInteger(parsed) || parsed % GW2_ACTION_TICK_MS !== 0) {
+  if (!Number.isInteger(parsed) || parsed % GW2_TICK_MS !== 0) {
     return {
       valid: false,
-      error: `Enter an offset divisible by ${GW2_ACTION_TICK_MS} ms.`
+      error: `Enter an offset divisible by ${GW2_TICK_MS} ms.`
     };
   }
 
@@ -224,17 +225,17 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   const minimumMs = isConcurrentBehavior
     ? options.minimumConcurrentOffsetMs === null
       ? null
-      : Math.ceil((Number(options.minimumConcurrentOffsetMs) || 0) / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS
-    : GW2_ACTION_TICK_MS;
+      : Math.ceil((Number(options.minimumConcurrentOffsetMs) || 0) / GW2_TICK_MS) * GW2_TICK_MS
+    : GW2_TICK_MS;
   // Native number stepping snaps off-grid values in either direction; align its minimum to the same tick grid.
-  const inputStep = GW2_ACTION_TICK_MS;
+  const inputStep = GW2_TICK_MS;
   const suggestedFloor = minimumMs ?? Number.NEGATIVE_INFINITY;
   // Concurrent casts start with the standard offset; interruptions use the skill's suggested cutoff.
   const suggestedMs = isConcurrentBehavior
     ? Math.max(suggestedFloor, 120)
     : Number.isFinite(rawSuggestedMs)
       ? Math.max(suggestedFloor, Math.round(rawSuggestedMs / inputStep) * inputStep)
-      : GW2_ACTION_TICK_MS;
+      : GW2_TICK_MS;
   const inputMinimum = minimumMs == null ? '' : ` min="${minimumMs}"`;
   const editor = document.createElement('div');
   editor.className = 'rotation-activation-editor';
@@ -282,7 +283,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
       </select>
       <div class="activation-editor-input-row activation-editor-impact-delay-row">
         <span>Delay</span>
-        <input class="activation-editor-input activation-editor-impact-delay" type="number" min="0" step="${GW2_ACTION_TICK_MS}" inputmode="numeric" aria-label="Impact delay in milliseconds" />
+        <input class="activation-editor-input activation-editor-impact-delay" type="number" min="0" step="${GW2_TICK_MS}" inputmode="numeric" aria-label="Impact delay in milliseconds" />
         <span>ms</span>
       </div>
       ${impactMarkup}

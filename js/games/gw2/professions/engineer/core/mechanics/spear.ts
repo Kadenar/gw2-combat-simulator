@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
@@ -36,8 +38,8 @@ const engineerSpearSideEffectHandlers: RuntimeHooks<EngineerRuntimeState, Engine
     runtime.cancelOwner({ id: 'engineer.lightning-rod', generation: state.lightningRodGeneration });
     const owner = { id: 'engineer.lightning-rod', generation: ++state.lightningRodGeneration };
     state.lightningRodChargeExpiries = [];
-    const readyAt = cast.start + 4.2;
-    runtime.armFlip(ID.ELECTRIC_ARTILLERY, { availableAt: readyAt, expiresAt: readyAt + 8 });
+    const readyAt = gw2Time(cast.start + 4.2);
+    runtime.armFlip(ID.ELECTRIC_ARTILLERY, { availableAt: readyAt, expiresAt: gw2Time(readyAt + 8) });
     for (let index = 0; index < 8; index++)
       runtime.scheduleForCast('engineer.rod-pulse', at + 0.16 + index * 0.5, cast, { index }, owner);
     runtime.schedule('engineer.rod-expire', readyAt + 8, undefined, owner);

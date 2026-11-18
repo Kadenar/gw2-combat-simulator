@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
@@ -58,7 +59,7 @@ import { runThief } from '#tests/helpers/thief-simulation.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const READY_AT = 1;
-const AFTER_READY_AT = 1.001;
+const AFTER_READY_AT = 1.04;
 
 // Live owners claim from each qualifying completion or landed strike; ICD deadlines stay exclusive at the boundary.
 const revenantCooldown = (trait, duration) => (catalog) => withProfile(catalog, trait, { cooldown: duration });
@@ -118,7 +119,7 @@ test('Revenant Vicious Reprisal claims only eligible strikes and honors the excl
               event: revenantHit(0.5, { actorType: 'summon', ownerActorType: 'player' })
             });
             runtime.effects.emit({ kind: 'packet', event: revenantHit(0.5, { coefficient: 0 }) });
-            for (const at of [1, 1 + duration, 1 + duration + 0.001])
+            for (const at of [1, 1 + duration, 1 + duration + 0.04])
               runtime.effects.emit({ kind: 'packet', event: revenantHit(at) });
           }
         }
@@ -131,9 +132,9 @@ test('Revenant Vicious Reprisal claims only eligible strikes and honors the excl
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(
       might(result).map((event) => event.at),
-      [1, 1 + duration + 0.001]
+      [1, 1 + duration + 0.04]
     );
-    closeTo(observedRuntime(result).procs.deadline('viciousReprisal'), 1 + duration + 0.001 + duration);
+    closeTo(observedRuntime(result).procs.deadline('viciousReprisal'), 1 + duration + 0.04 + duration);
   }
 });
 
@@ -144,7 +145,7 @@ for (const [key, trait] of [
 ]) {
   test(`Necromancer ${key} claims only after its live completion boundary`, () => {
     for (const selected of [false, true])
-      for (const completion of [1, 1.000001]) {
+      for (const completion of [1, 1.04]) {
         const config = { specialization: 'Core', selectedTraitIds: selected ? [trait] : [] };
         const native = necromancerProfession.runtimeFor(config);
         const result = observeGw2Runtime({
@@ -198,7 +199,7 @@ for (const [key, trait, invoke, literalDuration] of [
         const observed = { effects: 0 };
         context.effects = captureEffectEmissions({
           submit(event) {
-            assert.equal(context.procs.deadline(key), bypass ? 0 : event.at + elapsed);
+            assert.equal(context.procs.deadline(key), gw2Time(bypass ? 0 : event.at + elapsed));
             observed.effects += 1;
             return event;
           }
@@ -227,7 +228,7 @@ for (const [key, trait, invoke, literalDuration] of [
       const count = observed.effects;
       opportunity(1 + elapsed);
       assert.equal(observed.effects, bypass ? count * 2 : count);
-      opportunity(1 + elapsed + 0.000001);
+      opportunity(1 + elapsed + 0.04);
       assert.ok(observed.effects > count);
       assert.equal('traitProcReadyAt' in necromancerProfession.resolveProfession({}).createState({}).core, false);
     }
@@ -352,7 +353,7 @@ test('Soulbeast stance ICDs share each stance boundary across recipients while c
         kind,
         ...(ally ? { metadata: { triggeredByAlly: 1 } } : {})
       };
-      for (const at of [0.96, READY_AT - 0.000001]) react(context, { ...event, at });
+      for (const at of [0.96, READY_AT - 0.04]) react(context, { ...event, at });
       assert.equal(context.queue.pending().length, 0);
       const triggerAt = READY_AT;
       react(context, { ...event, at: triggerAt });
@@ -610,7 +611,7 @@ test('Ineptitude claims only surviving effects on defiant targets at the event t
       assert.equal(conditions.length, 1);
       mesmerControlOpportunity(context, { ...event, at: 1 + duration });
       assert.equal(conditions.length, defiant ? 1 : 2);
-      mesmerControlOpportunity(context, { ...event, at: 1 + duration + 0.000001 });
+      mesmerControlOpportunity(context, { ...event, at: 1 + duration + 0.04 });
       assert.equal(conditions.length, defiant ? 2 : 3);
     }
   }
@@ -650,7 +651,7 @@ test('Demonic Lore claims its cooldown field only for a surviving Burning packet
   assert.equal(conditions.length, 1);
   scourgeConditionOpportunity(context, { ...event, at: 3 });
   assert.equal(conditions.length, 1);
-  scourgeConditionOpportunity(context, { ...event, at: 3.000001 });
+  scourgeConditionOpportunity(context, { ...event, at: 3.04 });
   assert.equal(conditions.length, 2);
 });
 
@@ -699,12 +700,12 @@ test('Vampiric Presence waits for its first aura pulse and accepts a hit on its 
   const profile = necromancerCatalog.balanceProfilesById.get(NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE);
   const cooldown = balanceProfileNumber(profile, 'cooldown');
   const firstPulse = balanceProfileNumber(profile, 'auraPulseInterval') / 2;
-  const event = { type: 'damage', actorType: 'player', coefficient: 1, at: firstPulse - 0.001 };
+  const event = { type: 'damage', actorType: 'player', coefficient: 1, at: firstPulse - 0.04 };
   strikeOpportunity(context, event);
   assert.equal(context.queue.pending().length, 0, 'no siphon before the first aura pulse');
   assert.equal(context.procs.deadline('necromancer.core.vampiricPresence'), 0, 'a gated hit spends no cooldown');
   strikeOpportunity(context, { ...event, at: firstPulse });
-  strikeOpportunity(context, { ...event, at: firstPulse + cooldown - 0.001 });
+  strikeOpportunity(context, { ...event, at: firstPulse + cooldown - 0.04 });
   assert.equal(context.queue.pending().length, 1, 'a hit before the deadline stays on cooldown');
   strikeOpportunity(context, { ...event, at: firstPulse + cooldown });
   assert.equal(context.queue.pending().length, 2, 'a hit on the deadline procs');
@@ -751,7 +752,7 @@ test('Vampiric Aura pulses relative to an explicit combat start', () => {
   strikeOpportunity(context, event);
   assert.equal(context.queue.pending().length, 0, 'pending setup has no aura');
   engagement.discoverBoundary(10);
-  strikeOpportunity(context, { ...event, at: firstPulse - 0.001 });
+  strikeOpportunity(context, { ...event, at: firstPulse - 0.04 });
   assert.equal(context.queue.pending().length, 0, 'the first pulse follows the explicit start');
   strikeOpportunity(context, event);
   assert.equal(context.queue.pending().length, 1);
@@ -780,9 +781,9 @@ test('Dark Sentry claims each eligible ally once and retains strict recipient de
   const secondDeadline = runtime.procs.deadline('thief.specter.darkSentry:2');
   assert.ok(secondDeadline > 1);
   for (const index of [0, 3, 1.5]) assert.equal(runtime.procs.deadline(`thief.specter.darkSentry:${index}`), 0);
-  runtime.time = 1.000001;
+  runtime.time = 1.04;
   invoke(runtime.mechanics, { allyIndices: [1, 2], cause: { ...barrier, at: runtime.time } });
-  assert.ok(runtime.procs.deadline('thief.specter.darkSentry:1') > 1.000001);
+  assert.ok(runtime.procs.deadline('thief.specter.darkSentry:1') > 1.04);
   assert.equal(runtime.procs.deadline('thief.specter.darkSentry:2'), secondDeadline);
 });
 

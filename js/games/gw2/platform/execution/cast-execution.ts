@@ -1,5 +1,6 @@
 import type { CastCommand } from '#gw2/platform/builds/rotation.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
@@ -31,7 +32,6 @@ import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { RuntimeWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';
 import { activationInputKind } from '#gw2/platform/skills/autoattack-chain-index.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 interface CastExecutionHost {
   readonly makeWork: (input: WorkInput<RuntimeWork>) => RuntimeWork;
@@ -163,7 +163,10 @@ export function createCastExecution<T extends object>(
       !config.boons?.stability &&
       query.timeline.buffStacksAt(BOON.STABILITY, runtime.time, 0, 25) === 0
     )
-      cursor.selfStunUntil = Math.max(cursor.selfStunUntil, runtime.time + Number(cast.skill.selfStunMs) / 1000);
+      cursor.selfStunUntil = Math.max(
+        cursor.selfStunUntil,
+        gw2Time(runtime.time + Number(cast.skill.selfStunMs) / 1000)
+      );
 
     reservations.delete(cast.id);
   }
@@ -227,7 +230,7 @@ export function createCastExecution<T extends object>(
     if (!Number.isFinite(durationMs) || durationMs < 0)
       throw new RangeError('Cast duration must be finite and non-negative.');
 
-    // Cast reservations finish on action ticks; effect packets retain their authored canonical timestamps.
+    // Cast reservations and effect packets finish on the same GW2 tick grid.
     const fullEnd = gw2CooldownReadyAt(start + durationMs / 1000);
     // Authored overrides replace the skill's default interruption; both occupy the same reservation and lane.
     const interruptAfterMs = command.interruptAfterMs ?? skill.defaultInterruptMs;
@@ -263,7 +266,7 @@ export function createCastExecution<T extends object>(
       laneEnd: retainsInterruptedCastLockout(skill, { start, effectiveEnd, cancelledBeforeCommit: cancelled })
         ? fullEnd
         : effectiveEnd,
-      rechargeStart: canonicalTime(Math.max(start, rechargeStart)),
+      rechargeStart: gw2Time(Math.max(start, rechargeStart)),
       // Reserve one-shot recharge entitlements at acceptance, querying only the current live instant.
       rechargeWork,
       rechargeCompanionId: profession.rechargeCompanionId?.(runtime.mechanicQueries, skill),
@@ -291,7 +294,7 @@ export function createCastExecution<T extends object>(
       lockouts.set(
         lockout.group,
         // Lockout readiness must use the same rounded clock as the command wake.
-        Math.max(lockouts.get(lockout.group) ?? 0, canonicalTime(start + lockout.durationMs / 1000))
+        Math.max(lockouts.get(lockout.group) ?? 0, gw2Time(start + lockout.durationMs / 1000))
       );
     const detail = profession.castDetail?.(castDetailContext, cast);
 
@@ -407,7 +410,7 @@ export function createCastExecution<T extends object>(
         skillWeaponFallback: ['Heal', 'Utility', 'Elite'].includes(skill.type ?? '') ? 'Unequipped' : '',
         transform(event) {
           // Compare on the same clock as the reservation; raw addition can place an equal-time impact just beyond it.
-          if (interrupted && (perPacket || !effect.persistsAfterInterrupt) && canonicalTime(event.at) > effectiveEnd)
+          if (interrupted && (perPacket || !effect.persistsAfterInterrupt) && gw2Time(event.at) > effectiveEnd)
             return null;
 
           return {
@@ -483,7 +486,7 @@ export function createCastExecution<T extends object>(
       hasInFlight: (skillId: SkillId) => Boolean(inFlight.get(skillId)?.size),
       inFlightSkillIds: () => inFlight.keys(),
       setLockout: (group: string, at: number) => {
-        lockouts.set(group, canonicalTime(at));
+        lockouts.set(group, gw2Time(at));
       },
       clearLockout: (group: string) => {
         lockouts.delete(group);

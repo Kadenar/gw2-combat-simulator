@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -19,7 +20,6 @@ import {
   eclipseAstralForceMultiplier
 } from '#gw2/professions/ranger/specializations/druid/traits/behavior.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** The selected trait observes this accepted transition before subsequent mechanic work. */
 export const avatarExited = defineTriggerPoint<Record<string, never>>('ranger.avatar-exited', [TRAIT.NATURAL_BALANCE]);
@@ -32,7 +32,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
 
   const duration = skillNumber(requireSkill(runtime.helpers, ID.CELESTIAL_AVATAR), 'duration');
   // Presence owns the form lifetime; comparing the deadline to time would skip cleanup at exact expiry.
-  state.celestialAvatarEndsAt = active ? canonicalTime(runtime.time + duration) : null;
+  state.celestialAvatarEndsAt = active ? gw2Time(runtime.time + duration) : null;
   runtime.resourceController.refresh('astralForce');
 
   if (state.celestialAvatarEndsAt !== null) {
@@ -87,7 +87,7 @@ export const celestialAvatarLifecycle: RuntimeHooks<RangerRuntimeState, RangerSk
         deadline(runtime, depletionAt) {
           const state = druidState.from(runtime.profession);
           return state.celestialAvatarEndsAt !== null
-            ? canonicalTime(Math.min(state.celestialAvatarEndsAt, depletionAt))
+            ? gw2Time(Math.min(state.celestialAvatarEndsAt, depletionAt))
             : Infinity;
         }
       }

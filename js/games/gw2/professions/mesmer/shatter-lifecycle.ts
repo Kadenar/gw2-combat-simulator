@@ -1,4 +1,5 @@
 /** Own the family's shatter transactions while Core and elite resolvers retain their packet rules. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
@@ -18,7 +19,6 @@ import { mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanic
 import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import { resolveBladesong } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesongs.js';
 import type { MesmerRuntime, MesmerRuntimeState, MesmerShatterResolver } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 interface ShatterTransaction {
@@ -112,9 +112,7 @@ function beginShatter(runtime: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): v
 
   const progress = Number(shatter.resourceSpendProgress);
   const delayed =
-    shatter.consumesResources !== false &&
-    Number.isFinite(progress) &&
-    canonicalTime(cast.fullEnd) > canonicalTime(cast.start);
+    shatter.consumesResources !== false && Number.isFinite(progress) && gw2Time(cast.fullEnd) > gw2Time(cast.start);
   let spent: number | null = null;
 
   if (delayed) {
@@ -137,7 +135,7 @@ function beginShatter(runtime: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): v
   if (delayed && !cast.cancelledBeforeCommit)
     runtime.schedule(
       SHATTER_SPEND,
-      canonicalTime(Math.min(cast.effectiveEnd, cast.start + (cast.fullEnd - cast.start) * progress)),
+      gw2Time(Math.min(cast.effectiveEnd, cast.start + (cast.fullEnd - cast.start) * progress)),
       cast.id,
       undefined,
       -110

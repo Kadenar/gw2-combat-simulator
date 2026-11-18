@@ -1,4 +1,5 @@
 /** Electric Enchantment owns its shared identity, charge lifecycle, combat payload, and damage preview. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
@@ -11,7 +12,6 @@ import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mec
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { appendBatch, consumeBatchFromList } from '#kernel/resources/batch-list.js';
 
 // Combat packets, announcements, and the preview share one identity independently of the granting skill or trait.
@@ -61,7 +61,7 @@ export function grantElectricEnchantments(
     state.electricEnchantmentGrants,
     {
       ...createChargeGrant(stacks, gw2EffectExpiresAt(at, duration)),
-      at: canonicalTime(at),
+      at: gw2Time(at),
       ...(traitId == null ? {} : { traitId })
     },
     at,
@@ -142,7 +142,7 @@ function emitElectricEnchantment(context: ElementalistRuntime, event: Simulation
 export function consumeElectricEnchantment(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context.profession);
   const grant = consumeBatchFromList(state.electricEnchantmentGrants, event.at, {
-    eligible: (candidate) => event.at >= canonicalTime(candidate.at)
+    eligible: (candidate) => event.at >= gw2Time(candidate.at)
   });
 
   if (grant) emitElectricEnchantment(context, event, grant.traitId);

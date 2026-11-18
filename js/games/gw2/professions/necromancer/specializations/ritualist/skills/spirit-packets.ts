@@ -1,4 +1,5 @@
 /** Construct spirit attack payloads while the lifecycle owns their admission and cancellation. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { CONTROL } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -12,11 +13,10 @@ import {
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
 import type { SpiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Apply the authored attack offset and optional travel delay on the canonical clock. */
 export function spiritImpactAt(at: number, cast: RuntimeCast<NecromancerSkill>, offsetMs: number): number {
-  return canonicalTime(at + offsetMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000);
+  return gw2Time(at + offsetMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000);
 }
 
 /** Anguish applies independent conditions before its owned barrage; Wanderlust's swing belongs to the player. */

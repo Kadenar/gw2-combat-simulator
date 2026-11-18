@@ -1,11 +1,11 @@
 /** Keep instrument replacement, historical ordering, and detached projections consistent across their readers. */
 import { buffDeadlineActive, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { ExecutedFactsReader } from '#gw2/platform/combat/history/executed-facts.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const INSTRUMENTS = ['Lute', 'Flute', 'Harp', 'Drum'] as const;
 
@@ -15,7 +15,7 @@ function instrumentsAt(
   at: number,
   currentEvent?: SimulationEvent | null
 ): ReadonlyMap<string, number> {
-  at = canonicalTime(at);
+  at = gw2Time(at);
   const latest = new Map<string, SimulationEvent>();
   for (const event of events) {
     if (event.type !== 'mesmer.instrument' || event.at > at) continue;
@@ -85,7 +85,7 @@ export function replaceTroubadourInstrumentWindow(
 
 /** Planning readers have live deadlines rather than history; projection never prunes or spends those windows. */
 export function projectTroubadourInstruments(windows: Readonly<Record<string, number>>, at: number) {
-  at = canonicalTime(at);
+  at = gw2Time(at);
   return Object.entries(windows)
     .filter(([, expiresAt]) => buffDeadlineActive(expiresAt, at))
     .map(([name, expiresAt]) => ({

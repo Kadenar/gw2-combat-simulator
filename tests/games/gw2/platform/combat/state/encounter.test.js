@@ -204,14 +204,14 @@ test('group damage reaches health gates, pauses for splits, resumes at the next 
 
 test('player damage can trigger an early split, cancels old group ticks, and excludes invulnerable hits', () => {
   const result = run(4, [hit(0.5, 700), hit(1, 50), hit(2.6, 50)]);
-  assert.equal(result.encounter.phases[0].end, 0.5);
-  assert.equal(result.encounter.phases[1].end, 2.5);
+  assert.equal(result.encounter.phases[0].end, 0.52);
+  assert.equal(result.encounter.phases[1].end, 2.52);
   assert.equal(result.encounter.remainingHealth, 350);
   assert.equal(result.totalDamage, 550);
   assert.equal(result.environmentDamage, 100);
   assert.equal(result.encounter.phases[0].playerDamage, 500);
   // Reports must use accepted health loss so split overkill cannot inflate encounter analysis.
-  const firstHit = result.resolvedEvents.find((event) => event.type === 'damage' && event.at === 0.5);
+  const firstHit = result.resolvedEvents.find((event) => event.type === 'damage' && event.at === 0.52);
   assert.equal(firstHit.damage, 500);
 });
 
@@ -502,13 +502,13 @@ test('timed cycles preserve health, cancel old wakes, and stop on defeat before 
   };
   const resumed = run(5, [], { config: { encounter: config, target: {}, sigilSets: [{ names: [] }] } });
   assert.equal(resumed.encounter.remainingHealth, 700);
-  assert.equal(resumed.encounter.phases[1].end, 3.5);
+  assert.equal(resumed.encounter.phases[1].end, 3.52);
   const done = run(30, [], { config: { encounter: config, target: {}, sigilSets: [{ names: [] }] } });
   assert.equal(done.encounter.defeated, true);
   assert.equal(done.encounter.phases.at(-1).kind, 'boss');
   assert.equal(done.environmentDamage, 1000);
   const early = run(5, [hit(0.5, 1000)], { config: { encounter: config, target: {}, sigilSets: [{ names: [] }] } });
-  assert.equal(early.deathTime, 0.5);
+  assert.equal(early.deathTime, 0.52);
   assert.equal(early.environmentDamage, 0);
 });
 

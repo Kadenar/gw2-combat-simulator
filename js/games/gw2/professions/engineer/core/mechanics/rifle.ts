@@ -1,9 +1,9 @@
 /** Rifle triggers grant independent charges; the weapon flip follows the remaining live charges. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { consumeOldestStacks, expireStacks, purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Expiry removes only elapsed charges and keeps the ambush exposed until the final charge closes. */
@@ -25,7 +25,7 @@ export const engineerRifleLifecycle = {
       if (context.kind !== 'cast' || action.amount == null)
         throw new TypeError('Rocket Burst grants require a cast and a charge duration.');
 
-      const expiresAt = canonicalTime(runtime.time + sideEffectAmount(runtime, action.amount));
+      const expiresAt = gw2Time(runtime.time + sideEffectAmount(runtime, action.amount));
       runtime.profession.core.rocketBurstChargeExpiries.push(expiresAt);
       syncRocketBurstCharges(runtime);
       runtime.scheduleExpiry('engineer.rocket-burst-expire', expiresAt);

@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import {
@@ -40,7 +42,7 @@ function reactToStealthGrant(runtime: ThiefRuntime, event: Gw2ResolverEvent, ent
   const at = runtime.time;
   const core = runtime.profession.core;
   // Natural and forced exits use the same selected Hidden Killer linger.
-  core.hiddenKillerUntil = core.stealthUntil + hiddenKillerLinger(runtime);
+  core.hiddenKillerUntil = gw2Time(core.stealthUntil + hiddenKillerLinger(runtime));
 
   if (!entering) return;
 

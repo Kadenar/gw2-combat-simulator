@@ -92,7 +92,7 @@ for (const output of ['detailed', 'score']) {
               assert.equal(runtime.profession.core.player.poisonousStrikes.count, 2);
               assert.equal(runtime.combat.activeBoonStacks('alacrity', 2), 1);
               readyAt = runtime.cooldownController.readyAt(ID.POISONOUS_CLOUD);
-              assert.equal(readyAt, 29.5, 'Only the first two seconds receive Alacrity acceleration.');
+              assert.equal(readyAt, 29.52, 'Only the first two seconds receive Alacrity acceleration.');
               assert.equal(runtime.cooldownController.rechargeFor(ID.POISONOUS_CLOUD), undefined);
             }
           },

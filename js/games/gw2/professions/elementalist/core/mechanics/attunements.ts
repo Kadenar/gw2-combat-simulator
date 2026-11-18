@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -104,7 +105,9 @@ export function onAttunementComplete(
       if (attunement === target || attunement === previous) continue;
 
       const existingReadyAt = attunementReadyAtBefore[attunement];
-      const defaultReadyAt = at + elementalistAttunementRechargeDuration(context, skill, OFF_ATTUNEMENT_DELAY_SECONDS);
+      const defaultReadyAt = gw2Time(
+        at + elementalistAttunementRechargeDuration(context, skill, OFF_ATTUNEMENT_DELAY_SECONDS)
+      );
       // Pending hits may reset Air later; they cannot shorten an actual cooldown before resolving.
       const nextReadyAt = Math.max(existingReadyAt, defaultReadyAt);
       setElementalistAttunementReadyAt(context, attunement, nextReadyAt);

@@ -1,6 +1,7 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { barrierBoonAudience } from '#gw2/platform/combat/barrier.js';
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -35,7 +36,6 @@ import type {
   NecromancerRuntime,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Demonic Lore tuning and behavior at its existing execution boundaries. */
 const demonicLore = defineTrait({
@@ -373,7 +373,7 @@ function applySadisticSearing(runtime: NecromancerRuntime, cast: RuntimeCast<Nec
   if (cast.skill.id !== ID.NEFARIOUS_FAVOR) return;
 
   emitTraitProfile(runtime, TRAIT.SADISTIC_SEARING, TRAIT.SADISTIC_SEARING, undefined, {
-    at: canonicalTime(runtime.time + (cast.command.impactDelayMs ?? 0) / 1000),
+    at: gw2Time(runtime.time + (cast.command.impactDelayMs ?? 0) / 1000),
     effect: { type: 'condition', name: CONDITION.BURNING },
     activationId: cast.id,
     attribution: {

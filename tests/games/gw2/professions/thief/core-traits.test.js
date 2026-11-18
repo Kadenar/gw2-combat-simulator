@@ -5,6 +5,7 @@ import { buildChartSeries, chartValueAt } from '#gw2/app/results/charts/time-ser
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { durationStackState } from '#gw2/platform/combat/boons.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
@@ -78,7 +79,7 @@ function internalCooldownClaims(traitId, action, duration, catalog) {
       initialize(runtime) {
         runtime.procs.setDeadline('unrelated', 99);
       },
-      probes: [1.0005, 1 + duration + 0.0005, 1 + duration + 0.0405].map((at) => [
+      probes: [1, 1 + duration, 1 + duration + 0.04].map((at) => [
         at,
         (runtime) =>
           readyAt.push({
@@ -238,7 +239,7 @@ for (const [name, traitId, invoke, output] of [
       let emissions = 0;
       let reenter = true;
       owner[method] = (event) => {
-        assert.equal(context.procs.deadline(traitId), context.effectiveEnd + duration);
+        assert.equal(context.procs.deadline(traitId), gw2Time(context.effectiveEnd + duration));
         emissions += 1;
 
         if (reenter) {
@@ -874,7 +875,7 @@ test("Assassin's Fury preserves recipient gating, removed effects, and patched I
             catalog: () => live,
             initialize(runtime) {
               runtime.procs.setDeadline('unrelated', 99);
-              for (const at of [1, 1 + duration, 1 + duration + 0.001])
+              for (const at of [1, 1 + duration, 1 + duration + 0.04])
                 runtime.effects.emit({
                   kind: 'packet',
                   event: {
@@ -909,13 +910,13 @@ test("Assassin's Fury preserves recipient gating, removed effects, and patched I
         const packets = result.events.filter((event) => event.sourceId === TRAIT.ASSASSINS_FURY);
         assert.deepEqual(
           packets.map((event) => event.at),
-          selected && !removed ? [1, 1 + duration + 0.001] : []
+          selected && !removed ? [1, 1 + duration + 0.04] : []
         );
         const runtime = observedRuntime(result);
         assert.equal(runtime.procs.deadline('unrelated'), 99);
         assert.equal(
           runtime.procs.deadline(TRAIT.ASSASSINS_FURY),
-          selected && !removed ? 1 + duration + 0.001 + duration : 0
+          selected && !removed ? 1 + duration + 0.04 + duration : 0
         );
         assert.deepEqual(result.warnings, []);
       }

@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -7,7 +8,6 @@ import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardia
 import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const HAMMER = 'guardian.luminary.hammer';
 
@@ -31,7 +31,7 @@ function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
       kind: 'packet',
       cause: cause,
       event: buildGuardianStrike({
-        at: canonicalTime(runtime.time + effectNumber(skill, strike, 'atMs') / 1000),
+        at: gw2Time(runtime.time + effectNumber(skill, strike, 'atMs') / 1000),
         sourceId: cast.skill.id,
         skillId: cast.skill.id,
         skillName: cast.skill.name,
@@ -48,7 +48,7 @@ function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
       kind: 'packet',
       cause: cause,
       event: buildResolverCondition({
-        at: canonicalTime(runtime.time + effectNumber(skill, condition, 'atMs') / 1000),
+        at: gw2Time(runtime.time + effectNumber(skill, condition, 'atMs') / 1000),
         source: 'guardian',
         sourceId: cast.skill.id,
         actorType: ACTOR.EFFECT,

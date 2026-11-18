@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { countProcActivations } from '#gw2/platform/results/proc-counts.js';
 import { mesmerControlAccepted, mesmerCritical } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
@@ -74,7 +75,7 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
       };
       context.state.effects = captureEffectEmissions({
         submit: (event) => {
-          assert.equal(context.state.procs.deadline(TRAIT.MASTER_FENCER), event.at + duration);
+          assert.equal(context.state.procs.deadline(TRAIT.MASTER_FENCER), gw2Time(event.at + duration));
           events.push(event);
           return event;
         }
@@ -94,14 +95,14 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
     assert.equal(events.length, 0);
     opportunity(2);
     assert.equal(context.state.procs.deadline(TRAIT.MASTER_FENCER), 2);
-    opportunity(2.000001, false);
+    opportunity(2.04, false);
     assert.equal(events.length, 0);
-    opportunity(2.000001);
+    opportunity(2.04);
     assert.equal(events.length, 2);
-    assert.equal(context.state.procs.deadline(TRAIT.MASTER_FENCER), 2.000001 + duration);
-    opportunity(2.000001 + duration);
+    assert.equal(context.state.procs.deadline(TRAIT.MASTER_FENCER), 2.04 + duration);
+    opportunity(2.04 + duration);
     assert.equal(events.length, 2);
-    opportunity(2.000002 + duration);
+    opportunity(2.08 + duration);
     assert.equal(events.length, 4);
   }
 });

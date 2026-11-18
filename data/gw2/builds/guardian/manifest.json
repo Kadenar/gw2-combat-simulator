@@ -23,15 +23,15 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-pistol-torch.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-pistol-torch-pistol",
-        "benchmarkDps": 44056,
+        "benchmarkDps": 44066,
         "upToDate": true,
         "benchmarkApm": 80.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42745, "phase": 42745 },
-          "80-60": { "cumulative": 43475, "phase": 44246 },
-          "60-40": { "cumulative": 43125, "phase": 42444 },
-          "40-20": { "cumulative": 43764, "phase": 45869 },
-          "20-0": { "cumulative": 44056, "phase": 44056 }
+          "100-80": { "cumulative": 42748, "phase": 42748 },
+          "80-60": { "cumulative": 43483, "phase": 44259 },
+          "60-40": { "cumulative": 43134, "phase": 42453 },
+          "40-20": { "cumulative": 43774, "phase": 45882 },
+          "20-0": { "cumulative": 44066, "phase": 44066 }
         }
       },
       {
@@ -39,15 +39,15 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-scepter-pistol.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-scepter-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-scepter-pistol-pistol-torch",
-        "benchmarkDps": 42446,
+        "benchmarkDps": 42454,
         "upToDate": true,
         "benchmarkApm": 84.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39858, "phase": 39858 },
-          "80-60": { "cumulative": 42148, "phase": 44682 },
-          "60-40": { "cumulative": 42671, "phase": 43776 },
-          "40-20": { "cumulative": 42540, "phase": 42154 },
-          "20-0": { "cumulative": 42446, "phase": 42072 }
+          "100-80": { "cumulative": 39859, "phase": 39859 },
+          "80-60": { "cumulative": 42154, "phase": 44693 },
+          "60-40": { "cumulative": 42678, "phase": 43785 },
+          "40-20": { "cumulative": 42549, "phase": 42166 },
+          "20-0": { "cumulative": 42454, "phase": 42082 }
         }
       },
       {
@@ -86,15 +86,15 @@
         "label": "Condition Alacrity (Pistol / Torch + Pistol / Pistol)",
         "build": "data/gw2/builds/guardian/b-condi-alac-willbender-pistol-torch.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-alac-willbender-pistol-torch-bench.json",
-        "benchmarkDps": 39421,
+        "benchmarkDps": 39430,
         "upToDate": true,
         "benchmarkApm": 79.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38852, "phase": 38852 },
-          "80-60": { "cumulative": 39922, "phase": 41103 },
-          "60-40": { "cumulative": 39417, "phase": 38435 },
-          "40-20": { "cumulative": 39479, "phase": 39659 },
-          "20-0": { "cumulative": 39421, "phase": 39188 }
+          "100-80": { "cumulative": 38856, "phase": 38856 },
+          "80-60": { "cumulative": 39930, "phase": 41117 },
+          "60-40": { "cumulative": 39426, "phase": 38445 },
+          "40-20": { "cumulative": 39487, "phase": 39667 },
+          "20-0": { "cumulative": 39430, "phase": 39199 }
         }
       }
     ]
@@ -107,15 +107,15 @@
         "build": "data/gw2/builds/guardian/b-condi-firebrand.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-firebrand-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 48613,
+        "benchmarkDps": 48621,
         "upToDate": true,
         "benchmarkApm": 138.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 46868, "phase": 46868 },
-          "80-60": { "cumulative": 47286, "phase": 47703 },
-          "60-40": { "cumulative": 48434, "phase": 50874 },
-          "40-20": { "cumulative": 48503, "phase": 48720 },
-          "20-0": { "cumulative": 48613, "phase": 49069 }
+          "100-80": { "cumulative": 46872, "phase": 46872 },
+          "80-60": { "cumulative": 47294, "phase": 47716 },
+          "60-40": { "cumulative": 48442, "phase": 50883 },
+          "40-20": { "cumulative": 48511, "phase": 48727 },
+          "20-0": { "cumulative": 48621, "phase": 49078 }
         }
       },
       {
@@ -123,15 +123,15 @@
         "build": "data/gw2/builds/guardian/b-condi-qfb-ritualists.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-qfb-ritualists-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-quickness-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 37764,
+        "benchmarkDps": 37783,
         "upToDate": true,
         "benchmarkApm": 126,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35344, "phase": 35344 },
-          "80-60": { "cumulative": 36993, "phase": 38888 },
-          "60-40": { "cumulative": 37495, "phase": 38523 },
-          "40-20": { "cumulative": 37830, "phase": 38904 },
-          "20-0": { "cumulative": 37764, "phase": 37512 }
+          "100-80": { "cumulative": 35356, "phase": 35356 },
+          "80-60": { "cumulative": 37009, "phase": 38910 },
+          "60-40": { "cumulative": 37511, "phase": 38540 },
+          "40-20": { "cumulative": 37849, "phase": 38928 },
+          "20-0": { "cumulative": 37783, "phase": 37532 }
         }
       }
     ]

@@ -53,7 +53,7 @@ test('Mirage follows executed rotation dodges with a one-second ICD', () => {
     );
     assert.deepEqual(
       queued.map((event) => event.at),
-      [4, 4, 5.001, 5.001]
+      [4, 4, 5.04, 5.04]
     );
     for (const event of queued) {
       assert.equal(event.condition, 'Torment');

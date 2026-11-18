@@ -60,7 +60,7 @@ test('early death separates combat effects from later planned casts and cooldown
   const result = simulateGw2(options);
   assert.equal(result.rotationEndTime, 2);
   assert.equal(result.observationEndTime, 2);
-  assert.equal(result.combatEndTime, 0.1);
+  assert.equal(result.combatEndTime, 0.12);
   assert.equal(result.combatEndTime, result.deathTime);
   assert.equal(result.planningState.atSeconds, 2);
   assert.equal(result.planningState.profession.plannedCasts, 2);
@@ -68,7 +68,7 @@ test('early death separates combat effects from later planned casts and cooldown
   assert.ok(result.planningState.cooldownsBySkillId[990002].remainingMs > 0);
   assert.ok(result.events.every((event) => event.at <= result.combatEndTime));
   assert.equal(result.totalDamage, 200);
-  assert.equal(result.dps, 4000);
+  assert.ok(Math.abs(result.dps - 200 / 0.04) < 1e-9);
   const score = simulateGw2({ ...options, output: 'score' });
   for (const [key, value] of Object.entries(score)) {
     if (key !== 'output') assert.deepEqual(value, result[key], key);
@@ -110,7 +110,7 @@ test('explicit combat starts preserve absolute state clocks and exclude precomba
   assert.equal(result.combatStartTime, 1);
   assert.equal(result.rotationEndTime, 2);
   assert.equal(result.observationEndTime, 5);
-  assert.equal(result.combatEndTime, 1.1);
+  assert.equal(result.combatEndTime, 1.12);
   assert.equal(result.planningState.atSeconds, 5);
   assert.equal(result.planningState.profession.resolvedHits, 2);
   assert.equal(result.totalDamage, 200);

@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type {
   ActionContext,
@@ -98,10 +99,11 @@ export function applySideEffect<TContext extends SideEffectServices>(
 
       runtime.armFlip(action.skillId, {
         uses: action.uses,
-        expiresAt:
+        expiresAt: gw2Time(
           action.durationSec === null
             ? Infinity
             : runtime.time + sideEffectAmount(runtime, action.durationSec ?? Number(context.skill.flipDuration))
+        )
       });
       return;
     case 'flipConsume':

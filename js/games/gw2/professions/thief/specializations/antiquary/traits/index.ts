@@ -1,6 +1,8 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -35,7 +37,6 @@ import {
   meticulousArtifactStrikeFactor
 } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
 import type { ThiefResolverContext } from '#gw2/professions/thief/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { activeStackCount, purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 /**
@@ -294,11 +295,11 @@ function grantCombatHigh(runtime: ThiefRuntime): void {
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.COMBAT_HIGH);
   const maximum = Math.max(0, Math.trunc(balanceProfileNumber(profile, 'maximumStacks')));
   const interval = balanceProfileNumber(profile, 'pulseInterval');
-  const expiresAt = runtime.time + balanceProfileNumber(profile, 'duration');
+  const expiresAt = gw2Time(runtime.time + balanceProfileNumber(profile, 'duration'));
   antiquaryState.from(runtime.profession).combatHighExpirations =
     interval > 0
       ? purgeExpiredStacks(
-          Array.from({ length: maximum }, (_, index) => canonicalTime(expiresAt - index * interval)),
+          Array.from({ length: maximum }, (_, index) => gw2Time(expiresAt - index * interval)),
           runtime.time
         )
       : [];
@@ -316,12 +317,13 @@ function applyExhilaratingEphemera(runtime: ThiefRuntime): void {
   const state = antiquaryState.from(runtime.profession);
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.EXHILARATING_EPHEMERA);
   const remaining = Math.max(0, (state.antiquaryDamageUntil || 0) - runtime.time);
-  state.antiquaryDamageUntil =
+  state.antiquaryDamageUntil = gw2Time(
     runtime.time +
-    Math.min(
-      balanceProfileNumber(profile, 'maximumStacks'),
-      remaining + balanceProfileNumber(profile, 'durationExtension')
-    );
+      Math.min(
+        balanceProfileNumber(profile, 'maximumStacks'),
+        remaining + balanceProfileNumber(profile, 'durationExtension')
+      )
+  );
 }
 
 /** Possessive Hoarder shares the artifact family's boon and Alacrity with the caster's five-player party. */

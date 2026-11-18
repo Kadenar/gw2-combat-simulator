@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { elementalistRockBarrierLifecycle } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
@@ -69,7 +70,7 @@ for (const release of ['manual', 'expiry']) {
           at: 3,
           run(runtime) {
             const progress = runtime.cooldownController.rechargeFor(ID.ROCK_BARRIER);
-            assert.equal(progress.workAnchorAt, release === 'manual' ? 1.5 : 2);
+            assert.equal(progress.workAnchorAt, gw2Time(release === 'manual' ? 1.5 : 2));
             assert.equal(progress.work, 3);
             close(runtime);
             assert.deepEqual(runtime.cooldownController.rechargeFor(ID.ROCK_BARRIER), progress);

@@ -51,7 +51,7 @@ test('precast Ashes retains its charge for the first eligible allied strike and 
   const result = run();
   assert.deepEqual(
     burns(result).map(({ at, metadata }) => [at, metadata.triggeredByAlly]),
-    [[3.5, 1]]
+    [[3.52, 1]]
   );
   assert.deepEqual(result.warnings, []);
   const [burn] = burns(result);
@@ -73,11 +73,11 @@ test('later Ashes grants refresh the ally grant under the player cooldown policy
   // The allied strike exactly at the cooldown deadline is blocked; the following strike fires.
   assert.deepEqual(
     live.map(({ at }) => at),
-    [0.5, 0.5 + interval + 0.5]
+    [0.52, 0.5 + interval + 0.5]
   );
   assert.notEqual(live[1].activationId, live[0].activationId);
   assert.deepEqual(
     burns(run({ ...options, charges: 1 })).map(({ at }) => at),
-    [0.5, 1]
+    [0.52, 1]
   );
 });

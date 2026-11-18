@@ -64,11 +64,11 @@ test('Midnight King shares one strict one-second cooldown across disables', () =
   const result = run([control(0), control(0), control(0.999), control(1), control(1.001)]);
   assert.deepEqual(
     result.procSteps.filter((proc) => proc.skill === 'Relic of the Midnight King').map((proc) => proc.start),
-    [0, 1001]
+    [0, 1040]
   );
   assert.deepEqual(
     grants(result).map((event) => event.at),
-    [0, 0, 1.001, 1.001]
+    [0, 0, 1.04, 1.04]
   );
 });
 
@@ -112,7 +112,7 @@ test('Midnight King accepts Fear and Taunt but not movement conditions', () => {
     ]);
     // A disabling condition claims the cooldown before the later control; movement conditions do not.
     assert.equal(grants(result).filter((event) => event.at === 0).length, expected, condition);
-    assert.equal(grants(result).filter((event) => event.at === 0.5).length, expected ? 0 : 2, condition);
+    assert.equal(grants(result).filter((event) => event.at === 0.52).length, expected ? 0 : 2, condition);
   }
 });
 

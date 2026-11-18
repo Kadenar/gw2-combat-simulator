@@ -29,10 +29,10 @@ export function createNecromancerCoreState(
       updatedAt: 0
     },
     signetPassives: {
-      undeath: { ...createPeriodicTaskState(), deadline: Infinity, interval: 0 },
-      vampirism: { ...createPeriodicTaskState(), deadline: Infinity, interval: 0 }
+      undeath: { ...createPeriodicTaskState(), occurrence: 0, interval: 0 },
+      vampirism: { ...createPeriodicTaskState(), occurrence: 0, interval: 0 }
     },
-    eternalLife: { ...createPeriodicTaskState(), deadline: Infinity, interval: 0 },
+    eternalLife: { ...createPeriodicTaskState(), occurrence: 0, interval: 0 },
     activeShroud: '',
     activeShroudEntryId: null,
     activeShroudExitId: null,

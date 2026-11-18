@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, CONDITION, WEAPON } from '#gw2/platform/constants.js';
@@ -21,7 +22,6 @@ import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadat
 import { emitTraitSymbol } from '#gw2/professions/guardian/core/traits/symbols.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { grantTimedStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Owns Furious Focus's live tuning and trait behavior. */
@@ -233,7 +233,7 @@ function stackSymbolicAvenger(runtime: GuardianRuntime, { cause: event }: Guardi
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.SYMBOLIC_AVENGER);
   state.symbolicAvengerExpirations = grantTimedStacks(state.symbolicAvengerExpirations, {
     at: runtime.time,
-    expiresAt: canonicalTime(runtime.time + balanceProfileNumber(profile, 'pulseInterval')),
+    expiresAt: gw2Time(runtime.time + balanceProfileNumber(profile, 'pulseInterval')),
     count: 1,
     maximumStacks: balanceProfileNumber(profile, 'maximumStacks'),
     retain: 'latest-expiry'

@@ -37,16 +37,16 @@ test('Rock Barrier availability, palette, and natural recharge share an exact de
     hurl = elementalistCatalog.skillsById.get(ID.HURL);
   const result = runElementalist([{ type: 'wait', durationMs: 72000 }], config, {
     timeline: [
-      { at: 0.301, run: elementalistRockBarrierLifecycle.tasks['elementalist.core.open-rock-barrier'] },
-      ...[30.300999, 30.301, 30.301001].map((at) => ({
+      { at: 0.32, run: elementalistRockBarrierLifecycle.tasks['elementalist.core.open-rock-barrier'] },
+      ...[30.28, 30.32, 30.36].map((at) => ({
         at,
         run: (r) => {
-          const active = at < 30.301;
+          const active = at < 30.32;
           assert.equal(elementalistCoreAvailability(r, hurl).ready, active);
           assert.equal(elementalistCoreAvailability(r, root).ready, !active);
         }
       })),
-      { at: 40, run: (r) => assert.equal(r.cooldownController.readyAt(root.id), 36.701) },
+      { at: 40, run: (r) => assert.equal(r.cooldownController.readyAt(root.id), 36.72) },
       { at: 41, run: elementalistRockBarrierLifecycle.tasks['elementalist.core.open-rock-barrier'] },
       { at: 42, run: elementalistRockBarrierLifecycle.tasks['elementalist.core.release-rock-barrier'] }
     ]
@@ -55,7 +55,7 @@ test('Rock Barrier availability, palette, and natural recharge share an exact de
   assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.HURL], undefined);
 });
 
-test('elemental commands and Lightning Jolt retain the final live microsecond without early auto-replacement', () => {
+test('elemental commands and Lightning Jolt retain the last live tick without early auto-replacement', () => {
   for (const element of ['Fire', 'Earth']) {
     const glyph = glyphFor(element),
       command = commandFor(element);
@@ -64,20 +64,20 @@ test('elemental commands and Lightning Jolt retain the final live microsecond wi
       { ...config, specialization: 'Tempest' },
       {
         timeline: [
-          { at: 0.301, run: (r) => complete(r, glyph, completeElementalistGlyphCast) },
-          ...[120.300999, 120.301].map((at) => ({
+          { at: 0.32, run: (r) => complete(r, glyph, completeElementalistGlyphCast) },
+          ...[120.28, 120.32].map((at) => ({
             at,
             priority: 40,
             run: (r) => {
               const tempest = tempestState.from(r.profession);
               tempest.pendingLightningJolt = null;
               r.config.selectedSkillIds = {};
-              assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);
+              assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.32);
               r.config.selectedSkillIds = [glyph.id];
-              assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);
-              assert.equal(elementalistCoreAvailability(r, glyph).ready, at >= 120.301);
+              assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.32);
+              assert.equal(elementalistCoreAvailability(r, glyph).ready, at >= 120.32);
               armElementalLightningJolt(r, { effectiveEnd: at }, 1, 0.5);
-              assert.equal(tempest.pendingLightningJolt !== null, at < 120.301);
+              assert.equal(tempest.pendingLightningJolt !== null, at < 120.32);
               ensureElementalistElemental(r);
               assert.equal(r.profession.core.summonedElemental.summonGeneration, 1);
             }
@@ -167,13 +167,13 @@ test('elemental teardown clears the command and starts the glyph recharge once',
     const result = runElementalist(
       [{ type: 'wait', durationMs: 122000 }],
       { ...config },
-      { timeline: [{ at: 0.301, run: (r) => complete(r, glyph, completeElementalistGlyphCast) }] }
+      { timeline: [{ at: 0.32, run: (r) => complete(r, glyph, completeElementalistGlyphCast) }] }
     );
     const r = observedRuntime(result);
     assert.equal(r.profession.core.summonedElemental.element, null);
     assert.deepEqual(r.flips, {});
-    assert.equal(r.cooldownController.readyAt(glyph.id), 152.301);
-    assert.ok(!result.events.some((e) => e.type === 'action' && e.actorType === 'summon' && e.at >= 120.301));
+    assert.equal(r.cooldownController.readyAt(glyph.id), 152.32);
+    assert.ok(!result.events.some((e) => e.type === 'action' && e.actorType === 'summon' && e.at >= 120.32));
   }
 });
 
@@ -181,7 +181,7 @@ test('replacing an elemental interrupts its action, removes its flip, and reject
   const result = runElementalist([{ type: 'wait', durationMs: 121000 }], config, {
     timeline: [
       {
-        at: 0.301,
+        at: 0.32,
         run: (r) => {
           complete(r, glyphFor('Fire'), completeElementalistGlyphCast);
           complete(r, commandFor('Fire'), completeElementalistElementalCommand);
@@ -195,8 +195,8 @@ test('replacing an elemental interrupts its action, removes its flip, and reject
     ]
   });
   const action = result.events.find((e) => e.type === 'action' && e.actorType === 'summon');
-  assert.equal(action.endsAt, 0.5);
-  assert.equal(action.endsAt, 0.5);
+  assert.equal(action.endsAt, 0.52);
+  assert.equal(action.endsAt, 0.52);
   assert.ok(
     !result.resolvedEvents.some((e) => e.type === 'damage' && e.activationId === action.activationId && e.at >= 0.5)
   );
@@ -206,10 +206,10 @@ test('elemental boon candidacy includes the final impact timestamp without an ep
   runElementalist([{ type: 'wait', durationMs: 1000 }], config, {
     timeline: [
       {
-        at: 0.301,
+        at: 0.32,
         run: (r) => {
           complete(r, glyphFor('Fire'), completeElementalistGlyphCast);
-          for (const at of [120.300999, 120.301, 120.301001]) {
+          for (const at of [120.28, 120.32, 120.36]) {
             const event = elementalistCoreHooks.prepareEvent(r, {
               type: 'buff',
               at,
@@ -218,7 +218,7 @@ test('elemental boon candidacy includes the final impact timestamp without an ep
               duration: 1,
               audience: { recipients: 'party', maximumRecipients: 5 }
             });
-            assert.deepEqual(event.audience.eligibleCompanionIds, at <= 120.301 ? ['elementalist-elemental:1'] : []);
+            assert.deepEqual(event.audience.eligibleCompanionIds, at <= 120.32 ? ['elementalist-elemental:1'] : []);
           }
         }
       }
@@ -246,7 +246,7 @@ test('Hurl consumes the barrier before expiry while its released projectiles fin
 
 test('the live queue resolves a final elemental command hit before same-time teardown', () => {
   // Shorten only the lifetime to put expiry on either side of an already queued explosion.
-  for (const lifetime of [1.519999, 1.52, 1.520001]) {
+  for (const lifetime of [1.48, 1.52, 1.56]) {
     const profession = withPatchPreview(elementalistProfession, {
       id: 'short-elemental',
       label: 'Short elemental lifetime',
@@ -283,7 +283,7 @@ test('elemental command preemption resumes exactly at command recovery without s
       { ...config },
       {
         timeline: [
-          { at: 0.301, run: (r) => complete(r, glyphFor(element), completeElementalistGlyphCast) },
+          { at: 0.32, run: (r) => complete(r, glyphFor(element), completeElementalistGlyphCast) },
           {
             at: 0.6,
             run: (r) => {

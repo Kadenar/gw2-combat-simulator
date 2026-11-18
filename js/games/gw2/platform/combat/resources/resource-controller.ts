@@ -1,9 +1,11 @@
 /** Resource policies select live pools; domain clocks settle balances without scheduler or aggregate runtime access. */
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import {
   advanceResource,
   resourceAt,
   resourceRecoveryReadyAt,
+  startDiscreteResource,
   type DiscreteResourceClock
 } from '#gw2/platform/combat/resources/clock.js';
 import type {
@@ -12,7 +14,6 @@ import type {
   ResourcePolicy,
   ResourceQueries
 } from '#gw2/platform/combat/resources/resource-policy.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { createDeferredQueries } from '#kernel/core/deferred-queries.js';
 import { anchorResourceClock, resourceDepletionAt } from '#kernel/resources/accrual.js';
 import { resourceAmount, resourceAtLeast } from '#kernel/resources/pool.js';
@@ -113,7 +114,7 @@ export function createResourceController<TContext>({
       discrete.interval = resourceAmount(recovery.interval);
       discrete.unitsPerTick = resourceAmount(recovery.amount);
 
-      if (discrete.interval > 0 && canonicalTime(discrete.interval) === 0)
+      if (discrete.interval > 0 && gw2Time(discrete.interval) === 0)
         throw new RangeError('Resource cadence is below clock precision.');
 
       if (!['immediate', 'first-spend'].includes(recovery.start))
@@ -121,7 +122,7 @@ export function createResourceController<TContext>({
 
       if (!discrete.interval || !discrete.unitsPerTick) discrete.nextAt = Infinity;
       else if (disabled && (recovery.start === 'immediate' || state.value < state.maximum))
-        discrete.nextAt = canonicalTime(clock.time + discrete.interval);
+        startDiscreteResource(discrete, clock.time);
     }
 
     // Compare one settled snapshot so unchanged policies keep the existing accrual anchor.
@@ -144,7 +145,8 @@ export function createResourceController<TContext>({
       state.updatedAt = clock.time;
       state.unitsPerSecond = 0;
 
-      if (policy.kind === 'discrete') Object.assign(state, { interval: 0, unitsPerTick: 0, nextAt: Infinity });
+      if (policy.kind === 'discrete')
+        Object.assign(state, { interval: 0, unitsPerTick: 0, nextAt: Infinity, tickDelay: 0 });
 
       anchorResourceClock(state);
       refresh(key);
@@ -176,7 +178,7 @@ export function createResourceController<TContext>({
         state.interval > 0 &&
         state.unitsPerTick > 0
       )
-        state.nextAt = canonicalTime(clock.time + state.interval);
+        startDiscreteResource(state, clock.time);
 
       state.value = next;
       anchorResourceClock(state);
@@ -210,7 +212,7 @@ export function createResourceController<TContext>({
         const discrete = state;
 
         if (discrete.nextAt === Infinity && discrete.interval > 0 && discrete.unitsPerTick > 0)
-          discrete.nextAt = canonicalTime(clock.time + discrete.interval);
+          startDiscreteResource(discrete, clock.time);
       }
 
       anchorResourceClock(state);

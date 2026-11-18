@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { revenantEnduranceRate } from '#gw2/professions/revenant/core/mechanics/resources.js';
@@ -306,12 +307,12 @@ for (const [name, skillId, cooldown] of [
     const bounded = scenario(
       { count: buff.stacks, expiresAt: 1 + buff.duration, readyAt: 1 },
       [
-        ...[{ actorType: 'effect' }, { coefficient: 0 }, { skillId }].map((fields) => revenantHit(1.1, fields)),
+        ...[{ actorType: 'effect' }, { coefficient: 0 }, { skillId }].map((fields) => revenantHit(1.12, fields)),
         revenantHit(0.9),
         revenantHit(1),
-        revenantHit(1.1),
-        revenantHit(1.1 + cooldown),
-        revenantHit(1.101 + cooldown)
+        revenantHit(1.12),
+        revenantHit(gw2Time(1.12 + cooldown)),
+        revenantHit(gw2Time(1.12 + cooldown) + 0.04)
       ],
       3000
     );
@@ -319,11 +320,11 @@ for (const [name, skillId, cooldown] of [
     assert.equal(owner(runtime)[key].count, buff.stacks - 2, 'only two eligible hits clear their gates');
     const packets = derived(bounded);
     assert.equal(packets.length, 2);
-    assert.equal(packets[0].at, Number((1.1 + (daggers ? cooldown : 0)).toFixed(6)));
+    assert.equal(packets[0].at, gw2Time(1.12 + (daggers ? cooldown : 0)));
     const cause = bounded.events.find(
       (event) =>
         event.type === 'damage' &&
-        event.at === 1.1 &&
+        event.at === 1.12 &&
         event.skillId === SKILL.PHASE_TRAVERSAL &&
         event.coefficient === 1 &&
         event.actorType === 'player'
@@ -827,6 +828,6 @@ test('Brutal Momentum only rearms after its Vigor internal cooldown expires', ()
   );
   assert.deepEqual(
     result.events.filter((event) => event.kind === 'vigor').map((event) => event.at),
-    [0, 8.01]
+    [0, 8.04]
   );
 });

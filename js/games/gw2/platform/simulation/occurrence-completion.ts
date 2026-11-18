@@ -1,7 +1,7 @@
 /** Finite occurrence observation follows owned descendants without taking clock or queue authority. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 interface OccurrenceCompletionOptions {
   readonly clock: { readonly time: number };
@@ -47,6 +47,6 @@ export function createOccurrenceCompletion({
       if (ownsEffect(event) && event.naturalExpiresAt != null)
         // Owner condition clocks may pay their final buffered remainder after natural expiry.
         deadline = Math.max(deadline, Number(event.naturalExpiresAt) + 1.5);
-    return canonicalTime(deadline);
+    return gw2Time(deadline);
   };
 }

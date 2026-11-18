@@ -1,5 +1,6 @@
 /** Aristocracy relic rules. */
 import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -8,7 +9,6 @@ import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { createBatch, refreshBatch, type Batch } from '#kernel/resources/batch.js';
 
 const ARISTOCRACY_BONUS_PER_STACK = 0.03;
@@ -95,7 +95,7 @@ function aristocracyActivationAt(state: AristocracyState, at: number): Aristocra
 export const aristocracy = defineRelic({
   createState: createAristocracyState,
   condition(ctx, state, event) {
-    if (ctx.engagement.startTime != null && canonicalTime(event.at) < canonicalTime(ctx.engagement.startTime)) return;
+    if (ctx.engagement.startTime != null && gw2Time(event.at) < gw2Time(ctx.engagement.startTime)) return;
 
     // Accepted applications own the stack claim and report; isolated previews seed their own activation window.
     const activation = applyAristocracyTrigger(state as AristocracyState, event);

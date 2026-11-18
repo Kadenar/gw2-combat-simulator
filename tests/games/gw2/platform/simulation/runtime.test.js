@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createEnduranceController } from '#gw2/platform/combat/resources/endurance-controller.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { anchorResourceClock } from '#kernel/resources/accrual.js';
@@ -347,7 +348,7 @@ test('a final completion can extend input recovery before the tail is fixed once
     })
   });
   assert.equal(result.rotationEndTime, 1.8);
-  assert.equal(result.observationEndTime, 2.3);
+  assert.equal(result.observationEndTime, 2.32);
 });
 
 test('conditions establish first damage on a shared pulse and respect the inclusive tail cutoff', () => {
@@ -357,9 +358,9 @@ test('conditions establish first damage on a shared pulse and respect the inclus
   assert.equal(detailed.firstHitTime, 1);
   assert.equal(detailed.conditionDamage, 22);
   assert.equal(detailed.totalDamage, score.totalDamage);
-  assert.equal(detailed.resolvedEvents.find((event) => event.type === 'condition').activeDuration, 1.5);
+  assert.equal(detailed.resolvedEvents.find((event) => event.type === 'condition').activeDuration, 1.52);
   assert.equal(run([cast(990006)], { observation: { kind: 'absolute', endTimeMs: 2000 } }).conditionDamage, 44);
-  assert.equal(run([cast(990006)], { observation: { kind: 'absolute', endTimeMs: 1999.999 } }).conditionDamage, 22);
+  assert.equal(run([cast(990006)], { observation: { kind: 'absolute', endTimeMs: 1960 } }).conditionDamage, 22);
 });
 
 test('condition settlement and its reactions precede command readiness and same-time strikes', () => {
@@ -655,12 +656,12 @@ test('authored combat boundaries include simultaneous impacts before the marker 
   });
   for (const [marker, start, hits] of [
     [{ type: 'combat-start', concurrentOffsetMs: 0 }, 0, 4],
-    [{ type: 'combat-start', concurrentOffsetMs: 500 }, 0.5, 2],
+    [{ type: 'combat-start', concurrentOffsetMs: 500 }, 0.52, 3],
     [{ type: 'combat-start' }, 2, 0]
   ]) {
     const authored = run([cast(990003), marker], { profession });
     const inherited = run([cast(990003)], { profession, combatStartTime: start });
-    assert.equal(authored.combatStartTime, start);
+    assert.equal(authored.combatStartTime, gw2Time(start));
     assert.equal(authored.planningState.profession.hits, hits);
     assert.equal(authored.totalDamage, inherited.totalDamage);
     assert.equal(authored.rotationEndTime, 2.2);
@@ -729,8 +730,8 @@ test('lethal siblings finish but post-death hits grant nothing while self comman
   const options = { profession, config: { ...config, target: { ...config.target, health: 10 } } };
   const result = run([wait(1000), cast(990001)], options);
   assert.equal(result.totalDamage, 20);
-  assert.equal(result.deathTime, 0.5);
-  assert.equal(result.combatEndTime, 0.5);
+  assert.equal(result.deathTime, 0.52);
+  assert.equal(result.combatEndTime, 0.52);
   assert.equal(result.planningState.profession.hits, 1);
   assert.equal(result.planningState.atSeconds, 2);
   assert.equal(result.planningState.cooldownsBySkillId[990001].readyAtMs, 3600);
@@ -875,9 +876,9 @@ test('cast tasks detach snapshots, retain catalog callbacks, and preserve priori
   });
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(seen, [
-    ['early', 1.5],
-    ['authored', 1.5],
-    ['late', 1.5]
+    ['early', 1.52],
+    ['authored', 1.52],
+    ['late', 1.52]
   ]);
 });
 

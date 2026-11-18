@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import {
   ACTOR,
@@ -21,7 +22,6 @@ import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /**
  * Owns Radiant Forge weapon definitions.
@@ -639,5 +639,5 @@ export function luminaryImpactAt(cast: RuntimeCast<GuardianSkill>): number {
 
   if (effect?.type !== 'strike') return cast.effectiveEnd;
 
-  return canonicalTime(effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, effect)));
+  return gw2Time(effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, effect)));
 }

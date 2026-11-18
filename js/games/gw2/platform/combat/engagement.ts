@@ -1,4 +1,4 @@
-import { canonicalTime } from '#kernel/core/clock.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 
 /** Gameplay reads eligibility and activity without access to the command cursor or transition methods. */
 export interface CombatEngagementQueries {
@@ -23,7 +23,7 @@ export function createCombatEngagement(
     throw new RangeError('Combat Start must be finite and non-negative.');
 
   const explicit = authoredMarkers > 0 || inheritedStartTime != null;
-  let startTime = inheritedStartTime == null ? null : canonicalTime(inheritedStartTime);
+  let startTime = inheritedStartTime == null ? null : gw2Time(inheritedStartTime);
   let boundaryPending = authoredMarkers > 0 || (inheritedStartTime != null && inheritedStartTime > 0);
   // An inherited zero has no preparation interval; positive inherited boundaries wait for marker dispatch.
   let markerConsumed = !explicit || inheritedStartTime === 0;
@@ -44,8 +44,7 @@ export function createCombatEngagement(
     // Hostile packets at the known marker time can land before the marker command is consumed.
     hostileEffectsAllowed(at: number, inclusive = true) {
       return (
-        !boundaryPending &&
-        (startTime == null || (inclusive ? canonicalTime(at) >= startTime : canonicalTime(at) > startTime))
+        !boundaryPending && (startTime == null || (inclusive ? gw2Time(at) >= startTime : gw2Time(at) > startTime))
       );
     },
     preparationComplete(at = now()) {
@@ -62,18 +61,18 @@ export function createCombatEngagement(
     discoverBoundary(at: number) {
       if (!boundaryPending || !authoredMarkers) return;
 
-      startTime = canonicalTime(at);
+      startTime = gw2Time(at);
       boundaryPending = false;
     },
     consumeMarker(at: number) {
-      startTime = canonicalTime(at);
+      startTime = gw2Time(at);
       boundaryPending = false;
       markerConsumed = true;
     },
     dispatchMarker(at: number) {
       // Inherited markers have no command-consumption step, so dispatch completes their setup.
       if (explicit && !markerConsumed) {
-        startTime = canonicalTime(at);
+        startTime = gw2Time(at);
         markerConsumed = true;
       }
 

@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -25,7 +26,6 @@ import type {
   GuardianVirtueContext
 } from '#gw2/professions/guardian/types.js';
 import { guardianVirtueReadyAt } from '#gw2/professions/guardian/virtue-readiness.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Reuse Justice's hit counter and passive suppression, adding Dragonhunter's Crippled only when that hit procs Burning. */
 function reactToDragonhunterJusticeHit(context: GuardianVirtueContext, event: GuardianResolverEvent): void {
@@ -123,7 +123,7 @@ function attachTether(runtime: GuardianRuntime, data: unknown): void {
   if (!(duration > 0)) return;
 
   state.tetherActivationId = event.activationId ?? null;
-  state.tetherUntil = canonicalTime(runtime.time + duration);
+  state.tetherUntil = gw2Time(runtime.time + duration);
   runtime.armFlip(ID.HUNTERS_VERDICT, { expiresAt: state.tetherUntil });
   runtime.schedule(BURN, runtime.time, { event, activationId: state.tetherActivationId, deadline: state.tetherUntil });
 }
@@ -165,7 +165,7 @@ function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
     })
   });
   const interval = skillNumber(owner, 'tetherInterval');
-  const next = canonicalTime(runtime.time + interval);
+  const next = gw2Time(runtime.time + interval);
 
   if (interval > 0 && next < pulse.deadline) runtime.schedule(BURN, next, data);
 }
@@ -204,7 +204,7 @@ export const dragonhunterVirtueLifecycle: RuntimeHooks<GuardianRuntimeState, Gua
     if (!virtue || !admitVirtueActivation(runtime, cast, virtue)) return;
 
     if (cast.skill.id === ID.SPEAR_OF_JUSTICE && !cast.cancelledBeforeCommit) {
-      const at = canonicalTime(
+      const at = gw2Time(
         cast.start + projectCastRelativeEffectTimingMs(cast.skill, (cast.fullEnd - cast.start) * 1000, 480) / 1000
       );
 

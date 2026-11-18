@@ -1,6 +1,7 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { durationStackingBoonCapSeconds, durationStackState } from '#gw2/platform/combat/boons.js';
 import { buffDeadlineActive, buffDeadlineReached } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, AURA, BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
@@ -29,7 +30,6 @@ import { virtueActivated, type VirtueActivation } from '#gw2/professions/guardia
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const MIGHT = 'guardian.righteous-might';
 
@@ -279,7 +279,7 @@ function resolutionDeadline(runtime: GuardianRuntime): number {
     includes: (application) => application.resolvedAudience.includesSelf,
     ordered: true
   });
-  return pool.active ? canonicalTime(runtime.time + pool.remaining) : 0;
+  return pool.active ? gw2Time(runtime.time + pool.remaining) : 0;
 }
 
 /** Grant the selected Might component without moving its emission outside the Resolution cadence. */
@@ -343,7 +343,7 @@ function startRighteousInstincts(runtime: GuardianRuntime, event: Gw2ResolverEve
   if (interval > 0)
     runtime.schedule(
       MIGHT,
-      canonicalTime(runtime.time + interval),
+      gw2Time(runtime.time + interval),
       { generation: state.righteousInstinctsGeneration },
       undefined,
       -10
@@ -385,7 +385,7 @@ function pulseRighteousMight(runtime: GuardianRuntime, data: unknown): void {
 
   const interval = balanceNumber(runtime.helpers, TRAIT.RIGHTEOUS_INSTINCTS, 'pulseInterval');
 
-  if (interval > 0) runtime.schedule(MIGHT, canonicalTime(runtime.time + interval), data, undefined, -10);
+  if (interval > 0) runtime.schedule(MIGHT, gw2Time(runtime.time + interval), data, undefined, -10);
 }
 
 /** A committed heal claims Resolution's interval only when its selected boon can emit. */

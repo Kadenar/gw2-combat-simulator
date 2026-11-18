@@ -142,7 +142,7 @@ test('runtime endurance recovery uses the executed Vigor extension order', () =>
         }
       });
       assert.deepEqual(result.warnings, []);
-      assert.equal(runtime.profession.core.endurance.value, priority === -1 ? 11.25 : 10);
+      assert.equal(runtime.profession.core.endurance.value, priority === -1 ? 11.4 : 10.1);
     }
   }
 });

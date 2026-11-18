@@ -1,10 +1,10 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { comboCombatMetadata } from '#gw2/platform/combos/definitions.js';
 import { fieldAt, fieldDescriptors, finisherDescriptors } from '#gw2/platform/combos/descriptors.js';
 import { COMBO_FINISHER } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Emit field registrations and attempts from actual actions/impacts; the shared resolver alone rolls and applies combos. */
 export function produceRuntimeCombos(
@@ -23,7 +23,7 @@ export function produceRuntimeCombos(
 
   if (!Array.isArray(event.comboFields) || Number(event.hitIndex ?? event.applicationIndex ?? 1) === 1) {
     fieldDescriptors(catalog, event).forEach((descriptor, index) => {
-      const at = canonicalTime(fieldAt(event, descriptor));
+      const at = gw2Time(fieldAt(event, descriptor));
       runtime.effects.emit({
         kind: 'packet',
         cause: event,
@@ -38,7 +38,7 @@ export function produceRuntimeCombos(
           skillName: event.skillName,
           fieldId: `${descriptor.ownerId}:${event.activationId ?? event.eventOrder}:field:${index + 1}`,
           fieldType: descriptor.fieldType,
-          expiresAt: canonicalTime(at + descriptor.duration),
+          expiresAt: gw2Time(at + descriptor.duration),
           ownerId: descriptor.ownerId,
           ownerActorType: descriptor.ownerActorType ?? event.actorType,
           inclusiveExpiry: descriptor.inclusiveExpiry,
@@ -84,7 +84,7 @@ export function produceRuntimeCombos(
           comboOwnerId: descriptor.ownerId,
           comboExcludeOwnField: descriptor.excludeOwnField,
           fieldSelectionAt: action?.at,
-          effectAt: Math.max(at, Number(descriptor.effectAt ?? at + Number(descriptor.effectDelay ?? 0))),
+          effectAt: gw2Time(Math.max(at, Number(descriptor.effectAt ?? at + Number(descriptor.effectDelay ?? 0)))),
           chance: descriptor.chance,
           applications: descriptor.applications,
           successfulCombos: descriptor.successfulCombos

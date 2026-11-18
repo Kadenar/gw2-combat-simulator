@@ -3,6 +3,7 @@ import {
   conditionApplicationDuration,
   type Gw2ConditionDurationTrace
 } from '#gw2/platform/combat-calculation/combat-query.js';
+import { gw2Event, gw2Time } from '#gw2/platform/combat/clock.js';
 import { normalizeConditionTickOffsetMs } from '#gw2/platform/combat/condition-clock.js';
 import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/formulas.js';
@@ -22,9 +23,8 @@ import type { Gw2ConditionCalculation, SimulationEventBase } from '#gw2/platform
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ConditionWorkEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
-import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { timeKey } from '#kernel/core/clock.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
-import { canonicalEvent } from '#kernel/events/queue.js';
 
 interface CreateGw2ConditionResolutionOptions {
   readonly expansionBudget: EffectExpansionBudget;
@@ -208,7 +208,7 @@ export function createGw2ConditionResolution({
   }
 
   function isRemoved(application: ConditionApplication, at: number): boolean {
-    return application.removedAt != null && canonicalTime(application.removedAt) <= at;
+    return application.removedAt != null && gw2Time(application.removedAt) <= at;
   }
 
   /** Keep only unsettled, uncancelled applications so wake scans never grow with encounter history. */
@@ -494,7 +494,7 @@ export function createGw2ConditionResolution({
 
   function applyCondition(ctx: Gw2ResolverRuntime, event: SimulationEventBase): ConditionApplication[] {
     // Synchronous reaction applications bypass enqueue, so normalize before querying or inserting live state.
-    event = canonicalEvent(event);
+    event = gw2Event(event);
 
     if (ctx.queue.currentTime != null && event.at < ctx.queue.currentTime) {
       throw new RangeError(`Cannot apply a condition in the past at ${event.at}s from ${String(event.sourceId)}.`);
@@ -509,7 +509,7 @@ export function createGw2ConditionResolution({
       ? { durationContributors: [] }
       : undefined;
     const duration = conditionApplicationDuration(ctx.query, name, queryEvent, ctx, durationTrace);
-    const expiresAt = canonicalTime(event.at + duration);
+    const expiresAt = gw2Time(event.at + duration);
     const stacks = Math.max(0, event.stacks || 0);
 
     if (!Number.isFinite(stacks)) throw new RangeError('Condition stacks must be finite.');
@@ -624,7 +624,7 @@ export function createGw2ConditionResolution({
     group.wakeAt = null;
     bufferConditions(ctx, event.at);
     pruneGroup(group, event.at);
-    group.nextPulseAt = canonicalTime(event.at + 1);
+    group.nextPulseAt = gw2Time(event.at + 1);
     const canDamage = ctx.engagement.hostileEffectsAllowed(event.at);
     const contributions = [];
     for (const application of group.applications) {

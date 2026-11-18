@@ -1,4 +1,5 @@
 /** Own accepted phantasm batches, packet dispatch, and conversion ordering behind one scheduling operation. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -19,7 +20,6 @@ import { phantasmalHasteSpeed } from '#gw2/professions/mesmer/core/traits/illusi
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Each accepted summon batch captures its trait work before timing and conversion are committed. */
 export interface MesmerPhantasmTraitEffects {
@@ -111,10 +111,11 @@ export function createPhantasmCastScheduler({
           : policy.conversionTiming === 'blade-tick' && conversionTick
             ? endpoint(conversionTick.atMs)
             : spawnAt,
-        initialBladeAt:
+        initialBladeAt: gw2Time(
           timing.phantasmalBladeDelayAfterSpawnMs != null
             ? spawnAt + timing.phantasmalBladeDelayAfterSpawnMs / 1000
-            : damageAt,
+            : damageAt
+        ),
         timing,
         endpoint
       };
@@ -153,7 +154,7 @@ export function createPhantasmCastScheduler({
         name: skill.name,
         count,
         // Expose each scheduled resource deadline, including staggered Chronophantasma conversions, for cursor inspection.
-        conversionTimes: executions.map((item) => canonicalTime(item.conversionAt))
+        conversionTimes: executions.map((item) => gw2Time(item.conversionAt))
       });
       state.effects.emit({
         ...execution.delivery,

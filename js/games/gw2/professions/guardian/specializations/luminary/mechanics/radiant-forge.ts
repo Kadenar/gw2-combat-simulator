@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
@@ -13,7 +14,6 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import { radiantWeaponEquipped } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const EXIT = 'guardian.luminary.forge-expiry';
 
@@ -85,7 +85,7 @@ function enterForge(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>):
 
   const state = luminaryState.from(runtime.profession);
   state.radiantForge = true;
-  state.radiantForgeEndsAt = canonicalTime(runtime.time + effectNumber(skill, effect, 'duration'));
+  state.radiantForgeEndsAt = gw2Time(runtime.time + effectNumber(skill, effect, 'duration'));
   state.forgeActivationId = cast.id;
   state.radiantWeapon = '';
   state.glaringBurstSwordSlow = false;

@@ -1,6 +1,6 @@
 import type { CastCommand, ChargeReleaseIntent, RotationCommand } from '#gw2/platform/builds/rotation.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns authored progression and lanes only; combat outcomes never live in a predicted cursor state. */
 export class RotationCursor {
@@ -81,7 +81,7 @@ export class RotationCursor {
       at = Math.max(at, this.serialReadyAt, this.blockingEnd, this.independentReadyAt);
     } else at = Math.max(at, this.endTime());
 
-    this.requestedAt = canonicalTime(Math.max(at, this.deferredUntil));
+    this.requestedAt = gw2Time(Math.max(at, this.deferredUntil));
     return this.requestedAt;
   }
 

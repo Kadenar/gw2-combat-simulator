@@ -1,5 +1,8 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+
 import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
 import { buffApplicationExpiry, buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, AURA, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
@@ -450,9 +453,8 @@ export const shaperOfChaos = defineTrait<MesmerSkill>({
         event.actorType === ACTOR.PLAYER &&
         (event.recipient == null || event.recipient === RECIPIENT.SELF),
       run(runtime: MesmerRuntime, event) {
-        runtime.profession.core.chaosAuraUntil = Math.max(
-          runtime.profession.core.chaosAuraUntil,
-          event.at + Number(event.duration)
+        runtime.profession.core.chaosAuraUntil = gw2Time(
+          Math.max(runtime.profession.core.chaosAuraUntil, event.at + Number(event.duration))
         );
       }
     },

@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
@@ -9,7 +10,6 @@ import { createMesmerSkillEffects, mesmerShatterDefinition } from '#gw2/professi
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Cast ownership is explicit data passed with each effect, never mutable ambient runtime state. */
 export function mesmerCastDelivery(
@@ -38,8 +38,8 @@ export function isCommittedInterruptedPhantasm(
 
   if (!Number.isFinite(progress) || !castWasInterrupted(cast)) return false;
 
-  const summonAt = canonicalTime(cast.start + (cast.fullEnd - cast.start) * progress);
-  return canonicalTime(cast.effectiveEnd) >= summonAt;
+  const summonAt = gw2Time(cast.start + (cast.fullEnd - cast.start) * progress);
+  return gw2Time(cast.effectiveEnd) >= summonAt;
 }
 
 /** Prepare summon work at acceptance with its own lifetime; shared cast delivery owns the player's effects. */
@@ -63,7 +63,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
   const at = context.time;
   const interrupted = castWasInterrupted(cast);
 
-  if (interrupted && details.earlyResourceAt != null && canonicalTime(cast.effectiveEnd) < details.earlyResourceAt) {
+  if (interrupted && details.earlyResourceAt != null && gw2Time(cast.effectiveEnd) < details.earlyResourceAt) {
     context.cancelOwner({ id: details.earlyResourceOwnerId!, generation: 0 });
   }
 
@@ -112,12 +112,12 @@ export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mesmer
   // Resource eligibility and queued payloads must agree on the scheduler's exact instant.
   const earlyResourceAt =
     skill.resource?.mode === 'add' && skill.resource.timingAnchor === 'castStart'
-      ? canonicalTime(cast.start + (skill.resource.atMs || 0) / 1000)
+      ? gw2Time(cast.start + (skill.resource.atMs || 0) / 1000)
       : null;
-  const resourceScheduledDuringCast = earlyResourceAt != null && earlyResourceAt < canonicalTime(cast.fullEnd);
+  const resourceScheduledDuringCast = earlyResourceAt != null && earlyResourceAt < gw2Time(cast.fullEnd);
   const earlyResourceOwnerId = `${cast.id}:mesmer.resource`;
 
-  if (resourceScheduledDuringCast && earlyResourceAt <= canonicalTime(cast.effectiveEnd)) {
+  if (resourceScheduledDuringCast && earlyResourceAt <= gw2Time(cast.effectiveEnd)) {
     // Cast-start resource packets must resolve during the cast so concurrent shatters can consume them.
     context.schedule(
       'mesmer.resource-gain',

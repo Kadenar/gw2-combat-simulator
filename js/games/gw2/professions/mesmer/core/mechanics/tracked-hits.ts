@@ -1,9 +1,9 @@
 /** Owns hit history that survives one Mesmer cast and triggers threshold packets across activations. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { buildMesmerStrikes } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Records one accepted player hit, retaining cross-cast progress until it expires or completes a group. */
 export function recordMesmerTrackedHit(state: MesmerRuntime, skill: MesmerSkill, currentHitAt: number): void {
@@ -13,7 +13,7 @@ export function recordMesmerTrackedHit(state: MesmerRuntime, skill: MesmerSkill,
   const duration = tracking.duration || 0;
   // A prior hit expires at its exact age limit; retain its final live microsecond.
   const recentHits = (professionCoreState(state.profession).trackedSkillHits[skill.id] || []).filter(
-    (hitAt) => canonicalTime(hitAt + duration) > canonicalTime(currentHitAt)
+    (hitAt) => gw2Time(hitAt + duration) > gw2Time(currentHitAt)
   );
   const required = Math.max(1, Math.trunc(tracking.hitsRequired || 1));
   recentHits.push(currentHitAt);

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
@@ -44,11 +45,11 @@ test('critical ICDs block through the canonical deadline without spending second
     assert.equal(advanceCriticalProc(criticalOpportunity(1, true), { ...request, at }, state), null);
   assert.equal(rolls, 0);
   assert.equal(state.readyAt, 5);
-  assert.deepEqual(advanceCriticalProc(criticalOpportunity(1, true), { ...request, at: 5.000001 }, state), {
+  assert.deepEqual(advanceCriticalProc(criticalOpportunity(1, true), { ...request, at: 5.04 }, state), {
     quantity: 1
   });
   assert.equal(rolls, 1);
-  assert.equal(state.readyAt, 5.000001 + 3);
+  assert.equal(state.readyAt, 5.04 + 3);
   assert.ok(advanceCriticalProc(criticalOpportunity(1, true), { ...request, at: 0 }, { readyAt: 0 }));
 });
 
@@ -99,7 +100,7 @@ test('critical handlers gate registry reads and reserve successful claims before
     internalCooldown: { key: 101, duration: (context) => context.duration },
     handler(context, event, details, application) {
       rewards.push(application.quantity);
-      assert.equal(registry.deadline(101), event.at + context.duration);
+      assert.equal(registry.deadline(101), gw2Time(event.at + context.duration));
       reaction(context, event, details);
     }
   });
@@ -121,10 +122,10 @@ test('critical handlers gate registry reads and reserve successful claims before
   assert.equal(rolls.length, 2);
   assert.deepEqual(writes, [[101, 2]]);
   context.duration = 3;
-  reaction(context, { ...event, at: 2.000001 }, details);
+  reaction(context, { ...event, at: 2.04 }, details);
   assert.deepEqual(writes, [
     [101, 2],
-    [101, 2.000001 + 3]
+    [101, 2.04 + 3]
   ]);
   assert.deepEqual(rewards, [1, 1]);
   assert.ok(reads.every((key) => key === 101));
@@ -143,13 +144,13 @@ test('critical handlers preserve unarmed zero deadlines and omit registry access
       rewards++;
     }
   });
-  for (const at of [0, 0, 1, 1, 1.0000001, 1.000001]) reaction(context, { ...event, at }, details);
+  for (const at of [0, 0, 1, 1, 1.0000001, 1.04]) reaction(context, { ...event, at }, details);
   assert.equal(rewards, 4);
-  assert.equal(context.procs.deadline('zero'), 1.000001);
+  assert.equal(context.procs.deadline('zero'), 1.04);
   const fresh = { procs: createProcRegistry(() => fresh) };
   reaction(fresh, event, details);
   assert.equal(rewards, 5);
-  assert.equal(context.procs.deadline('zero'), 1.000001);
+  assert.equal(context.procs.deadline('zero'), 1.04);
 
   // A declaration without an ICD does not acquire or reserve any registry state.
   const unrestricted = criticalProcHandler({

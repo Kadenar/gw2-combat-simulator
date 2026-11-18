@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 /**
  * Owns Amalgam Evolve, locked-slot, and evolved-state skill definitions.
  * Persistent strain and morph state remain under `mechanics/evolved-form.ts`.
@@ -294,7 +296,7 @@ export function applyAmalgamStrain(context: EngineerRuntime, skill: AmalgamSkill
     const duration = skillNumber(skill, 'rapaciousDuration');
 
     if (duration > 0 && requireEffect(skill, 'strike', 'Rapacious Strain', action)) {
-      state.rapaciousUntil = Math.max(state.rapaciousUntil || 0, at + duration);
+      state.rapaciousUntil = gw2Time(Math.max(state.rapaciousUntil || 0, at + duration));
     }
 
     return;
@@ -321,10 +323,11 @@ export function applyAmalgamStrain(context: EngineerRuntime, skill: AmalgamSkill
 
     if (effect.type === 'boon') {
       if (morphKind === 'obliterate') {
-        state.titanicUntil = Math.max(state.titanicUntil || 0, at + effect.duration);
-      } else if (morphKind === 'shred') state.predatorUntil = Math.max(state.predatorUntil || 0, at + effect.duration);
+        state.titanicUntil = gw2Time(Math.max(state.titanicUntil || 0, at + effect.duration));
+      } else if (morphKind === 'shred')
+        state.predatorUntil = gw2Time(Math.max(state.predatorUntil || 0, at + effect.duration));
       else if (morphKind === 'demolish')
-        state.berserkerUntil = Math.max(state.berserkerUntil || 0, at + effect.duration);
+        state.berserkerUntil = gw2Time(Math.max(state.berserkerUntil || 0, at + effect.duration));
     }
 
     // Each strain grant is a finite occurrence; profile emission retains its yield lineage for sustained generation.

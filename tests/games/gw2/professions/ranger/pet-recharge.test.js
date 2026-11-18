@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
@@ -253,7 +254,7 @@ for (const [label, grantAt, duration] of [
         : duration === 10
           ? sample.workAnchorAt + sample.work - (duration - sample.workAnchorAt) * 0.25
           : sample.workAnchorAt + sample.work / 1.25;
-    assert.ok(Math.abs(sample.readyAt - expected) < 1e-9);
+    assert.ok(Math.abs(sample.readyAt - gw2Time(expected)) < 1e-9);
     const actions = result.events.filter((event) => event.type === 'action' && event.source === 'ranger-pet');
     const repeat = actions.find((event) => event.skillId === ID.PET_TAIL_LASH && event.at > sample.workAnchorAt);
     assert.ok(repeat);

@@ -4,6 +4,7 @@ import test from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/skills/weapons/pistol.js';
@@ -815,7 +816,7 @@ test('Power of the Virtuous reduces each Tome dormancy duration', () => {
 
   // Apply the trait multiplier to each tome's own dormancy, not a copied cooldown table.
   for (const virtue of ['justice', 'resolve', 'courage']) {
-    assert.equal(traited[virtue], baseline[virtue] * 0.85);
+    assert.equal(traited[virtue], gw2Time(baseline[virtue] * 0.85));
   }
 });
 

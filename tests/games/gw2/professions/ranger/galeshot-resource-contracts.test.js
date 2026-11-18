@@ -81,7 +81,7 @@ test('Wind Force survives dismissal as pending work and grants once at the selec
       initialize(runtime) {
         runtime.resourceController.grant('windForce', 1);
       },
-      probes: [0.999, 1, 1.2].map((at) => [
+      probes: [0.96, 1, 1.2].map((at) => [
         at,
         (runtime) =>
           seen.push([
@@ -94,7 +94,7 @@ test('Wind Force survives dismissal as pending work and grants once at the selec
   );
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(seen, [
-    [0.999, 0, false],
+    [0.96, 0, false],
     [1, 2.5, false],
     [1.2, 2.5, false]
   ]);
@@ -272,7 +272,7 @@ test('Thrill of the Catch grants patched arrows only for eligible controls outsi
         [0.2, 'player'],
         [0.2, 'summon'],
         [0.3, 'player'],
-        [0.48, 'summon']
+        [0.52, 'summon']
       ].map(([at, actorType]) => ({
         at,
         run(runtime) {

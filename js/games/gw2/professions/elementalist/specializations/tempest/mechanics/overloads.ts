@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { denySkillCast, retryCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -19,7 +20,6 @@ import type {
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 // Every attunement's overload is attributed to the profession mechanic rather than the held weapon.
 const OVERLOAD_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS));
@@ -43,7 +43,7 @@ function tempestOverloadAvailability(
   // The configured starting attunement carries a negative entry stamp and needs no dwell.
   const startingAttunementReady = state.attunementEnteredAt < 0;
   // Dwell readiness shares the queued canonical instant without allowing an early overload.
-  const readyAt = startingAttunementReady ? context.time : canonicalTime(state.attunementEnteredAt + dwell);
+  const readyAt = startingAttunementReady ? context.time : gw2Time(state.attunementEnteredAt + dwell);
   return readyAt > context.time
     ? retryCast(
         readyAt,

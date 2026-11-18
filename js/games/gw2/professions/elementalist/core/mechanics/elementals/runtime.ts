@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -35,7 +36,6 @@ import type {
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 // Actor step: picks the next autonomous attack. Prefers the secondary attack
 // (Flame Burst / Enervating Punch) whenever its cooldown is ready, else the auto.
@@ -62,7 +62,7 @@ function stepElemental(
 
   if (elemental.element === 'Earth') {
     // Decisions compare the projected recharge to this canonical wake without early readiness.
-    if (canonicalTime(elemental.secondaryAttackReadyAt) <= canonicalTime(at)) {
+    if (gw2Time(elemental.secondaryAttackReadyAt) <= gw2Time(at)) {
       startSingleImpactAttack(
         context,
         at,
@@ -73,7 +73,7 @@ function stepElemental(
     } else {
       startSingleImpactAttack(context, at, EARTH_ELEMENTAL_EVTC_PROFILE.punch, 'Punch', 'punch');
     }
-  } else if (canonicalTime(elemental.secondaryAttackReadyAt) <= canonicalTime(at)) {
+  } else if (gw2Time(elemental.secondaryAttackReadyAt) <= gw2Time(at)) {
     startSingleImpactAttack(context, at, FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst, 'Flame Burst', 'flame-burst');
   } else {
     startSingleImpactAttack(context, at, FIRE_ELEMENTAL_EVTC_PROFILE.fireball, 'Fireball', 'fireball');
@@ -174,7 +174,7 @@ function summonElemental(context: ElementalistRuntime, at: number, element: Elem
     element,
     summonGeneration,
     actionGeneration: 0,
-    activeUntil: canonicalTime(at + skillNumber(glyph, 'duration')),
+    activeUntil: gw2Time(at + skillNumber(glyph, 'duration')),
     busyUntil: at,
     secondaryAttackReadyAt: at,
     currentActivationId: null,
@@ -258,7 +258,7 @@ const elementalistElementalTasks = {
 
     if (!autonomousActionsAllowed(context) || !activeElemental(context, generation, context.time)) return;
 
-    if (canonicalTime(elemental.busyUntil) > context.time) {
+    if (gw2Time(elemental.busyUntil) > context.time) {
       scheduleElementalDecision(context, elemental.busyUntil);
       return;
     }

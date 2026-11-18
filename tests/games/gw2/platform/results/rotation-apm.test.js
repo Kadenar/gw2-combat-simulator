@@ -44,7 +44,7 @@ test('150 executed inputs over 90 seconds give unrounded 100 APM', () => {
   assert.equal(metrics.actionCount, 150);
   assert.ok(Math.abs(metrics.durationSeconds - 90) < 1e-9);
   assert.ok(Math.abs(metrics.apm - 100) < 1e-9);
-  assert.ok(Math.abs(analyze(['Replacement', { type: 'wait', durationMs: 1100 }]).metrics.apm - 60 / 1.7) < 1e-10);
+  assert.ok(Math.abs(analyze(['Replacement', { type: 'wait', durationMs: 1100 }]).metrics.apm - 60 / 1.72) < 1e-10);
 });
 
 test('auto chains and standalone autos are excluded; replacements, waits, and autos keep their execution time', () => {
@@ -120,7 +120,7 @@ test('combat-start excludes precasts, includes carried cast time, and ignores ob
     const { metrics } = analyze(rotation, { observationPolicy });
     assert.equal(metrics.actionCount, 1);
     assert.equal(metrics.durationSeconds, 1);
-    assert.equal(metrics.castingTimeSeconds, 0.5);
+    assert.equal(metrics.castingTimeSeconds, 0.48);
     assert.equal(metrics.apm, 60);
   }
 });
@@ -133,7 +133,7 @@ test('fractional marker boundaries use exact activation seconds instead of round
     { type: 'wait', durationMs: 1000 }
   ]);
   assert.equal(metrics.actionCount, 1);
-  assert.equal(metrics.durationSeconds, 1.36 - 0.333333);
+  assert.equal(metrics.durationSeconds, 1.36 - 0.36);
 });
 
 test('empty, zero-duration, endpoint instant, and autoattack-only rotations have finite accounting', () => {

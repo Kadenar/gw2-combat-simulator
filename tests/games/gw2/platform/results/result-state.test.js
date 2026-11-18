@@ -130,7 +130,7 @@ test('critical chance query selects the next eligible player strike', () => {
     { ...before, at: 1.4, critEligible: false, criticalChance: 0 },
     { ...before, at: 1.5, actorType: 'effect' },
     { ...before, at: 1.6, actorType: 'unknown' },
-    { ...before, at: 1.7, type: 'condition' },
+    { ...before, at: 1.7, type: 'condition', duration: 1 },
     { ...before, at: 1.8, critEligible: undefined },
     { ...before, at: 1.9, criticalChance: NaN }
   ];

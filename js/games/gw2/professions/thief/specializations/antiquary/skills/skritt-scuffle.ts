@@ -1,9 +1,9 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { pilferArtifacts } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export const SKRITT_SCUFFLE = 'thief.skritt-scuffle';
 
@@ -15,7 +15,7 @@ export function skrittScufflePilfer(runtime: ThiefRuntime, data: unknown): void 
   if (!(interval > 0) || runtime.time > expiresAt) return;
 
   const state = antiquaryState.from(runtime.profession);
-  const next = canonicalTime(runtime.time + interval);
+  const next = gw2Time(runtime.time + interval);
   // The public value is a retry and display projection; the queued pulse owns scheduling.
   state.nextSkrittScufflePilferAt = next <= expiresAt ? next : 0;
   pilferArtifacts(runtime, 'scuffle');
@@ -28,9 +28,9 @@ export function completeSkrittScuffle(runtime: ThiefRuntime): void {
   const state = antiquaryState.from(runtime.profession);
   const profile = requireSkill(runtime.helpers, ID.SKRITT_SCUFFLE);
   const interval = skillNumber(profile, 'pulseInterval');
-  const expiresAt = canonicalTime(runtime.time + skillNumber(profile, 'duration'));
+  const expiresAt = gw2Time(runtime.time + skillNumber(profile, 'duration'));
   state.nextSkrittScufflePilferAt = runtime.time + interval;
   pilferArtifacts(runtime, 'scuffle');
 
-  if (interval > 0) runtime.schedule(SKRITT_SCUFFLE, canonicalTime(runtime.time + interval), { expiresAt });
+  if (interval > 0) runtime.schedule(SKRITT_SCUFFLE, gw2Time(runtime.time + interval), { expiresAt });
 }

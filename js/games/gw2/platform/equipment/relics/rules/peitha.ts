@@ -1,4 +1,5 @@
 import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -7,7 +8,6 @@ import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const PEITHA_BUFF = 'relic-peitha';
 const PEITHA_DEFAULT_IMPACT_DELAY_MS = 240;
@@ -34,7 +34,7 @@ export const peitha = defineRelic({
   strikeMultiplier(ctx, _state, event) {
     if (!isGw2PlayerModifierOwnedEvent(event)) return 1;
 
-    const at = canonicalTime(event.at);
+    const at = gw2Time(event.at);
     // The latest eligible grant decides live and historical hits through its inclusive deadline.
     const application = ctx.liveEffects?.queries.latestApplication(PEITHA_BUFF, at, { actor: 'player' });
     return application && buffWindowActive(at, application.at, application.expiresAt, application.removedAt) ? 1.1 : 1;

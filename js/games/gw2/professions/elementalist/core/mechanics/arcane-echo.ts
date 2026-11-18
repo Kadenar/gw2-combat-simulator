@@ -1,4 +1,5 @@
 /** Owns Arcane Echo's window and the later weapon cast that consumes it. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -6,14 +7,13 @@ import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Fixed replacement work is shared by runtime and tooltip; the skill owns only the echo window. */
 export const ARCANE_ECHO_REPLACEMENT_RECHARGE_SECONDS = 1;
 
 /** The skill's commit declaration opens the skill-owned window for the next recharging weapon cast. */
 export function armArcaneEcho(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
-  professionCoreState(context.profession).arcaneEchoUntil = canonicalTime(
+  professionCoreState(context.profession).arcaneEchoUntil = gw2Time(
     cast.effectiveEnd + skillNumber(cast.skill, 'duration')
   );
 }
@@ -40,7 +40,7 @@ export function completeArcaneEcho(
     return;
 
   state.arcaneEchoUntil = 0;
-  const at = canonicalTime(context.time);
+  const at = gw2Time(context.time);
   // Use original recharge before trait reductions; the short replacement still benefits from Alacrity.
   const addedWork = gw2BaseRecharge(skill);
   // Like Mimic, replace the weapon skill's recharge with one base second without replenishing spent ammunition.

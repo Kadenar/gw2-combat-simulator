@@ -5,6 +5,7 @@ import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -205,7 +206,7 @@ test('generated rocket explosions can trigger Shrapnel', () => {
   assert.equal(crippled[0].procActivation.id, bleed[0].procActivation.id);
   const runtime = observedRuntime(result);
   assert.equal(runtime.combat.targetConditionStacks('Crippled', crippled[0].at), 1);
-  assert.equal(runtime.combat.targetConditionStacks('Crippled', crippled[0].at + 1.5), 0);
+  assert.equal(runtime.combat.targetConditionStacks('Crippled', crippled[0].at + 1.52), 0);
   assert.ok(
     result.effectReport.tracks.some(
       (track) => track.kind === 'Crippled' && track.category === 'condition' && track.recipient === 'target'
@@ -531,7 +532,7 @@ test('Chemical Rounds extends every pistol condition beyond the condition-durati
       (event) => event.type === 'condition' && event.skillName === skillName && event.condition === condition
     );
 
-    return application.naturalExpiresAt - application.at;
+    return application.effectiveDuration;
   };
 
   const pistolConditions = [
@@ -835,9 +836,7 @@ test('Optimized Activation materializes delayed repeated Vigor and respects effe
     assert.deepEqual(
       boons.map((event) => event.at),
       effects.length
-        ? [0.5, 0.7].map((offset) =>
-            Number((result.events.find((event) => event.type === 'action').endsAt + offset).toFixed(6))
-          )
+        ? [0.5, 0.7].map((offset) => gw2Time(result.events.find((event) => event.type === 'action').endsAt + offset))
         : []
     );
   }

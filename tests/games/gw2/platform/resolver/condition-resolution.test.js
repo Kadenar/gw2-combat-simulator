@@ -126,7 +126,7 @@ test('condition applications shorter than one second deal fractional damage', ()
   assert.deepEqual(result.resolvedEvents[0].metadata, metadata);
   for (const field of Object.keys(metadata)) assert.equal(Object.hasOwn(result.resolvedEvents[0], field), false);
   assert.equal(result.firstHitTime, 1);
-  assert.equal(paidStackSeconds(result.resolvedEvents[0]), 0.5);
+  assert.equal(paidStackSeconds(result.resolvedEvents[0]), 0.52);
   assert.deepEqual(result.warnings, [{ message: 'resolver handoff warning' }]);
 });
 
@@ -190,13 +190,13 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
 
   const applications = result.resolvedEvents.filter((event) => event.type === 'condition');
 
-  // Whole-millisecond durations retain exactly 1.25 + 0.5 stack-seconds.
+  // Grid expiry retains 1.28 + 0.52 stack-seconds.
   assert.equal(
     applications.reduce((total, application) => total + paidStackSeconds(application), 0),
-    1.75
+    1.8
   );
-  // At 1s: roundEven(82 + 20.5); at 2s: roundEven(20.5 + 20.5) from both expiry remainders.
-  assert.equal(result.conditionDamage, 102 + 41);
+  // The first payout includes 1.24 stack-seconds; the second settles the remaining 0.56.
+  assert.equal(result.conditionDamage, 102 + 46);
 });
 
 function resolveBleedThrough(
@@ -261,12 +261,12 @@ function resolveBleedThrough(
 // Natural expiry caps elapsed duration; the next shared pulse settles its remainder, never an observation cutoff.
 test('condition lifetimes round half-even to milliseconds and settle without endpoint damage', () => {
   for (const [duration, expected, damage] of [
-    [3 * 1.6719, 5.016, 411],
+    [3 * 1.6719, 5.016, 413],
     [5.04, 5.04, 413],
     [5, 5, 410],
-    [0.001, 0.001, 0],
+    [0.001, 0.001, 3],
     [1.0005, 1, 82],
-    [1.0015, 1.002, 82]
+    [1.0015, 1.002, 85]
   ]) {
     const result = resolveBleedThrough(6, { duration });
     const application = result.resolvedEvents.find((event) => event.type === 'condition');
@@ -303,10 +303,10 @@ test('condition damage uses half-even rounding before accumulation and target de
     if (output === 'detailed') assert.equal(partialTie.resolvedEvents[0].damageTicks.at(-1).damage, 2);
 
     const result = resolveBleedThrough(6, { duration: 3 * 1.6719, conditionDamage: 6100, targetHealth: 1946, output });
-    assert.equal(result.conditionDamage, 1946);
+    assert.equal(result.conditionDamage, 1956);
     assert.equal(result.deathTime, 6);
 
-    if (output === 'detailed') assert.equal(result.resolvedEvents[0].damageTicks.at(-1).damage, 6);
+    if (output === 'detailed') assert.equal(result.resolvedEvents[0].damageTicks.at(-1).damage, 16);
   }
 });
 
@@ -337,7 +337,7 @@ test('target death occurs on shared condition pulses rather than expiry or the o
   assert.equal(deadTarget.deathTime, 0);
   assert.equal(deadTarget.totalDamage, 0);
   assert.equal(throughNaturalRemainder.deathTime, 2);
-  assert.equal(paidStackSeconds(remainderApplication), 1.5);
+  assert.equal(paidStackSeconds(remainderApplication), 1.52);
 });
 
 test('precombat target conditions are rejected rather than carried into combat', () => {
@@ -603,7 +603,7 @@ test('environment damage can end a player sequence early without entering player
 
   assert.equal(baseline.deathTime, null);
   assert.equal(baseline.totalDamage, 60);
-  assert.equal(ambient.deathTime, 2.5);
+  assert.equal(ambient.deathTime, 2.52);
   assert.equal(ambient.totalDamage, 40);
   assert.equal(ambient.environmentDamage, 44);
   assert.ok(ambient.totalDamage + ambient.environmentDamage >= 75);

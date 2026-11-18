@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -12,7 +13,6 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Finite area pulses survive their creating cast; shared buff delivery samples recipients at application. */
 function emitShroudEffects(
@@ -41,7 +41,7 @@ function emitShroudEffects(
         ...event,
         ...(event.type === 'damage' ? { name: cast.skill.name } : {}),
         offTarget: cast.command.offTarget,
-        at: canonicalTime(
+        at: gw2Time(
           event.at + (isHostileTargetEvent(event) ? (impactDelayMs + (cast.command.impactDelayMs ?? 0)) / 1000 : 0)
         )
       };

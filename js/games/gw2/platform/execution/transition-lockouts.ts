@@ -1,7 +1,7 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export const TRANSITION_DELAY_KEYS = [
   'weaponSwapMs',
@@ -69,6 +69,6 @@ export function lockTransitionInput(
 ): void {
   // Runtime construction owns validation; recovery and its observation read the same captured preference.
   const delay = runtime.config.transitionDelays[kind] / 1000;
-  runtime.castController.lockInputUntil(canonicalTime(runtime.time + delay));
+  runtime.castController.lockInputUntil(gw2Time(runtime.time + delay));
   emitTransitionLockout(runtime, kind, runtime.time, delay, skill);
 }

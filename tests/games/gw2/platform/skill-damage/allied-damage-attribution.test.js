@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
@@ -12,7 +13,6 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { REVENANT_LEGEND_IDS } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
@@ -148,16 +148,16 @@ for (const rate of [2, 4]) {
         (event) => event.type === 'damage' && event.sourceId === NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE
       );
     // Allied strikes before the first Vampiric Aura pulse cannot siphon.
-    const firstAt = canonicalTime(Math.ceil(firstPulse * rate) / rate);
-    const deadline = canonicalTime(firstAt + cooldown);
-    const before = procs(run(deadline - 0.000001));
+    const firstAt = gw2Time(Math.ceil(firstPulse * rate) / rate);
+    const deadline = gw2Time(Math.ceil(gw2Time(firstAt + cooldown) * rate) / rate);
+    const before = procs(run(deadline - 0.04));
     const atDeadline = procs(run(deadline));
-    assert.equal(before[0]?.at, firstAt, 'the first strike under the aura siphons');
+    assert.equal(before[0]?.at, gw2Time(firstAt), 'the first strike under the aura siphons');
     assert.ok(
       before.every((event) => event.at <= firstAt),
       'intermediate opportunities cannot bypass the cooldown'
     );
-    assert.equal(atDeadline.at(-1).at, deadline, 'the opportunity on the cooldown deadline is eligible');
+    assert.equal(atDeadline.at(-1).at, deadline, 'the first opportunity after cooldown is eligible');
   });
 }
 

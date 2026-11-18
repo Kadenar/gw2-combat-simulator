@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -81,7 +82,7 @@ export function resolveBladesong(
 
   if (shatter.kind === 'blade-control') {
     // A blade cannot impact before the activation has actually committed its resource spend.
-    const damageAt = Math.max(at, castStart + (shatter.damageAtMs || 0) / 1000);
+    const damageAt = gw2Time(Math.max(at, castStart + (shatter.damageAtMs || 0) / 1000));
 
     if (strike)
       buildMesmerStrikes(

@@ -1,8 +1,8 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { autonomousActionsAllowed, type CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export interface AlliedStrikeOpportunity {
   readonly allyIndex: number;
@@ -82,10 +82,10 @@ export function createAlliedStrikeController(
     if (!grants.size) return;
 
     let nextSequence = Math.max(sequence + 1, Math.floor((context.time - anchor) * party.strikesPerSecond) + 1);
-    let at = canonicalTime(anchor + nextSequence / party.strikesPerSecond);
+    let at = gw2Time(anchor + nextSequence / party.strikesPerSecond);
 
     // A grant accepted after the same-time opportunity cannot replay that opportunity.
-    if (at <= context.time) at = canonicalTime(anchor + ++nextSequence / party.strikesPerSecond);
+    if (at <= context.time) at = gw2Time(anchor + ++nextSequence / party.strikesPerSecond);
 
     if (![...grants.values()].some((live) => liveAt(live, at))) return;
 

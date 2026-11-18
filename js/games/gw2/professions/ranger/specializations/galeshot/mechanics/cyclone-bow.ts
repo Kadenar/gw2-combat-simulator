@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -22,7 +23,6 @@ import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/trigger-po
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Player attacks and player-owned effect projectiles trigger Mistral and Shrike; pet projectiles stay excluded. */
 export function reactToGaleshotMissile(context: RangerRuntime, event: Gw2ResolverEvent): void {
@@ -187,7 +187,7 @@ export function scheduleWindForce(runtime: RangerRuntime, cast: RuntimeCast<Rang
 
   if (!(Number(skill.windForceGain) > 0)) return;
 
-  const at = canonicalTime(cast.start + Number(skill.windForceApplyMs ?? skill.castTimeMs) / 1000);
+  const at = gw2Time(cast.start + Number(skill.windForceApplyMs ?? skill.castTimeMs) / 1000);
 
   if (!castWasInterrupted(cast) || at <= cast.effectiveEnd)
     runtime.schedule('ranger.wind-force', at, Number(skill.windForceGain));
@@ -195,7 +195,7 @@ export function scheduleWindForce(runtime: RangerRuntime, cast: RuntimeCast<Rang
 
 /** Later projectiles consume this live window through the shared Mistral observer. */
 function activateMistral(runtime: RangerRuntime): void {
-  galeshotState.from(runtime.profession).mistralUntil = canonicalTime(
+  galeshotState.from(runtime.profession).mistralUntil = gw2Time(
     runtime.time + skillNumber(requireSkill(runtime.helpers, ID.MISTRAL), 'duration')
   );
 }
@@ -263,7 +263,7 @@ export const cycloneBowLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> 
       // Register the release at acceptance so bow dismissal cannot delay it until after the first hit.
       if (context.kind !== 'cast' || context.cast.cancelledBeforeCommit) return;
 
-      const at = canonicalTime(context.cast.start + skillNumber(context.skill, 'galeForceApplyMs') / 1000);
+      const at = gw2Time(context.cast.start + skillNumber(context.skill, 'galeForceApplyMs') / 1000);
 
       if (!castWasInterrupted(context.cast) || at <= context.cast.effectiveEnd)
         runtime.schedule('ranger.hawkeye-release', at, context.skill.id);

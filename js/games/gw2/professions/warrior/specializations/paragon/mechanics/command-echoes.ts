@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -8,7 +9,6 @@ import { balanceNumber, skillNumber } from '#gw2/platform/skills/balance-profile
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const ECHO = 'warrior.paragon-command-echo';
 
@@ -69,7 +69,7 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
   echo.generation++;
   runtime.schedule(
     ECHO,
-    canonicalTime(runtime.time + interval),
+    gw2Time(runtime.time + interval),
     activationId,
     { id: ownerId, generation: echo.generation },
     -20
@@ -90,13 +90,7 @@ function activateCommand(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill
     remainingEchoes,
     generation: 0
   };
-  runtime.schedule(
-    ECHO,
-    canonicalTime(runtime.time + interval),
-    cast.id,
-    { id: `${ECHO}.${cast.id}`, generation: 0 },
-    -20
-  );
+  runtime.schedule(ECHO, gw2Time(runtime.time + interval), cast.id, { id: `${ECHO}.${cast.id}`, generation: 0 }, -20);
 }
 
 /** Each command retains its own repeats; burst completion consumes echoes before its trait rewards. */

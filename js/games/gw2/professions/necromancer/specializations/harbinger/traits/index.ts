@@ -2,6 +2,7 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { buffApplicationExpiry } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -36,7 +37,6 @@ import type {
   NecromancerRuntime,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { advanceCounter } from '#kernel/resources/counters.js';
 
 /** Dark Disciple owns intrinsic Blight growth, capacity, and shroud life-force drain. */
@@ -462,7 +462,7 @@ function applyCascadingCorruption(
             .filter((effect) => effect != null)
             .map((effect) => ({
               ...effect,
-              ...(effect === meltdown ? { duration: canonicalTime(effect.duration + remainingMeltdown) } : {}),
+              ...(effect === meltdown ? { duration: gw2Time(effect.duration + remainingMeltdown) } : {}),
               sourceId: TRAIT.CASCADING_CORRUPTION,
               atMs: quantizeGw2ActionTimingMs(effect.atMs ?? 0)
             })),

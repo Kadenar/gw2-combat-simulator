@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
@@ -27,7 +29,6 @@ import type {
   EngineerRuntimeState,
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#kernel/events/handler-registry.js';
 import { resourceAtLeast } from '#kernel/resources/pool.js';
@@ -96,7 +97,7 @@ function passiveCoolingPerTick(context: EngineerRuntime<HolosmithSkill>, at: num
   if (preservesPhotonicHeat(context)) return 0;
 
   // Cooling phases use the same canonical deadlines as their scheduled work.
-  const elapsedSinceExit = canonicalTime(at - state.forgeExitedAt);
+  const elapsedSinceExit = gw2Time(at - state.forgeExitedAt);
 
   if (elapsedSinceExit <= HOLOSMITH_HEAT.coolingDelay) return 0;
 
@@ -107,11 +108,6 @@ function passiveCoolingPerTick(context: EngineerRuntime<HolosmithSkill>, at: num
 
   // Scale both cooling phases to the shared cadence: 5%/s and 10%/s become 0.5% and 1% per tick.
   return coolingPerSecond * HOLOSMITH_HEAT.heatTickInterval;
-}
-
-/** Advances the heat cadence while rounding repeated additions onto stable event-ordering boundaries. */
-function nextPassiveHeatTick(at: number): number {
-  return Math.round((at + HOLOSMITH_HEAT.heatTickInterval) * 1e9) / 1e9;
 }
 
 // Places every tool-belt skill except the Forge toggle on at least the overheat
@@ -135,7 +131,7 @@ function scheduleToolbeltOverheatPenalty(context: EngineerRuntime<HolosmithSkill
 function forceOverheat(context: EngineerRuntime<HolosmithSkill>, at: number): void {
   const state = holosmithState.from(context.profession);
   const blast = photonicOverheatTiming(context, at);
-  const effectAt = blast?.at ?? at + HOLOSMITH_HEAT.overheatEffectDelay;
+  const effectAt = gw2Time(blast?.at ?? at + HOLOSMITH_HEAT.overheatEffectDelay);
   context.resourceController.replace('heat', state.heat.maximum);
   state.overheated = true;
   reportPhotonForgeHeat(context, 'overheat');
@@ -155,9 +151,19 @@ function forceOverheat(context: EngineerRuntime<HolosmithSkill>, at: number): vo
 }
 
 /** Restarts passive heat processing one cadence tick after a Forge state transition. */
-function startPhotonForgeHeatCadence(context: EngineerRuntime<HolosmithSkill>, at: number): void {
+function startPhotonForgeHeatCadence(context: EngineerRuntime<HolosmithSkill>, at: number, restart = true): void {
   const state = holosmithState.from(context.profession);
-  state.passiveHeatAt = nextPassiveHeatTick(at);
+
+  if (restart) {
+    state.passiveHeatAnchor = gw2Time(at);
+    state.passiveHeatOccurrence = 0;
+  }
+
+  // Round each occurrence from its anchor so grid delivery preserves the authored heat rate.
+  state.passiveHeatOccurrence++;
+  state.passiveHeatAt = gw2Time(
+    state.passiveHeatAnchor + state.passiveHeatOccurrence * HOLOSMITH_HEAT.heatTickInterval
+  );
   context.schedule(PHOTON_FORGE_PASSIVE_HEAT_TASK, state.passiveHeatAt, state.passiveHeatAt, undefined, 100);
 }
 
@@ -231,7 +237,7 @@ function enterPhotonForge(context: EngineerRuntime<HolosmithSkill>, cast: Runtim
   state.forgeExitedAt = null;
   startPhotonForgeHeatCadence(context, at);
   // The kit lockout follows recharge rules, including Alacrity.
-  state.kitLockoutUntil = at + baseKitLockout / context.cooldownController.rate(skill);
+  state.kitLockoutUntil = gw2Time(at + baseKitLockout / context.cooldownController.rate(skill));
   context.fireTrigger(photonForgeTransitioned, { transition: 'entry', at });
   emitForgeSwap(context, cast);
   reportPhotonForgeHeat(context, 'enter-forge');
@@ -292,7 +298,7 @@ function applyCoronaBurstHeat(
 ): void {
   if (!canApplyHeat(context, skill)) return;
 
-  if (cast.effectiveEnd < canonicalTime(cast.start + CORONA_QUICKNESS_PULSE_OFFSETS_MS[0] / 1000)) return;
+  if (cast.effectiveEnd < gw2Time(cast.start + CORONA_QUICKNESS_PULSE_OFFSETS_MS[0] / 1000)) return;
 
   const heatPerPulse = Number(skill.heatGain) / CORONA_QUICKNESS_PULSE_OFFSETS_MS.length;
   scheduleHeatPulse(
@@ -317,9 +323,9 @@ function applyPhotonBlitzHeat(
   const heatPerPulse = Number(skill.heatGain) / PHOTON_BLITZ_PULSE_OFFSETS_MS.length;
   scheduleHeatPulse(
     context,
-    PHOTON_BLITZ_PULSE_OFFSETS_MS.filter(
-      (offsetMs) => canonicalTime(cast.start + offsetMs / 1000) <= cast.effectiveEnd
-    ).map((offsetMs) => cast.start + offsetMs / 1000),
+    PHOTON_BLITZ_PULSE_OFFSETS_MS.filter((offsetMs) => gw2Time(cast.start + offsetMs / 1000) <= cast.effectiveEnd).map(
+      (offsetMs) => cast.start + offsetMs / 1000
+    ),
     heatPerPulse
   );
 }
@@ -335,7 +341,7 @@ function applyHeat(
   if (castWasInterrupted(cast)) {
     const commitMs = Number(skill.interruptCommitMs);
 
-    if (!Number.isFinite(commitMs) || cast.effectiveEnd < canonicalTime(cast.start + commitMs / 1000)) return;
+    if (!Number.isFinite(commitMs) || cast.effectiveEnd < gw2Time(cast.start + commitMs / 1000)) return;
   }
 
   // A Forge attack that crossed its interrupt commit point already fired; its
@@ -407,10 +413,10 @@ const photonForgeTasks: RuntimeHooks<EngineerRuntimeState, HolosmithSkill>['task
     const coolingGrace =
       !state.photonForgeActive &&
       state.forgeExitedAt != null &&
-      context.time <= canonicalTime(state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay);
+      context.time <= gw2Time(state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay);
 
     if ((state.photonForgeActive && !state.overheated) || state.heat.value > 0 || coolingGrace)
-      startPhotonForgeHeatCadence(context, context.time);
+      startPhotonForgeHeatCadence(context, context.time, false);
     else state.passiveHeatAt = null;
   },
   'engineer.photon-forge-heat'(context, data) {

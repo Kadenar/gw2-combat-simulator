@@ -102,7 +102,7 @@ test('ordinary completion replaces the timed Band Together buff and cannot grant
 });
 
 test('only mapped skills are eligible, readiness is read-only, and acceptance includes the exact deadline', () => {
-  for (const at of [1.999999, 2, 2.000001]) {
+  for (const at of [1.96, 2, 2.04]) {
     const { runtime, cast, apply, grant } = fixture();
     grant(2);
     runtime.time = at;

@@ -1,11 +1,11 @@
 import { buffDeadlineActive, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { STATUS } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 // Gameplay grants and duration observations share the same status limits, in seconds.
 const MAXIMUM_STEALTH_DURATION = 15;
@@ -38,17 +38,17 @@ export function revealedActive(state: Readonly<Partial<StealthState>>, at: numbe
 
 /** Natural stealth expiry follows gameplay; breaking stealth closes its window immediately. */
 export function stealthActive(state: Readonly<Partial<StealthState>>, at: number): boolean {
-  const time = canonicalTime(at);
+  const time = gw2Time(at);
   return buffWindowActive(time, state.stealthStartedAt ?? 0, state.stealthUntil ?? 0) && !revealedActive(state, time);
 }
 
 /** Attacks close stealth and optionally apply Revealed, including attacks enabled by a separate entitlement. */
 export function endStealth(state: StealthState, at: number, reveal = true): void {
-  const time = canonicalTime(at);
+  const time = gw2Time(at);
   state.stealthStartedAt = time;
   state.stealthUntil = time;
 
-  if (reveal) state.revealedUntil = canonicalTime(time + REVEALED_DURATION);
+  if (reveal) state.revealedUntil = gw2Time(time + REVEALED_DURATION);
 }
 
 interface StealthPolicy<T extends { core: StealthState }, TSkill extends Skill> {
@@ -72,7 +72,7 @@ export function createStealthLifecycle<T extends { core: StealthState }, TSkill 
 
     if (entered) state.stealthStartedAt = runtime.time;
 
-    state.stealthUntil = canonicalTime(
+    state.stealthUntil = gw2Time(
       Math.min(runtime.time + MAXIMUM_STEALTH_DURATION, Math.max(runtime.time, state.stealthUntil) + duration)
     );
 

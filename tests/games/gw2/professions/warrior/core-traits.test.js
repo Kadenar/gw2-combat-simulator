@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -96,7 +97,11 @@ for (const [key, trait, trigger, literalDuration] of [
         assert.equal(emitted > 0, expected);
         assert.equal(
           runtime.procs.deadline(trait),
-          expected ? canonicalTime((trigger === 'swap' ? Math.ceil(canonicalTime(at) / 0.04) * 0.04 : at) + elapsed) : 1
+          gw2Time(
+            expected
+              ? canonicalTime((trigger === 'swap' ? Math.ceil(canonicalTime(at) / 0.04) * 0.04 : at) + elapsed)
+              : 1
+          )
         );
         assert.equal(runtime.procs.deadline('unrelated'), 99);
       }

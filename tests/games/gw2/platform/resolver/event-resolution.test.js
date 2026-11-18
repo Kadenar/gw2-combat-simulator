@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
@@ -407,12 +408,12 @@ test('delayed-impact casts land hostile packets later without moving the cast or
     eventAt(base, (event) => event.type === 'action')
   );
   for (const predicate of [isSlash, isControl]) {
-    assert.equal(eventAt(delayed, predicate), eventAt(base, predicate) + 1.5);
+    assert.equal(eventAt(delayed, predicate), gw2Time(eventAt(base, predicate) + 1.5));
   }
 
   assert.equal(eventAt(delayed, isReaction), eventAt(delayed, isSlash));
   // The DPS window opens at the first landed hit, so the travel time before it is not counted.
-  assert.equal(delayed.dpsStartTime, base.dpsStartTime + 1.5);
+  assert.equal(delayed.dpsStartTime, gw2Time(base.dpsStartTime + 1.5));
 });
 
 test('test profession runs end to end without importing Mesmer', () => {

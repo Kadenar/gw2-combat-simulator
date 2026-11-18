@@ -457,7 +457,7 @@ test('target death prevents later authoritative combo outcomes', () => {
     { target: { armor: 2597, health: 1 } }
   );
 
-  assert.equal(result.deathTime, 0.5);
+  assert.equal(result.deathTime, 0.52);
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'combo'),
     false
@@ -495,7 +495,7 @@ test('target death rejects distinct same-time combo finishers and reactions', ()
     }
   );
 
-  assert.equal(result.deathTime, 0.5);
+  assert.equal(result.deathTime, 0.52);
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'combo'),
     false

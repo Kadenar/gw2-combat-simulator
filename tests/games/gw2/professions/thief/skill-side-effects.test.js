@@ -83,7 +83,7 @@ test('Falling Spider empowers only the accepted predecessor and preserves effect
 test('Uncatchable honors independent authored pulse timing and component removal', () => {
   for (const removed of ['Bleeding', 'Crippled']) {
     const surviving = removed === 'Bleeding' ? 'Crippled' : 'Bleeding';
-    for (const endTimeMs of [1319, 1320]) {
+    for (const endTimeMs of [1280, 1320]) {
       const result = runThief(
         [SHARED_SKILL_IDS.DODGE],
         { selectedTraitIds: [TRAIT.UNCATCHABLE] },
@@ -106,7 +106,7 @@ test('Uncatchable honors independent authored pulse timing and component removal
       assert.ok(observedRuntime(result).profession.core.endurance.value < 100);
       assert.deepEqual(
         pulses.map((event) => event.at),
-        endTimeMs === 1319 ? [0.8] : [0.8, 1.32]
+        endTimeMs === 1280 ? [0.8] : [0.8, 1.32]
       );
       assert.ok(pulses.every((event) => event.condition === surviving && event.actorType === 'player'));
       assert.ok(pulses.every((event) => event.skillId === ID.LESSER_CALTROPS && event.triggeredBy === 'Dodge'));

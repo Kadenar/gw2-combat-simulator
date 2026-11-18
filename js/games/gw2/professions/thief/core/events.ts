@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, type ControlKind, type SimulationActorType } from '#gw2/platform/constants.js';
 import { splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
 import { normalizeEffectAudience } from '#gw2/platform/events/audience-validation.js';
@@ -6,7 +7,6 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export type ThiefRuntime = MechanicContext<ThiefRuntimeState, ThiefSkill>;
 
@@ -70,7 +70,7 @@ export function buildThiefStrikes(
   return splitStrikeHits({
     ...fields,
     type: 'damage',
-    at: canonicalTime(options.at),
+    at: gw2Time(options.at),
     name: options.name ?? fields.skillName,
     coefficient,
     hits,
@@ -90,7 +90,7 @@ export function buildThiefCondition(
   return {
     ...fields,
     type: 'condition',
-    at: canonicalTime(options.at),
+    at: gw2Time(options.at),
     name: options.name ?? `${fields.skillName ?? skill?.name} - ${options.condition}`
   };
 }
@@ -103,7 +103,7 @@ export function buildThiefControl(
   return {
     ...envelope(skill, options),
     type: 'control',
-    at: canonicalTime(options.at),
+    at: gw2Time(options.at),
     controlKind: options.controlKind
   };
 }
@@ -124,7 +124,7 @@ export function buildThiefBuff(
   const event: SimulationEventBase = {
     ...envelope(skill, attribution),
     type: 'buff',
-    at: canonicalTime(options.at),
+    at: gw2Time(options.at),
     kind,
     duration,
     fixedDuration,

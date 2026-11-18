@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
@@ -17,7 +18,6 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns shroud and Lich transitions, their trait effects, and automatic exits on the live runtime. */
 
@@ -88,7 +88,7 @@ export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
 export function enterLich(runtime: NecromancerRuntime): void {
   const state = runtime.profession.core;
   state.activeShroud = 'lich';
-  state.lichEndsAt = canonicalTime(runtime.time + 20);
+  state.lichEndsAt = gw2Time(runtime.time + 20);
   state.lichGeneration++;
   runtime.armFlip(ID.EXIT_LICH_FORM, { availableAt: runtime.time, expiresAt: state.lichEndsAt });
   runtime.resourceController.refresh('lifeForce');

@@ -1,4 +1,5 @@
 /** Own axe actions, landing, recall, and combat-entry expiry behind one lifecycle contribution. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -9,7 +10,6 @@ import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const THIEF_AXE_LAND = 'thief.axe-land';
 
@@ -28,7 +28,7 @@ function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContext<Thief
   // These flight measurements used 1,500 units/s. Scale travel after release for the new 1,800 units/s velocity.
   const release = cast.start + (cast.skill.interruptCommitMs ?? 0) / 1000;
   const flight = Math.max(0, impact + (context.skill.stealthAttack ? 0.72 : 0.56) - release);
-  const landsAt = canonicalTime(Math.max(runtime.time, release + flight * (1500 / 1800)));
+  const landsAt = gw2Time(Math.max(runtime.time, release + flight * (1500 / 1800)));
   for (let index = 0; index < (strike.hits ?? 1); index++) {
     const axe = {
       id: `${cast.id}:${index}`,
@@ -45,7 +45,7 @@ function scheduleThiefAxeRecall(runtime: ThiefRuntime, context: ActionContext<Th
 
   const cast = context.cast;
   const at = cast.skill.interruptCommitMs == null ? cast.fullEnd : cast.start + cast.skill.interruptCommitMs / 1000;
-  runtime.scheduleForCast('thief.recall-axes', canonicalTime(at), cast);
+  runtime.scheduleForCast('thief.recall-axes', gw2Time(at), cast);
 }
 
 /** Lower-priority ground axes are replaced first; age breaks ties within a projectile type. */
@@ -77,14 +77,14 @@ function landThiefAxe(runtime: ThiefRuntime, data: unknown): void {
 
   core.spinningAxes.push({
     skillId: landed.skillId,
-    expiresAt: runtime.engagement.combatMechanicsAllowed() ? canonicalTime(runtime.time + 10) : Infinity
+    expiresAt: runtime.engagement.combatMechanicsAllowed() ? gw2Time(runtime.time + 10) : Infinity
   });
 }
 
 /** Precombat axes remain available throughout the opener and begin aging only when combat starts. */
 function startThiefAxeExpiry(runtime: ThiefRuntime): void {
   for (const axe of runtime.profession.core.spinningAxes) {
-    if (axe.expiresAt === Infinity) axe.expiresAt = canonicalTime(runtime.time + 10);
+    if (axe.expiresAt === Infinity) axe.expiresAt = gw2Time(runtime.time + 10);
   }
 }
 
@@ -102,7 +102,7 @@ function recallThiefAxes(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): 
     const skill = runtime.helpers.skillsById.get(axe.skillId)!;
     // Both recalls launch travelling projectiles; resolving Storm instantly loses their ordering against later throws.
     const delay = skill.stealthAttack ? 0.04 : skill.id === ID.VENOMOUS_VOLLEY ? 0.48 : 0.52;
-    return { skill, at: canonicalTime(runtime.time + delay) };
+    return { skill, at: gw2Time(runtime.time + delay) };
   });
   // The fifth arriving projectile owns immobilize, even when a later-emitted Salvo returns first.
   arrivals.sort((a, b) => a.at - b.at);

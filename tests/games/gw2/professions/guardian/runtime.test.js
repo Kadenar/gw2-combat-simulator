@@ -229,7 +229,7 @@ test('Effulgent counts accepted owned hits through its endpoint and ignores a re
       strike(runtime, 0.2, { actorType: 'summon' });
       strike(runtime, 0.3, { actorType: 'effect', source: 'Sigil' });
       strike(runtime, 0.4);
-      strike(runtime, 0.5, { actorType: 'effect' });
+      strike(runtime, 0.52, { actorType: 'effect' });
       strike(runtime, 4);
     }
   });
@@ -468,7 +468,7 @@ test('Restorative Virtues reduces only the currently equipped weapon cooldowns',
       }
     }
   );
-  assert.equal(observedRuntime(result).cooldownController.readyAt(ID.CHAINS_OF_LIGHT), 1.376);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(ID.CHAINS_OF_LIGHT), 1.4);
   assert.equal(observedRuntime(result).cooldownController.readyAt(ID.SYMBOL_OF_BLADES), 1.6);
 });
 
@@ -767,7 +767,7 @@ test('Core Justice counts accepted player hits and excludes missed, precombat, s
     {},
     {
       initialize: (runtime) => {
-        strike(runtime, 0.5);
+        strike(runtime, 0.52);
         strike(runtime, 1, { offTarget: true });
         strike(runtime, 1, { actorType: 'summon', summonOwner: 'fixture' });
         strike(runtime, 1, { source: 'Sigil', actorType: 'effect' });
@@ -878,7 +878,7 @@ test('permanent Alacrity readies the Core passive on the same action tick as its
           }
         });
         strike(runtime, 0.1);
-        strike(runtime, 9.59);
+        strike(runtime, 9.56);
         strike(runtime, 9.6);
       },
       profession: patched
@@ -1012,7 +1012,7 @@ test('spear captures illumination before expiry and enhances existing impacts wi
   assert.ok(hits.every((event) => event.activationId === result.steps[0].activationId));
   assert.ok(core(result).spearIlluminated.expiresAt > observedRuntime(result).time);
   const expired = run(
-    [wait(100), ID.GLEAMING_DISC, wait(2000)],
+    [wait(160), ID.GLEAMING_DISC, wait(2000)],
     { primaryWeapon: 'Spear' },
     { initialize: (runtime) => illuminate(runtime, 0.1) }
   );
@@ -1224,12 +1224,12 @@ test('symbol traits claim only accepted player impacts and retain delayed impact
 test('Symbolic Avenger projects independently expired stacks during idle waits', () => {
   const initialize = (runtime) => {
     strike(runtime, 0.1, { metadata: { guardianSymbol: true } });
-    strike(runtime, 0.5, { metadata: { guardianSymbol: true } });
+    strike(runtime, 0.52, { metadata: { guardianSymbol: true } });
   };
 
   const config = { selectedTraitIds: [TRAIT.SYMBOLIC_AVENGER] };
   const partial = run([wait(15140)], config, { initialize: initialize });
-  assert.deepEqual(partial.planningState.profession[STATE.SYMBOLIC_AVENGER_EXPIRATIONS], [15.5]);
+  assert.deepEqual(partial.planningState.profession[STATE.SYMBOLIC_AVENGER_EXPIRATIONS], [15.52]);
   const expired = run([wait(15540)], config, { initialize: initialize });
   assert.deepEqual(expired.planningState.profession[STATE.SYMBOLIC_AVENGER_EXPIRATIONS], []);
 });
@@ -1278,7 +1278,7 @@ test('Righteous Instincts extends one cadence and rejects stale ticks after a ne
     result.events
       .filter((event) => event.type === 'buff' && event.sourceId === TRAIT.RIGHTEOUS_INSTINCTS)
       .map((event) => event.at),
-    [0.1, 1.1, 2.1, 2.5, 3.5]
+    [0.12, 1.12, 2.12, 2.52, 3.52]
   );
   // Cadence extensions transfer ownership to the latest self grant, never an unrelated party application.
   const resolution = result.resolvedEvents.filter(
@@ -1381,14 +1381,14 @@ test('Symbol of Ignition claims independent projectile and nonprojectile cooldow
     {
       initialize: (runtime) => {
         runtime.profession.core.symbolIgnitionStartsAt = 0;
-        runtime.profession.core.symbolIgnitionUntil = 0.98;
-        strike(runtime, 0.5, { offTarget: true });
-        strike(runtime, 0.5);
-        strike(runtime, 0.5, { projectile: true });
-        strike(runtime, 0.74);
-        strike(runtime, 0.740001);
-        strike(runtime, 0.98, { projectile: true });
-        strike(runtime, 0.980001, { projectile: true });
+        runtime.profession.core.symbolIgnitionUntil = 1;
+        strike(runtime, 0.52, { offTarget: true });
+        strike(runtime, 0.52);
+        strike(runtime, 0.52, { projectile: true });
+        strike(runtime, 0.76);
+        strike(runtime, 0.8);
+        strike(runtime, 1, { projectile: true });
+        strike(runtime, 1.04, { projectile: true });
       }
     }
   );
@@ -1397,7 +1397,7 @@ test('Symbol of Ignition claims independent projectile and nonprojectile cooldow
     result.resolvedEvents
       .filter((event) => event.type === 'condition' && event.skillId === ID.SYMBOL_OF_IGNITION)
       .map((event) => event.at),
-    [0.5, 0.5, 0.740001, 0.98]
+    [0.52, 0.52, 0.8, 1]
   );
 });
 
@@ -1688,7 +1688,7 @@ test('Dragonhunter control traits exclude summon controls and retain accepted co
   );
   assert.deepEqual(
     stability.map((event) => event.at),
-    [0.2, 1.200001]
+    [0.2, 1.24]
   );
   assert.equal(stability[0].activationId, 'control-0.2');
   assert.equal(
@@ -1720,7 +1720,7 @@ test('Dragonhunter passive Justice consumes only accepted hit cycles and Renewed
   const initialize = (runtime) => {
     for (const at of [0.1, 0.2, 0.3]) strike(runtime, at);
     strike(runtime, 0.4, { offTarget: true });
-    strike(runtime, 0.5, { actorType: 'summon' });
+    strike(runtime, 0.52, { actorType: 'summon' });
   };
 
   const config = { ...dragonhunter, selectedTraitIds: [TRAIT.PERMEATING_WRATH] };
@@ -1868,8 +1868,8 @@ test('Big Game Hunter preserves hit eligibility, tether expiry, attribution, and
       {
         initialize: (runtime) => {
           runtime.profession.specialization.state.tetherUntil = 1;
-          strike(runtime, 0.5, { activationId: 'accepted-hit', eventOrder: 17 });
-          strike(runtime, 0.5, { actorType: 'effect' });
+          strike(runtime, 0.52, { activationId: 'accepted-hit', eventOrder: 17 });
+          strike(runtime, 0.52, { actorType: 'effect' });
           strike(runtime, 0.6, { coefficient: 0 });
           strike(runtime, 0.7, { offTarget: true });
           strike(runtime, 1);

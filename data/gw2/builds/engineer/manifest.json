@@ -6,15 +6,15 @@
         "label": "Power (Hammer)",
         "build": "data/gw2/builds/engineer/b-power-core-hammer.json",
         "rotation": "data/gw2/rotations/engineer/r-power-core-hammer-evtc.json",
-        "benchmarkDps": 36604,
+        "benchmarkDps": 36606,
         "upToDate": true,
         "benchmarkApm": 99.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39591, "phase": 39591 },
-          "80-60": { "cumulative": 37081, "phase": 34860 },
-          "60-40": { "cumulative": 36482, "phase": 35319 },
-          "40-20": { "cumulative": 35751, "phase": 33752 },
-          "20-0": { "cumulative": 36604, "phase": 40721 }
+          "100-80": { "cumulative": 39592, "phase": 39592 },
+          "80-60": { "cumulative": 37083, "phase": 34861 },
+          "60-40": { "cumulative": 36484, "phase": 35322 },
+          "40-20": { "cumulative": 35753, "phase": 33754 },
+          "20-0": { "cumulative": 36606, "phase": 40723 }
         }
       }
     ]
@@ -27,30 +27,30 @@
         "build": "data/gw2/builds/engineer/b-power-amalgam-hammer-symbiotic.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-amalgam-hammer",
-        "benchmarkDps": 41808,
+        "benchmarkDps": 41812,
         "upToDate": true,
         "benchmarkApm": 102.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 52057, "phase": 52057 },
-          "80-60": { "cumulative": 42821, "phase": 36308 },
-          "60-40": { "cumulative": 42879, "phase": 42996 },
-          "40-20": { "cumulative": 41272, "phase": 37021 },
-          "20-0": { "cumulative": 41808, "phase": 41808 }
+          "100-80": { "cumulative": 52071, "phase": 52071 },
+          "80-60": { "cumulative": 42832, "phase": 36318 },
+          "60-40": { "cumulative": 42938, "phase": 43155 },
+          "40-20": { "cumulative": 41277, "phase": 36981 },
+          "20-0": { "cumulative": 41812, "phase": 41812 }
         }
       },
       {
         "label": "Power (Hammer - 1 Kit - Symbiotic)",
         "build": "data/gw2/builds/engineer/b-power-amalgam-hammer-1kit-symbiotic.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-hammer-1kit-symbiotic-bench.json",
-        "benchmarkDps": 41520,
+        "benchmarkDps": 41524,
         "upToDate": true,
         "benchmarkApm": 75.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 45226, "phase": 45226 },
-          "80-60": { "cumulative": 37805, "phase": 32430 },
-          "60-40": { "cumulative": 40533, "phase": 47275 },
-          "40-20": { "cumulative": 40038, "phase": 38621 },
-          "20-0": { "cumulative": 41520, "phase": 41520 }
+          "100-80": { "cumulative": 45232, "phase": 45232 },
+          "80-60": { "cumulative": 37808, "phase": 32433 },
+          "60-40": { "cumulative": 40538, "phase": 47280 },
+          "40-20": { "cumulative": 40042, "phase": 38624 },
+          "20-0": { "cumulative": 41524, "phase": 41524 }
         }
       },
       {
@@ -58,30 +58,30 @@
         "build": "data/gw2/builds/engineer/b-power-amalgam-hammer-double-helix.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-hammer-double-helix-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-amalgam-double-helix-hammer",
-        "benchmarkDps": 41658,
+        "benchmarkDps": 41668,
         "upToDate": true,
         "benchmarkApm": 107.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 45210, "phase": 45210 },
-          "80-60": { "cumulative": 42642, "phase": 40316 },
-          "60-40": { "cumulative": 42834, "phase": 43224 },
-          "40-20": { "cumulative": 41682, "phase": 38578 },
-          "20-0": { "cumulative": 41658, "phase": 41658 }
+          "100-80": { "cumulative": 45222, "phase": 45222 },
+          "80-60": { "cumulative": 42652, "phase": 40323 },
+          "60-40": { "cumulative": 42845, "phase": 43236 },
+          "40-20": { "cumulative": 41692, "phase": 38585 },
+          "20-0": { "cumulative": 41668, "phase": 41668 }
         }
       },
       {
         "label": "Power (Rifle - Double Helix)",
         "build": "data/gw2/builds/engineer/b-power-amalgam-rifle-double-helix.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-rifle-double-helix-bench.json",
-        "benchmarkDps": 42424,
+        "benchmarkDps": 42437,
         "upToDate": true,
         "benchmarkApm": 121.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 45639, "phase": 45639 },
-          "80-60": { "cumulative": 44042, "phase": 42470 },
-          "60-40": { "cumulative": 43517, "phase": 42513 },
-          "40-20": { "cumulative": 42479, "phase": 39622 },
-          "20-0": { "cumulative": 42424, "phase": 42424 }
+          "100-80": { "cumulative": 45651, "phase": 45651 },
+          "80-60": { "cumulative": 44054, "phase": 42482 },
+          "60-40": { "cumulative": 43531, "phase": 42530 },
+          "40-20": { "cumulative": 42491, "phase": 39633 },
+          "20-0": { "cumulative": 42437, "phase": 42437 }
         }
       },
       {
@@ -89,15 +89,15 @@
         "build": "data/gw2/builds/engineer/b-power-alac-amalgam-hammer-silver-lining.json",
         "rotation": "data/gw2/rotations/engineer/r-power-alac-amalgam-hammer-silver-lining-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-alacrity-amalgam-hammer",
-        "benchmarkDps": 35092,
+        "benchmarkDps": 35101,
         "upToDate": true,
         "benchmarkApm": 90.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 37971, "phase": 37971 },
-          "80-60": { "cumulative": 36130, "phase": 34434 },
-          "60-40": { "cumulative": 35044, "phase": 33077 },
-          "40-20": { "cumulative": 34999, "phase": 34866 },
-          "20-0": { "cumulative": 35092, "phase": 35092 }
+          "100-80": { "cumulative": 37981, "phase": 37981 },
+          "80-60": { "cumulative": 36138, "phase": 34440 },
+          "60-40": { "cumulative": 35002, "phase": 32925 },
+          "40-20": { "cumulative": 35008, "phase": 35026 },
+          "20-0": { "cumulative": 35101, "phase": 35101 }
         }
       },
       {
@@ -105,45 +105,45 @@
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-alacrity-amalgam-two-kits-spear",
-        "benchmarkDps": 35298,
+        "benchmarkDps": 35302,
         "upToDate": true,
         "benchmarkApm": 113.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 34874, "phase": 34874 },
-          "80-60": { "cumulative": 35573, "phase": 36291 },
-          "60-40": { "cumulative": 35709, "phase": 35989 },
-          "40-20": { "cumulative": 35922, "phase": 36571 },
-          "20-0": { "cumulative": 35298, "phase": 35298 }
+          "100-80": { "cumulative": 34880, "phase": 34880 },
+          "80-60": { "cumulative": 35578, "phase": 36295 },
+          "60-40": { "cumulative": 35714, "phase": 35992 },
+          "40-20": { "cumulative": 35927, "phase": 36576 },
+          "20-0": { "cumulative": 35302, "phase": 35302 }
         }
       },
       {
         "label": "Condition Alacrity (Pistol / Pistol - Tools)",
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-pistol-pistol-tools.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-pistol-pistol-tools-bench.json",
-        "benchmarkDps": 37595,
+        "benchmarkDps": 37607,
         "upToDate": true,
         "benchmarkApm": 110.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35789, "phase": 35789 },
-          "80-60": { "cumulative": 38038, "phase": 40560 },
-          "60-40": { "cumulative": 37688, "phase": 37020 },
-          "40-20": { "cumulative": 37931, "phase": 38708 },
-          "20-0": { "cumulative": 37595, "phase": 37595 }
+          "100-80": { "cumulative": 35799, "phase": 35799 },
+          "80-60": { "cumulative": 38051, "phase": 40575 },
+          "60-40": { "cumulative": 37701, "phase": 37034 },
+          "40-20": { "cumulative": 37945, "phase": 38726 },
+          "20-0": { "cumulative": 37607, "phase": 37607 }
         }
       },
       {
         "label": "Condition Alacrity (Pistol / Pistol - 3 Kits)",
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-pistol-pistol-3kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-pistol-pistol-3kit-bench.json",
-        "benchmarkDps": 36782,
+        "benchmarkDps": 36791,
         "upToDate": true,
         "benchmarkApm": 121.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38216, "phase": 38216 },
-          "80-60": { "cumulative": 37043, "phase": 35924 },
-          "60-40": { "cumulative": 36865, "phase": 36517 },
-          "40-20": { "cumulative": 36601, "phase": 35819 },
-          "20-0": { "cumulative": 36782, "phase": 36782 }
+          "100-80": { "cumulative": 38224, "phase": 38224 },
+          "80-60": { "cumulative": 37053, "phase": 35936 },
+          "60-40": { "cumulative": 36873, "phase": 36521 },
+          "40-20": { "cumulative": 36609, "phase": 35829 },
+          "20-0": { "cumulative": 36791, "phase": 36791 }
         }
       },
       {
@@ -151,15 +151,15 @@
         "build": "data/gw2/builds/engineer/b-condi-amalgam-3kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-amalgam-3kit-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-amalgam-three-kits-spear",
-        "benchmarkDps": 42853,
+        "benchmarkDps": 42861,
         "upToDate": true,
         "benchmarkApm": 132.8,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 49915, "phase": 49915 },
-          "80-60": { "cumulative": 42300, "phase": 36761 },
-          "60-40": { "cumulative": 44396, "phase": 49373 },
-          "40-20": { "cumulative": 42410, "phase": 37304 },
-          "20-0": { "cumulative": 42853, "phase": 42853 }
+          "80-60": { "cumulative": 42306, "phase": 36772 },
+          "60-40": { "cumulative": 44404, "phase": 49386 },
+          "40-20": { "cumulative": 42416, "phase": 37306 },
+          "20-0": { "cumulative": 42861, "phase": 42861 }
         }
       },
       {
@@ -168,13 +168,13 @@
         "rotation": "data/gw2/rotations/engineer/r-condi-amalgam-steamshrieker-spear-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-amalgam-steamshrieker-spear",
         "upToDate": true,
-        "benchmarkDps": 41933,
+        "benchmarkDps": 41936,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44975, "phase": 44975 },
-          "80-60": { "cumulative": 40878, "phase": 37359 },
-          "60-40": { "cumulative": 42453, "phase": 46013 },
-          "40-20": { "cumulative": 41713, "phase": 39713 },
-          "20-0": { "cumulative": 41933, "phase": 41933 }
+          "100-80": { "cumulative": 44970, "phase": 44970 },
+          "80-60": { "cumulative": 40881, "phase": 37370 },
+          "60-40": { "cumulative": 42459, "phase": 46023 },
+          "40-20": { "cumulative": 41718, "phase": 39716 },
+          "20-0": { "cumulative": 41936, "phase": 41936 }
         },
         "benchmarkApm": 138.1
       },
@@ -184,13 +184,13 @@
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-steamshrieker-spear-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-alacrity-amalgam-steamshrieker-spear",
         "upToDate": true,
-        "benchmarkDps": 37505,
+        "benchmarkDps": 37512,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 34524, "phase": 34524 },
-          "80-60": { "cumulative": 36533, "phase": 38733 },
-          "60-40": { "cumulative": 37117, "phase": 38392 },
-          "40-20": { "cumulative": 37444, "phase": 38451 },
-          "20-0": { "cumulative": 37505, "phase": 37753 }
+          "100-80": { "cumulative": 34530, "phase": 34530 },
+          "80-60": { "cumulative": 36539, "phase": 38740 },
+          "60-40": { "cumulative": 37122, "phase": 38393 },
+          "40-20": { "cumulative": 37450, "phase": 38462 },
+          "20-0": { "cumulative": 37512, "phase": 37761 }
         },
         "benchmarkApm": 136.1
       }
@@ -204,30 +204,30 @@
         "build": "data/gw2/builds/engineer/b-condi-holosmith-pistol-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-holosmith-pistol-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-holosmith-pistol-pistol",
-        "benchmarkDps": 43113,
+        "benchmarkDps": 43129,
         "upToDate": true,
         "benchmarkApm": 109.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44406, "phase": 44406 },
-          "80-60": { "cumulative": 43106, "phase": 41873 },
-          "60-40": { "cumulative": 42717, "phase": 41962 },
-          "40-20": { "cumulative": 43742, "phase": 47115 },
-          "20-0": { "cumulative": 43113, "phase": 40735 }
+          "100-80": { "cumulative": 44415, "phase": 44415 },
+          "80-60": { "cumulative": 43116, "phase": 41886 },
+          "60-40": { "cumulative": 42734, "phase": 41989 },
+          "40-20": { "cumulative": 43755, "phase": 47120 },
+          "20-0": { "cumulative": 43129, "phase": 40758 }
         }
       },
       {
         "label": "Condition (Pistol / Pistol - Tools TRV)",
         "build": "data/gw2/builds/engineer/b-condi-holosmith-pistol-pistol-tools-trv.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-holosmith-pistol-pistol-tools-trv-bench.json",
-        "benchmarkDps": 36858,
+        "benchmarkDps": 36870,
         "upToDate": true,
         "benchmarkApm": 94.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35766, "phase": 35766 },
-          "80-60": { "cumulative": 36517, "phase": 37340 },
-          "60-40": { "cumulative": 36639, "phase": 36895 },
-          "40-20": { "cumulative": 37127, "phase": 38635 },
-          "20-0": { "cumulative": 36858, "phase": 36858 }
+          "100-80": { "cumulative": 35772, "phase": 35772 },
+          "80-60": { "cumulative": 36527, "phase": 37355 },
+          "60-40": { "cumulative": 36650, "phase": 36906 },
+          "40-20": { "cumulative": 37138, "phase": 38650 },
+          "20-0": { "cumulative": 36870, "phase": 36870 }
         }
       },
       {
@@ -235,15 +235,15 @@
         "build": "data/gw2/builds/engineer/b-power-holosmith-sword-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-power-holosmith-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-holosmith-sword-pistol",
-        "benchmarkDps": 41620,
+        "benchmarkDps": 41624,
         "upToDate": true,
         "benchmarkApm": 96.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43302, "phase": 43302 },
-          "80-60": { "cumulative": 41272, "phase": 39435 },
-          "60-40": { "cumulative": 39904, "phase": 37410 },
-          "40-20": { "cumulative": 40953, "phase": 44480 },
-          "20-0": { "cumulative": 41620, "phase": 44522 }
+          "100-80": { "cumulative": 43308, "phase": 43308 },
+          "80-60": { "cumulative": 41277, "phase": 39438 },
+          "60-40": { "cumulative": 39908, "phase": 37413 },
+          "40-20": { "cumulative": 40958, "phase": 44486 },
+          "20-0": { "cumulative": 41624, "phase": 44526 }
         }
       }
     ]
@@ -255,32 +255,32 @@
         "label": "Condition Spear (1 Kit)",
         "build": "data/gw2/builds/engineer/b-condi-mechanist-spear-1kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-mechanist-spear-1kit-bench.json",
-        "benchmarkDps": 40559,
+        "benchmarkDps": 40545,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-mechanist-one-kit-spear",
         "benchmarkApm": 86.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38612, "phase": 38612 },
-          "80-60": { "cumulative": 39468, "phase": 40366 },
-          "60-40": { "cumulative": 39823, "phase": 40590 },
-          "40-20": { "cumulative": 40325, "phase": 41908 },
-          "20-0": { "cumulative": 40559, "phase": 41534 }
+          "100-80": { "cumulative": 38626, "phase": 38626 },
+          "80-60": { "cumulative": 39483, "phase": 40383 },
+          "60-40": { "cumulative": 39839, "phase": 40608 },
+          "40-20": { "cumulative": 40338, "phase": 41911 },
+          "20-0": { "cumulative": 40545, "phase": 41409 }
         }
       },
       {
         "label": "Condition Alacrity Spear (1 Kit)",
         "build": "data/gw2/builds/engineer/b-condi-alac-mechanist-spear.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-mechanist-spear-wingman.json",
-        "benchmarkDps": 30021,
+        "benchmarkDps": 30029,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-alacrity-mechanist-one-kit-spear",
         "benchmarkApm": 79.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 29457, "phase": 29457 },
-          "80-60": { "cumulative": 29762, "phase": 30076 },
-          "60-40": { "cumulative": 30184, "phase": 31058 },
-          "40-20": { "cumulative": 30039, "phase": 29605 },
-          "20-0": { "cumulative": 30021, "phase": 29948 }
+          "100-80": { "cumulative": 29466, "phase": 29466 },
+          "80-60": { "cumulative": 29770, "phase": 30084 },
+          "60-40": { "cumulative": 30192, "phase": 31065 },
+          "40-20": { "cumulative": 30102, "phase": 29831 },
+          "20-0": { "cumulative": 30029, "phase": 29742 }
         }
       },
       {
@@ -288,15 +288,15 @@
         "build": "data/gw2/builds/engineer/b-power-mechanist-sword-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-mechanist-sword-pistol",
-        "benchmarkDps": 40819,
+        "benchmarkDps": 40822,
         "upToDate": true,
         "benchmarkApm": 58.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42510, "phase": 42510 },
-          "80-60": { "cumulative": 41495, "phase": 40523 },
-          "60-40": { "cumulative": 40469, "phase": 38567 },
-          "40-20": { "cumulative": 40509, "phase": 40630 },
-          "20-0": { "cumulative": 40819, "phase": 40819 }
+          "100-80": { "cumulative": 42514, "phase": 42514 },
+          "80-60": { "cumulative": 41498, "phase": 40525 },
+          "60-40": { "cumulative": 40472, "phase": 38570 },
+          "40-20": { "cumulative": 40512, "phase": 40634 },
+          "20-0": { "cumulative": 40822, "phase": 40822 }
         }
       },
       {
@@ -304,15 +304,15 @@
         "build": "data/gw2/builds/engineer/b-power-mechanist-rifle.json",
         "rotation": "data/gw2/rotations/engineer/r-power-mechanist-rifle-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-mechanist-rifle",
-        "benchmarkDps": 41154,
+        "benchmarkDps": 41157,
         "upToDate": true,
         "benchmarkApm": 91.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40857, "phase": 40857 },
-          "80-60": { "cumulative": 40548, "phase": 40241 },
-          "60-40": { "cumulative": 40659, "phase": 40883 },
-          "40-20": { "cumulative": 40901, "phase": 41642 },
-          "20-0": { "cumulative": 41154, "phase": 42196 }
+          "100-80": { "cumulative": 40859, "phase": 40859 },
+          "80-60": { "cumulative": 40551, "phase": 40244 },
+          "60-40": { "cumulative": 40662, "phase": 40887 },
+          "40-20": { "cumulative": 40904, "phase": 41645 },
+          "20-0": { "cumulative": 41157, "phase": 42200 }
         }
       }
     ]
@@ -325,15 +325,15 @@
         "build": "data/gw2/builds/engineer/b-condi-quick-scrapper-spear.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-quick-scrapper-spear-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-quickness-scrapper-spear",
-        "benchmarkDps": 33803,
+        "benchmarkDps": 33814,
         "upToDate": true,
         "benchmarkApm": 134.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 31414, "phase": 31414 },
-          "80-60": { "cumulative": 32957, "phase": 34702 },
-          "60-40": { "cumulative": 32906, "phase": 32800 },
-          "40-20": { "cumulative": 33605, "phase": 35926 },
-          "20-0": { "cumulative": 33803, "phase": 34622 }
+          "100-80": { "cumulative": 31422, "phase": 31422 },
+          "80-60": { "cumulative": 32522, "phase": 33779 },
+          "60-40": { "cumulative": 32916, "phase": 33710 },
+          "40-20": { "cumulative": 33616, "phase": 35939 },
+          "20-0": { "cumulative": 33814, "phase": 34632 }
         }
       },
       {
@@ -341,15 +341,15 @@
         "build": "data/gw2/builds/engineer/b-power-scrapper-hammer.json",
         "rotation": "data/gw2/rotations/engineer/r-power-scrapper-hammer-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-scrapper-hammer",
-        "benchmarkDps": 40952,
+        "benchmarkDps": 40954,
         "upToDate": true,
         "benchmarkApm": 107.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44982, "phase": 44982 },
-          "80-60": { "cumulative": 41584, "phase": 38542 },
-          "60-40": { "cumulative": 40943, "phase": 39724 },
-          "40-20": { "cumulative": 40748, "phase": 40178 },
-          "20-0": { "cumulative": 40952, "phase": 40952 }
+          "100-80": { "cumulative": 44984, "phase": 44984 },
+          "80-60": { "cumulative": 41586, "phase": 38544 },
+          "60-40": { "cumulative": 40945, "phase": 39726 },
+          "40-20": { "cumulative": 40750, "phase": 40180 },
+          "20-0": { "cumulative": 40954, "phase": 40954 }
         }
       }
     ]

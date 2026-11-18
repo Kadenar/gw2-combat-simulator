@@ -1,4 +1,5 @@
 /** Own instrument commitments, playing windows, preview state, and scheduled performance work. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR } from '#gw2/platform/constants.js';
@@ -47,7 +48,6 @@ import {
 import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerInstrument, MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Resolve selected instrument tuning for the performance handlers that consume it. */
 function mesmerInstruments(context: MesmerRuntime) {
@@ -61,8 +61,7 @@ function mesmerInstruments(context: MesmerRuntime) {
 
 /** Lists one hit per native packet; Harp's damageless pulse still hits foes once at its impact. */
 function instrumentHits(data: MesmerInstrument, damageAt: number): MesmerShatterTraitHit[] {
-  if (data.ticks?.length)
-    return data.ticks.map((tick) => ({ at: canonicalTime(damageAt + tick.atMs / 1000), count: 1 }));
+  if (data.ticks?.length) return data.ticks.map((tick) => ({ at: gw2Time(damageAt + tick.atMs / 1000), count: 1 }));
 
   return [{ at: damageAt, count: Math.max(1, Math.trunc(Number(data.hits) || 0)) }];
 }
@@ -204,7 +203,7 @@ function commitInstrument(
   at: number,
   delivery: EffectDelivery = {}
 ): void {
-  at = canonicalTime(at);
+  at = gw2Time(at);
   const spent = consumeMesmerResources(context, at, {
     activationId: cast.id
   });
@@ -212,7 +211,7 @@ function commitInstrument(
   const baseDuration = balanceProfileNumber(instrumentsProfile, 'baseDuration');
   const durationPerNote = balanceProfileNumber(instrumentsProfile, 'durationPerTier');
   // Playing windows are exact and replace only the matching instrument, without action-tick rounding.
-  const expiresAt = canonicalTime(at + baseDuration + spent * durationPerNote);
+  const expiresAt = gw2Time(at + baseDuration + spent * durationPerNote);
   const state = troubadourState.from(context.profession);
   state.lastInstrument = data.instrument;
   startTroubadourInstrument(context, data.instrument, at, expiresAt, delivery);
@@ -246,7 +245,7 @@ export function resolveCrescendo(
   at: number,
   delivery: EffectDelivery = {}
 ): void {
-  const damageAt = canonicalTime(cast.start + (skill.damageAtMs ?? 0) / 1000);
+  const damageAt = gw2Time(cast.start + (skill.damageAtMs ?? 0) / 1000);
   const activeInstruments = playingTroubadourInstruments(context.facts, damageAt);
   const strike = requireEffect(skill, 'strike', 'Strike', requireSkillAction(skill, 'crescendo'));
   // Fragmentation replaces Crescendo's per-instrument effectiveness with the trait's improved value.

@@ -1,5 +1,6 @@
 /** Shared execution owns recharge work and magazine identity; availability is derived without a second ammo deadline. */
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import type {
@@ -12,7 +13,6 @@ import type {
   RechargeWorkSnapshot
 } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { projectWorkCompletion, type RateInterval } from '#kernel/core/rate-intervals.js';
 
@@ -92,7 +92,7 @@ export function createCooldownController({
       progress,
       rechargeIntervals(skill, progress.workAnchorAt, Infinity, progress.companionId)
     );
-    return Number.isFinite(deadline) ? canonicalTime(deadline) : deadline;
+    return Number.isFinite(deadline) ? gw2Time(deadline) : deadline;
   };
 
   const workTimer = (skill: Skill, progress: RechargeProgress): RechargeTimer => ({
@@ -118,7 +118,7 @@ export function createCooldownController({
 
   const fixedTimer = (readyAt: number): RechargeTimer => ({
     kind: 'fixed',
-    readyAt: Number.isFinite(readyAt) ? canonicalTime(readyAt) : readyAt
+    readyAt: Number.isFinite(readyAt) ? gw2Time(readyAt) : readyAt
   });
   const setReadyAt = (id: SkillId, readyAt: number): void => {
     timers.set(id, fixedTimer(readyAt));
@@ -306,7 +306,7 @@ export function createCooldownController({
     ...(progress.companionId == null ? {} : { companionId: progress.companionId })
   });
   const restoreWork = (snapshot: RechargeWorkSnapshot, at: number): RechargeProgress => ({
-    workAnchorAt: at + snapshot.startDelay,
+    workAnchorAt: gw2Time(at + snapshot.startDelay),
     work: snapshot.work,
     ...(snapshot.companionId == null ? {} : { companionId: snapshot.companionId })
   });

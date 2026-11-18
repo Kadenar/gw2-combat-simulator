@@ -42,7 +42,7 @@ test('internal work validates its boundary and dispatches renewed owners without
   while (queue.peek()) handlers.dispatch(queue.dequeue(), state);
   assert.equal(state.resource, 7);
   assert.throws(() => create({ ...input, type: 'missing' }), /handler registered/);
-  assert.throws(() => create({ ...input, at: Infinity }), /microseconds/);
+  assert.throws(() => create({ ...input, at: Infinity }), /finite/);
   assert.throws(() => create({ ...input, priority: NaN }), /priority/);
   assert.throws(() => create({ ...input, timing: 'buffs' }), /named task/);
   assert.throws(() => create({ ...input, payload: { callback() {} } }), /serializable/);

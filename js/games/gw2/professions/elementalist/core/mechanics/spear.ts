@@ -1,4 +1,5 @@
 /** Owns spear etchings, recharge entitlements, and empowerment snapshots for casts and Fulgor sequences. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -19,7 +20,6 @@ import type {
   ElementalistSimulationEvent,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { advanceCounter } from '#kernel/resources/counters.js';
 
 /** Etchings always unlock their full release after three credits, including completed overload grants. */
@@ -151,7 +151,7 @@ export function elementalistEtchingSkillVisible(
 
 /** Opening records the selected root's field window for both release stages. */
 export function openElementalistEtching(context: ElementalistRuntime, skill: ElementalistSkill): void {
-  const expiresAt = context.time + Number(skill.comboFields?.[0]?.duration ?? 0);
+  const expiresAt = gw2Time(context.time + Number(skill.comboFields?.[0]?.duration ?? 0));
   professionCoreState(context.profession).etchings[skill.name] = { stage: 'lesser', otherCasts: 0, expiresAt };
   context.schedule('elementalist.etching-expire', expiresAt, null);
 }
@@ -305,7 +305,7 @@ function replaceFulgor(
   context.cancelOwner(FULGOR_OWNER);
   const packets: ElementalistSimulationEvent[] = pulse.ticks.map((tick) => ({
     type: 'damage',
-    at: canonicalTime(Math.max(context.time, cast.start + tick.atMs / 1000)),
+    at: gw2Time(Math.max(context.time, cast.start + tick.atMs / 1000)),
     source: cast.skill.name,
     sourceId: cast.skill.id,
     actorType: ACTOR.EFFECT,

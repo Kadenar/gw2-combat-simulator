@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
@@ -28,7 +30,7 @@ export const specterHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       if (context.kind === 'cast') completeSiphon(runtime, context.cast);
     },
     'thief.enter-shadow-shroud'(runtime, context) {
-      specterState.from(runtime.profession).shadowShroudExitReadyAt = runtime.time + 0.5;
+      specterState.from(runtime.profession).shadowShroudExitReadyAt = gw2Time(runtime.time + 0.5);
       setShadowShroud(runtime, true, context.skill);
     },
     'thief.exit-shadow-shroud'(runtime, context) {

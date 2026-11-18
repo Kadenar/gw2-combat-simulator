@@ -137,7 +137,7 @@ test('Vicious Empowerment gates both accepted inputs and shares one strict coold
       const active = selected && traitTriggers;
       assert.equal(buffs(result, TRAIT.VICIOUS_EMPOWERMENT).length, active ? 4 : 0);
       assert.equal(catalystState.from(runtime.profession).elementalEmpowermentExpiries.length, active ? 4 : 0);
-      assert.equal(runtime.procs.deadline('elementalist.catalyst.viciousEmpowerment'), active ? 1.55 : 0);
+      assert.equal(runtime.procs.deadline('elementalist.catalyst.viciousEmpowerment'), active ? 1.6 : 0);
     }
   }
 });
@@ -206,7 +206,7 @@ test('Catalyst removed combo and control payloads still consume their admitted c
   assert.equal(runtime.profession.core.activeAuras.length, 0);
   assert.equal(runtime.procs.deadline('elementalist.catalyst.elementalEpitome:Fire'), 11);
   assert.equal(runtime.procs.deadline('elementalist.catalyst.elementalSynergy:Fire'), 11);
-  assert.equal(runtime.procs.deadline('elementalist.catalyst.viciousEmpowerment'), 1.25);
+  assert.equal(runtime.procs.deadline('elementalist.catalyst.viciousEmpowerment'), 1.28);
 });
 
 test('Elemental Empowerment starts only one selected and enabled renewal loop', () => {

@@ -1,4 +1,5 @@
 /** Tales own their accepted instrument eligibility while the instrument owner interprets committed windows. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
@@ -14,7 +15,6 @@ import { startTroubadourInstrument } from '#gw2/professions/mesmer/specializatio
 import { troubadourTaleResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 interface TroubadourTaleInvocation {
   readonly context: MesmerRuntime;
@@ -73,7 +73,7 @@ const troubadourTaleActions: NonNullable<RuntimeHooks<MesmerRuntimeState, Mesmer
     const playing = playingTroubadourInstruments(runtime.facts, at).size;
     const duration =
       skillNumber(context.skill, 'baseDuration') + playing * skillNumber(context.skill, 'durationPerTier');
-    const expiresAt = canonicalTime(at + duration);
+    const expiresAt = gw2Time(at + duration);
     const instruments = new Set(
       Object.values(MESMER_TROUBADOUR_INSTRUMENTS).map((instrument) => instrument.instrument)
     );

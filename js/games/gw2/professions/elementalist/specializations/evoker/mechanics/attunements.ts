@@ -4,6 +4,7 @@
  * With Specialized Elements, swapping is disabled. Empowered familiar casts instead trigger entry effects
  * without changing the attunement.
  */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -81,20 +82,22 @@ export function applyEvokerAttunementRechargePolicy(
   for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
     if (attunement === target || attunement === previous) continue;
 
-    const defaultReadyAt =
+    const defaultReadyAt = gw2Time(
       transition.at +
-      elementalistAttunementRechargeDuration(
-        context,
-        skill,
-        balanceNumber(context.helpers, EVOKER_TRAIT.EVOCATION, 'recharge')
-      );
+        elementalistAttunementRechargeDuration(
+          context,
+          skill,
+          balanceNumber(context.helpers, EVOKER_TRAIT.EVOCATION, 'recharge')
+        )
+    );
     const existingReadyAt = readyAtBefore[attunement];
     const preservedRemaining = Math.max(0, existingReadyAt - transition.at);
     // if the attunement already had less time left than the new default, keep the shorter timer
-    const nextReadyAt =
+    const nextReadyAt = gw2Time(
       preservedRemaining > 0 && preservedRemaining < defaultReadyAt - transition.at
         ? transition.at + preservedRemaining
-        : Math.max(existingReadyAt, defaultReadyAt);
+        : Math.max(existingReadyAt, defaultReadyAt)
+    );
     setElementalistAttunementReadyAt(context, attunement, nextReadyAt);
   }
 }

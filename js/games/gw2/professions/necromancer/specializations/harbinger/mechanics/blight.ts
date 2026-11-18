@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -22,7 +23,7 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalInterval, canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { canonicalInterval, timeKey } from '#kernel/core/clock.js';
 
 const BLIGHT = 'harbinger.blight-clock';
 const BLIGHT_EXPIRY = 'harbinger.blight-expiry';
@@ -33,9 +34,10 @@ function nextBlightAt(runtime: NecromancerRuntime): number {
 
   if (cadence <= 0) return Infinity;
 
+  // Keep the authored rate; only the resulting delivery deadline rounds to the game grid.
   const interval = canonicalInterval(cadence);
   const next = Math.floor(timeKey(runtime.time) / timeKey(interval)) + 1;
-  return canonicalTime(next * interval);
+  return gw2Time(next * interval);
 }
 
 /** One replaceable wake owns only actual Blight accrual and stack expiry. */

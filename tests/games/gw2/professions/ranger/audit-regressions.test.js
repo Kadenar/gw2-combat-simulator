@@ -430,7 +430,7 @@ test('Soulbeast control declarations preserve ally recipients across both boons 
     },
     {
       initialize(runtime) {
-        for (const at of [1, 1.25, 1.251])
+        for (const at of [1, 1.25, 1.32])
           runtime.effects.emit({
             kind: 'packet',
             event: {
@@ -454,8 +454,8 @@ test('Soulbeast control declarations preserve ally recipients across both boons 
     [
       [1, 'might'],
       [1, 'fury'],
-      [1.251, 'might'],
-      [1.251, 'fury']
+      [1.32, 'might'],
+      [1.32, 'fury']
     ]
   );
   for (const event of rewards) {

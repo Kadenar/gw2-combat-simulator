@@ -101,8 +101,8 @@ test('result summary includes explicit wait shapes in total idle time', () => {
 test('result summary details legitimate gaps and groups repeated missing-commit cancellations', () => {
   // Canonical action events carry the cancellation outcomes represented by the timeline steps below.
   const actions = [
-    { activationId: 'cast:2', at: 0.3, endsAt: 0.7 },
-    { activationId: 'cast:3', at: 0.7, endsAt: 0.8 }
+    { activationId: 'cast:2', at: 0.32, endsAt: 0.72 },
+    { activationId: 'cast:3', at: 0.72, endsAt: 0.8 }
   ].map((event) => ({
     type: 'action',
     actorType: 'player',
@@ -126,14 +126,14 @@ test('result summary details legitimate gaps and groups repeated missing-commit 
           rotationCommandIndex: 0,
           skillName: 'Opening Skill',
           start: 0,
-          end: 100,
+          end: 120,
           activationId: 'cast:1'
         },
         {
           rotationCommandIndex: 1,
           skillName: 'Interrupted Skill',
-          start: 300,
-          end: 700,
+          start: 320,
+          end: 720,
           activationId: 'cast:2',
           interrupted: true,
           missingInterruptCommit: true
@@ -141,7 +141,7 @@ test('result summary details legitimate gaps and groups repeated missing-commit 
         {
           rotationCommandIndex: 2,
           skillName: 'Interrupted Skill',
-          start: 700,
+          start: 720,
           end: 800,
           activationId: 'cast:3',
           interrupted: true,
@@ -154,11 +154,11 @@ test('result summary details legitimate gaps and groups repeated missing-commit 
 
   assert.deepEqual(metrics[1], {
     label: 'Total Idle Time',
-    value: '700ms',
+    value: '680ms',
     className: 'idle-time',
     details: [
       { label: 'Idle time between skills', value: '200ms' },
-      { label: "Cancelled cast 'Interrupted Skill' (2 casts)", value: '500ms' }
+      { label: "Cancelled cast 'Interrupted Skill' (2 casts)", value: '480ms' }
     ]
   });
 });
@@ -209,7 +209,7 @@ test('Combat Start is timeline zero while DPS waits for the first subsequent hit
     defaultSimulationConfig()
   );
 
-  assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.700s');
+  assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.720s');
   assert.equal(
     formatResultTimelineTime(result.events.find((event) => event.type === 'combat_start').at * 1000, result),
     '0.000s'
@@ -269,8 +269,8 @@ test('a delayed Combat Start suppresses earlier damage without moving display ze
     })
   );
 
-  assert.equal(result.events.find((event) => event.type === 'combat_start').at * 1000, 500);
-  assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.500s');
+  assert.equal(result.events.find((event) => event.type === 'combat_start').at * 1000, 520);
+  assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.520s');
   assert.equal(
     formatResultTimelineTime(result.events.find((event) => event.type === 'combat_start').at * 1000, result),
     '0.000s'
@@ -297,10 +297,10 @@ test('event log timestamps use the same explicit Combat Start origin as rotation
   const combatStart = log.find((event) => event.description === 'COMBAT START');
   const counterspellStart = log.find((event) => event.description.startsWith('CAST Counterspell'));
 
-  assert.equal(duelistStart.at, -0.5);
+  assert.equal(duelistStart.at, -0.52);
   assert.equal(combatStart.at, 0);
-  assert.ok(Math.abs(counterspellStart.at - 0.18) < 1e-12);
-  assert.match(eventLogCsv(log), /"-0\.500","cast"/);
+  assert.ok(Math.abs(counterspellStart.at - 0.16) < 1e-12);
+  assert.match(eventLogCsv(log), /"-0\.520","cast"/);
   assert.match(eventLogCsv(log), /"0\.000","combat_start","COMBAT START"/);
 });
 

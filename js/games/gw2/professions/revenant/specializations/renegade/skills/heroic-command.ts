@@ -1,5 +1,8 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { balanceProfileNumber, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
@@ -24,7 +27,7 @@ export function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast<Revena
   );
   const duration = Math.max(0, effectNumber(profile, fervor, 'duration'));
   for (const application of state.kallasFervor)
-    if (application.at <= runtime.time) application.expiresAt = runtime.time + duration;
+    if (application.at <= runtime.time) application.expiresAt = gw2Time(runtime.time + duration);
   const stacks = activeKallasFervorStacks(state, runtime.time, maximum);
 
   if (!stacks) return;

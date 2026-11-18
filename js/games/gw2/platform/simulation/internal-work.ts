@@ -1,5 +1,5 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { InternalWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { cloneData } from '#kernel/core/clone.js';
 import type { HandlerRegistry } from '#kernel/events/handler-registry.js';
 
@@ -10,7 +10,9 @@ export function createInternalWorkFactory<TWork extends InternalWork>(
   return (input) => {
     if (!handlers.has(input.type)) throw new TypeError(`No internal work handler registered for ${input.type}.`);
 
-    const at = canonicalTime(input.at);
+    const at = gw2Time(input.at);
+
+    if (!Number.isFinite(at)) throw new RangeError('Internal work time must be finite.');
 
     if (!Number.isFinite(input.priority)) throw new RangeError('Internal work priority must be finite.');
 

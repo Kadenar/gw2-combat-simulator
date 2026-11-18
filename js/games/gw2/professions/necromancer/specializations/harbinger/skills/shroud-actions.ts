@@ -1,4 +1,5 @@
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -11,7 +12,6 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const MOVEMENT = 'harbinger.movement-impact';
 
@@ -41,9 +41,7 @@ const harbingerShroudActions = {
       throw new TypeError('Movement launch requires progress.');
 
     const progress = sideEffectAmount(runtime, action.amount);
-    const at = canonicalTime(
-      cast.start + quantizeGw2ActionTimingMs((cast.fullEnd - cast.start) * progress * 1000) / 1000
-    );
+    const at = gw2Time(cast.start + quantizeGw2ActionTimingMs((cast.fullEnd - cast.start) * progress * 1000) / 1000);
 
     // A committed movement cast keeps its delayed payload and Blight spend after interruption.
     if (!cast.cancelledBeforeCommit || at <= cast.effectiveEnd) runtime.scheduleForCast(MOVEMENT, at, cast);

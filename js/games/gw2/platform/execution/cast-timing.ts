@@ -1,8 +1,8 @@
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { effectTicks, type SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Skill, SkillTask } from '#gw2/platform/skills/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Quickness increases action rate by 50%, so duration is divided by 1.5. */
 export const GW2_QUICKNESS_ACTION_RATE = 1.5;
@@ -18,7 +18,7 @@ export function castWasInterrupted(cast: Gw2CastEndTimes): boolean {
   return (
     Number.isFinite(cast.effectiveEnd) &&
     Number.isFinite(cast.fullEnd) &&
-    canonicalTime(cast.effectiveEnd) < canonicalTime(cast.fullEnd)
+    gw2Time(cast.effectiveEnd) < gw2Time(cast.fullEnd)
   );
 }
 
@@ -27,7 +27,7 @@ export function castReachedFullDuration(cast: Gw2CastEndTimes): boolean {
   return (
     Number.isFinite(cast.effectiveEnd) &&
     Number.isFinite(cast.fullEnd) &&
-    canonicalTime(cast.effectiveEnd) >= canonicalTime(cast.fullEnd)
+    gw2Time(cast.effectiveEnd) >= gw2Time(cast.fullEnd)
   );
 }
 
@@ -40,7 +40,7 @@ export function retainsInterruptedCastLockout(
 
   return (
     skill.interruptLockoutReleaseMs == null ||
-    canonicalTime(cast.effectiveEnd) < canonicalTime(cast.start + skill.interruptLockoutReleaseMs / 1000)
+    gw2Time(cast.effectiveEnd) < gw2Time(cast.start + skill.interruptLockoutReleaseMs / 1000)
   );
 }
 
@@ -137,5 +137,5 @@ export function skillTaskAt(cast: RuntimeCast, taskDefinition: SkillTask, now: n
       : taskDefinition.timingAnchor === 'castCommit'
         ? cast.effectiveEnd
         : cast.fullEnd;
-  return canonicalTime(Math.max(now, origin + ((taskDefinition.atMs ?? 0) * scale) / 1000));
+  return gw2Time(Math.max(now, origin + ((taskDefinition.atMs ?? 0) * scale) / 1000));
 }

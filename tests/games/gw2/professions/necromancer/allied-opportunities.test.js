@@ -65,7 +65,7 @@ test('Taste for Blood retains its phase across grants and settles same-time oppo
   const result = run(options);
   assert.deepEqual(
     siphons(result).map((event) => event.at),
-    [0.5, 0.5, 1.5, 1.5]
+    [0.52, 0.52, 1.52, 1.52]
   );
   assert.deepEqual(grantsOf(result), { 'ally:1': [], 'ally:2': [] });
   assert.deepEqual(result.warnings, []);
@@ -130,7 +130,7 @@ test('Taste for Blood cannot borrow a sibling batch at its canonical expiry', ()
   for (const pool of Object.values(grantsOf(result))) {
     assert.deepEqual(
       pool.map(({ count, expiresAt }) => ({ count, expiresAt })),
-      [{ count: 1, expiresAt: 10.1 }]
+      [{ count: 1, expiresAt: 10.12 }]
     );
   }
 
@@ -145,8 +145,8 @@ test('Taste for Blood cannot borrow a sibling batch at its canonical expiry', ()
       .alliedStrikeController.pendingEffects()
       .map(({ at, cause }) => [at, cause.eventOrder]),
     [
-      [1.5, applications[1].eventOrder],
-      [1.5, applications[1].eventOrder]
+      [1.52, applications[1].eventOrder],
+      [1.52, applications[1].eventOrder]
     ]
   );
 });
@@ -166,19 +166,19 @@ test('Taste for Blood preserves explicit and implicit combat-start behavior', ()
   const started = run({ grants, combatStartTime: 2, end: 2.5 });
   assert.deepEqual(
     siphons(started).map((event) => event.at),
-    [2.5, 2.5]
+    [2.52, 2.52]
   );
   const implicit = run({ grants, combatStartTime: null, end: 0.5 });
   assert.deepEqual(
     siphons(implicit).map((event) => event.at),
-    [0.5, 0.5]
+    [0.52, 0.52]
   );
 });
 
 // The first lethal cohort can spend at its opportunity, but no later wake may consume surviving batches.
 test('Taste for Blood stops allied spending after target death', () => {
   const result = run({ grants: [{ at: 0, stacks: 3 }], health: 1 });
-  assert.equal(result.deathTime, 0.5);
+  assert.equal(result.deathTime, 0.52);
   assert.equal(grantsOf(result)['ally:1'][0].count, 2);
   assert.equal(grantsOf(result)['ally:2'][0].count, 2);
 });

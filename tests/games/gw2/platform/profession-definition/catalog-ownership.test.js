@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import {
   assembleNativeApplicationCatalog,
@@ -303,7 +304,7 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
     },
     handler: (_context, event, _details, application) => {
       // Claim the cooldown before emitting effects that could reenter this handler.
-      assert.equal(context.procs.deadline('fixture.cooldown'), event.at + 1);
+      assert.equal(context.procs.deadline('fixture.cooldown'), gw2Time(event.at + 1));
       // Discrete consumers apply every proc quantity returned by the shared kernel.
       state.procs += application.quantity;
     }

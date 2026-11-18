@@ -1,4 +1,5 @@
 /** Canonical Core mesmer skill definitions grouped by their GW2 owner. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, COMBO_FINISHER, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -9,7 +10,6 @@ import { axeCloneAttack } from '#gw2/professions/mesmer/core/skills/weapons/axe-
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 // The axe chain uses reviewed 440/520/720 ms activations to keep its completion packets aligned.
 export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<MesmerSkill>>> = {
@@ -201,7 +201,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
   {
     const delivery = mesmerCastDelivery(cast, skill);
     const axeClones = professionCoreState(state.profession).clones.filter(
-      (clone) => clone.weapon === WEAPON.AXE && canonicalTime(clone.createdAt) <= canonicalTime(castStart)
+      (clone) => clone.weapon === WEAPON.AXE && gw2Time(clone.createdAt) <= gw2Time(castStart)
     );
     for (const clone of axeClones) {
       const impactAt = at - 0.04;
@@ -264,7 +264,7 @@ export function completeAxesConfusion(state: MesmerRuntime, cast: RuntimeCast<Me
     const delivery = mesmerCastDelivery(cast, skill);
     // The non-Mirage variant adds one Confusion stack per cast-start clone; its declarative packet covers the player.
     const clones = professionCoreState(state.profession).clones.filter(
-      (clone) => canonicalTime(clone.createdAt) <= canonicalTime(castStart)
+      (clone) => gw2Time(clone.createdAt) <= gw2Time(castStart)
     );
 
     if (clones.length) {

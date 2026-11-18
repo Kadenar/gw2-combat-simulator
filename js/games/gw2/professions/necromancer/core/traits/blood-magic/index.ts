@@ -1,6 +1,7 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
@@ -32,7 +33,6 @@ import type {
   NecromancerRuntime,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { appendBatch, consumeBatchFromList } from '#kernel/resources/batch-list.js';
 import { activeBatchCount } from '#kernel/resources/batch.js';
 
@@ -356,7 +356,7 @@ function vampiricAuraActive(
   if (context.engagement.boundaryPending) return false;
 
   const firstPulse = (context.engagement.startTime ?? 0) + balanceProfileNumber(profile, 'auraPulseInterval') / 2;
-  return canonicalTime(at) >= canonicalTime(firstPulse);
+  return gw2Time(at) >= gw2Time(firstPulse);
 }
 
 function applyVampiricPresence(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
@@ -388,7 +388,7 @@ function claimVampiricPresence(
   at: number,
   profile: BalanceProfile
 ): boolean {
-  if (canonicalTime(at) < canonicalTime(context.procs.deadline(key))) return false;
+  if (gw2Time(at) < gw2Time(context.procs.deadline(key))) return false;
 
   context.procs.setDeadline(key, at + balanceProfileNumber(profile, 'cooldown'));
   return true;
@@ -415,8 +415,8 @@ function addTasteForBloodApplication(
   if (!(Number(event.duration) > 0)) return;
 
   const application: TasteForBloodGrant = {
-    ...createChargeGrant(Math.max(1, event.stacks ?? 1), canonicalTime(event.at + Math.max(0, event.duration || 0))),
-    at: canonicalTime(event.at),
+    ...createChargeGrant(Math.max(1, event.stacks ?? 1), gw2Time(event.at + Math.max(0, event.duration || 0))),
+    at: gw2Time(event.at),
     ...(cause === undefined ? {} : { cause })
   };
   grants[recipient] = appendBatch(grants[recipient] ?? [], application, event.at, {

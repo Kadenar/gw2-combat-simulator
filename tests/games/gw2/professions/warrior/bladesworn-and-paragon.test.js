@@ -480,8 +480,8 @@ test('Precombat Positive Flow survives an explicit combat start while base regen
   assert.deepEqual(precombat.warnings, []);
   assert.ok(Math.abs(precombat.planningState.profession[STATE.FLOW].value - 32) < 1e-9);
   for (const [atSeconds, value] of [
-    [8.49, '0 stacks'],
-    [8.5, '1 stack']
+    [8.48, '0 stacks'],
+    [8.52, '1 stack']
   ]) {
     const display = warriorProfession.ui
       .rotationStateSnapshot({
@@ -514,9 +514,9 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
     initialResource: 0
   });
 
-  // The 8.5 s observation includes regeneration through the 8.48 s tick.
-  assert.ok(Math.abs(stabilized.planningState.profession[STATE.FLOW].value - 48.96) < 1e-9);
-  assert.ok(Math.abs(unstabilized.planningState.profession[STATE.FLOW].value - 16.96) < 1e-9);
+  // The 8500 ms wait ends on the 8.52 s tick.
+  assert.ok(Math.abs(stabilized.planningState.profession[STATE.FLOW].value - 49.04) < 1e-9);
+  assert.ok(Math.abs(unstabilized.planningState.profession[STATE.FLOW].value - 17.04) < 1e-9);
   assert.ok(
     Math.abs(
       stabilized.planningState.profession[STATE.FLOW].value -

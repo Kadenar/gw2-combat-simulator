@@ -1,4 +1,6 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -18,7 +20,6 @@ import {
   meticulousKryptisDuration
 } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { appendBatch } from '#kernel/resources/batch-list.js';
 
 /** Artifact skills own their effects; the inventory lifecycle owns spending and reward ordering. */
@@ -72,7 +73,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
     'thief.kryptis'(runtime) {
       const state = antiquaryState.from(runtime.profession);
       const at = runtime.time;
-      state.kryptisDamageUntil = at + meticulousKryptisDuration(runtime);
+      state.kryptisDamageUntil = gw2Time(at + meticulousKryptisDuration(runtime));
     },
     'thief.kryptis-mark'(runtime) {
       const state = antiquaryState.from(runtime.profession);
@@ -101,7 +102,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       // Store the exact canonical deadline so an expiry-tick utility cannot spend this grant.
       state.holoUtilityCooldownReductionExpirations = [
         ...state.holoUtilityCooldownReductionExpirations,
-        canonicalTime(at + duration)
+        gw2Time(at + duration)
       ];
     },
     'thief.surfer-window'(runtime, context) {
@@ -113,6 +114,6 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       );
       const maximum = skillNumber(context.skill, 'maximumDuration');
       // Recasting replaces the previous buff's remaining duration instead of banking it.
-      state.forgedSurferBombDropUntil = at + Math.min(maximum, duration);
+      state.forgedSurferBombDropUntil = gw2Time(at + Math.min(maximum, duration));
     }
   };

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
@@ -96,7 +97,7 @@ test('Empowering Might requires player critical strikes and shares the one-secon
       traited && precision > 0
         ? [
             [1, 'might', 1, concentration ? 12 : 8],
-            [2.000001, 'might', 1, concentration ? 12 : 8]
+            [2.04, 'might', 1, concentration ? 12 : 8]
           ]
         : []
     );
@@ -394,7 +395,7 @@ test("Healer's Resolution grants eight seconds on committed heals with a shared 
   for (const skillId of [GUARDIAN_SKILL_IDS.SHELTER, GUARDIAN_SKILL_IDS.SIGNET_OF_RESOLVE]) {
     const ordinary = runGuardian([skillId], settings);
     const completion = ordinary.events.find((event) => event.type === 'action' && event.skillId === skillId).endsAt;
-    for (const offset of [-0.001, 0, 0.001]) {
+    for (const offset of [-0.04, 0, 0.04]) {
       const deadline = completion - offset;
       const result = runGuardian([skillId], settings, {
         initialize: (runtime) => {
@@ -405,7 +406,7 @@ test("Healer's Resolution grants eight seconds on committed heals with a shared 
       assert.equal(boons.length > 0, offset > 0);
       assert.equal(
         observedRuntime(result).procs.deadline('guardian.core.healersResolution'),
-        offset > 0 ? completion + 20 : deadline
+        gw2Time(offset > 0 ? completion + 20 : deadline)
       );
     }
 
@@ -434,7 +435,7 @@ test("Protector's Restoration shares an Alacrity-adjusted sixteen-second recharg
   for (const skillId of [GUARDIAN_SKILL_IDS.SHELTER, GUARDIAN_SKILL_IDS.SIGNET_OF_RESOLVE]) {
     const ordinary = runGuardian([skillId], settings);
     const completion = ordinary.events.find((event) => event.type === 'action' && event.skillId === skillId).endsAt;
-    for (const offset of [-0.001, 0, 0.001]) {
+    for (const offset of [-0.04, 0, 0.04]) {
       const deadline = completion - offset;
       const result = runGuardian([skillId], settings, {
         initialize: (runtime) => {
@@ -445,7 +446,7 @@ test("Protector's Restoration shares an Alacrity-adjusted sixteen-second recharg
       assert.equal(boons.length > 0, offset >= 0);
       assert.equal(
         observedRuntime(result).cooldownController.readyAt(GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_PROTECTION),
-        offset >= 0 ? completion + 16 : deadline
+        gw2Time(offset >= 0 ? completion + 16 : deadline)
       );
     }
 

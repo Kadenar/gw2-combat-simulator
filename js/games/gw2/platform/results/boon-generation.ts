@@ -12,6 +12,7 @@ import {
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
 import { buffApplicationExpiry, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Event, gw2Time } from '#gw2/platform/combat/clock.js';
 import { observeBuffState } from '#gw2/platform/combat/effect-state.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -22,7 +23,7 @@ import {
   type ScheduledBoonApplication
 } from '#gw2/platform/results/sustained-boon-generation.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
+import { eventCausalOrder } from '#kernel/events/queue.js';
 
 export interface BoonGeneration {
   readonly generatedStackSeconds: number;
@@ -88,7 +89,7 @@ export function createBoonGenerationCollector(retainHistory: boolean, window: ()
     )
       return;
 
-    const event = normalizeBoonDuration(canonicalEvent(input));
+    const event = normalizeBoonDuration(gw2Event(input));
     const bounds = window();
 
     if (event.at >= bounds.end) return;
@@ -174,7 +175,7 @@ export function createBoonGenerationCollector(retainHistory: boolean, window: ()
               ? [
                   {
                     at: event.at,
-                    expiresAt: canonicalTime(event.at + duration),
+                    expiresAt: gw2Time(event.at + duration),
                     duration,
                     stacks: 1,
                     resolvedAudience: applications[0]!.resolvedAudience
@@ -274,7 +275,7 @@ export function projectedPartyEffects(generation: ReturnType<typeof buildBoonGen
         ? {
             ...template,
             source,
-            windows: pool > 0 ? [{ stacks: 1, expiresAt: canonicalTime(at + pool) }] : []
+            windows: pool > 0 ? [{ stacks: 1, expiresAt: gw2Time(at + pool) }] : []
           }
         : observeBuffState(kind, live, at, policy, recipientId);
       recorder.capture(at, [{ ...state, origin: 'party-projection' }], scope);

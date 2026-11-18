@@ -1,4 +1,5 @@
 /** Own spirit actions, recurring work, and the transition from a pending opening to an independent field. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -31,7 +32,6 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const FIELD = 'ritualist.wanderlust-field';
 const AUTO = 'ritualist.spirit-auto';
@@ -68,7 +68,7 @@ function beginAction(runtime: NecromancerRuntime, key: string, duration: number)
   const actor = ritualistState.from(runtime.profession).activeSpirits[key];
   runtime.cancelOwner(actionOwner(runtime, key));
   actor.actionGeneration++;
-  actor.busyUntil = canonicalTime(runtime.time + duration);
+  actor.busyUntil = gw2Time(runtime.time + duration);
 }
 
 /** Every pending packet captures the accepted action's owner, independently of damage attribution. */
@@ -132,7 +132,7 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
       kind: 'packet',
       owner: actionOwner(runtime, work.key),
       event: buildResolverStrike({
-        at: canonicalTime(runtime.time + spirit.autoattackImpactDelayMs / 1000),
+        at: gw2Time(runtime.time + spirit.autoattackImpactDelayMs / 1000),
         source: 'Spirit',
         sourceId: skill.id,
         skillId: skill.id,
@@ -151,7 +151,7 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
   }
 
   const interval = balanceNumber(runtime.helpers, TRAIT.SPAWNING_POWER, 'pulseInterval');
-  const at = canonicalTime(work.anchor + (work.pulse + 1) * interval);
+  const at = gw2Time(work.anchor + (work.pulse + 1) * interval);
 
   if (at > runtime.time)
     runtime.schedule(AUTO, at, { ...work, pulse: work.pulse + 1 }, owner(work.key, work.generation));
@@ -179,7 +179,7 @@ export function summonRitualistSpirit(
     started: false,
     actionGeneration: 0,
     // The opening's recovery depends on whether this cast replaces a live spirit; its shared clock is unchanged.
-    busyUntil: canonicalTime(runtime.time + (previous ? spirit.resummonBusyMs : spirit.initialBusyMs) / 1000)
+    busyUntil: gw2Time(runtime.time + (previous ? spirit.resummonBusyMs : spirit.initialBusyMs) / 1000)
   };
   runtime.resourceController.refresh('lifeForce');
   runtime.fireTrigger(ritualistSpiritCommitted, { cast });
@@ -209,10 +209,10 @@ export function startRitualistSpirits(runtime: NecromancerRuntime): void {
 
     actor.started = true;
 
-    const pulse = Math.max(0, Math.floor(canonicalTime(runtime.time - state.spiritAutoAnchorAt) / interval) + 1);
+    const pulse = Math.max(0, Math.floor(gw2Time(runtime.time - state.spiritAutoAnchorAt) / interval) + 1);
     runtime.schedule(
       AUTO,
-      canonicalTime(state.spiritAutoAnchorAt + pulse * interval),
+      gw2Time(state.spiritAutoAnchorAt + pulse * interval),
       {
         key,
         generation: state.activeSpirits[key].generation,

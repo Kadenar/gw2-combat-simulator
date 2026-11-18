@@ -1,5 +1,6 @@
+import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 /** Validates authored numeric inputs across every effect variant using the canonical strike field policy. */
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
+
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import { ACTOR, ACTOR_TYPES, AURA, BOON_NAMES } from '#gw2/platform/constants.js';
 import { snapshotEffectReactions } from '#gw2/platform/effects/action-declarations.js';
@@ -502,8 +503,8 @@ export function createEffectNormalizer(vocabulary: CatalogVocabulary) {
         }
 
         // Repeated pulses happen on the server tick; an off-grid cadence such as 500 ms alternates around itself in game.
-        if (intervalMs % GW2_ACTION_TICK_MS !== 0) {
-          throw new TypeError(`Effect intervalMs must be a multiple of the ${GW2_ACTION_TICK_MS} ms server tick.`);
+        if (intervalMs % GW2_TICK_MS !== 0) {
+          throw new TypeError(`Effect intervalMs must be a multiple of the ${GW2_TICK_MS} ms server tick.`);
         }
       }
     } else if (normalizedEffect.timingAnchor != null || normalizedEffect.timingScale != null) {

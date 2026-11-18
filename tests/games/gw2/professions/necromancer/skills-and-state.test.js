@@ -6,6 +6,7 @@ import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { queryWeaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import {
   addSoulShards,
   consumeSoulShards,
@@ -145,7 +146,7 @@ test('Necromancer Chill producers retain duration scaling and chained trait attr
     assert.ok(chill.duration > 0);
     const roundedDuration = chill.duration * 1.5;
     assert.equal(chill.effectiveDuration, roundedDuration);
-    assert.equal(chill.naturalExpiresAt, chill.at + roundedDuration);
+    assert.equal(chill.naturalExpiresAt, gw2Time(chill.at + roundedDuration));
     assert.equal(chill.sourceId, sourceId);
     assert.equal(chill.actorType, selectedTraitIds.length ? 'effect' : 'player');
     for (const traitId of [TRAIT.BITTER_CHILL, ...(specialization === 'Reaper' ? [TRAIT.DEATHLY_CHILL] : [])]) {

@@ -1,4 +1,5 @@
 /** Own upkeep activation and recurring work so Core and elite effects retire with the same activation. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -19,7 +20,6 @@ import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.j
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 interface UpkeepWork {
   readonly skillId: SkillId;
@@ -43,13 +43,7 @@ function cadenceInterval(cadence: RevenantUpkeepCadence, skill: RevenantSkill): 
 
 /** Every successor retains the activation owner so retiring upkeep cancels all its pending work. */
 function schedulePulse(runtime: RevenantRuntime, cadence: RevenantUpkeepCadence, work: UpkeepWork, at: number): void {
-  runtime.schedule(
-    cadence.name,
-    canonicalTime(at),
-    work,
-    revenantUpkeepOwner(work.skillId, work.startsAt),
-    cadence.priority
-  );
+  runtime.schedule(cadence.name, gw2Time(at), work, revenantUpkeepOwner(work.skillId, work.startsAt), cadence.priority);
 }
 
 function startCadences(
@@ -117,7 +111,7 @@ const coreCadences: readonly RevenantUpkeepCadence[] = [
     interval: (skill) => Math.max(0, skill.pulseInterval ?? 1),
     // Hammers hit on activation; Embrace rejoins the next whole-second pulse boundary.
     firstAt: (runtime, skill) =>
-      skill.id === ID.EMBRACE_THE_DARKNESS ? Math.floor(canonicalTime(runtime.time)) + 1 : runtime.time,
+      skill.id === ID.EMBRACE_THE_DARKNESS ? Math.floor(gw2Time(runtime.time)) + 1 : runtime.time,
     pulse(runtime, skill, active) {
       if (skill.id === ID.EMBRACE_THE_DARKNESS) {
         embracePulse(runtime, skill, runtime.time, active.empoweredNextPulse);

@@ -45,14 +45,14 @@ for (const [name, cooldown] of [
         { ...owner, type: 'weapon_set', at: 1.1, weaponSet: 2 },
         strike(1.5),
         strike(deadline),
-        strike(deadline + 0.001)
+        strike(deadline + 0.04)
       ],
       endTime: deadline + 0.1
     });
     const applications = result.events.filter((event) => event.sourceId === `sigil.${id}`);
     assert.deepEqual(
       applications.map((event) => event.at),
-      [1, deadline + 0.001]
+      [1, deadline + 0.04]
     );
     assert.ok(applications.every((event) => event.ownerActorType === 'player'));
   });
@@ -98,7 +98,7 @@ test('Strength Might scales with boon duration, increases live attributes, and e
       [1, 0, 1000],
       [2, 1, 1030],
       [16, 1, 1030],
-      [16.000001, 0, 1000]
+      [16.04, 0, 1000]
     ]);
 
     if (output === 'detailed') {
@@ -132,7 +132,7 @@ test('Frailty rejects non-defiant hits without spending its cooldown', () => {
   assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.FRAILTY}`), 0);
   runtime.config.target.defiant = true;
   runtime.sigil.strike(runtime, strike(1.1, { canCrit: false }));
-  assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.FRAILTY}`), 3.1);
+  assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.FRAILTY}`), 3.12);
   assert.equal(captured.events[0].condition, 'Vulnerability');
   assert.equal(captured.events[0].stacks, 2);
   assert.equal(captured.events[0].duration, 8);
@@ -165,7 +165,7 @@ test('Frailty Vulnerability scales with expertise and persists after swapping un
     assert.deepEqual(observed, [
       [1, 0],
       [2, 2],
-      [12.9, 2],
+      [12.92, 2],
       [13.04, 0]
     ]);
   }

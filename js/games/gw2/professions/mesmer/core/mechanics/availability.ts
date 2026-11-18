@@ -1,15 +1,15 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { preparedMagazineOpen } from '#gw2/platform/execution/prepared-magazines.js';
 import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 // Flip windows open exactly at availability and close at expiry, independently of cooldown readiness tolerance.
 export function mesmerAvailability(context: MechanicQueriesOf<MesmerRuntime>, skill: MesmerSkill): AvailabilityResult {
   const state = context;
-  const at = canonicalTime(context.time);
+  const at = gw2Time(context.time);
 
   if (skill.flipParentId) {
     const flip = state.flips[skill.id];

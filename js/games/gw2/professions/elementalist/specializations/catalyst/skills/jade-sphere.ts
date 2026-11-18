@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { BoonId } from '#gw2/platform/constants.js';
 import { ACTOR, BOON, COMBO_FIELD, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -188,7 +190,7 @@ function deployJadeSphere(
 
   if (field) {
     const duration = requireBalanceNumber(field.duration, `skill=${skill.id} combo-field duration`);
-    state.sphereActiveUntil = Math.max(state.sphereActiveUntil, cast.effectiveEnd + duration);
+    state.sphereActiveUntil = gw2Time(Math.max(state.sphereActiveUntil, cast.effectiveEnd + duration));
     state.sphereExpiry[String(skill.attunement)] = cast.effectiveEnd + duration;
   }
 

@@ -2,6 +2,7 @@
 import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
@@ -81,7 +82,6 @@ import {
   type RuntimeQueueEntry,
   type RuntimeWork
 } from '#gw2/platform/simulation/work-contract.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { HandlerRegistry } from '#kernel/events/handler-registry.js';
 import { normalizeObservationPolicy } from '#kernel/execution/observation.js';
 
@@ -159,7 +159,14 @@ export function runRuntime<T extends object>(
       selectedSkillIds: prepareSelectedSkillLoadout(config.selectedSkillIds, profession.skillSelectionCatalog)
     };
 
-  const policy = normalizeObservationPolicy(observation);
+  const requestedPolicy = normalizeObservationPolicy(observation);
+  // Validate the caller's policy before aligning its horizon with GW2 command and event admission.
+  const policy =
+    requestedPolicy.kind === 'absolute'
+      ? { ...requestedPolicy, endTimeMs: gw2Time(requestedPolicy.endTimeMs / 1000) * 1000 }
+      : requestedPolicy.kind === 'tail'
+        ? { ...requestedPolicy, durationMs: gw2Time(requestedPolicy.durationMs / 1000) * 1000 }
+        : requestedPolicy;
   const cursor = execution.driver.cursor;
   const markers = cursor.commands.filter((command) => command.type === 'combat-start');
 
@@ -269,7 +276,7 @@ export function runRuntime<T extends object>(
     // Batch explanations retain proc observations without enabling damage breakdowns or chart histories.
     procRecorder: output === 'detailed' || output === 'observations' ? new ProcStepRecorder(effectRecorder) : null,
     damageDiagnostics: output === 'damage' || damageDiagnostics,
-    horizon: policy.kind === 'absolute' ? canonicalTime(policy.endTimeMs / 1000) : null,
+    horizon: policy.kind === 'absolute' ? gw2Time(policy.endTimeMs / 1000) : null,
     query,
     queue: coordinator.packets,
     effects,

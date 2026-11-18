@@ -1,4 +1,5 @@
 /** Bind periodic lifecycles to GW2 task hooks and preview completion policy. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import {
   createPeriodicTask,
   type PeriodicTaskContext,
@@ -13,9 +14,12 @@ export function definePeriodicTask<TContext extends PeriodicTaskContext>(
   }
 ) {
   const { background, ...task } = definition;
-  const { restart, stop, deliver } = createPeriodicTask(task);
+  const { restart, stop, deliver } = createPeriodicTask({
+    ...task,
+    nextAt: (context) => gw2Time(task.nextAt(context))
+  });
   return {
-    restart,
+    restart: (context: TContext, at: number) => restart(context, gw2Time(at)),
     stop,
     hooks: { backgroundTasks: background ? [task.name] : [], tasks: { [task.name]: deliver } }
   };

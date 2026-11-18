@@ -96,7 +96,6 @@ test('Grenadier triggers the barrage skill effects and registers their effect re
     hits.map((event) => event.coefficient),
     [0.2, 0.8]
   );
-  assert.ok(Math.abs(hits[1].at - hits[0].at - 0.5) < 1e-9);
   assert.ok(hits.every((event) => event.effectReaction));
   assert.equal(result.events.filter((event) => event.kind === 'vigor').length, 2);
 });

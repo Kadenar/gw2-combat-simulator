@@ -9,6 +9,7 @@ import {
   recordBuffApplication,
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { observeGenericBuff, type BuffObservation } from '#gw2/platform/combat/effect-observation.js';
 import type { BuffStatePolicy, EffectState } from '#gw2/platform/combat/effect-state.js';
 import { liveBoonSnapshot, type EffectRecipient } from '#gw2/platform/combat/query/effect-stacks.js';
@@ -19,7 +20,6 @@ import {
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { cloneData } from '#kernel/core/clone.js';
 
 type Applications = readonly Readonly<Gw2TimedBuffApplication>[];
@@ -223,14 +223,17 @@ export function createLiveEffects(config: Gw2Config = {}) {
       select: (application: Readonly<Gw2TimedBuffApplication>) => boolean,
       expiry: (at: number) => number
     ): void {
-      reviseBuffs(kind, select, (application) => ({ ...application, expiresAt: expiry(application.expiresAt) }));
+      reviseBuffs(kind, select, (application) => ({
+        ...application,
+        expiresAt: gw2Time(expiry(application.expiresAt))
+      }));
     },
     /**
      * Consumption and replacement remove selected grants at `at`, even when a natural deadline ties that timestamp.
      * The natural deadline stays in `expiresAt`; `removedAt` alone records the earlier removal.
      */
     endBuffs(kind: string, at: number, select: (application: Readonly<Gw2TimedBuffApplication>) => boolean): void {
-      const end = canonicalTime(at);
+      const end = gw2Time(at);
       reviseBuffs(kind, select, (application) => ({
         ...application,
         removedAt: Math.min(application.removedAt ?? Infinity, end)

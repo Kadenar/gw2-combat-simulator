@@ -10,6 +10,8 @@ import { createResourceClock, type ResourceClock } from '#kernel/resources/accru
 export interface HolosmithState {
   heat: ResourceClock;
   passiveHeatAt: number | null;
+  passiveHeatAnchor: number;
+  passiveHeatOccurrence: number;
   enhancedCapacityMightAt: number;
   photonForgeActive: boolean;
   forgeExitedAt: number | null;
@@ -23,6 +25,8 @@ export function createHolosmithState(): HolosmithState {
   return {
     heat: createResourceClock(),
     passiveHeatAt: null,
+    passiveHeatAnchor: 0,
+    passiveHeatOccurrence: 0,
     enhancedCapacityMightAt: Infinity,
     photonForgeActive: false,
     // Initialization supplies an exit anchor only when the selected pool starts preheated.

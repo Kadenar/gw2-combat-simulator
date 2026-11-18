@@ -41,7 +41,7 @@ test('Tempest active state shows trait timers at the cursor and hides expired wi
   ]) {
     const buff = result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === kind);
     assert.ok(buff, kind);
-    assert.equal(snapshot(buff.at - 0.001).has(id), false);
+    assert.equal(snapshot(buff.at - 0.04).has(id), false);
     assert.equal(snapshot(buff.at + 1).get(id), `${(buff.duration - 1).toFixed(1)}s`);
     assert.equal(snapshot(buff.at + buff.duration).has(id), false);
   }
@@ -211,7 +211,7 @@ test('an overload with 0.1 seconds remaining stays click-queueable and casts whe
 
   assert.equal(view.disabled, true);
   assert.equal(view.contextDisabled, false);
-  assert.equal(view.cooldownLabel, '0.100s');
+  assert.equal(view.cooldownLabel, '0.080s');
   assert.doesNotMatch(renderPaletteMarkup(nearlyReadyApp), /pal-context-disabled[^>]*data-skill="Overload Fire"/);
 
   const queuedApp = createTempestApp(['Fire Attunement', 4700, 'Overload Fire']);

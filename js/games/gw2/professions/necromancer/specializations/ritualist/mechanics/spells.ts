@@ -1,4 +1,5 @@
 import { buffApplicationExpiry } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
@@ -22,7 +23,6 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { activeBatchCount } from '#kernel/resources/batch.js';
 
 const EXPIRE = 'ritualist.weapon-spell-expiry';
@@ -82,7 +82,7 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   // application pulses exactly once whichever of the two settles first.
   const last = state.painfulBondLastPulseAt;
   const at = Number.isFinite(last)
-    ? canonicalTime(last + Math.max(1, Math.ceil(canonicalTime(runtime.time - last) / interval)) * interval)
+    ? gw2Time(last + Math.max(1, Math.ceil(gw2Time(runtime.time - last) / interval)) * interval)
     : runtime.time;
 
   if (requireEffect(profile, 'strike', 'Strike') && at < bondExpiresAt(runtime))
@@ -105,7 +105,7 @@ function grantWeaponSpell(
   if (previous) runtime.cancelOwner(owner(spell, previous.generation));
 
   const generation = ++state.weaponSpellGeneration;
-  const expiresAt = canonicalTime(runtime.time + effect.duration);
+  const expiresAt = gw2Time(runtime.time + effect.duration);
   const allyStacks = wieldersBoonCharges(runtime, effect);
   const audience = gw2AlliedEffectRecipients(runtime.config, {
     ...effect.audience,
@@ -226,7 +226,7 @@ export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, Necroman
       emitPainfulBond(runtime, data as Gw2ResolverEvent);
       // Only scheduled pulses define the cadence; trait-triggered Bond damage does not.
       state.painfulBondLastPulseAt = runtime.time;
-      const at = canonicalTime(runtime.time + skillNumber(profile, 'pulseInterval'));
+      const at = gw2Time(runtime.time + skillNumber(profile, 'pulseInterval'));
 
       if (strike && at > runtime.time && at < bondExpiresAt(runtime))
         runtime.schedule(BOND, at, data, { id: BOND, generation: state.painfulBondGeneration });

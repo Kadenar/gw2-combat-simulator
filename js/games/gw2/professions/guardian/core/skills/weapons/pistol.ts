@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -16,7 +17,6 @@ import type {
   GuardianRuntimeState,
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Canonical Core guardian skill definitions grouped by their GW2 owner. */
 
@@ -265,7 +265,7 @@ const guardianIgnitionActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>
     if (!field) return;
 
     runtime.profession.core.symbolIgnitionStartsAt = runtime.time;
-    runtime.profession.core.symbolIgnitionUntil = canonicalTime(runtime.time + effectNumber(skill, field, 'duration'));
+    runtime.profession.core.symbolIgnitionUntil = gw2Time(runtime.time + effectNumber(skill, field, 'duration'));
   }
 };
 

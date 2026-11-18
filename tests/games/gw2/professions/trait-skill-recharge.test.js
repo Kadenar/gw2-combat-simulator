@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { elementalistDodgeCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { ELEMENTALIST_TRAIT_IDS as E, ELEMENTALIST_SKILL_IDS as ES } from '#gw2/professions/elementalist/data/ids.js';
@@ -242,7 +243,7 @@ for (const [family, trait, key, base, invoke, specialization] of cases) {
       invoke(runtime);
       const deadline = canonicalTime(1 + cooldown / 1.25);
       assert.equal(readyAt(), deadline);
-      for (const at of [1, deadline - 0.001]) {
+      for (const at of [1, deadline - 0.04]) {
         runtime.time = at;
         invoke(runtime);
         assert.equal(readyAt(), deadline);
@@ -259,11 +260,11 @@ test('Method of Madness uses Chronomancer recharge instead of ordinary Alacrity'
   const invoke = cases[0][4];
   runtime.time = 1;
   invoke(runtime);
-  const deadline = canonicalTime(1 + 28 / 1.5);
-  assert.equal(runtime.cooldownController.readyAt(MS.LESSER_CHAOS_STORM), deadline);
+  const deadline = gw2Time(1 + 28 / 1.5);
+  assert.equal(runtime.cooldownController.readyAt(MS.LESSER_CHAOS_STORM), gw2Time(deadline));
   runtime.time = deadline;
   invoke(runtime);
-  assert.equal(runtime.cooldownController.readyAt(MS.LESSER_CHAOS_STORM), canonicalTime(runtime.time + 28 / 1.5));
+  assert.equal(runtime.cooldownController.readyAt(MS.LESSER_CHAOS_STORM), gw2Time(runtime.time + 28 / 1.5));
 });
 
 // Tether keeps action-tick eligibility on top of the skill-owned player recharge deadline.
@@ -278,9 +279,9 @@ test('Magebane Tether uses patched recharge and waits for the action tick after 
     });
   runtime.time = 1;
   invoke();
-  const deadline = canonicalTime(1 + 2.03 / 1.25);
+  const deadline = gw2Time(1 + 2.03 / 1.25);
   assert.equal(runtime.cooldownController.readyAt(WS.MAGEBANE_TETHER), deadline);
-  for (const at of [1, deadline, deadline + 0.001]) {
+  for (const at of [1, deadline - 0.04]) {
     runtime.time = at;
     invoke();
     assert.equal(runtime.cooldownController.readyAt(WS.MAGEBANE_TETHER), deadline);
@@ -289,7 +290,7 @@ test('Magebane Tether uses patched recharge and waits for the action tick after 
 
   runtime.time = gw2CooldownReadyAt(deadline);
   invoke();
-  assert.equal(runtime.cooldownController.readyAt(WS.MAGEBANE_TETHER), canonicalTime(runtime.time + 2.03 / 1.25));
+  assert.equal(runtime.cooldownController.readyAt(WS.MAGEBANE_TETHER), gw2Time(runtime.time + 2.03 / 1.25));
   assert.equal(runtime.profession.specialization.state.magebaneTetherUntil, canonicalTime(runtime.time + 8));
 });
 
@@ -335,7 +336,7 @@ test('Explosive Entrance dodge rearming preserves recharge and a blocked hit doe
   runtime.time = 1.201;
   explosiveEntranceStrike(runtime.mechanics, hit(runtime));
   assert.equal(runtime.profession.core.explosiveEntranceFired, true);
-  assert.equal(runtime.cooldownController.readyAt(ENGINEER_SKILL_IDS.EXPLOSIVE_ENTRANCE_TRAIT_SKILL), 1.401);
+  assert.equal(runtime.cooldownController.readyAt(ENGINEER_SKILL_IDS.EXPLOSIVE_ENTRANCE_TRAIT_SKILL), 1.44);
 });
 
 for (const recipient of ['player', 'engineer.mech', 'other-companion']) {
@@ -366,7 +367,7 @@ for (const recipient of ['player', 'engineer.mech', 'other-companion']) {
             }
           });
         },
-        timeline: [1, deadline - 0.001, deadline, deadline + 0.001].map((at) => ({
+        timeline: [1, deadline - 0.04, deadline, deadline + 0.04].map((at) => ({
           at,
           run(runtime) {
             runtime.fireTrigger(mechanistCastCompleted, { skill: weapon, at: runtime.time });

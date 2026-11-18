@@ -1,4 +1,5 @@
 /** Own Continuum entry, checkpoint restoration, and expiry so callers cannot omit lifecycle work. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -36,7 +37,7 @@ function restoreContinuum(runtime: MesmerRuntime, reason: string): void {
     continuum.recharge,
     at,
     UNAFFECTED_COOLDOWN_IDS,
-    splitReady ? [{ skillId: continuum.splitId, readyAt: at + splitReady - openAt }] : []
+    splitReady ? [{ skillId: continuum.splitId, readyAt: gw2Time(at + splitReady - openAt) }] : []
   );
   runtime.effects.emit({
     kind: 'packet',
@@ -57,7 +58,7 @@ function beginContinuumSplit(runtime: MesmerRuntime, skill: MesmerSkill, activat
   const chronomancer = chronomancerState.from(runtime.profession);
   // Fragmentation extends the base window once, independently of the number of clones spent.
   const duration = durationPerSource * (spent + 1) + bonusDuration;
-  const expiresAt = at + duration;
+  const expiresAt = gw2Time(at + duration);
   chronomancer.continuum = {
     splitId: skill.id,
     splitReady: runtime.cooldownController.readyAt(skill.id),

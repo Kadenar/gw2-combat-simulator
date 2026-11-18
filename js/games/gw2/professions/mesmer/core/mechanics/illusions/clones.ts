@@ -1,4 +1,5 @@
 /** Clone creation, periodic attacks, and retirement share one lifetime owner. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { mesmerCloneOwnerId } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
 import type {
@@ -89,7 +90,7 @@ function emitCloneAttack(runtime: MesmerRuntime, clone: MesmerClone, at: number)
     weapon: clone.weapon,
     blade: false
   };
-  const impactAt = at + (step.damageAtMs || 0) / 1000;
+  const impactAt = gw2Time(at + (step.damageAtMs || 0) / 1000);
   buildMesmerStrikes(
     runtime,
     cloneSkill,

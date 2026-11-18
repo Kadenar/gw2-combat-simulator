@@ -1,5 +1,6 @@
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
@@ -26,7 +27,6 @@ import {
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { activeStackCount, grantTimedStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Owns this trait's tuning and selected contributions. */
@@ -215,7 +215,7 @@ function gainAttackersInsight(
   // Keep the newest grants; a disabled cap or expired grant cannot add live stacks.
   state.attackerInsightExpiries = grantTimedStacks(state.attackerInsightExpiries, {
     at,
-    expiresAt: canonicalTime(at + effectNumber(attackersInsightProfile, effect, 'duration')),
+    expiresAt: gw2Time(at + effectNumber(attackersInsightProfile, effect, 'duration')),
     // Kick's occurrence multiplier scales the selected per-application grant.
     count: Math.max(1, Math.trunc(applications)) * effectNumber(attackersInsightProfile, effect, 'stacks'),
     maximumStacks: balanceProfileNumber(attackersInsightProfile, 'maximumStacks'),

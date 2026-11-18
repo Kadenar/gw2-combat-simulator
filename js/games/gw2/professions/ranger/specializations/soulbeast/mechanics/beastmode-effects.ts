@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -32,7 +33,6 @@ import type {
   RangerRuntimeState,
   RangerSkill
 } from '#gw2/professions/ranger/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { claimActivation } from '#kernel/execution/activation-claims.js';
 
 /** Soulbeast resolver-phase reactions and event handlers. */
@@ -153,7 +153,7 @@ function queueStanceProc(
 
 /** Both stances admit hits at the cooldown deadline for the player and each allied recipient. */
 function stanceCooldownReady(at: number, deadline: number): boolean {
-  return canonicalTime(at) >= canonicalTime(deadline);
+  return gw2Time(at) >= gw2Time(deadline);
 }
 
 /** Each ally keeps independent stance cooldowns across overlapping applications, under the player's boundaries. */
@@ -226,7 +226,7 @@ function scheduleSharedStance(context: RangerResolverContext, event: Gw2Resolver
   if (!maximumAllies) return;
 
   // Live windows share the global strike cadence; the existing recipient ICD handles overlapping grants.
-  const expiresAt = canonicalTime(event.at + (event.duration || 0));
+  const expiresAt = gw2Time(event.at + (event.duration || 0));
   context.alliedStrikes.registerRecipients(
     (allyIndex) => ({
       id: `stance:${event.kind}:${event.activationId}:${event.at}:${allyIndex}`,

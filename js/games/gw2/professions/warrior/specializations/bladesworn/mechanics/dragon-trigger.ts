@@ -1,6 +1,7 @@
 /** Own Gunsaber and Dragon Trigger admission, transitions, charge lifetimes, and cast-owned release notifications. */
 import { hasTrait, type Gw2TraitLookupContext } from '#gw2/platform/builds/selected-traits.js';
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -18,7 +19,7 @@ import {
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { timeKey } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { resourceAtLeast } from '#kernel/resources/pool.js';
 
@@ -98,7 +99,7 @@ function exitDragonTrigger(runtime: WarriorRuntime, at = runtime.time): void {
 
 function scheduleCharge(runtime: WarriorRuntime): void {
   const state = bladeswornState.from(runtime.profession);
-  state.nextDragonChargeAt = canonicalTime(
+  state.nextDragonChargeAt = gw2Time(
     state.dragonTriggerStartedAt +
       dragonChargeTickOffsetSeconds(state.dragonChargeTickCount + 1, hasTrait(runtime, TRAIT.DARING_DRAGON))
   );
@@ -123,7 +124,7 @@ function enterDragonTrigger(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
   runtime.resourceController.spend('flow', cost);
   state.dragonTriggerActive = true;
   state.dragonTriggerStartedAt = runtime.time;
-  state.dragonTriggerChargeDeadline = canonicalTime(runtime.time + skillNumber(profile, 'duration'));
+  state.dragonTriggerChargeDeadline = gw2Time(runtime.time + skillNumber(profile, 'duration'));
   runtime.resourceController.replace('dragonCharges', 0);
   state.dragonChargesPerInterval =
     state.tacticalReloadUntil > 0 && buffDeadlineActive(state.tacticalReloadUntil, runtime.time) ? 2 : 1;
@@ -467,7 +468,7 @@ const dragonTriggerAvailability: NonNullable<RuntimeHooks<WarriorRuntimeState, W
 
       if (reachedAt == null) throw new TypeError('A delayed Dragon Slash requires its observed charge threshold.');
 
-      const releaseAt = canonicalTime(reachedAt + command.releaseDelayMs! / 1000);
+      const releaseAt = gw2Time(reachedAt + command.releaseDelayMs! / 1000);
 
       if (releaseAt > state.dragonTriggerChargeDeadline)
         return denyCast(

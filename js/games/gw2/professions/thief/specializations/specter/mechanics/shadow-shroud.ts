@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
@@ -10,7 +11,6 @@ import { setThiefKneeling } from '#gw2/professions/thief/core/mechanics/resource
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import type { ThiefConfig, ThiefSkill } from '#gw2/professions/thief/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export const SHADOW_DEPLETED = 'thief.shadow-shroud-depleted';
 
@@ -81,7 +81,7 @@ export function specterAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, sk
   if (skill.id === ID.EXIT_SHADOW_SHROUD && !state.shadowShroudActive)
     return denySkillCast(skill, 'thief.not-in-shroud', 'Shadow Shroud is not active.');
 
-  if (skill.id === ID.EXIT_SHADOW_SHROUD && canonicalTime(state.shadowShroudExitReadyAt) > runtime.time)
+  if (skill.id === ID.EXIT_SHADOW_SHROUD && gw2Time(state.shadowShroudExitReadyAt) > runtime.time)
     return denySkillCast(
       skill,
       'thief.shroud-exit-lockout',

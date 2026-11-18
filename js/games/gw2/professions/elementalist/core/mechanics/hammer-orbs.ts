@@ -1,5 +1,6 @@
 /** Own Core and Weaver hammer orb admission, expiry, packet cancellation, and Finale consumption. */
 import { buffDeadlineActive, buffDeadlineReached, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -21,7 +22,6 @@ import type {
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Orb skills share a fixed admission delay independently of their authored lifetimes. */
 const HAMMER_ORB_REUSE_DELAY = 0.48;
@@ -74,7 +74,7 @@ function creationAvailability(
 ): AvailabilityResult | null {
   const state = professionCoreState(context.profession);
   const retryAt = Number.isFinite(state.hammerOrbLastCastAt)
-    ? canonicalTime(state.hammerOrbLastCastAt + HAMMER_ORB_REUSE_DELAY)
+    ? gw2Time(state.hammerOrbLastCastAt + HAMMER_ORB_REUSE_DELAY)
     : state.hammerOrbLastCastAt;
 
   if (retryAt > context.time)
@@ -137,7 +137,7 @@ function createHammerOrbs(
   const state = professionCoreState(context.profession);
   const at = cast.effectiveEnd;
   const duration = skillNumber(skill, 'orbDuration');
-  const expiresAt = canonicalTime(at + duration);
+  const expiresAt = gw2Time(at + duration);
   const previouslyActive = new Set(activeHammerOrbElements(state, at));
   for (const element of previouslyActive) {
     state.hammerOrbs[element] = expiresAt;
@@ -224,7 +224,7 @@ export const elementalistHammerOrbLifecycle = {
             application.event?.activationId === activationId &&
             application.at <= cast.start &&
             buffWindowActive(cast.start, application.at, application.expiresAt, application.removedAt),
-          () => canonicalTime(cast.effectiveEnd + 1)
+          () => gw2Time(cast.effectiveEnd + 1)
         );
       }
     },

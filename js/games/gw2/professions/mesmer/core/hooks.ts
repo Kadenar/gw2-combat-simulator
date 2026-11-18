@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -164,7 +165,7 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
       'mesmer.core.restart-signet-illusions-passive': (runtime) => restartSignetIllusionsPassive(runtime, runtime.time),
       'mesmer.core.relock-signet-ether'(runtime, data) {
         const cast = (data as { cast: RuntimeCast<MesmerSkill> }).cast;
-        const readyAt = runtime.time + cast.rechargeWork / runtime.cooldownController.rate(cast.skill);
+        const readyAt = gw2Time(runtime.time + cast.rechargeWork / runtime.cooldownController.rate(cast.skill));
 
         if (readyAt > (runtime.cooldownController.readyAt(cast.skill.id) ?? 0))
           runtime.cooldownController.startRecharge(cast.skill, runtime.time, cast.rechargeWork);

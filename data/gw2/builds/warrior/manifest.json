@@ -53,16 +53,16 @@
         "label": "Condition (Sword / Pistol)",
         "build": "data/gw2/builds/warrior/b-condi-bladesworn-sword-pistol.json",
         "rotation": "data/gw2/rotations/warrior/r-condi-bladesworn-sword-pistol-bench.json",
-        "benchmarkDps": 42434,
+        "benchmarkDps": 42460,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-bladesworn-sword-pistol",
         "benchmarkApm": 78.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42653, "phase": 42653 },
-          "80-60": { "cumulative": 41937, "phase": 41218 },
-          "60-40": { "cumulative": 41561, "phase": 40851 },
-          "40-20": { "cumulative": 42058, "phase": 43695 },
-          "20-0": { "cumulative": 42434, "phase": 43982 }
+          "100-80": { "cumulative": 42673, "phase": 42673 },
+          "80-60": { "cumulative": 41960, "phase": 41245 },
+          "60-40": { "cumulative": 41585, "phase": 40877 },
+          "40-20": { "cumulative": 42084, "phase": 43725 },
+          "20-0": { "cumulative": 42460, "phase": 44004 }
         }
       }
     ]
@@ -122,16 +122,16 @@
         "label": "Condition (Longbow + Sword/Torch)",
         "build": "data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json",
         "rotation": "data/gw2/rotations/warrior/r-condi-berserker-longbow-sword-torch-bench.json",
-        "benchmarkDps": 44309,
+        "benchmarkDps": 44313,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-berserker-longbow-sword-torch",
         "benchmarkApm": 93.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 41091, "phase": 41091 },
-          "80-60": { "cumulative": 43568, "phase": 46482 },
-          "60-40": { "cumulative": 43737, "phase": 44083 },
-          "40-20": { "cumulative": 43765, "phase": 43854 },
-          "20-0": { "cumulative": 44309, "phase": 44309 }
+          "100-80": { "cumulative": 41094, "phase": 41094 },
+          "80-60": { "cumulative": 43572, "phase": 46487 },
+          "60-40": { "cumulative": 43740, "phase": 44087 },
+          "40-20": { "cumulative": 43769, "phase": 43859 },
+          "20-0": { "cumulative": 44313, "phase": 44313 }
         }
       }
     ]
@@ -143,32 +143,32 @@
         "label": "Power (Dagger/Mace + Sword/Axe)",
         "build": "data/gw2/builds/warrior/b-power-spellbreaker-dagger-mace-sword-axe.json",
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-axe-bench.json",
-        "benchmarkDps": 42549,
+        "benchmarkDps": 42552,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-dagger-mace-sword-axe",
         "benchmarkApm": 60.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 45610, "phase": 45610 },
-          "80-60": { "cumulative": 43600, "phase": 41710 },
-          "60-40": { "cumulative": 42592, "phase": 40687 },
-          "40-20": { "cumulative": 42162, "phase": 40925 },
-          "20-0": { "cumulative": 42549, "phase": 42549 }
+          "100-80": { "cumulative": 45613, "phase": 45613 },
+          "80-60": { "cumulative": 43603, "phase": 41712 },
+          "60-40": { "cumulative": 42595, "phase": 40690 },
+          "40-20": { "cumulative": 42165, "phase": 40930 },
+          "20-0": { "cumulative": 42552, "phase": 42552 }
         }
       },
       {
         "label": "Power (Dagger/Mace + Sword/Dagger)",
         "build": "data/gw2/builds/warrior/b-power-spellbreaker-dagger-mace-sword-dagger.json",
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-dagger-bench.json",
-        "benchmarkDps": 42881,
+        "benchmarkDps": 42885,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-dagger-mace-sword-dagger",
         "benchmarkApm": 62,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 45353, "phase": 45353 },
-          "80-60": { "cumulative": 42948, "phase": 40765 },
-          "60-40": { "cumulative": 42370, "phase": 41181 },
-          "40-20": { "cumulative": 42017, "phase": 40982 },
-          "20-0": { "cumulative": 42881, "phase": 46721 }
+          "100-80": { "cumulative": 45356, "phase": 45356 },
+          "80-60": { "cumulative": 42951, "phase": 40768 },
+          "60-40": { "cumulative": 42373, "phase": 41184 },
+          "40-20": { "cumulative": 42021, "phase": 40987 },
+          "20-0": { "cumulative": 42885, "phase": 46725 }
         }
       },
       {
@@ -196,16 +196,16 @@
         "label": "Power (Sword/Axe + Dagger/Mace)",
         "build": "data/gw2/builds/warrior/b-power-paragon-sword-axe-dagger-mace.json",
         "rotation": "data/gw2/rotations/warrior/r-power-paragon-sword-axe-dagger-mace-bench.json",
-        "benchmarkDps": 42547,
+        "benchmarkDps": 42551,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-paragon-sword-axe-dagger-mace",
         "benchmarkApm": 57.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44682, "phase": 44682 },
-          "80-60": { "cumulative": 42842, "phase": 41141 },
-          "60-40": { "cumulative": 42015, "phase": 40332 },
-          "40-20": { "cumulative": 42135, "phase": 42499 },
-          "20-0": { "cumulative": 42547, "phase": 44292 }
+          "100-80": { "cumulative": 44686, "phase": 44686 },
+          "80-60": { "cumulative": 41811, "phase": 39146 },
+          "60-40": { "cumulative": 42019, "phase": 42439 },
+          "40-20": { "cumulative": 42140, "phase": 42504 },
+          "20-0": { "cumulative": 42551, "phase": 44296 }
         }
       },
       {
@@ -214,13 +214,13 @@
         "rotation": "data/gw2/rotations/warrior/r-power-alac-paragon-sword-axe-dagger-mace-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-alacrity-paragon-sword-axe-dagger-mace",
         "upToDate": true,
-        "benchmarkDps": 33521,
+        "benchmarkDps": 33525,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 33875, "phase": 33875 },
-          "80-60": { "cumulative": 33325, "phase": 32792 },
-          "60-40": { "cumulative": 33629, "phase": 34251 },
-          "40-20": { "cumulative": 33746, "phase": 34101 },
-          "20-0": { "cumulative": 33521, "phase": 33521 }
+          "100-80": { "cumulative": 33878, "phase": 33878 },
+          "80-60": { "cumulative": 33328, "phase": 32795 },
+          "60-40": { "cumulative": 33632, "phase": 34254 },
+          "40-20": { "cumulative": 33750, "phase": 34105 },
+          "20-0": { "cumulative": 33525, "phase": 33525 }
         },
         "benchmarkApm": 63.5
       },
@@ -230,13 +230,13 @@
         "rotation": "data/gw2/rotations/warrior/r-condi-paragon-longbow-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-paragon-longbow-sword-sword",
         "upToDate": false,
-        "benchmarkDps": 38379,
+        "benchmarkDps": 38393,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 37400, "phase": 37400 },
-          "80-60": { "cumulative": 37931, "phase": 38517 },
-          "60-40": { "cumulative": 38450, "phase": 39536 },
-          "40-20": { "cumulative": 38439, "phase": 38408 },
-          "20-0": { "cumulative": 38379, "phase": 38379 }
+          "100-80": { "cumulative": 37411, "phase": 37411 },
+          "80-60": { "cumulative": 37945, "phase": 38533 },
+          "60-40": { "cumulative": 38465, "phase": 39553 },
+          "40-20": { "cumulative": 38454, "phase": 38421 },
+          "20-0": { "cumulative": 38393, "phase": 38393 }
         },
         "benchmarkApm": 51.6
       }

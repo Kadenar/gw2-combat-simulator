@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -25,7 +26,6 @@ import {
   lethalTempoStacks
 } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { refreshBatch } from '#kernel/resources/batch.js';
 
 /** Intrinsic virtue grants share an inclusive stack lifetime and the outgoing additive damage bucket. */
@@ -359,7 +359,7 @@ function gainLethalTempo(
   { maximumStacks, duration, stacks }: NonNullable<ReturnType<typeof lethalTempoParameters>>
 ): number {
   // Grants through the expiry tick refresh every stack; only a later grant starts a new stack window.
-  at = canonicalTime(at);
+  at = gw2Time(at);
   state.lethalTempo = refreshBatch(state.lethalTempo, stacks, {
     at,
     expiresAt: gw2EffectExpiresAt(at, duration),

@@ -62,8 +62,8 @@ test('Inner Fire checks live Burning and grants Fury only from eligible player s
       fury.map((event) => [event.at, event.kind, event.duration]),
       selected
         ? [
-            [0.3, 'fury', 8],
-            [11.1, 'fury', 8]
+            [0.32, 'fury', 8],
+            [11.12, 'fury', 8]
           ]
         : []
     );

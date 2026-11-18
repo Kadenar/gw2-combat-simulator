@@ -1,9 +1,9 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { createIllusionRewardController } from '#gw2/professions/mesmer/core/mechanics/resources.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import { mirageResourcesGained } from '#gw2/professions/mesmer/specializations/mirage/mechanics/trigger-points.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export function mesmerActivePrimaryWeapon(context: MesmerRuntime): string {
   return gw2ActivePrimaryWeapon(context.config, context.activeWeaponSet === 1 ? 1 : 2) || '';
@@ -26,7 +26,7 @@ export function createMesmerIllusionRewards(context: MesmerRuntime) {
       if (
         delivery.cast?.effectiveEnd != null &&
         delivery.cast.effectiveEnd !== Infinity &&
-        canonicalTime(candidate.at) > canonicalTime(delivery.cast.effectiveEnd)
+        gw2Time(candidate.at) > gw2Time(delivery.cast.effectiveEnd)
       )
         return;
 

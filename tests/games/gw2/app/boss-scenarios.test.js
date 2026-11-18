@@ -17,6 +17,7 @@ import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { normalizeSelectedSkillsAndAttributes } from '#gw2/app/build/state/skill-selection.js';
 import { encounterTimelineMarkers } from '#gw2/app/rotation/timeline/encounter.js';
 import { DEFAULT_FRACTAL_BUFFS } from '#gw2/platform/builds/fractal-buffs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -418,7 +419,7 @@ test('Twin Largos CM pauses at 80/60/40/20 percent and resumes the same bar afte
       assert.equal(controller.damage(1e9, 'group', at + pause.durationSeconds / 2), 0);
       assert.equal(controller.remainingHealth, health);
       const wake = queue.shift();
-      assert.equal(wake.at, Math.round((at + pause.durationSeconds) * 1e6) / 1e6);
+      assert.equal(wake.at, gw2Time(Math.round((at + pause.durationSeconds) * 1e6) / 1e6));
       controller.wake(wake.at, wake.token);
       at = wake.at;
       assert.equal(controller.damageable, true);

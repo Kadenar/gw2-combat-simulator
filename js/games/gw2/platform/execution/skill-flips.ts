@@ -1,5 +1,6 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { isTimeInWindow } from '#kernel/core/clock.js';
 
 /** One exact window drives casting and presentation; identity survives detached scheduler payloads. */
 export interface SkillFlipWindow {
@@ -49,9 +50,9 @@ export function armSkillFlip(
   sequences.set(flips, sequence);
   const window = {
     identity: identity ?? sequence,
-    visibleAt: canonicalTime(visibleAt),
-    availableAt: canonicalTime(availableAt),
-    expiresAt: expiresAt === Infinity ? null : canonicalTime(expiresAt),
+    visibleAt: gw2Time(visibleAt),
+    availableAt: gw2Time(availableAt),
+    expiresAt: expiresAt === Infinity ? null : gw2Time(expiresAt),
     remainingUses: uses
   };
 
@@ -91,7 +92,7 @@ export function expireSkillFlip(
 ): (SkillFlipWindow & { readonly expiresAt: number }) | undefined {
   const window = flips[skillId];
 
-  if (!window || window.identity !== identity || window.expiresAt === null || window.expiresAt > canonicalTime(at))
+  if (!window || window.identity !== identity || window.expiresAt === null || window.expiresAt > gw2Time(at))
     return undefined;
 
   // Expiry retires the whole grant, including every unused charge.

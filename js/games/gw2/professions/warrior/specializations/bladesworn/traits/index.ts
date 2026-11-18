@@ -2,6 +2,7 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2EffectExpiresAt, gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
@@ -33,7 +34,6 @@ import {
 import { BLADESWORN_SKILLS } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns this trait's tuning and selected contributions. */
 const unseenSword = defineTrait({
@@ -365,7 +365,7 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
 
   runtime.procs.setDeadline(
     'warrior.bladesworn.gunsaberSwapTrait',
-    canonicalTime(runtime.time + balanceProfileNumber(profile, 'internalCooldown'))
+    gw2Time(runtime.time + balanceProfileNumber(profile, 'internalCooldown'))
   );
   const flow = requireEffect(profile, 'buff', 'positive-flow');
 

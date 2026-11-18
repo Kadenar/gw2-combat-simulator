@@ -1,8 +1,8 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const SCEPTER_CHAIN_EXPIRY_TASK = 'mesmer.scepter-chain-expire';
 // Manual test 20261023-163612 retains the chain 2.760s after completion and resets by 2.880s.
@@ -11,7 +11,7 @@ const SCEPTER_CHAIN_RETENTION_SECONDS = 2.8;
 
 /** Replace the live deadline so stale tasks cannot reset a refreshed scepter chain. */
 function setMesmerScepterChainExpiry(runtime: MesmerRuntime, expiresAt: number | null): void {
-  const at = expiresAt == null ? null : canonicalTime(expiresAt);
+  const at = expiresAt == null ? null : gw2Time(expiresAt);
   runtime.profession.core.scepterChainExpiresAt = at;
 
   if (at != null) runtime.schedule(SCEPTER_CHAIN_EXPIRY_TASK, at, { at }, undefined, -20);

@@ -458,5 +458,5 @@ test('Shattering Ice is proc-only and accepts player-owned effect and field atta
     queued.filter((event) => event.type === 'condition').map((event) => event.triggeredBy),
     ['Electric Discharge', 'Deploy Jade Sphere (Air)']
   );
-  assert.equal(context.procs.deadline('elementalist.catalyst.shatteringIce'), 3.001);
+  assert.equal(context.procs.deadline('elementalist.catalyst.shatteringIce'), 3.04);
 });

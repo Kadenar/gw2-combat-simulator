@@ -164,12 +164,12 @@ test('instrument preview assumptions agree across history and planning state wit
 });
 
 test('instrument commitment, damage bonuses, projection, and UI share exact deadlines', () => {
-  for (const at of [5.300999, 5.301, 5.301001]) {
+  for (const at of [5.28, 5.301, 5.36]) {
     const context = instrumentContext();
     play(context, ID.LIVELY_LUTE, 0.1 + 0.201);
     const state = context.profession.specialization.state;
-    assert.equal(state.instruments.Lute, 5.301);
-    assert.equal(context.events.find((event) => event.type === 'mesmer.instrument').expiresAt, 5.301);
+    assert.equal(state.instruments.Lute, 5.32);
+    assert.equal(context.events.find((event) => event.type === 'mesmer.instrument').expiresAt, 5.32);
     context.time = at;
     const active = at <= 5.301;
     const projected = projectObservedState(mesmerProfession, {
@@ -192,7 +192,7 @@ test('instrument commitment, damage bonuses, projection, and UI share exact dead
       evaluateAttributeDeclarations(query, { power: 100 }, (context) => [fortissimo.attributes(context)]).power,
       active ? 104 : 100
     );
-    assert.equal(state.instruments.Lute, 5.301, 'Projection does not mutate the stored deadline');
+    assert.equal(state.instruments.Lute, 5.32, 'Projection does not mutate the stored deadline');
   }
 });
 
@@ -202,9 +202,9 @@ test('shorter instrument replays replace their own window without reviving old b
   play(context, ID.FLUSTERING_FLUTE, 1.301, 3);
   play(context, ID.LIVELY_LUTE, 2.301);
   const state = context.profession.specialization.state;
-  assert.deepEqual(state.instruments, { Lute: 7.301, Flute: 21.301 });
+  assert.deepEqual(state.instruments, { Lute: 7.32, Flute: 21.32 });
   assert.equal(activeInstrumentCount(modifierContext(context, 1.301)), 2, 'Historical queries retain earlier windows');
-  const query = modifierContext(context, 7.301001);
+  const query = modifierContext(context, 7.36);
   assert.equal(hasLute(query), false);
   assert.equal(
     evaluateAttributeDeclarations(query, { power: 100 }, (context) => [fortissimo.attributes(context)]).power,
@@ -257,7 +257,7 @@ function beginTale(context, at) {
 }
 
 test('Tales retain cast-start note eligibility after instrument expiry and reject instruments started later', () => {
-  for (const start of [5.300999, 5.301, 5.301001]) {
+  for (const start of [5.28, 5.301, 5.36]) {
     const context = instrumentContext();
     play(context, ID.FLUSTERING_FLUTE, 0.301);
     const cast = beginTale(context, start);
@@ -346,10 +346,10 @@ test('Crescendo reads an instrument committed between acceptance and impact', ()
   );
 });
 
-test('Flute endurance regeneration uses the final live microsecond and loses the bonus at expiry', () => {
+test('Flute endurance regeneration uses the last live tick and loses the bonus at expiry', () => {
   const context = instrumentContext();
   play(context, ID.FLUSTERING_FLUTE, 0.301);
-  for (const at of [5.300999, 5.301, 5.301001]) {
+  for (const at of [5.28, 5.301, 5.36]) {
     context.time = at;
     assert.equal(troubadourEndurance.regenerationRate(context, false, at), at <= 5.301 ? 6.25 : 5);
   }

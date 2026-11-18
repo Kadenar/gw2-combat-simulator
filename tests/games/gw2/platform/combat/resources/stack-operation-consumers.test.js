@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { triggerSharpeningStone } from '#gw2/professions/ranger/core/skills/slot-skills.js';
@@ -212,7 +213,7 @@ test('Scourge retains latest expiries and prunes at completion', () => {
     const state = observedRuntime(result).profession.specialization.state;
     assert.deepEqual(
       [...state.shades].sort((a, b) => a - b),
-      expected
+      expected.map(gw2Time)
     );
     const planning = [...result.planningState.profession[STATE.SHADES]];
     state.shades.push(99);

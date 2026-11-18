@@ -50,7 +50,7 @@ test('Gale Song and Bolstered Elements expand their selected boon profile at com
     const boons = result.events.filter((event) => event.kind === 'protection');
     assert.deepEqual(
       boons.map((event) => Math.round((event.at - action.endsAt) * 1000)),
-      [500, 700]
+      [520, 720]
     );
     assert.ok(boons.every((event) => event.activationId === action.activationId));
   }

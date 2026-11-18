@@ -1,4 +1,7 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
@@ -73,9 +76,11 @@ function scheduleThornsRetaliation(context: EngineerRuntime, skill: EngineerSkil
 /** Activates the casting skill's Plasmatic State duration with its first strike. */
 function activatePlasmaticState(context: EngineerRuntime, skill: EngineerSkill): void {
   const at = context.time;
-  amalgamState.from(context.profession).plasmaticStateUntil = Math.max(
-    amalgamState.from(context.profession).plasmaticStateUntil,
-    at + requireBalanceNumber(skill.duration, `${skill.name} duration`)
+  amalgamState.from(context.profession).plasmaticStateUntil = gw2Time(
+    Math.max(
+      amalgamState.from(context.profession).plasmaticStateUntil,
+      at + requireBalanceNumber(skill.duration, `${skill.name} duration`)
+    )
   );
 }
 
@@ -84,7 +89,7 @@ function evolveAmalgam(context: EngineerRuntime, skill: EngineerSkill): void {
   const at = context.time;
   const state = amalgamState.from(context.profession);
   // The accepted variant owns its patched lifetime independently of trait-owned attribute scaling.
-  state.evolvedUntil = at + requireBalanceNumber(skill.duration, `${skill.name} duration`);
+  state.evolvedUntil = gw2Time(at + requireBalanceNumber(skill.duration, `${skill.name} duration`));
 
   // Silver Lining moves strains to Morph; otherwise Evolve grants every selected protocol's strain itself.
   if (!hasTrait(context.traits, TRAIT.SILVER_LINING))

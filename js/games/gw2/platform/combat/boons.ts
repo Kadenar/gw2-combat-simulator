@@ -1,12 +1,13 @@
 import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Event, gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2EffectExpiresAt, roundEffectDuration } from '#gw2/platform/combat/effect-timing.js';
 import { BOON, BOON_NAMES, RECIPIENT, type BoonId } from '#gw2/platform/constants.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/events/events.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
-import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
+import { eventCausalOrder } from '#kernel/events/queue.js';
 
 interface BuffAudienceMetadata {
   readonly resolvedAudience?: ResolvedEffectAudience;
@@ -106,7 +107,7 @@ export interface DurationPoolState {
 
 /** Drains a pool from its last grant to `time`; the pool stays present through its own deadline. */
 function durationPoolState(remaining: number, previousTime: number, time: number): DurationPoolState {
-  const deadline = remaining === Infinity ? Infinity : canonicalTime(previousTime + remaining);
+  const deadline = remaining === Infinity ? Infinity : gw2Time(previousTime + remaining);
   return {
     remaining: normalizeDurationPool(Math.max(0, remaining - Math.max(0, time - previousTime))),
     active: remaining > 0 && deadline >= time
@@ -147,7 +148,7 @@ export function orderedDurationBoonState(
   const maximum = durationStackingBoonCapSeconds(kind);
   for (; cursor.length < applications.length; cursor.length += 1) {
     const application = applications[cursor.length];
-    const appliedAt = canonicalTime(application.at);
+    const appliedAt = gw2Time(application.at);
 
     if (appliedAt > time) break;
 
@@ -214,7 +215,7 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
     let expiredThrough = prefix && prefix.at <= at ? prefix.length : start;
     for (let index = expiredThrough; index < applications.length; index += 1) {
       const application = applications[index];
-      const startsAt = ordered ? canonicalTime(application.at) : application.at;
+      const startsAt = ordered ? gw2Time(application.at) : application.at;
 
       if (ordered && startsAt > at) break;
 
@@ -222,7 +223,7 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
       if (reusable && expiredThrough === index) {
         const expiresAt = expiryOf(application);
 
-        if (expiresAt !== Infinity && at > canonicalTime(expiresAt)) {
+        if (expiresAt !== Infinity && at > gw2Time(expiresAt)) {
           expiredThrough += 1;
           continue;
         }
@@ -276,7 +277,7 @@ export function recordBuffApplication(
 
   const kind = (event.kind || '').toLowerCase();
   const applications = applicationsByKind.get(kind) || [];
-  const at = canonicalTime(event.at);
+  const at = gw2Time(event.at);
   const duration = Math.max(0, event.duration || 0);
   applications.push({
     at,
@@ -323,9 +324,9 @@ export function advanceDurationStack<T extends DurationStackApplication>(
   maximum: number,
   duration?: (application: T) => number
 ): number {
-  const appliedAt = canonicalTime(Number(application.at));
+  const appliedAt = gw2Time(Number(application.at));
   // An extension at the pool's exact deadline still finds the boon present.
-  const active = remaining > 0 && (remaining === Infinity || canonicalTime(previousTime + remaining) >= appliedAt);
+  const active = remaining > 0 && (remaining === Infinity || gw2Time(previousTime + remaining) >= appliedAt);
   remaining = normalizeDurationPool(Math.max(0, remaining - Math.max(0, appliedAt - previousTime)));
 
   if (application.extension && !active) return remaining;
@@ -362,7 +363,7 @@ export function durationStackState<T extends DurationStackApplication>(
   for (const application of matching) {
     if (ordered && !includes(application)) continue;
 
-    const appliedAt = canonicalTime(Number(application.at));
+    const appliedAt = gw2Time(Number(application.at));
 
     if (appliedAt > time) break;
 
@@ -431,7 +432,7 @@ export function prepareBoonWindows(
   const appendUntil = (end: number): void => {
     if (end <= start) return;
 
-    const expiresAt = Math.min(end, start + remaining);
+    const expiresAt = gw2Time(Math.min(end, start + remaining));
 
     if (expiresAt > start) windows.push({ start, end: expiresAt, active: true });
 
@@ -473,7 +474,7 @@ export function* boonIntervalsFromWindows(windows: readonly BoonWindow[], start:
 
 /** Apply extensions at their own timestamp, keeping past observations and other recipients unchanged. */
 export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>, event: SimulationEvent): void {
-  event = normalizeBoonDuration(canonicalEvent(event));
+  event = normalizeBoonDuration(gw2Event(event));
   const duration = event.duration || 0;
 
   if (!(duration > 0)) return;
@@ -575,7 +576,7 @@ export function timedBuffApplicationsAt(
   const relevant = resolved
     ? events
     : events
-        .map(canonicalEvent)
+        .map(gw2Event)
         .filter(includes)
         .sort((left, right) => left.at - right.at || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0));
   for (const event of relevant) {

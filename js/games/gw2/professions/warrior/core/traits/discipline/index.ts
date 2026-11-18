@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
@@ -24,7 +25,6 @@ import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Adds bonuses to ranged autoattacks and applies Burning for each Dual Shot arrow that hits. */
 export const crackShot = defineTrait({
@@ -234,11 +234,9 @@ function readyHeightenedFocusBurst(runtime: WarriorRuntime, cast: RuntimeCast<Wa
   if (!(readyAt > 0)) return;
 
   // Canonicalize subtraction roundoff without admitting procs outside the cast window.
-  const triggeredAt = canonicalTime(
-    readyAt - balanceNumber(runtime.helpers, TRAIT.HEIGHTENED_FOCUS, 'internalCooldown')
-  );
+  const triggeredAt = gw2Time(readyAt - balanceNumber(runtime.helpers, TRAIT.HEIGHTENED_FOCUS, 'internalCooldown'));
 
-  if (triggeredAt >= canonicalTime(cast.start) && triggeredAt <= canonicalTime(runtime.time))
+  if (triggeredAt >= gw2Time(cast.start) && triggeredAt <= gw2Time(runtime.time))
     runtime.cooldownController.clear(cast.skill.id);
 }
 

@@ -1,4 +1,5 @@
 /** Owns Legendary Demon Stance skill definitions and its Unyielding Impact follow-up. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import {
   conditionEffectTicks,
@@ -17,7 +18,6 @@ import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/u
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
@@ -374,7 +374,7 @@ export function startRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast
 
   if (!strike) throw new Error('Embrace the Darkness is missing its strike effect.');
 
-  embracePulse(runtime, skill, canonicalTime(cast.start + (effectFirstAtMs(strike) || 0) / 1000), false);
+  embracePulse(runtime, skill, gw2Time(cast.start + (effectFirstAtMs(strike) || 0) / 1000), false);
 }
 
 /** A committed paid skill, including Embrace's own activation, arms Embrace's next pulse. */

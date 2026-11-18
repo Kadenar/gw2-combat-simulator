@@ -1,5 +1,6 @@
 import { PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
@@ -427,7 +428,7 @@ function applyCallAndResponse(
   delivery: EffectDelivery = {}
 ): void {
   if (spent === balanceNumber(context.helpers, TRAIT.CALL_AND_RESPONSE, 'threshold')) {
-    const afterimageAt = at + CALL_AND_RESPONSE_DELAY_SECONDS;
+    const afterimageAt = gw2Time(at + CALL_AND_RESPONSE_DELAY_SECONDS);
     afterimageInstrumentAttack(context, skill, data, afterimageAt, delivery);
     context.effects.emit({
       ...delivery,
@@ -563,7 +564,7 @@ function scheduleSyncopateDrumWave(
   if (instrument.instrument !== 'Drum') return;
 
   const syncopateProfile = requireBalanceProfile(context.helpers, TRAIT.SYNCOPATE);
-  const delayedAt = damageAt + SYNCOPATE_DELAY_SECONDS;
+  const delayedAt = gw2Time(damageAt + SYNCOPATE_DELAY_SECONDS);
   const delayedWave = requireEffect(syncopateProfile, 'strike', 'Delayed wave');
   const daze = requireEffect(syncopateProfile, 'control', 'Delayed daze');
 

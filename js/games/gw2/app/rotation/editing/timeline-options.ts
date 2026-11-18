@@ -25,7 +25,7 @@ import {
 } from '#gw2/app/rotation/timeline/model.js';
 import { COMBAT_START_ICON, WAIT_ICON } from '#gw2/app/shared/icons.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
+import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';
@@ -65,9 +65,9 @@ function editRotationDuration(app: ProfessionAppState, index: number, event?: Ev
     name: 'Wait',
     icon: anchor.closest('.rot-skill')?.querySelector<HTMLImageElement>('img')?.src || WAIT_ICON,
     label: 'Duration',
-    value: Number(item.durationMs) || GW2_ACTION_TICK_MS,
-    minimumMs: GW2_ACTION_TICK_MS,
-    stepMs: GW2_ACTION_TICK_MS,
+    value: Number(item.durationMs) || GW2_TICK_MS,
+    minimumMs: GW2_TICK_MS,
+    stepMs: GW2_TICK_MS,
     onApply(durationMs) {
       const currentEntry = app.build.rotation[index];
 

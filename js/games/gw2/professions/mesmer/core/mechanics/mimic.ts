@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR } from '#gw2/platform/constants.js';
@@ -7,7 +8,6 @@ import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Successful completion claims the current grant against the utility's start, including exact expiry. */
 export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
@@ -15,7 +15,7 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
 
   if (cast.cancelledBeforeCommit) return;
 
-  const at = canonicalTime(context.time);
+  const at = gw2Time(context.time);
   const core = professionCoreState(context.profession);
 
   if (
@@ -51,7 +51,7 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
 
 /** Mimic owns arming; the shared observer only consumes later eligible utilities. */
 export function armMimic(context: MesmerRuntime): void {
-  const expiresAt = canonicalTime(context.time + skillNumber(requireSkill(context.helpers, ID.MIMIC), 'duration'));
+  const expiresAt = gw2Time(context.time + skillNumber(requireSkill(context.helpers, ID.MIMIC), 'duration'));
   // Keep the grant after expiry: an in-flight utility can still claim it using its earlier start.
   professionCoreState(context.profession).mimic = createChargeGrant(expiresAt > 0 ? 1 : 0, expiresAt);
 }

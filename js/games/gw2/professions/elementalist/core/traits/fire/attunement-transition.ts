@@ -1,5 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -108,7 +109,7 @@ export function emitFlameExpulsion(
   // Delayed damage and the Might reward share one Fire-exit activation.
   const proc = context.effects.createProcActivation();
   const pyromancersPuissanceProfile = requireBalanceProfile(context.helpers, TRAIT.PYROMANCERS_PUISSANCE);
-  const impactAt = at + FLAME_EXPULSION_DELAY_SECONDS;
+  const impactAt = gw2Time(at + FLAME_EXPULSION_DELAY_SECONDS);
   const cappedMight = Math.min(
     balanceProfileNumber(pyromancersPuissanceProfile, 'maximumStacks'),
     context.config.boons?.might

@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -25,7 +26,6 @@ import type {
   GuardianSkill,
   GuardianVirtue
 } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { advanceCounter } from '#kernel/resources/counters.js';
 
 const PULSE = 'guardian.willbender.pulse';
@@ -88,7 +88,7 @@ function flames(runtime: GuardianRuntime, data: unknown): void {
   for (const [index, tick] of strike.ticks.entries())
     runtime.schedule(
       PULSE,
-      canonicalTime(runtime.time + tick.atMs / 1000),
+      gw2Time(runtime.time + tick.atMs / 1000),
       {
         ...guardianCastCause(runtime, cast),
         type: 'damage',
@@ -222,8 +222,8 @@ const willbenderVirtueActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>
         if (context.kind !== 'cast') return;
 
         const cast = context.cast;
-        const at = canonicalTime(activationAt(cast));
-        const flameAt = canonicalTime(
+        const at = gw2Time(activationAt(cast));
+        const flameAt = gw2Time(
           virtue === 'resolve' ? cast.start : virtue === 'justice' ? Math.max(at, cast.effectiveEnd - 0.04) : at
         );
         runtime.scheduleForCast(ACTIVATE, at, cast, { virtue });

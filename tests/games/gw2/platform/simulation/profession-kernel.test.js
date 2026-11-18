@@ -4,6 +4,7 @@ import test from 'node:test';
 import { skillAuthoringReference } from '#gw2/integrations/patches/authoring/fields.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
 import { skillFlipReady, weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -617,7 +618,7 @@ test('declared recharge progress scales the accepted anchor and validates its ra
       },
       [cast(991009)]
     );
-    assert.deepEqual(seen, [duration / 2000 + 0.1]);
+    assert.deepEqual(seen, [gw2Time(duration / 2000 + 0.1)]);
   }
 
   for (const rechargeProgress of [-1, 1.1, Infinity, NaN, '0.5'])

@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createResourceController } from '#gw2/platform/combat/resources/resource-controller.js';
 import { createResourceDepletionWake } from '#gw2/platform/simulation/task-scheduler.js';
 import { completeMesmerCast, startMesmerCast } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
@@ -100,7 +101,7 @@ for (const [specialization, key, maximum, modes] of [
       const tasks = scheduled.filter((task) => task.type === 'mesmer.resource-gain');
       assert.equal(tasks.length, 1);
       const task = tasks[0];
-      assert.equal(task.at, cast.fullEnd + (mode === 'add' ? 0.25 : 0));
+      assert.equal(task.at, gw2Time(cast.fullEnd + (mode === 'add' ? 0.25 : 0)));
       assert.equal(task.data.weapon, skill.weapon || context.config.primaryWeapon);
       assert.deepEqual(task.data.cause, { kind: 'skill', sourceSkillId: skill.id });
       context.time = task.at;
@@ -130,7 +131,7 @@ test('cast-start resources before completion are available to concurrent actions
     resource: {
       mode: 'add',
       timingAnchor: 'castStart',
-      atMs: 999.999,
+      atMs: 960,
       count: 1
     }
   };
@@ -162,7 +163,7 @@ test('resource gain at completion belongs to completion rather than a second tas
       count: 1
     }
   };
-  const cast = { id: 'resource-cast', start: 0.1, fullEnd: 0.3, effectiveEnd: 0.3, skill, command: {} };
+  const cast = { id: 'resource-cast', start: 0.12, fullEnd: 0.32, effectiveEnd: 0.32, skill, command: {} };
   startMesmerCast(context, cast, skill);
   assert.deepEqual(scheduled, []);
   assert.equal(context.profession.core.castDetails.get(cast.id).resourceScheduledDuringCast, false);
@@ -177,7 +178,7 @@ test('resource gain at completion belongs to completion rather than a second tas
 });
 
 test('resource gain at an interrupted endpoint survives roundoff but a later gain loses its owner', () => {
-  for (const effectiveEnd of [0.299999, 0.3]) {
+  for (const effectiveEnd of [0.28, 0.32]) {
     const { context, scheduled, cancelled } = fixture('Virtuoso', 0);
     const skill = {
       id: 'resource-boundary',
@@ -203,7 +204,7 @@ test('resource gain at an interrupted endpoint survives roundoff but a later gai
     completeMesmerCast(context, cast, skill);
     assert.equal(context.profession.core.castDetails.has(cast.id), false);
 
-    if (effectiveEnd === 0.3) {
+    if (effectiveEnd === 0.32) {
       assert.equal(scheduled.length, 1);
       assert.equal(scheduled[0].at, effectiveEnd);
       assert.deepEqual(cancelled, []);

@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
@@ -32,7 +33,6 @@ import {
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/trigger-points.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Nomad's Endurance owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
 const nomadsEndurance = defineTrait<MesmerSkill>({
@@ -310,7 +310,7 @@ function infiniteHorizonCloak(
   state: MesmerRuntime,
   { at, duration, delivery }: TriggerPointInput<typeof mirageCloakGranted>
 ): void {
-  mirageState.from(state.profession).cloneAmbushUntil = canonicalTime(at + duration);
+  mirageState.from(state.profession).cloneAmbushUntil = gw2Time(at + duration);
   createMirageMechanics(state).executeCloneAmbushes(at, professionCoreState(state.profession).clones, delivery);
 }
 

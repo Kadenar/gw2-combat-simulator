@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { createAutoattackChainController } from '#gw2/platform/execution/autoattack-chains.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
@@ -188,7 +189,7 @@ test('Arcane Echo accepts weapon starts through its ten-second deadline and cons
     context.time = canonicalTime(start + 2);
     const cast = { start, effectiveEnd: context.time, rechargeWork: 5 };
     completeArcaneEcho(context, cast, weapon);
-    assert.equal(context.cooldownController.readyAt(weapon.id), active ? canonicalTime(context.time + 1) : 20);
+    assert.equal(context.cooldownController.readyAt(weapon.id), gw2Time(active ? canonicalTime(context.time + 1) : 20));
     const expectedEcho = active ? 15 + gw2BaseRecharge(weapon) : 15;
     assert.equal(context.cooldownController.readyAt(echo.id), expectedEcho);
 

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 
 // Exercise the shared clock with real recharge intervals, independently of profession trigger eligibility.
@@ -22,8 +23,8 @@ for (const rate of [1, 1.25, 1.5]) {
     assert.equal(procs.claim(1), true);
     assert.equal(procs.deadline(1), 11);
     assert.equal(procs.claim(1, 1, 11), false);
-    assert.equal(procs.claim(1, 1, 11.001), true);
-    assert.equal(procs.deadline(1), 11.001 + 10);
+    assert.equal(procs.claim(1, 1, 11.04), true);
+    assert.equal(procs.deadline(1), gw2Time(11.04 + 10));
   });
 }
 
@@ -50,8 +51,8 @@ test('summon recharge integrates later grants and expiry for the captured compan
   assert.equal(procs.deadline('first'), 10);
   assert.equal(procs.deadline('second'), 11);
   assert.equal(procs.claim(3, 'first', 10, 'pet-a'), false);
-  assert.equal(procs.claim(3, 'first', 10.001, 'pet-a'), true);
-  assert.equal(procs.deadline('first'), 20.001);
+  assert.equal(procs.claim(3, 'first', 10.04, 'pet-a'), true);
+  assert.equal(procs.deadline('first'), 20.04);
 });
 
 test('scoped recharges and replacement deadlines do not leak across proc owners', () => {
@@ -88,7 +89,7 @@ test('recharge profiles reject invalid work and obsolete ICD fields', () => {
   assert.equal(procs.claim(3, 3, 1, 'pet-a'), true);
   assert.equal(procs.deadline(3), 1);
   assert.equal(procs.claim(3, 3, 1, 'pet-a'), false);
-  assert.equal(procs.claim(3, 3, 1.000001, 'pet-a'), true);
+  assert.equal(procs.claim(3, 3, 1.04, 'pet-a'), true);
 });
 
 // Both fixed-claim APIs replace summon work, and a later summon claim captures its new companion incarnation.

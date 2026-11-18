@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/combat/recharge.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -104,8 +106,8 @@ function beginSummonAction(
       skillId,
       skillName,
       name: skillName,
-      endsAt: at + animationEnd,
-      fullEndsAt: at + animationEnd,
+      endsAt: gw2Time(at + animationEnd),
+      fullEndsAt: gw2Time(at + animationEnd),
       summonOwner: elementalistElementalCompanionId(elemental.summonGeneration)
     }
   });
@@ -161,10 +163,12 @@ export function startSingleImpactAttack(
   const action = beginSummonAction(context, at, profile.skillId, name, profile.animationEnd / rate);
 
   if ('cooldown' in profile)
-    elemental.secondaryAttackReadyAt = at + profile.animationEnd / rate + profile.cooldown / rechargeRate(context, at);
+    elemental.secondaryAttackReadyAt = gw2Time(
+      at + profile.animationEnd / rate + profile.cooldown / rechargeRate(context, at)
+    );
 
   scheduleImpact(context, at + profile.impact / rate, impact, action);
-  elemental.busyUntil = at + profile.recovery / rate;
+  elemental.busyUntil = gw2Time(at + profile.recovery / rate);
 }
 
 // --- Attack starters -------------------------------------------------------
@@ -186,7 +190,7 @@ export function startFlameBarrage(context: ElementalistRuntime, at: number): voi
     scheduleImpact(context, at + offset / rate, 'flame-barrage-projectile', action, index + 1);
   });
   scheduleImpact(context, at + profile.explosionImpact / rate, 'flame-barrage-explosion', action, 4, -19);
-  const nextAt = at + profile.animationEnd / rate + postCommandRecovery;
+  const nextAt = gw2Time(at + profile.animationEnd / rate + postCommandRecovery);
   elemental.busyUntil = nextAt;
 }
 
@@ -202,7 +206,7 @@ export function startStomp(context: ElementalistRuntime, at: number): void {
       : EARTH_ELEMENTAL_EVTC_PROFILE.subsequentCommandRecovery;
   const action = beginSummonAction(context, at, profile.skillId, 'Stomp', profile.animationEnd / rate);
   scheduleImpact(context, at + profile.impact / rate, 'stomp', action);
-  const nextAt = at + profile.animationEnd / rate + postCommandRecovery;
+  const nextAt = gw2Time(at + profile.animationEnd / rate + postCommandRecovery);
   elemental.busyUntil = nextAt;
 }
 

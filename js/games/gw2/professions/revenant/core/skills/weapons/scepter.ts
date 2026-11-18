@@ -1,3 +1,5 @@
+// Private deadlines use the same 40 ms clock as scheduled events.
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 /** Canonical Core revenant skill definitions grouped by their GW2 owner. */
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
@@ -12,7 +14,7 @@ import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { timeKey } from '#kernel/core/clock.js';
 
 // Log-measured impact/aftercast timings are separate from Aura's fixed one-second fuse pulses.
 export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
@@ -263,12 +265,12 @@ function releaseRevenantBond(runtime: RevenantRuntime): void {
 
 /** Keep delayed availability in the shared flip windows so casting and the weapon palette agree. */
 function startRevenantBond(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const matureAt = runtime.time + 4;
-  const expiresAt = runtime.time + Number(cast.skill.flipDuration);
+  const matureAt = gw2Time(runtime.time + 4);
+  const expiresAt = gw2Time(runtime.time + Number(cast.skill.flipDuration));
   runtime.cooldownController.clear(cast.skill.id);
   runtime.armFlip(ID.DEACTIVATE_OTHERWORLDLY_BOND, {
     visibleAt: runtime.time,
-    availableAt: runtime.time + 1,
+    availableAt: gw2Time(runtime.time + 1),
     expiresAt: matureAt
   });
   const window = runtime.armFlip(ID.OTHERWORLDLY_ATTRACTION_ENEMY, {
@@ -302,14 +304,15 @@ function auraPulseTicks(skill: Skill) {
 function startRevenantBlossomingAura(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const skill = cast.skill;
   const { ticks } = auraPulseTicks(skill);
-  const firstAt =
-    cast.start + projectCastRelativeEffectTimingMs(skill, (cast.fullEnd - cast.start) * 1000, ticks[0].atMs) / 1000;
-  const expiresAt = canonicalTime(firstAt + Number(skill.duration));
+  const firstAt = gw2Time(
+    cast.start + projectCastRelativeEffectTimingMs(skill, (cast.fullEnd - cast.start) * 1000, ticks[0].atMs) / 1000
+  );
+  const expiresAt = gw2Time(firstAt + Number(skill.duration));
   // The final task is the fuse detonation, not another pulse; all tasks carry the same aura deadline.
   for (let index = 0; index <= ticks.length; index += 1)
     runtime.schedule(
       REVENANT_BLOSSOMING_AURA,
-      index === ticks.length ? expiresAt : canonicalTime(firstAt + index * Number(skill.pulseInterval)),
+      index === ticks.length ? expiresAt : gw2Time(firstAt + index * Number(skill.pulseInterval)),
       { index, expiresAt, activationId: cast.id } satisfies AuraPulse
     );
 }

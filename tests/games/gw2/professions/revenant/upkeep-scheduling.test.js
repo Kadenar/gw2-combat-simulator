@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
 import { runRuntime } from '#gw2/platform/simulation/runtime.js';
@@ -79,8 +80,8 @@ test('Conduit dagger cadence survives long waits and stops at form expiry', () =
 });
 
 test('allied Soulcleave cadence uses ally intervals across idle waits', () => {
-  // Slow allies retain their fractional cadence rather than being rounded to Core heartbeat times.
-  for (const waits of [[6100], Array(61).fill(100)]) {
+  // Round each absolute cadence point so repeated waits cannot change the ally attack rate.
+  for (const waits of [[6120], Array(51).fill(120)]) {
     const result = simulate('Renegade', ["Soulcleave's Summit", ...waits.map(wait)], {
       selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
       startingLegend: LEGEND.RENEGADE,
@@ -90,7 +91,7 @@ test('allied Soulcleave cadence uses ally intervals across idle waits', () => {
     const times = alliedProcTimes(result);
     assert.ok(times.length > 0);
     assert.ok(times.every((at) => at >= result.steps[0].end / 1000 && at <= 6.1));
-    assert.ok(times.every((at, index) => index === 0 || at - times[index - 1] >= 1 / 0.4));
+    assert.ok(times.every((at, index) => at === gw2Time((index + 1) / 0.4)));
   }
 });
 
@@ -109,7 +110,7 @@ test('release and reactivation start a fresh Conduit cadence', () => {
   const prefix = ['Impossible Odds', wait(2100), 'Relinquish Power', wait(1000), 'Impossible Odds'];
   const tick = (offsetMs) => affinityAt(prefix, offsetMs);
   // Each activation grants one affinity; only the replacement's ticks follow.
-  assert.deepEqual([tick(2999), tick(3000), tick(5999), tick(6000)], [2, 3, 3, 4]);
+  assert.deepEqual([tick(2960), tick(3000), tick(5960), tick(6000)], [2, 3, 3, 4]);
 });
 
 test('legend swap retires the upkeep and its specialization cadences immediately', () => {
@@ -205,7 +206,7 @@ test('starved Conduit upkeep can reactivate with a fresh deadline', () => {
   assert.deepEqual(result.warnings, []);
   // Two activations each grant one affinity; only the second activation's first tick follows.
   assert.deepEqual(
-    [2999, 3000].map((ms) => affinityAt(prefix, ms, config)),
+    [2960, 3000].map((ms) => affinityAt(prefix, ms, config)),
     [2, 3]
   );
 });

@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -27,7 +28,6 @@ import { overclockPassive } from '#gw2/professions/engineer/specializations/mech
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { MECH_BASE_ATTRIBUTES } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import type { EngineerResolverEvent, EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Jade Cannons command selection and existing trait behavior. */
 const jadeCannons = defineTrait({
@@ -458,10 +458,7 @@ function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolve
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
 
   // Barrier pulses can land exactly at the shared deadline; reserve the next interval before emitting the boon.
-  if (
-    !requireEffect(profile, 'boon', BOON.ALACRITY) ||
-    canonicalTime(event.at) < canonicalTime(runtime.procs.deadline(profile.id))
-  )
+  if (!requireEffect(profile, 'boon', BOON.ALACRITY) || gw2Time(event.at) < gw2Time(runtime.procs.deadline(profile.id)))
     return;
 
   runtime.procs.setDeadline(profile.id, event.at + balanceProfileNumber(profile, 'internalCooldown'));

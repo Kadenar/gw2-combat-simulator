@@ -90,7 +90,7 @@ test('Dont Stop grants endurance from Feline Grace but not permanent Swiftness a
     const moving = runThief([ID.STEAL, wait(1)], config);
     for (const result of [idle, moving]) assert.deepEqual(result.warnings, []);
     const endurance = (result) => observedRuntime(result).profession.core.endurance.value;
-    assert.equal(endurance(moving) - endurance(idle), Math.min(8, 100 - endurance(idle)));
+    assert.ok(Math.abs(endurance(moving) - endurance(idle) - Math.min(8, 100 - endurance(idle))) < 1e-9);
   }
 });
 

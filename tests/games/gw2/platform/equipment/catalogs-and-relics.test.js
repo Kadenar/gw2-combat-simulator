@@ -410,7 +410,7 @@ test('Severance queries retain application windows across refreshes and gaps', (
   grant(3, 4);
   grant(9.01, 4);
   const chance = 250 / PRECISION_PER_CRITICAL_CHANCE_FRACTION;
-  for (const at of [1, 3, 5, 6.999, 9.01, 13.039]) {
+  for (const at of [1, 3, 5, 6.999, 9.04, 13.039]) {
     assert.equal(severanceCriticalContribution(runtime, at).chance, chance);
   }
 
@@ -652,7 +652,7 @@ test('Mistburn also grants once per eligible resolver-created player Might appli
   assert.equal(new Set(grants.map((event) => event.boonGeneration.activationId)).size, grants.length);
   assert.deepEqual(
     grants.map((event) => event.at),
-    [1, 2.001]
+    [1, 2.04]
   );
   assert.equal(
     result.events.some((event) => event.sourceId === `relic.${RELIC_IDS.MISTBURN}`),

@@ -1,4 +1,4 @@
-import { canonicalTime } from '#kernel/core/clock.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 
 export interface EncounterPhaseTarget {
   readonly id: string;
@@ -208,9 +208,9 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
         groupDamage: 0,
         dps: 0
       });
-      deadline = current.durationSeconds === null ? null : canonicalTime(at + current.durationSeconds);
+      deadline = current.durationSeconds === null ? null : gw2Time(at + current.durationSeconds);
       nextTick =
-        current.kind === 'boss' && current.targets.some((target) => target.groupDps > 0) ? canonicalTime(at + 1) : null;
+        current.kind === 'boss' && current.targets.some((target) => target.groupDps > 0) ? gw2Time(at + 1) : null;
 
       if (current.kind === 'boss') {
         selected = current.playerTargetId;
@@ -304,6 +304,9 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
 
   const defeated = () => death !== null;
   function damage(amount: number, owner: 'player' | 'group', at: number, key?: string): number {
+    // Phase transitions inherit the accepted damage tick, including direct encounter callers.
+    at = gw2Time(at);
+
     if (start === null || death !== null || phase().kind !== 'boss') return 0;
 
     let accepted = 0;
@@ -329,6 +332,8 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
 
   return {
     begin(at: number): void {
+      at = gw2Time(at);
+
       if (start === null) {
         start = at;
         enter(at);
@@ -399,7 +404,7 @@ export function createEncounter(config: EncounterConfig, schedule: (at: number, 
       completeIfReady(at);
 
       if (token === generation) {
-        nextTick = canonicalTime(at + 1);
+        nextTick = gw2Time(at + 1);
         enqueue();
       }
 

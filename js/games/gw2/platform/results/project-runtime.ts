@@ -1,4 +1,5 @@
 /** Selects output projection after combat settles; detailed runs must provide their damage report owner. */
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
@@ -19,7 +20,6 @@ import type {
 } from '#gw2/platform/results/types.js';
 import type { DamageRuntimeResult, RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Project settled combat and planning facts without dispatching work or advancing time. */
 export function projectRuntimeResult<T extends object>(
@@ -106,7 +106,7 @@ export function projectRuntimeResult<T extends object>(
       start: Math.round(action.at * 1000),
       end: Math.round(action.endsAt * 1000),
       fullCastMs: Math.round((action.fullEndsAt - action.at) * 1000),
-      interrupted: canonicalTime(action.endsAt) < canonicalTime(action.fullEndsAt)
+      interrupted: gw2Time(action.endsAt) < gw2Time(action.fullEndsAt)
     };
   });
   // Project accepted commands once so APM and binding activity share the same action population.

@@ -1,4 +1,5 @@
 import { buffDeadlineActive, buffDeadlineReached } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -18,7 +19,6 @@ import { markCompleted } from '#gw2/professions/thief/specializations/deadeye/me
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { stolenSkillGrant } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Deadeye's Mark commits the target and stolen-skill transaction through its skill-owned action. */
 export const DEADEYE_MARK_SKILLS: Readonly<Record<number, SkillDefinition<ThiefSkill>>> = {
@@ -50,7 +50,7 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   const remarking = state.markedTargetId === 'primary-target' && buffDeadlineActive(state.markExpiresAt, runtime.time);
   const duration = skillNumber(requireSkill(runtime.helpers, ID.DEADEYES_MARK), 'duration');
   state.markedTargetId = duration > 0 ? 'primary-target' : null;
-  state.markExpiresAt = canonicalTime(runtime.time + Math.max(0, duration));
+  state.markExpiresAt = gw2Time(runtime.time + Math.max(0, duration));
   // A refresh is a new mark lifetime even on the same target; older expiry tasks must not clear its malice.
   state.markGeneration += 1;
 

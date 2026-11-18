@@ -1,3 +1,4 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import type { ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -49,7 +50,7 @@ export function decideCriticalSigils(
 
   for (const id of active) {
     if (isInternalCooldownReady(event.at, procs.deadline(`sigil.${id}`))) {
-      next.procs.push({ id, readyAt: event.at + SIGIL_PROCS[id].cooldown });
+      next.procs.push({ id, readyAt: gw2Time(event.at + SIGIL_PROCS[id].cooldown) });
     }
   }
 

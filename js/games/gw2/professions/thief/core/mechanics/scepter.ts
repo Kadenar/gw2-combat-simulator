@@ -1,9 +1,9 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { AutoattackChainTransitionResult } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export const THIEF_SCEPTER_CHAIN_EXPIRY = 'thief.scepter-chain-expire';
 
@@ -22,7 +22,7 @@ export function transitionThiefScepterChain(
 
   const core = runtime.profession.core;
   core.scepterChainExpiresAt =
-    change.decision === 'advance' ? canonicalTime(cast.effectiveEnd + SCEPTER_CHAIN_RETENTION_SECONDS) : null;
+    change.decision === 'advance' ? gw2Time(cast.effectiveEnd + SCEPTER_CHAIN_RETENTION_SECONDS) : null;
 
   if (core.scepterChainExpiresAt != null)
     runtime.schedule(THIEF_SCEPTER_CHAIN_EXPIRY, core.scepterChainExpiresAt, { at: core.scepterChainExpiresAt });

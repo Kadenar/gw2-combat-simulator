@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -170,7 +171,7 @@ test("Fox's Fury preserves commitment and applies command delay and targeting to
     shifted = foxPackets(delayed);
   assert.equal(shifted.length, original.length);
   for (let index = 0; index < shifted.length; index++)
-    assert.ok(Math.abs(shifted[index].at - original[index].at - 0.25) < 1e-9);
+    assert.ok(shifted[index].at === gw2Time(original[index].at + 0.25));
   const completionBoons = (result) =>
     result.resolvedEvents
       .filter(

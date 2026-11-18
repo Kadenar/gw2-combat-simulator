@@ -210,7 +210,7 @@ test('discrete readiness and settlement share earned grants without mutating obs
     assert.deepEqual(pool, before);
     for (const at of waits) advance(context, at);
     assert.equal(pool.value, 8);
-    assert.equal(pool.nextAt, 0.25);
+    assert.equal(pool.nextAt, 0.28);
     assert.equal(context.resourceController.readyAt('initiative', 8), 0.2);
     assert.equal(context.resourceController.readyAt('initiative', 10), 0.28);
   }
