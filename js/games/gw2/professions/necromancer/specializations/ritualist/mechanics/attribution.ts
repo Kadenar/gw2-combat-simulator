@@ -1,4 +1,7 @@
 import { ACTOR } from '#gw2/platform/constants.js';
+import { copyStrikePayload, type StrikePayloadFields } from '#gw2/platform/effects/strike-payload.js';
+import type { StrikeEffect, StrikeTick } from '#gw2/platform/effects/types.js';
+import type { EffectMetadata } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
@@ -16,13 +19,33 @@ export function attribution(cast: RuntimeCast<NecromancerSkill>) {
   };
 }
 
-/** Summon ownership identifies the spirit; metadata carries only the attack distinctions used by traits. */
-export function spiritFields(key: string, attackType: string) {
+/** Preserve authored strike metadata while the lifecycle supplies the spirit's identity and attack role. */
+export function spiritFields(key: string, attackType: string, metadata?: EffectMetadata) {
   return {
     summonKind: 'spirit',
     summonOwner: `spirit:${key}`,
     metadata: {
+      ...metadata,
       spiritAttackType: attackType
     }
+  };
+}
+
+/**
+ * Copy an authored strike the way shared emission does, so procedural spirit packets keep its strength profile,
+ * payload flags, and metadata. Tick fields override the effect. Without a tick, the packet carries the whole
+ * effect coefficient, as an autonomous attack does.
+ */
+export function spiritStrikeFields(key: string, attackType: string, effect: StrikeEffect, tick?: StrikeTick) {
+  const payload: StrikePayloadFields = {};
+  copyStrikePayload(effect, payload);
+
+  if (tick) copyStrikePayload(tick, payload);
+
+  return {
+    ...payload,
+    coefficient: tick ? tick.coefficient : (effect.coefficient ?? 0),
+    weaponStrengthProfileId: effect.weaponStrengthProfileId,
+    ...spiritFields(key, attackType, { ...effect.metadata, ...tick?.metadata })
   };
 }

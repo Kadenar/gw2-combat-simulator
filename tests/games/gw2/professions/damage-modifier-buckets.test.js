@@ -189,7 +189,7 @@ const EXPECTED = {
       'necromancer.perforate-target-health': { strike: 'multiplier' },
       'necromancer.satiate-target-health': { strike: 'multiplier' },
       'necromancer.executioners-scythe-target-health': { strike: 'multiplier' },
-      'necromancer.anguish-conditional-damage': { strike: 'additive' },
+      'necromancer.anguish-conditional-damage': { strike: 'multiplier' },
       // Active spirits scale Essence Blast independently of additive outgoing damage bonuses.
       'necromancer.essence-blast-active-spirits': { strike: 'multiplier' },
       'necromancer.ghastly-claws-vulnerability': { strike: 'multiplier' },

@@ -371,10 +371,10 @@ test('Ritualist attack projections reject cross-spirit packets and preserve sele
     const command = skillFacts(context, ID.SUMMON_SPIRITS).find(({ detail }) =>
       detail.includes('Summon Spirits - Wanderlust')
     );
-    assert.ok(command.detail.startsWith(`${patched ? 6 : 3.7} coefficient`));
+    assert.ok(command.detail.startsWith(`${patched ? 6 : 1.5} coefficient`));
     const definition = spiritDefinition({ helpers: context.catalog }, ID.WANDERLUST);
-    assert.equal(definition.summonTicks.length, patched ? 0 : 1);
-    assert.equal(definition.activeTicks[0].coefficient, patched ? 6 : 3.7);
+    assert.equal(definition.summon?.ticks.length ?? 0, patched ? 0 : 1);
+    assert.equal(definition.active.ticks[0].coefficient, patched ? 6 : 1.5);
     const result = simulate(profession, patchId, 'Ritualist', [
       "Ritualist's Shroud",
       'Wanderlust',
@@ -386,7 +386,13 @@ test('Ritualist attack projections reject cross-spirit packets and preserve sele
       (event) => event.type === 'damage' && event.metadata?.spiritAttackType === 'summon-spirits'
     );
     assert.ok(attacks.length > 0);
-    assert.ok(attacks.every(({ coefficient }) => coefficient === (patched ? 6 : 3.7)));
+    // Patch coefficients retain the command's authored weapon profile through projection and emission.
+    assert.ok(
+      attacks.every(
+        ({ coefficient, weaponStrengthProfileId }) =>
+          coefficient === (patched ? 6 : 1.5) && weaponStrengthProfileId === 'summon.weapon-type-1'
+      )
+    );
   }
 });
 

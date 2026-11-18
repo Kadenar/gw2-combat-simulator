@@ -5,13 +5,17 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
   attribution,
-  spiritFields
+  spiritFields,
+  spiritStrikeFields
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
-import type { SpiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
+import type {
+  SpiritAttack,
+  SpiritDefinition
+} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Apply the authored attack offset and optional travel delay on the canonical clock. */
@@ -39,7 +43,7 @@ export function prepareRitualistSpiritOpening(
       offTarget: cast.command.offTarget
     })
   });
-  return strikePackets(runtime, cast, spirit, spirit.summonTicks, 'initial');
+  return strikePackets(runtime, cast, spirit, spirit.summon, 'initial');
 }
 
 /** Finite spirit attacks retain one activation and ordered secondary conditions while sharing common damage resolution. */
@@ -47,31 +51,29 @@ function strikePackets(
   runtime: NecromancerRuntime,
   cast: RuntimeCast<NecromancerSkill>,
   spirit: SpiritDefinition,
-  ticks: SpiritDefinition['summonTicks'],
+  attack: SpiritAttack | undefined,
   attackType: string
 ): SimulationEventBase[] {
-  return ticks.map((tick, index) => {
-    const at = spiritImpactAt(runtime.time, cast, tick.atMs);
-    return buildResolverStrike({
+  if (!attack) return [];
+
+  return attack.ticks.map((tick, index) =>
+    buildResolverStrike({
       ...attribution(cast),
-      ...spiritFields(spirit.key, attackType),
-      at,
-      coefficient: tick.coefficient,
+      ...spiritStrikeFields(spirit.key, attackType, attack.effect, tick),
+      at: spiritImpactAt(runtime.time, cast, tick.atMs),
       skillWeapon: 'Unequipped',
       hitIndex: index + 1,
-      totalHits: ticks.length,
+      totalHits: attack.ticks.length,
       ...(attackType === 'summon-spirits'
         ? {
-            sourceId: `ritualist.${spirit.key}.summon-spirits`,
-            weaponStrength: skillNumber(cast.skill, 'weaponStrength')
+            sourceId: `ritualist.${spirit.key}.summon-spirits`
           }
         : {
-            weaponStrengthProfileId: 'transform.ritualist-shroud',
             activationId: spirit.key === 'wanderlust' ? `${cast.id}:field` : cast.id,
             name: spirit.key === 'wanderlust' ? 'Spirit of Wanderlust - Initial Attack' : cast.skill.name
           })
-    });
-  });
+    })
+  );
 }
 
 /** Strike and control packets from one command share the lifecycle's accepted action. */
@@ -80,7 +82,7 @@ export function ritualistSpiritCommandPackets(
   cast: RuntimeCast<NecromancerSkill>,
   spirit: SpiritDefinition
 ): SimulationEventBase[] {
-  const events = strikePackets(runtime, cast, spirit, spirit.activeTicks, 'summon-spirits');
+  const events = strikePackets(runtime, cast, spirit, spirit.active, 'summon-spirits');
 
   if (spirit.key === 'wanderlust')
     events.push({
@@ -89,7 +91,7 @@ export function ritualistSpiritCommandPackets(
       type: 'control',
       controlKind: CONTROL.DAZE,
       sourceId: `ritualist.${spirit.key}.summon-spirits`,
-      at: spiritImpactAt(runtime.time, cast, spirit.activeTicks[0]?.atMs ?? 0)
+      at: spiritImpactAt(runtime.time, cast, spirit.active?.ticks[0]?.atMs ?? 0)
     });
 
   return events;
@@ -109,12 +111,12 @@ export function ritualistSpiritField(
   cast: RuntimeCast<NecromancerSkill>,
   spirit: SpiritDefinition
 ): RitualistSpiritField | null {
-  const first = spirit.lingeringTicks[0];
+  const first = spirit.lingering?.ticks[0];
 
   if (!first) return null;
 
   return {
-    events: strikePackets(runtime, cast, spirit, spirit.lingeringTicks, 'initial'),
+    events: strikePackets(runtime, cast, spirit, spirit.lingering, 'initial'),
     skillId: cast.skill.id,
     at: spiritImpactAt(runtime.time, cast, first.atMs),
     attribution: attribution(cast)

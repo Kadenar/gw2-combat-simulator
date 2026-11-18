@@ -14,7 +14,11 @@ import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-defini
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { RITUALIST_SPIRIT_ATTACK_SKILLS } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
+import {
+  RITUALIST_FIXED_POWER_STRIKE,
+  RITUALIST_SPIRIT_ATTACK_SKILLS,
+  RITUALIST_SPIRIT_STRENGTH_PROFILE_ID
+} from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
@@ -130,7 +134,7 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
     interruptMode: 'commit',
     interruptCommitMs: 400,
     retainsCastLockoutAfterInterrupt: true,
-    // Spirit ownership covers opening, autonomous, and commanded attacks without changing their attribution.
+    // Spirit ownership identifies the opening and command that receive the conditional bonus.
     modifiers: [
       {
         id: 'necromancer.anguish-conditional-damage',
@@ -138,19 +142,24 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
         scope: 'profession',
         order: 2,
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
-        operation: 'damage-additive',
+        // Condition scaling multiplies the shared outgoing bonuses instead of joining their additive bucket.
+        operation: 'multiply',
         // Defiant targets receive the capped bonus; ordinary targets count up to five conditions.
         parameters: {
           damagePerCondition: 0.04,
           maximumConditions: 5
         },
-        amount: (context, _target, parameters) =>
+        factor: (context, _target, parameters) =>
+          1 +
           (context.config?.target?.defiant
             ? parameters.maximumConditions
-            : Math.min(targetConditionCount(context), parameters.maximumConditions)) * parameters.damagePerCondition,
-        // Existing spirit ownership and attack type identify every non-Innervate Anguish attack, including Summon Spirits.
+            : Math.min(targetConditionCount(context), parameters.maximumConditions)) *
+            parameters.damagePerCondition,
+        // The autonomous attack owns its effective coefficient and must not receive this bonus again.
         when: (context) =>
-          context.event?.summonOwner === 'spirit:anguish' && context.event.metadata?.spiritAttackType !== 'innervate'
+          context.event?.summonOwner === 'spirit:anguish' &&
+          (context.event.metadata?.spiritAttackType === 'initial' ||
+            context.event.metadata?.spiritAttackType === 'summon-spirits')
       }
     ],
     effects: [],
@@ -163,8 +172,9 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
           id: 'opening',
           effects: [
             {
-              // The live patch defines each opening barrage hit independently of the old log calibration.
+              // The barrage uses the patch-note coefficient with summon weapon strength and a separate condition multiplier.
               type: 'strike',
+              weaponStrengthProfileId: RITUALIST_SPIRIT_STRENGTH_PROFILE_ID,
               ticks: [
                 { atMs: 800, coefficient: 0.15 },
                 { atMs: 960, coefficient: 0.15 },
@@ -300,9 +310,10 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
               name: 'Wanderlust Initial Swing'
             },
             {
-              // The lingering field emits four independently timed 0.42 coefficient packets.
+              // The field uses the documented PvE coefficient and the spirit's weapon strength.
               type: 'strike',
-              ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 2000 + index * 1000, coefficient: 0.42 })),
+              weaponStrengthProfileId: RITUALIST_SPIRIT_STRENGTH_PROFILE_ID,
+              ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 2000 + index * 1000, coefficient: 0.18 })),
               timingAnchor: 'castStart',
               timingScale: 'fixed',
               actorType: ACTOR.PLAYER,
@@ -453,8 +464,6 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
     name: 'Summon Spirits',
     icon: 'https://render.guildwars2.com/file/CF9C5D79940CB74DAA650476DAE9DC012202B86C/3680177.png',
     cooldown: 20,
-    // Commanded spirit attacks use this skill-owned strength independently of autonomous attacks.
-    weaponStrength: 1056,
     type: 'Profession',
     slot: 'Weapon_5',
     shroud: 'ritualist',
@@ -471,6 +480,8 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
           effects: [
             {
               type: 'strike',
+              // The spirit supplies both weapon strength and Power for its commanded barrage.
+              ...RITUALIST_FIXED_POWER_STRIKE,
               ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 360 + index * 320, coefficient: 0.6 })),
               timingAnchor: 'castStart',
               timingScale: 'fixed',
@@ -480,7 +491,9 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
             },
             {
               type: 'strike',
-              coefficient: 3.7,
+              // Wanderlust's command uses its listed coefficient with summon strength, as its field does.
+              coefficient: 1.5,
+              weaponStrengthProfileId: RITUALIST_SPIRIT_STRENGTH_PROFILE_ID,
               hits: 1,
               atMs: 840,
               timingAnchor: 'castStart',

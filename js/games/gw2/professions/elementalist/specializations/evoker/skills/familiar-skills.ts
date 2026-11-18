@@ -75,7 +75,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     effects: impactEffects(
       { atMs: 1040, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
-        { type: 'strike', coefficient: 1.56 },
+        { type: 'strike', coefficient: 0.67, weaponStrengthProfileId: 'summon.weapon-type-1' },
         {
           type: 'condition',
           condition: CONDITION.BURNING,
@@ -222,7 +222,10 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [1120, 1360, 1600, 1840, 2080].map((atMs) => ({ atMs, coefficient: 0.28 }))
+        // The hare's strikes always crit, including copies released by Elemental Procession.
+        forceCrit: true,
+        weaponStrengthProfileId: 'summon.weapon-type-1',
+        ticks: [1120, 1360, 1600, 1840, 2080].map((atMs) => ({ atMs, coefficient: 0.122 }))
       },
       {
         type: 'condition',
@@ -303,7 +306,9 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     effects: impactEffects({ atMs: 2120, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        coefficient: 1.15,
+        // The impact's API coefficient uses the familiar's strength while retaining player attributes and ownership.
+        coefficient: 0.7238,
+        weaponStrengthProfileId: 'summon.weapon-type-1',
         comboFinishers: [
           {
             attemptGroup: 'effect:1:tick:1',

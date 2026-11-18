@@ -35,7 +35,7 @@ export const ritualistSpiritActions: NonNullable<
     if (context.kind !== 'cast' || context.cast.cancelledBeforeCommit) return;
 
     const cast = context.cast;
-    const swing = spiritDefinition(runtime, cast.skill.id)?.summonTicks[0];
+    const swing = spiritDefinition(runtime, cast.skill.id)?.summon?.ticks[0];
 
     if (!swing) return;
 
@@ -61,8 +61,10 @@ export const ritualistSpiritActions: NonNullable<
     const profile = requireSkill(runtime.helpers, painfulBondSkill.id);
     const effect = requireEffect(profile, 'buff', 'necromancer-painful-bond');
 
-    if (effect && spirit.summonTicks.length) {
-      const at = spiritImpactAt(runtime.time, cast, spirit.summonTicks[0].atMs);
+    const opening = spirit.summon?.ticks[0];
+
+    if (effect && opening) {
+      const at = spiritImpactAt(runtime.time, cast, opening.atMs);
       const duration = effectNumber(profile, effect, 'duration');
       // The summon grants Bond independently of whether its subsequent attack is interrupted.
       runtime.effects.emit({

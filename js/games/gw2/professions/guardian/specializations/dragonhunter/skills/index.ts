@@ -1,4 +1,4 @@
-import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { triggeredVirtueEffects } from '#gw2/professions/guardian/core/skills/virtue-payloads.js';
@@ -126,7 +126,8 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     slot: 'Profession_2',
     virtue: 'resolve',
     cooldown: 25,
-    castTimeMs: 0,
+    castTimeMs: 960,
+    comboFinishers: [{ ownerId: 'guardian', finisherType: COMBO_FINISHER.LEAP }],
     effects: [],
     // The added strike and condition keep the weapon wielded at acceptance and the base virtue's effects.
     effectVariants: [soaringDevastationEffects]

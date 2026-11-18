@@ -12,7 +12,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { creatureSummoned } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { spiritFields } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
+import { spiritStrikeFields } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
 import { RITUALIST_SPIRIT_SKILL_IDS } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
 import {
   spiritDefinition,
@@ -122,7 +122,7 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
 
   const spirit = spiritDefinition(runtime, work.skillId);
 
-  if (!spirit || !(spirit.attackCoefficient > 0)) return;
+  if (!spirit?.autoattack) return;
 
   const skill = runtime.helpers.skillsById.get(work.skillId)!;
 
@@ -139,12 +139,11 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
         skillName: `${skill.name} Autoattack`,
         icon: skill.icon,
         actorType: ACTOR.SUMMON,
-        coefficient: spirit.attackCoefficient,
         skillWeapon: 'Unequipped',
-        weaponStrength: spirit.attackWeaponStrength,
         canCrit: true,
         summonInheritsCriticalAttributes: true,
-        ...spiritFields(work.key, 'autoattack'),
+        // The authored autoattack supplies its coefficient, summon strength profile, and metadata.
+        ...spiritStrikeFields(work.key, 'autoattack', spirit.autoattack),
         activationId: `${work.activationId}:auto:${work.pulse}`
       })
     });
@@ -205,7 +204,7 @@ export function startRitualistSpirits(runtime: NecromancerRuntime): void {
 
     const interval = balanceNumber(runtime.helpers, TRAIT.SPAWNING_POWER, 'pulseInterval');
 
-    if (!(interval > 0) || !(spirit.attackCoefficient > 0)) continue;
+    if (!(interval > 0) || !spirit.autoattack) continue;
 
     actor.started = true;
 

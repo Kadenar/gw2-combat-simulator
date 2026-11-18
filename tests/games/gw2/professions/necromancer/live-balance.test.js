@@ -31,8 +31,8 @@ test('Anguish caps condition scaling and defiance supplies the maximum without s
   for (const count of [0, 3, 5, 7])
     for (const defiant of [false, true]) {
       assert.equal(
-        rule.amount(context(count, defiant), undefined, rule.parameters),
-        (defiant ? 5 : Math.min(count, 5)) * 0.04
+        rule.factor(context(count, defiant), undefined, rule.parameters),
+        1 + (defiant ? 5 : Math.min(count, 5)) * 0.04
       );
     }
 });

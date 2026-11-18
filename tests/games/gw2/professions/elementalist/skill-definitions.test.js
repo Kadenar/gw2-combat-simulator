@@ -530,7 +530,7 @@ test('Elemental Procession replays only surviving familiar payloads without fami
       assert.ok(
         result.resolvedEvents
           .filter((event) => event.type === 'damage' && event.triggeredBy === 'Elemental Procession')
-          .every((event) => event.weaponStrengthProfileId === 'nonweapon.profession-mechanic')
+          .every((event) => event.weaponStrengthProfileId === 'summon.weapon-type-1')
       );
     }
   }

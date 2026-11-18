@@ -7,6 +7,7 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { aggregateSigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
@@ -185,13 +186,19 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
   );
 
   assert.ok(anguish.length > 0);
+  // Summon weapon strength does not change the barrage's player ownership or replace its authored coefficient.
   assert.equal(
-    anguish.every((event) => event.actorType === 'player' && event.coefficient === 0.15),
+    anguish.every(
+      (event) =>
+        event.actorType === 'player' &&
+        event.coefficient === 0.15 &&
+        event.weaponStrengthProfileId === 'summon.weapon-type-1'
+    ),
     true
   );
   assert.ok(lingering.length > 0);
   assert.equal(
-    lingering.every((event) => event.coefficient === 0.42),
+    lingering.every((event) => event.coefficient === 0.18 && event.weaponStrengthProfileId === 'summon.weapon-type-1'),
     true
   );
   assert.ok(preservationAutos.length > 0);
@@ -200,7 +207,7 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
       (event) =>
         event.actorType === 'summon' &&
         event.coefficient === 0.3 &&
-        event.weaponStrength === 1440 &&
+        event.weaponStrengthProfileId === 'summon.weapon-type-1' &&
         event.summonInheritsCriticalAttributes === true
     ),
     true
@@ -208,14 +215,18 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
   assert.equal(
     wanderlustAutos.every(
       (event) =>
-        event.coefficient === 0.4 && event.weaponStrength === 1440 && event.summonInheritsCriticalAttributes === true
+        event.coefficient === 0.4 &&
+        event.weaponStrengthProfileId === 'summon.weapon-type-1' &&
+        event.summonInheritsCriticalAttributes === true
     ),
     true
   );
   assert.equal(
     anguishAutos.every(
       (event) =>
-        event.coefficient === 0.4 && event.weaponStrength === 1510 && event.summonInheritsCriticalAttributes === true
+        event.coefficient === 0.5 &&
+        event.weaponStrengthProfileId === 'summon.weapon-type-1' &&
+        event.summonInheritsCriticalAttributes === true
     ),
     true
   );
@@ -227,6 +238,69 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
     assert.ok(growth.some((event) => event.parentSkillName === parent && event.sourceId === TRAIT.EXPLOSIVE_GROWTH));
   assert.equal(detachedAutos.length, 0);
   assert.ok(bond.length >= 8);
+});
+
+// Spirit-owned Power must not replace player attack scaling, critical attributes, or outgoing modifiers.
+test('Ritualist autos and Anguish commands use spirit Power while retaining owner critical stats and modifiers', () => {
+  const rotation = [
+    "Ritualist's Shroud",
+    'Anguish',
+    'Wanderlust',
+    'Preservation',
+    'Essence Blast',
+    { type: 'wait', durationMs: 8000 },
+    'Summon Spirits',
+    { type: 'wait', durationMs: 2000 }
+  ];
+  const run = (power, precision = 3100, ferocity = 0, extra = {}) =>
+    simulate('Ritualist', rotation, {
+      initialResource: 100,
+      criticalDamageMode: 'averaged',
+      attributeInputs: baseAttributeInputs({ power, precision, ferocity }),
+      target: { armor: 2597, defiant: true, conditions: { Vulnerability: 25 } },
+      ...extra
+    });
+  const baseline = run(1000);
+  const power = run(3500);
+  const ferocity = run(3500, 3100, 900);
+  const precision = run(3500, 1000);
+  const modified = run(3500, 3100, 0, {
+    sigilSets: [aggregateSigilSet(['Force'])],
+    selectedTraitIds: [TRAIT.SPIRITS_STRENGTH]
+  });
+  const strike = (result, name) =>
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === name);
+
+  for (const [name, coefficient] of [
+    ['Anguish Autoattack', 0.5],
+    ['Wanderlust Autoattack', 0.4],
+    ['Preservation Autoattack', 0.3]
+  ]) {
+    const hit = strike(baseline, name);
+    assert.ok(hit, name);
+    assert.equal(hit.resolvedWeaponStrength, 2553.5);
+    assert.equal(hit.damage, Math.floor((coefficient * 2553.5 * 1580 * 1.25 * 1.5) / 2597));
+    assert.equal(strike(power, name).damage, hit.damage);
+    assertFlooredDamageMultiplier(strike(ferocity, name).damage, hit.damage, 1.4);
+    assert.ok(strike(precision, name).criticalChance < hit.criticalChance);
+    assert.ok(strike(precision, name).damage < hit.damage);
+    assertFlooredDamageMultiplier(strike(modified, name).damage, hit.damage, 1.05 * 1.33);
+  }
+
+  const command = (result, spirit) =>
+    result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.sourceId === `ritualist.${spirit}.summon-spirits`
+    );
+  const anguishCommand = command(baseline, 'anguish');
+  assert.ok(anguishCommand);
+  assert.equal(anguishCommand.resolvedWeaponStrength, 2553.5);
+  assert.equal(anguishCommand.damage, Math.floor((0.6 * 2553.5 * 1580 * 1.25 * 1.2 * 1.5) / 2597));
+  assert.equal(command(power, 'anguish').damage, anguishCommand.damage);
+  assertFlooredDamageMultiplier(command(ferocity, 'anguish').damage, anguishCommand.damage, 1.4);
+  assertFlooredDamageMultiplier(command(modified, 'anguish').damage, anguishCommand.damage, 1.05 * 1.33);
+  assertFlooredDamageMultiplier(command(power, 'wanderlust').damage, command(baseline, 'wanderlust').damage, 3.5);
+  for (const name of ['Anguish', 'Wanderlust', 'Essence Blast'])
+    assertFlooredDamageMultiplier(strike(power, name).damage, strike(baseline, name).damage, 3.5);
 });
 
 test('Ritualist spirit autos inherit owner Fury without inheriting owner Might', () => {

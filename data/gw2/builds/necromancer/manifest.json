@@ -96,31 +96,31 @@
         "build": "data/gw2/builds/necromancer/b-power-ritualist.json",
         "rotation": "data/gw2/rotations/necromancer/r-power-ritualist-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-ritualist-greatsword-spear",
-        "benchmarkDps": 38917,
+        "benchmarkDps": 41161,
         "upToDate": true,
-        "benchmarkApm": 87.7,
+        "benchmarkApm": 86.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 37900, "phase": 37900 },
-          "80-60": { "cumulative": 35752, "phase": 33832 },
-          "60-40": { "cumulative": 36468, "phase": 37982 },
-          "40-20": { "cumulative": 37929, "phase": 43121 },
-          "20-0": { "cumulative": 38917, "phase": 38917 }
+          "100-80": { "cumulative": 40394, "phase": 40394 },
+          "80-60": { "cumulative": 38015, "phase": 35883 },
+          "60-40": { "cumulative": 39232, "phase": 41836 },
+          "40-20": { "cumulative": 39950, "phase": 42362 },
+          "20-0": { "cumulative": 41161, "phase": 46792 }
         }
       },
       {
         "label": "Power Quickness (Spear / Greatsword)",
         "build": "data/gw2/builds/necromancer/b-power-quick-ritualist.json",
         "rotation": "data/gw2/rotations/necromancer/r-power-quick-ritualist-bench.json",
-        "benchmarkDps": 32855,
+        "benchmarkDps": 36161,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-quickness-ritualist-greatsword-spear",
-        "benchmarkApm": 82.7,
+        "benchmarkApm": 87.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 32986, "phase": 32986 },
-          "80-60": { "cumulative": 31590, "phase": 30298 },
-          "60-40": { "cumulative": 30134, "phase": 27643 },
-          "40-20": { "cumulative": 31725, "phase": 37930 },
-          "20-0": { "cumulative": 32855, "phase": 32855 }
+          "100-80": { "cumulative": 34495, "phase": 34495 },
+          "80-60": { "cumulative": 32742, "phase": 31172 },
+          "60-40": { "cumulative": 33729, "phase": 35925 },
+          "40-20": { "cumulative": 35435, "phase": 41715 },
+          "20-0": { "cumulative": 36161, "phase": 36161 }
         }
       }
     ]

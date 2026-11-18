@@ -16,7 +16,11 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
-import { virtueActivated, type VirtueActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import {
+  virtueActivated,
+  virtueCast,
+  type VirtueActivation
+} from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianResolutionMultiplier } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntime, GuardianSkill } from '#gw2/professions/guardian/types.js';
@@ -93,7 +97,7 @@ export const virtueOfResolution = defineTrait({
   }
 });
 
-/** Owns Inspiring Virtue tuning and behavior at its existing mechanic boundaries. */
+/** Inspiring Virtue starts on a successful virtue cast, before that virtue's damage resolves. */
 export const inspiringVirtue = defineTrait({
   id: GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE,
   balance: {
@@ -119,7 +123,7 @@ export const inspiringVirtue = defineTrait({
     }
   ],
   triggers: [
-    onTriggerPoint(virtueActivated, {
+    onTriggerPoint(virtueCast, {
       run: (runtime: GuardianRuntime, { cast }: VirtueActivation) =>
         virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE, 'guardian-inspiring-virtue')
     })
@@ -208,7 +212,7 @@ export const glacialHeart = defineTrait({
 
 export const battlePresence = defineTrait({ id: GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE });
 
-/** Committed activation boons sample live attributes and retain their selected component and party ownership. */
+/** Virtue rewards sample live attributes and retain their selected component and party ownership. */
 function virtueBuff(
   runtime: GuardianRuntime,
   cast: RuntimeCast<GuardianSkill>,

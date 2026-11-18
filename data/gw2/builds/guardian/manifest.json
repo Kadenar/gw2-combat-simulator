@@ -140,7 +140,7 @@
     "section": "Dragonhunter",
     "presets": [
       {
-        "label": "Power (Spear / Greatsword)",
+        "label": "Power (Spear / Greatsword) - Radiance",
         "build": "data/gw2/builds/guardian/b-power-dragonhunter-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-dragonhunter-radiance-spear-greatsword",
@@ -153,6 +153,22 @@
           "60-40": { "cumulative": 42643, "phase": 39966 },
           "40-20": { "cumulative": 41918, "phase": 39904 },
           "20-0": { "cumulative": 41808, "phase": 41370 }
+        }
+      },
+      {
+        "label": "Power (Spear / Greatsword) - Virtues",
+        "build": "data/gw2/builds/guardian/b-power-dragonhunter-virtues-spear-greatsword.json",
+        "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-virtues-spear-greatsword-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-dragonhunter-virtues-spear-greatsword",
+        "benchmarkDps": 41248,
+        "upToDate": true,
+        "benchmarkApm": 65.5,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 49450, "phase": 49450 },
+          "80-60": { "cumulative": 45436, "phase": 41983 },
+          "60-40": { "cumulative": 42822, "phase": 38425 },
+          "40-20": { "cumulative": 42158, "phase": 40252 },
+          "20-0": { "cumulative": 41248, "phase": 41248 }
         }
       },
       {

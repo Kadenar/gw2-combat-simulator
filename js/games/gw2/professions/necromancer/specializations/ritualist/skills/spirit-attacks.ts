@@ -1,5 +1,4 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Anguish grants this shared duration-stacking effect; its recurring damage has its own skill owner. */
@@ -32,8 +31,17 @@ export const painfulBondSkill: NecromancerSkill = {
   ]
 };
 
-/** Actor skills own autonomous attacks and calibrated busy/impact tuning without creating player casts. */
-export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly Skill[] = [
+/** Every spirit strike rolls the summon weapon strength instead of the player's equipped weapon. */
+export const RITUALIST_SPIRIT_STRENGTH_PROFILE_ID = 'summon.weapon-type-1';
+
+/** Attacks opt into fixed Power without changing their ownership, critical attributes, or damage modifiers. */
+export const RITUALIST_FIXED_POWER_STRIKE = Object.freeze({
+  weaponStrengthProfileId: RITUALIST_SPIRIT_STRENGTH_PROFILE_ID,
+  metadata: Object.freeze({ ritualistPowerOverride: 1580 })
+});
+
+/** Controlled logs support one summon strength profile for all three autonomous attacks. */
+export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly NecromancerSkill[] = [
   painfulBondSkill,
   {
     name: 'Anguish Autoattack',
@@ -42,8 +50,6 @@ export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly Skill[] = [
     type: 'Proc',
     rotationInputExcluded: true,
     castTimeMs: 0,
-    // Effective autoattack strength fitted across both supplied logs after normalizing live damage modifiers.
-    weaponStrength: 1510,
     // Scheduling starts at cast completion, about 80 ms after spawn; the opening finishes 1840 ms later.
     initialBusyMs: 1840,
     resummonBusyMs: 1840,
@@ -51,7 +57,9 @@ export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly Skill[] = [
     effects: [
       {
         type: 'strike',
-        coefficient: 0.4,
+        // This effective coefficient matches the isolated defiant-golem log without another condition multiplier.
+        coefficient: 0.5,
+        ...RITUALIST_FIXED_POWER_STRIKE,
         hits: 1,
         actorType: ACTOR.SUMMON,
         name: 'Anguish Autoattack'
@@ -65,7 +73,6 @@ export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly Skill[] = [
     type: 'Proc',
     rotationInputExcluded: true,
     castTimeMs: 0,
-    weaponStrength: 1440,
     // Measured from cast completion: replacing an existing Wanderlust adds 120 ms before its opening finishes.
     initialBusyMs: 1400,
     resummonBusyMs: 1520,
@@ -74,6 +81,7 @@ export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly Skill[] = [
       {
         type: 'strike',
         coefficient: 0.4,
+        ...RITUALIST_FIXED_POWER_STRIKE,
         hits: 1,
         actorType: ACTOR.SUMMON,
         name: 'Wanderlust Autoattack'
@@ -87,7 +95,6 @@ export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly Skill[] = [
     type: 'Proc',
     rotationInputExcluded: true,
     castTimeMs: 0,
-    weaponStrength: 1440,
     initialBusyMs: 1640,
     resummonBusyMs: 1640,
     // Its commanded heal occupies the spirit even though healing packets are outside the damage simulation.
@@ -98,6 +105,7 @@ export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly Skill[] = [
       {
         type: 'strike',
         coefficient: 0.3,
+        ...RITUALIST_FIXED_POWER_STRIKE,
         hits: 1,
         actorType: ACTOR.SUMMON,
         name: 'Preservation Autoattack'

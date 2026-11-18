@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 4,
+  "profession": "guardian",
+  "gear": {
+    "Helm": "Berserker's",
+    "Shoulders": "Assassin's",
+    "Chest": "Assassin's",
+    "Gloves": "Assassin's",
+    "Leggins": "Assassin's",
+    "Boots": "Assassin's",
+    "Amulet": "Assassin's",
+    "Ring1": "Berserker's",
+    "Ring2": "Assassin's",
+    "Accessory1": "Assassin's",
+    "Accessory2": "Assassin's",
+    "Back": "Assassin's",
+    "Weapon1": "Assassin's",
+    "Weapon2": "Assassin's"
+  },
+  "weapons": ["Greatsword", ""],
+  "alternateWeapons": ["Spear", ""],
+  "rune": "Dragonhunter",
+  "weaponSigils": [
+    ["Force", "Accuracy"],
+    ["Force", "Accuracy"]
+  ],
+  "relic": "Dragonhunter",
+  "food": "Cilantro Lime Sous-Vide Steak",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [
+    { "stat": "Power", "count": 18 },
+    { "stat": "Precision", "count": 0 },
+    { "stat": "Condition Damage", "count": 0 }
+  ],
+  "specializations": [
+    { "name": "Virtues", "traits": "1-1-1" },
+    { "name": "Zeal", "traits": "2-2-3" },
+    { "name": "Dragonhunter", "traits": "1-2-3" }
+  ],
+  "selectedSkillIds": {
+    "Heal": 30025,
+    "Utility1": 30364,
+    "Utility2": 9168,
+    "Utility3": 9093,
+    "Elite": 30273
+  },
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": true,
+    "targetMoving": false,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Crippled": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    },
+    "targetSkillActivationsPerSecond": 0
+  },
+  "initialTomePages": 5,
+  "startingWeaponSet": 2,
+  "targetHealth": 4000000,
+  "targetArmor": 2597
+}

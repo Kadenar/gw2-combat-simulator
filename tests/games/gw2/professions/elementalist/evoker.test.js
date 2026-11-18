@@ -673,7 +673,7 @@ test('Elemental Procession uses familiar weapon strength and lets Buoyant Deluge
 
   assert.deepEqual(result.warnings, []);
   assert.ok(processionStrikes.length > 0);
-  assert.ok(processionStrikes.every((event) => event.weaponStrengthProfileId === 'nonweapon.profession-mechanic'));
+  assert.ok(processionStrikes.every((event) => event.weaponStrengthProfileId === 'summon.weapon-type-1'));
   assert.ok(otterControl);
   assert.equal(
     result.resolvedEvents.filter(

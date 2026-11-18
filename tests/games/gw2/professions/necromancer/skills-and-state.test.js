@@ -879,15 +879,15 @@ test('shroud strikes use their fixed or equipped weapon strengths', () => {
 
   assert.ok(anguishHits.length > 0);
   assert.ok(anguishHits.every((event) => event.coefficient === 0.15));
-  assert.ok(anguishHits.every((event) => event.weaponStrengthProfileId === 'transform.ritualist-shroud'));
-  assert.ok(anguishHits.every((event) => event.resolvedWeaponStrength === 1100));
+  assert.ok(anguishHits.every((event) => event.weaponStrengthProfileId === 'summon.weapon-type-1'));
+  assert.ok(anguishHits.every((event) => event.resolvedWeaponStrength === 2553.5));
   assert.equal(new Set(anguishHits.map((event) => event.activationId)).size, 1);
   assert.equal(wanderlustOpening.skillWeapon, 'Scepter');
   assert.equal(wanderlustOpening.weaponStrengthProfileId, 'weapon.scepter');
   assert.ok(wanderlustFields.length > 0);
-  assert.ok(wanderlustFields.every((event) => event.coefficient === 0.42));
-  assert.ok(wanderlustFields.every((event) => event.weaponStrengthProfileId === 'transform.ritualist-shroud'));
-  assert.ok(wanderlustFields.every((event) => event.resolvedWeaponStrength === 1100));
+  assert.ok(wanderlustFields.every((event) => event.coefficient === 0.18));
+  assert.ok(wanderlustFields.every((event) => event.weaponStrengthProfileId === 'summon.weapon-type-1'));
+  assert.ok(wanderlustFields.every((event) => event.resolvedWeaponStrength === 2553.5));
   assert.equal(new Set(wanderlustFields.map((event) => event.activationId)).size, 1);
   assert.notEqual(wanderlustFields[0].activationId, wanderlustOpening.activationId);
   assert.equal(damage(ritualist, 'Summon Spirits').skillWeapon, 'Unequipped');

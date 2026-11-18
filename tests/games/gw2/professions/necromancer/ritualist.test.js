@@ -4,6 +4,7 @@ import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { ritualistModule } from '#gw2/professions/necromancer/specializations/ritualist/module.js';
@@ -22,21 +23,90 @@ const base = {
 };
 const state = (result) => observedRuntime(result).profession.specialization.state;
 
-// Ownership selects Anguish even when Summon Spirits supplies the skill identity; Innervate remains excluded.
+// The condition multiplier must not dilute Soul Barbs by sharing its additive damage bucket.
+test('Anguish condition bonus multiplies Soul Barbs independently', () => {
+  const rotation = [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(2000)];
+  const damage = (selectedTraitIds) =>
+    run(rotation, {
+      config: { ...base, selectedTraitIds, target: { ...base.target, defiant: true } }
+    }).resolvedEvents.filter((event) => event.name === 'Anguish' && event.damage > 0);
+  const baseline = damage([]);
+  const boosted = damage([TRAIT.SOUL_BARBS]);
+  assert.ok(baseline.length > 0);
+  assert.equal(boosted.length, baseline.length);
+  boosted.forEach((event, index) => assertFlooredDamageMultiplier(event.damage, baseline[index].damage, 1.1));
+});
+
+// Opening and command ownership select the bonus without applying it again to the autonomous coefficient.
 test('Anguish condition bonus follows spirit ownership and attack type', () => {
   const anguishConditionModifier = ritualistModule.modifiers.modifierRules.find(
     (rule) => rule.id === 'necromancer.anguish-conditional-damage'
   );
   for (const skillId of [ID.ANGUISH, ID.SUMMON_SPIRITS]) {
-    for (const spiritAttackType of ['initial', 'autoattack', 'innervate']) {
+    for (const spiritAttackType of ['initial', 'summon-spirits', 'autoattack', 'innervate']) {
       for (const summonOwner of ['spirit:anguish', 'spirit:wanderlust', undefined]) {
         assert.equal(
           anguishConditionModifier.when({ event: { skillId, summonOwner, metadata: { spiritAttackType } } }),
-          summonOwner === 'spirit:anguish' && spiritAttackType !== 'innervate'
+          summonOwner === 'spirit:anguish' && ['initial', 'summon-spirits'].includes(spiritAttackType)
         );
       }
     }
   }
+});
+
+// Selected metadata controls Power through both packet builders, including attacks that normally inherit it.
+test('Ritualist attacks honor authored Power overrides without reclassifying their ownership', () => {
+  const rotation = [
+    cast(ID.RITUALISTS_SHROUD),
+    cast(ID.ANGUISH),
+    cast(ID.WANDERLUST),
+    wait(5000),
+    cast(ID.SUMMON_SPIRITS),
+    wait(2500)
+  ];
+  const config = { ...base, criticalDamageMode: 'averaged' };
+  const catalog = necromancerProfession.runtimeFor(config).catalog;
+  const autoId = 'necromancer.ritualist.anguish.autoattack';
+  const autoEffect = catalog.skillsById.get(autoId).effects.find((effect) => effect.type === 'strike');
+  const commands = requireSkillAction(catalog.skillsById.get(ID.SUMMON_SPIRITS), 'commands').effects;
+  const override = (effect, power) => ({
+    ...effect,
+    metadata: { ...effect.metadata, ritualistPowerOverride: power }
+  });
+  const baseline = run(rotation, { config });
+  const patched = run(rotation, {
+    config,
+    skills: {
+      [autoId]: {
+        removeEffects: [{ type: 'strike', name: 'Anguish Autoattack' }],
+        addEffects: [override(autoEffect, 3160)]
+      },
+      [ID.SUMMON_SPIRITS]: {
+        sideEffects: {
+          commands: {
+            removeEffects: commands.map(({ type, name }) => ({ type, name })),
+            addEffects: commands.map((effect) =>
+              override(effect, effect.name === 'Summon Spirits - Anguish' ? 0 : 2000)
+            )
+          }
+        }
+      }
+    }
+  });
+  const attack = (result, spirit, role) =>
+    result.resolvedEvents.find(
+      (event) =>
+        event.type === 'damage' && event.summonOwner === `spirit:${spirit}` && event.metadata?.spiritAttackType === role
+    );
+  assert.deepEqual(patched.warnings, []);
+  const auto = attack(patched, 'anguish', 'autoattack');
+  assert.equal(auto.actorType, 'summon');
+  assertFlooredDamageMultiplier(auto.damage, attack(baseline, 'anguish', 'autoattack').damage, 2);
+  const command = attack(patched, 'wanderlust', 'summon-spirits');
+  assert.equal(command.actorType, 'player');
+  assertFlooredDamageMultiplier(command.damage, attack(baseline, 'wanderlust', 'summon-spirits').damage, 2);
+  assert.equal(attack(patched, 'anguish', 'summon-spirits').damage, 0);
+  assert.equal(attack(patched, 'anguish', 'initial').damage, attack(baseline, 'anguish', 'initial').damage);
 });
 
 // Editing a delayed condition cannot remove a sibling condition or stop the spirit's autonomous lifetime.

@@ -3,7 +3,9 @@ import type { MetadataFields, MetadataFromFields } from '#gw2/platform/events/me
 
 export const RITUALIST_METADATA_FIELDS = Object.freeze({
   /** Essence Blast keeps the spirit count accepted before later spirit lifetime changes. */
-  activeSpirits: 'number'
+  activeSpirits: 'number',
+  /** Selected strikes replace only Power after player attribute bonuses. */
+  ritualistPowerOverride: 'number'
 } as const satisfies MetadataFields);
 
 type RitualistEffectMetadata = MetadataFromFields<typeof RITUALIST_METADATA_FIELDS>;
