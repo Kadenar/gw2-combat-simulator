@@ -6,15 +6,15 @@
         "label": "Power (Hammer)",
         "build": "data/gw2/builds/engineer/b-power-core-hammer.json",
         "rotation": "data/gw2/rotations/engineer/r-power-core-hammer-evtc.json",
-        "benchmarkDps": 36489,
+        "benchmarkDps": 36598,
         "upToDate": true,
-        "benchmarkApm": 99.2,
+        "benchmarkApm": 99.7,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 39591, "phase": 39591 },
           "80-60": { "cumulative": 37065, "phase": 34829 },
-          "60-40": { "cumulative": 36405, "phase": 35130 },
-          "40-20": { "cumulative": 35635, "phase": 33542 },
-          "20-0": { "cumulative": 36489, "phase": 40619 }
+          "60-40": { "cumulative": 36471, "phase": 35319 },
+          "40-20": { "cumulative": 35743, "phase": 33752 },
+          "20-0": { "cumulative": 36598, "phase": 40721 }
         }
       }
     ]
