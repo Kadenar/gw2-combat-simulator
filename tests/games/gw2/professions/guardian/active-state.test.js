@@ -26,24 +26,20 @@ function activeState(result) {
   );
 }
 
-test('Purity of Word owns page recovery regardless of defensive trait selection', () => {
-  // The same clock supplies both countdowns, including ticks that continue while the page pool is full.
-  for (const [selectedTraitIds, interval] of [
-    [[], 6],
-    [[TRAIT.DELIVERANCE], 6]
-  ]) {
-    const config = { initialTomePages: 7, selectedTraitIds };
-    const initial = activeState(simulate(undefined, [], config));
-    assert.equal(initial['firebrand-purity-of-word'].value, `${interval.toFixed(1)}s`);
-    const elapsed = activeState(simulate(undefined, [{ type: 'wait', durationMs: 1000 }], config));
-    assert.equal(elapsed['firebrand-purity-of-word'].value, `${(interval - 1).toFixed(1)}s`);
-    assert.match(elapsed['firebrand-purity-of-word'].title, new RegExp(`every ${interval}\\.0s`));
-    const regenerated = simulate(undefined, [{ type: 'wait', durationMs: interval * 1000 }], config);
-    assert.equal(regenerated.planningState.profession[STATE.TOME_PAGES].value, 8);
-    assert.equal(activeState(regenerated)['firebrand-purity-of-word'].value, `${interval.toFixed(1)}s · Full`);
-  }
-
-  assert.equal(activeState(simulate(undefined, []))['firebrand-purity-of-word'], undefined);
+test('Purity of Word displays the projected countdown and full-pool label', () => {
+  // Supply a projected clock directly so presentation checks do not repeat page-generation behavior.
+  const pages = { value: 7, maximum: 8, interval: 10, nextAt: 7 };
+  const result = {
+    warnings: [],
+    planningState: { atSeconds: 2, profession: { [STATE.TOME_PAGES]: pages } }
+  };
+  const item = activeState(result)['firebrand-purity-of-word'];
+  assert.equal(item.value, '5.0s');
+  assert.match(item.title, /every 10\.0s/);
+  pages.value = pages.maximum;
+  assert.equal(activeState(result)['firebrand-purity-of-word'].value, '5.0s · Full');
+  pages.nextAt = Infinity;
+  assert.equal(activeState(result)['firebrand-purity-of-word'], undefined);
 });
 
 test('Swift Scholar exposes current tome progress and clears it after a refund or stow', () => {

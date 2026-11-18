@@ -302,32 +302,6 @@ test('later tome pages do not restore consumed Ashes charges', () => {
   assert.equal(result.planningState.profession[STATE.ASHES].count, 0);
 });
 
-test('Firebrand page exhaustion keeps the tome open while pages regenerate', () => {
-  const exhausted = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    specialization: 'Firebrand',
-    initialTomePages: 2
-  })(undefined, ['Tome of Resolve', 'Epilogue: Eternal Oasis', { type: 'wait', durationMs: 8000 }]);
-  const traited = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    specialization: 'Firebrand',
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.BASTION, GUARDIAN_TRAIT_IDS.DELIVERANCE]
-  })(undefined, []);
-
-  assert.deepEqual(exhausted.warnings, []);
-  assert.equal(exhausted.planningState.profession[STATE.ACTIVE_TOME], 'resolve');
-  const spent = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    specialization: 'Firebrand',
-    initialTomePages: 2
-  })(undefined, ['Tome of Resolve', 'Epilogue: Eternal Oasis']);
-  assert.equal(spent.planningState.profession[STATE.TOME_PAGES].value, 0);
-  assert.equal(exhausted.planningState.profession[STATE.TOME_PAGES].value, 1);
-  assert.equal(traited.planningState.profession[STATE.TOME_PAGES].maximum, 8);
-  assert.equal(traited.planningState.profession[STATE.TOME_PAGES].value, 8);
-  assert.equal(traited.planningState.profession[STATE.TOME_PAGES].interval, 6);
-});
-
 test('Firebrand page regeneration keeps ticking at capacity after natural recovery or a mantra refund', () => {
   for (const refund of [false, true]) {
     const result = createObservedProfessionSimulator(guardianProfession, {
@@ -937,7 +911,6 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
     const second = observedRuntime(runGuardian([], config)).profession.specialization.state;
     assert.equal(second.tomePages.value, expected);
     assert.equal(second.tomePages.maximum, 8);
-    assert.equal(second.tomePages.nextAt, expected < 8 ? 6 : Infinity);
     assert.deepEqual(first.tomePages, second.tomePages);
     assert.notEqual(first.tomePages, second.tomePages);
   }

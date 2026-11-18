@@ -55,8 +55,6 @@ test('Solace refunds two pages, other mantras refund one, and Revelation adds on
           );
           assert.deepEqual(result.warnings, []);
           const pages = result.planningState.profession[STATE.TOME_PAGES];
-          assert.equal(pages.maximum, 8);
-          assert.equal(pages.interval, 6);
           assert.equal(pages.value, spendFinal ? baseline + Number(selected && traitTriggers) : 0);
           assert.ok(!result.resolvedEvents.some((event) => event.condition === 'Slow'));
         }

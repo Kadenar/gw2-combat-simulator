@@ -283,7 +283,7 @@ test('required profile fields fail contextually and selected catalogs cannot fal
 test('patched resource caps and zero recurrence survive initialization and presentation', () => {
   const edits = {
     [TRAIT.PURITY_OF_WORD]: {
-      fields: { maximumStacks: { from: 8, to: 2 }, pulseInterval: { from: 6, to: 0 } }
+      fields: { maximumStacks: { from: 8, to: 2 }, pulseInterval: 0 }
     }
   };
   const result = run(edits, 'Firebrand', [

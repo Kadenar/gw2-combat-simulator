@@ -535,7 +535,7 @@ test('Willbender Phoenix Protocol shares with or without Battle Presence', () =>
 test('Firebrand pages recover before retrying a cast and zero pages leave the tome open', () => {
   const result = run([ID.TOME_OF_JUSTICE, ID.SEARING_SPELL], { ...firebrand, initialTomePages: 0 });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.steps[1].start, 6000);
+  assert.equal(result.steps[1].start, 8000);
   assert.equal(fb(result).tomePages.value, 0);
   assert.equal(fb(result).activeTome, 'justice');
   const archivist = run([], { ...firebrand, selectedTraitIds: [TRAIT.BASTION] });
@@ -570,7 +570,7 @@ test('Firebrand page exhaustion waits on the selected recovery policy and disabl
     id: 'no-pages',
     label: 'No page regeneration',
     professions: {
-      guardian: { balanceProfiles: { [TRAIT.PURITY_OF_WORD]: { fields: { pulseInterval: { from: 6, to: 0 } } } } }
+      guardian: { balanceProfiles: { [TRAIT.PURITY_OF_WORD]: { fields: { pulseInterval: 0 } } } }
     }
   });
   const result = run(

@@ -125,7 +125,7 @@ test('Explosive Temper observes grant, audience, cap and expiry without mutating
   });
   assert.equal(probe.query.statsAt(1, null, runtime).ferocity, 200);
   const before = runtime.liveEffects.queries.buffApplications('explosive-temper');
-  assert.equal(probe.query.statsAt(5, null, runtime).ferocity, 0);
+  assert.equal(probe.query.statsAt(5.000001, null, runtime).ferocity, 0);
   assert.deepEqual(runtime.liveEffects.queries.buffApplications('explosive-temper'), before);
   assert.deepEqual(probe.config.attributeInputs, seed);
 });
@@ -201,8 +201,8 @@ test('Sand Sage feeds utility conversions only while a shade lives without chain
   const scourge = scenario('necromancer', 'Scourge', ['Sand Sage', 'Fell Beacon'], { attributeInputs });
   const runtime = { profession: { specialization: { kind: 'Scourge', state: { shades: [5] } } } };
   const original = structuredClone({ attributeInputs, runtime });
-  const active = scourge.query.statsAt(4, null, runtime);
-  const expired = scourge.query.statsAt(5, null, runtime);
+  const active = scourge.query.statsAt(5, null, runtime);
+  const expired = scourge.query.statsAt(5.000001, null, runtime);
   assert.equal(active.expertise, 895);
   assert.equal(expired.expertise, 670);
   assert.equal(active.conditionDamage, 1096);
@@ -219,10 +219,10 @@ test('Necromancer declarations observe shade and shroud expiry while Carapace re
     }
   };
   const before = structuredClone(runtime);
-  assert.equal(scourge.query.statsAt(3, null, runtime).power, 1050);
-  assert.equal(scourge.query.statsAt(3, null, runtime).expertise, 225);
-  assert.equal(scourge.query.statsAt(5, null, runtime).power, 1040);
-  assert.equal(scourge.query.statsAt(5, null, runtime).expertise, 0);
+  assert.equal(scourge.query.statsAt(3.000001, null, runtime).power, 1050);
+  assert.equal(scourge.query.statsAt(3.000001, null, runtime).expertise, 225);
+  assert.equal(scourge.query.statsAt(5.000001, null, runtime).power, 1040);
+  assert.equal(scourge.query.statsAt(5.000001, null, runtime).expertise, 0);
   assert.deepEqual(runtime, before);
   const reaper = scenario('necromancer', 'Reaper', ["Reaper's Onslaught"]);
   runtime.profession.core.activeShroud = 'reaper';
@@ -231,15 +231,19 @@ test('Necromancer declarations observe shade and shroud expiry while Carapace re
   assert.equal(reaper.query.statsAt(0, null, runtime).ferocity, 0);
 });
 
-test('Revealed Training excludes its revealing attack but includes subsequent recalls until expiry', () => {
+test('Revealed Training follows live status for attacks and recalls through its expiry timestamp', () => {
   const probe = scenario('thief', 'Core', ['Revealed Training']);
   const skill = probe.profession.catalog.skills.find((skill) => skill.stealthAttack);
   assert.ok(skill);
-  const runtime = { profession: { core: { revealedUntil: 5 } } };
+  const runtime = { profession: { core: { revealedUntil: 0 } } };
   const attack = { type: 'damage', actorType: 'player', skillId: skill.id };
+  // The revealing hit resolves before the stealth exit applies Revealed; later hits read the live status.
   assert.equal(probe.query.statsAt(1, attack, runtime).power, 1080);
+  runtime.profession.core.revealedUntil = 5;
+  assert.equal(probe.query.statsAt(1, attack, runtime).power, 1200);
   assert.equal(probe.query.statsAt(1, { ...attack, metadata: { recallSkillId: skill.id } }, runtime).power, 1200);
-  assert.equal(probe.query.statsAt(5, null, runtime).power, 1080);
+  assert.equal(probe.query.statsAt(5, attack, runtime).power, 1200);
+  assert.equal(probe.query.statsAt(5.000001, attack, runtime).power, 1080);
 });
 
 test('Warrior live flats stay outside ordinary conversions and Blood Reaction sources', () => {
