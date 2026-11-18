@@ -1,5 +1,6 @@
 // Trait IDs own balance lookup and emission so patches and runtime share the same trait definition.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -67,7 +68,7 @@ const bolsteredBonds = defineTrait({
       bolsteredBondsBonuses(
         context.balanceContext.catalog,
         context.runtime ? revenantRuntimeCoreState(context).selectedLegendIds : context.loadout.selectedLegends,
-        (revenantRuntimeSpecializationState(context, 'Conduit').cosmicWisdomUntil ?? 0) > context.time
+        buffDeadlineActive(revenantRuntimeSpecializationState(context, 'Conduit').cosmicWisdomUntil ?? 0, context.time)
           ? balanceNumber(context.balanceContext.catalog, TRAIT.BOLSTERED_BONDS, 'attributeMultiplier')
           : 1
       )

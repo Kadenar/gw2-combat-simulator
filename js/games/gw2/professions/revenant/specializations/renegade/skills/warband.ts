@@ -33,12 +33,7 @@ export function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<Re
   bandTogether.set(cast, { enhanced, profileSkillId: profile?.id ?? cast.skill.id });
 
   // End the active buff before rewards so another accepted summon cannot reuse it.
-  if (enhanced)
-    runtime.combat.reviseBuffExpiry(
-      'band-together',
-      () => true,
-      (expiry) => Math.min(expiry, runtime.time)
-    );
+  if (enhanced) runtime.combat.endBuffs('band-together', runtime.time, () => true);
 
   runtime.fireTrigger(warbandCompleted, { enhanced });
 
@@ -99,7 +94,7 @@ export function razorclawsRage(
     const current = () => renegadeState.from(runtime.profession).alliedRazorclawsRage[allyIndex];
     return {
       id: `razorclaw:${allyIndex}`,
-      isActive: (at) => activeBatchCount(current(), at, 'exclusive') > 0,
+      isActive: (at) => activeBatchCount(current(), at) > 0,
       trigger(allied) {
         const spent = spendRazorclawCharge(runtime, current());
 
@@ -131,7 +126,7 @@ function spendRazorclawCharge(runtime: RevenantRuntime, grant: ChargeGrant | und
 
   const cooldown = Math.max(0, proc.cooldown || 0);
 
-  if (!consumeCharge(grant, runtime.time, 'exclusive', cooldown)) return;
+  if (!consumeCharge(grant, runtime.time, cooldown)) return;
 
   if (cooldown === 0) grant.readyAt = runtime.time;
 
@@ -176,11 +171,7 @@ export function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast
   if (!effect) return;
 
   // Reapplication replaces the previous window, even when the new duration is shorter.
-  runtime.combat.reviseBuffExpiry(
-    'band-together',
-    () => true,
-    (expiry) => Math.min(expiry, runtime.time)
-  );
+  runtime.combat.endBuffs('band-together', runtime.time, () => true);
   runtime.effects.emit({
     kind: 'profile',
     profile: window,

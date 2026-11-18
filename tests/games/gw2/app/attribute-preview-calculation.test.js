@@ -119,7 +119,7 @@ test('preview grants use the final prepared stacks, audience and expiry without 
 
           if (visibility === 'other-recipient') replacement.resolvedAudience.includesSelf = false;
 
-          if (visibility === 'expired') replacement.duration = 1;
+          if (visibility === 'expired') replacement.duration = 0.5;
         }
       }
     };

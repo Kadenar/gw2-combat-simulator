@@ -1,4 +1,5 @@
 /** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -217,7 +218,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         when: () => true,
         transform: (runtime, _cast, effects) => {
           const grant = (runtime as NecromancerRuntime).profession.core.soulShardGrant;
-          const immobilize = grant.count >= 3 && grant.expiresAt > runtime.time;
+          const immobilize = grant.count >= 3 && buffDeadlineActive(grant.expiresAt, runtime.time);
           return effects
             .filter((effect) => effect.packetLabel !== 'on-hit')
             .map((effect) =>

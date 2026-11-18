@@ -222,7 +222,7 @@ test('Luminary weapon rewards reduce actual virtue work and Master-at-Arms reset
   assert.equal(observedRuntime(reset).cooldownController.hasCooldown(ID.DAZZLING_HAMMER), false);
 });
 
-test('Effulgent counts accepted owned hits, excludes its endpoint, and ignores a replaced detonation', () => {
+test('Effulgent counts accepted owned hits through its endpoint and ignores a replaced detonation', () => {
   const result = run([ID.EFFULGENT_STANCE, wait(4000)], luminary, {
     initialize: (runtime) => {
       strike(runtime, 0.1, { offTarget: true });
@@ -234,7 +234,7 @@ test('Effulgent counts accepted owned hits, excludes its endpoint, and ignores a
     }
   });
   const detonation = result.resolvedEvents.find((event) => event.skillId === ID.EFFULGENT_STANCE_DAMAGE);
-  assert.equal(detonation.coefficient, 1.2);
+  assert.ok(Math.abs(detonation.coefficient - 1.55) < 1e-12);
   assert.equal(lum(result).effulgentStacks, 0);
   const replaced = run(
     [ID.EFFULGENT_STANCE, wait(1000), { type: 'cooldown-reset' }, ID.EFFULGENT_STANCE, wait(3000)],
@@ -1040,7 +1040,7 @@ test('spear ignores spent grants and replaces them with exactly one charge', () 
     result.procSteps.some((step) => step.skill === 'Illuminated'),
     false
   );
-  assert.equal(activeBatchCount(core(result).spearIlluminated, observedRuntime(result).time, 'exclusive'), 1);
+  assert.equal(activeBatchCount(core(result).spearIlluminated, observedRuntime(result).time), 1);
 });
 
 test('spear expiry runs during waits and a refreshed window survives the old wake', () => {
@@ -1124,10 +1124,7 @@ test('spear filler preserves an armed charge and removed grant components cannot
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(
-      activeBatchCount(core(result).spearIlluminated, observedRuntime(result).time, 'exclusive'),
-      symbol ? 1 : 0
-    );
+    assert.equal(activeBatchCount(core(result).spearIlluminated, observedRuntime(result).time), symbol ? 1 : 0);
     assert.equal(core(result).spearIlluminated.expiresAt, 5);
   }
 
@@ -1231,9 +1228,9 @@ test('Symbolic Avenger projects independently expired stacks during idle waits',
   };
 
   const config = { selectedTraitIds: [TRAIT.SYMBOLIC_AVENGER] };
-  const partial = run([wait(15100)], config, { initialize: initialize });
+  const partial = run([wait(15140)], config, { initialize: initialize });
   assert.deepEqual(partial.planningState.profession[STATE.SYMBOLIC_AVENGER_EXPIRATIONS], [15.5]);
-  const expired = run([wait(15500)], config, { initialize: initialize });
+  const expired = run([wait(15540)], config, { initialize: initialize });
   assert.deepEqual(expired.planningState.profession[STATE.SYMBOLIC_AVENGER_EXPIRATIONS], []);
 });
 
@@ -1882,7 +1879,7 @@ test('Big Game Hunter preserves hit eligibility, tether expiry, attribution, and
     );
     assert.deepEqual(result.warnings, []);
     const packets = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.BIG_GAME_HUNTER);
-    assert.equal(packets.length, removed ? 0 : 1);
+    assert.equal(packets.length, removed ? 0 : 2);
 
     if (removed) continue;
 

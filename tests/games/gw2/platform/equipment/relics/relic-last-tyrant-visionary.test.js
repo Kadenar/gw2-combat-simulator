@@ -457,7 +457,7 @@ test("Visionary reports a new buildup and buff cycle after Vloxx's Vision expire
     events: [
       ...Array.from({ length: 8 }, (_, at) => combo(at)),
       combo(10),
-      ...Array.from({ length: 8 }, (_, index) => combo(15 + index))
+      ...Array.from({ length: 8 }, (_, index) => combo(16 + index))
     ],
     endTime: 32
   });
@@ -466,11 +466,11 @@ test("Visionary reports a new buildup and buff cycle after Vloxx's Vision expire
   const buildup = report.tracks.find((track) => track.kind === 'relic:Relic of the Visionary');
   const vision = report.tracks.find((track) => track.kind === "relic:Vloxx's Vision");
   assert.equal(effectStateAt(report, buildup, 10).count, 0);
-  assert.equal(effectStateAt(report, buildup, 15).count, 1);
-  assert.equal(effectStateAt(report, vision, 15).count, 0);
-  assert.equal(effectStateAt(report, buildup, 22).count, 0);
-  assert.equal(effectStateAt(report, vision, 22).count, 1);
-  assert.equal(effectStateAt(report, vision, 30).count, 0);
+  assert.equal(effectStateAt(report, buildup, 16).count, 1);
+  assert.equal(effectStateAt(report, vision, 16).count, 0);
+  assert.equal(effectStateAt(report, buildup, 23).count, 0);
+  assert.equal(effectStateAt(report, vision, 23).count, 1);
+  assert.equal(effectStateAt(report, vision, 31).count, 0);
 });
 
 test('Visionary counts whirl finishers at most once per 3s', () => {

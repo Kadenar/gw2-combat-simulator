@@ -44,7 +44,7 @@ test('skill field declarations reject duplicate owners and orphaned patch leaves
   for (const spec of [
     { kind: 'text' },
     numberField({ unit: 'minutes' }),
-    numberField({ minimum: 2, maximum: 1 }),
+    numberField({ maximum: -1 }),
     numberField({ patch: 'primary', runtimeOnly: true })
   ])
     assert.throws(() => defineFields({ fixtureField: spec }), /fixtureField/);

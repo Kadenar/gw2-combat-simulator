@@ -24,6 +24,18 @@ function retryFixture(time, retryAt) {
   return { driver, input, rejected, accepted };
 }
 
+// The coordinator owns final rejection, so same-time cleanup can still unlock the command.
+test('readiness rejections return to the coordinator instead of rejecting in the driver', () => {
+  const { driver, input, accepted, rejected } = retryFixture(1, 2);
+  input.evaluateReadiness = () => ({ ready: false, reason: 'Waiting', code: 'test.wait' });
+  assert.deepEqual(driver.advance(input), { rejection: 'Waiting' });
+  assert.deepEqual(rejected, []);
+  input.evaluateReadiness = () => ({ ready: true });
+  assert.equal(driver.advance(input), 'handled');
+  assert.deepEqual(accepted, [1]);
+  assert.deepEqual(rejected, []);
+});
+
 test('GW2 future retries round up to absolute 40 ms ticks without rounding a deadline backward', () => {
   for (const [time, retryAt, expected] of [
     [0, 0.0000004, 0.04],
@@ -78,8 +90,8 @@ test('GW2 retry rounding does not repair nonfuture or nonfinite denials', () => 
   for (const retryAt of [1, 0.999999, NaN, Infinity, -Infinity]) {
     const { driver, input, rejected, accepted } = retryFixture(1, retryAt);
     input.evaluateReadiness = () => ({ ready: false, retryAt, reason: 'Waiting', code: 'test.wait' });
-    assert.equal(driver.advance(input), 'handled');
-    assert.deepEqual(rejected, ['Waiting (no future retry boundary).']);
+    assert.deepEqual(driver.advance(input), { rejection: 'Waiting (no future retry boundary).' });
+    assert.deepEqual(rejected, []);
     assert.deepEqual(accepted, []);
   }
 });

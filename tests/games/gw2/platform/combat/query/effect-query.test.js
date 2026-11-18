@@ -49,9 +49,9 @@ test('boon presence and stacks agree in previews without exposing scheduled gran
   assert.equal(boonActive(live, 'fury'), true);
   assert.equal(activeBoonStacks(live, 'might'), 5);
   for (const candidate of [context, live]) {
-    assert.equal(boonActive({ ...candidate, time: 6 }, 'fury'), false);
-    assert.equal(activeBoonStacks({ ...candidate, time: 6 }, 'fury'), 0);
-    assert.equal(activeBoonStacks({ ...candidate, time: 6 }, 'might'), 2);
+    assert.equal(boonActive({ ...candidate, time: 6.000001 }, 'fury'), false);
+    assert.equal(activeBoonStacks({ ...candidate, time: 6.000001 }, 'fury'), 0);
+    assert.equal(activeBoonStacks({ ...candidate, time: 6.000001 }, 'might'), 2);
   }
 });
 
@@ -94,7 +94,7 @@ test('boon and buff queries isolate recipients and player assumptions in live an
     assert.equal(buffActive(context, 'fury', oldPet), false);
     // Duration stacking survives original packet expiry and stops at the pooled expiry.
     assert.equal(boonActive({ ...context, time: 7 }, 'fury', oldPet), true);
-    assert.equal(boonActive({ ...context, time: 11 }, 'fury', oldPet), false);
+    assert.equal(boonActive({ ...context, time: 11.000001 }, 'fury', oldPet), false);
   }
 
   const combatRuntime = { ...runtime, config };
@@ -115,5 +115,5 @@ test('Mesmer preview duration defaults do not replace accepted buff lifetimes', 
   assert.equal(timedStacks({ ...preview, runtime }, 'fencer', 5, 10), 0);
   grantTestEffect(runtime.liveEffects, { ...event, duration: 1 });
   assert.equal(timedStacks({ ...preview, runtime, time: 1 }, 'fencer', 5, 10), 2);
-  assert.equal(timedStacks({ ...preview, runtime }, 'fencer', 5, 10), 0);
+  assert.equal(timedStacks({ ...preview, runtime, time: 2.000001 }, 'fencer', 5, 10), 0);
 });

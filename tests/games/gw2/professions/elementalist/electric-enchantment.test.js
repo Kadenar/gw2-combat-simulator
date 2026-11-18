@@ -110,8 +110,8 @@ test('skill and trait providers share grant announcements while retaining patche
   for (const [at, expectedTrait, remaining] of [
     [2, undefined, 6],
     [5, TRAIT.GALVANIC_ENCHANTMENT, 5],
-    [8, undefined, 1],
-    [11, undefined, 0]
+    [8.000001, undefined, 1],
+    [11.000001, undefined, 0]
   ]) {
     context.time = at;
     const before = emittedEvents.length;
@@ -125,7 +125,6 @@ test('skill and trait providers share grant announcements while retaining patche
     });
     assert.equal(
       activeBatches(state.electricEnchantmentGrants, context.time, {
-        expiry: 'exclusive',
         order: 'earliest-expiry'
       }).reduce((sum, grant) => sum + grant.count, 0),
       remaining

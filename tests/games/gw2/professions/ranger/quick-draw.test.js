@@ -36,7 +36,7 @@ test('Quick Draw reserves only one same-time weapon recharge and ignores ineligi
   assert.equal(native.reserveRecharge(runtime, skill, 10), 10);
 
   runtime.profession.core.quickDraw = createChargeGrant(1, 5);
-  runtime.time = 5;
+  runtime.time = 5.000001;
   assert.equal(native.rechargeWork(runtime, skill, 10), 10);
   native.reserveRecharge(runtime, skill, 10);
   assert.equal(runtime.profession.core.quickDraw.count, 1, 'expiry queries do not spend');

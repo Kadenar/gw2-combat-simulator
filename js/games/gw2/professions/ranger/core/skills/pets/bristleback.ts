@@ -175,7 +175,7 @@ export function consumePetSharpenSpines(context: RangerResolverContext, event: G
     event,
     ID.BRISTLEBACK_SHARPEN_SPINES,
     'sharpen-spines',
-    () => consumeCharge(pet.sharpenSpines, event.at, 'exclusive'),
+    () => consumeCharge(pet.sharpenSpines, event.at),
     {
       attribution: {
         source: 'ranger-pet',

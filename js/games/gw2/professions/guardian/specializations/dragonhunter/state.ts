@@ -1,3 +1,4 @@
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
@@ -23,5 +24,5 @@ export const dragonhunterState = defineProfessionSpecializationState('Dragonhunt
 export function projectDragonhunterPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
   const state = dragonhunterState.from(input.profession);
 
-  return { [STATE.TETHER_UNTIL]: state.tetherUntil > input.time ? state.tetherUntil : 0 };
+  return { [STATE.TETHER_UNTIL]: buffDeadlineActive(state.tetherUntil, input.time) ? state.tetherUntil : 0 };
 }

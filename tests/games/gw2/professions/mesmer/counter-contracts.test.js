@@ -58,27 +58,25 @@ test('Bloodsong resets every fifth application before rewarding, including at fu
 });
 
 // Disabled thresholds retain accepted Bleeding credit, whereas a build without the trait never accumulates.
-test('Bloodsong accumulates without rewards for nonpositive thresholds', () => {
-  for (const threshold of [0, -1]) {
-    // Each build owns its runtime and progress counter, because selection never changes once a context is in use.
-    const fixture = (traits) => {
-      const state = virtuosoState.create();
-      const runtime = {
-        helpers: applyBalanceProfilePatch(mesmerCatalog, {
-          balanceProfiles: { [TRAIT.BLOODSONG]: { fields: { threshold: { from: 5, to: threshold } } } }
-        }),
-        traits: new Set(traits),
-        profession: { specialization: { kind: 'Virtuoso', state } },
-        schedule: () => assert.fail('Disabled threshold must not queue a reward')
-      };
-      return { state, runtime };
+test('Bloodsong accumulates without rewards for zero thresholds', () => {
+  // Each build owns its runtime and progress counter, because selection never changes once a context is in use.
+  const fixture = (traits) => {
+    const state = virtuosoState.create();
+    const runtime = {
+      helpers: applyBalanceProfilePatch(mesmerCatalog, {
+        balanceProfiles: { [TRAIT.BLOODSONG]: { fields: { threshold: { from: 5, to: 0 } } } }
+      }),
+      traits: new Set(traits),
+      profession: { specialization: { kind: 'Virtuoso', state } },
+      schedule: () => assert.fail('Disabled threshold must not queue a reward')
     };
+    return { state, runtime };
+  };
 
-    const selected = fixture([TRAIT.BLOODSONG]);
-    bloodsongReaction(selected.runtime, { condition: 'Bleeding', stacks: 1 });
-    assert.equal(selected.state.bloodsongProgress, 1);
-    const unselected = fixture([]);
-    bloodsongReaction(unselected.runtime, { condition: 'Bleeding', stacks: 1 });
-    assert.equal(unselected.state.bloodsongProgress, 0);
-  }
+  const selected = fixture([TRAIT.BLOODSONG]);
+  bloodsongReaction(selected.runtime, { condition: 'Bleeding', stacks: 1 });
+  assert.equal(selected.state.bloodsongProgress, 1);
+  const unselected = fixture([]);
+  bloodsongReaction(unselected.runtime, { condition: 'Bleeding', stacks: 1 });
+  assert.equal(unselected.state.bloodsongProgress, 0);
 });

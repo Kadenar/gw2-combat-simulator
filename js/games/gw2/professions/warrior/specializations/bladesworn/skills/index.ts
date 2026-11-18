@@ -1,5 +1,6 @@
 /** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
-
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import { buffDeadlineActive, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -796,8 +797,8 @@ function artilleryEffects(cast: RuntimeCast<WarriorSkill>, sharp: boolean): read
 function activateCartridges(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const state = bladeswornState.from(runtime.profession);
   // Discard expired occurrences on the next grant so idle expiry needs no queued cleanup.
-  state.overchargedCartridgeWindows = state.overchargedCartridgeWindows.filter(
-    (window) => window.expiresAt > runtime.time
+  state.overchargedCartridgeWindows = state.overchargedCartridgeWindows.filter((window) =>
+    buffDeadlineActive(window.expiresAt, runtime.time)
   );
   const active = activeCartridgeWindow(state.overchargedCartridgeWindows, runtime.time);
 
@@ -979,17 +980,20 @@ export const bladeswornSkillLifecycle = {
 
 function cartridgeDamageBonus(context: Gw2ModifierContext): number {
   // A newer cartridge application replaces the older bonus, even after the newer one expires.
-  let latest = { at: -Infinity, expiresAt: 0, kind: '' };
+  let latest: { readonly application: Readonly<Gw2TimedBuffApplication>; readonly kind: string } | undefined;
   for (const kind of ['overcharged-cartridges', 'supercharged-cartridges']) {
     const application = context.runtime?.liveEffects?.queries.latestApplication(kind, context.time, {
       actor: ACTOR.PLAYER
     });
 
-    if (application && application.at >= latest.at)
-      latest = { at: application.at, expiresAt: application.expiresAt, kind };
+    if (application && (!latest || application.at >= latest.application.at)) latest = { application, kind };
   }
 
-  if (latest.expiresAt <= context.time) return 0;
+  if (
+    !latest ||
+    !buffWindowActive(context.time, latest.application.at, latest.application.expiresAt, latest.application.removedAt)
+  )
+    return 0;
 
   const profile = requireSkill(context.catalog, ID.OVERCHARGED_CARTRIDGES);
   const action = requireSkillAction(profile, 'cartridges');

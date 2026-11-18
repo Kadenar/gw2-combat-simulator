@@ -291,8 +291,10 @@ export function applyAmalgamStrain(context: EngineerRuntime, skill: AmalgamSkill
 
   if (morphKind === 'thorns') {
     // A removed shared payload cannot arm an empty proc window.
-    if (requireEffect(skill, 'strike', 'Rapacious Strain', action)) {
-      state.rapaciousUntil = Math.max(state.rapaciousUntil || 0, at + skillNumber(skill, 'rapaciousDuration'));
+    const duration = skillNumber(skill, 'rapaciousDuration');
+
+    if (duration > 0 && requireEffect(skill, 'strike', 'Rapacious Strain', action)) {
+      state.rapaciousUntil = Math.max(state.rapaciousUntil || 0, at + duration);
     }
 
     return;

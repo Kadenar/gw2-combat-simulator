@@ -271,7 +271,7 @@ test('merged Beastmastery rules preserve selection, ownership, specialization, a
       });
       for (const selected of [false, true]) {
         for (const merged of [false, true]) {
-          for (const time of [1, 2]) {
+          for (const time of [1, 2.000001]) {
             for (const actorType of ['player', 'summon']) {
               const damageContributors = [];
               profession.calculations.modifyStrikeDamage(

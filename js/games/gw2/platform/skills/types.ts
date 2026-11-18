@@ -138,7 +138,7 @@ export interface Skill extends CatalogEntity, SharedNumericSkillFields {
   /** Whether an instant skill may be scheduled during another cast. */
   readonly canCastConcurrently?: boolean;
   readonly lockouts?: readonly SkillLockout[];
-  readonly rechargeAnchor?: 'castStart' | 'castEnd';
+  readonly rechargeAnchor?: 'castStart' | 'castEnd' | 'beforeCastEnd';
   /** An independently scheduled actor starts its recharge when its own action executes. */
   readonly rechargeOwner?: 'actor';
   /** Which actor's active boons determine recharge-rate modifiers. */

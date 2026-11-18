@@ -513,12 +513,12 @@ test('August Queen grants Chaos Aura and Distortion and enables Second Scion wit
     config
   );
   assert.equal(scion.planningState.profession[STATE.NOTES].value, 3);
-  const expired = simulateMesmer(
+  const atDeadline = simulateMesmer(
     ['Tale of the August Queen', { type: 'wait', durationMs: 3000 }, 'Tale of the Second Scion'],
     config
   );
-  assert.equal(expired.planningState.profession[STATE.ACTIVE_INSTRUMENTS].length, 0);
-  assert.equal(expired.planningState.profession[STATE.NOTES].value, 2);
+  assert.equal(atDeadline.planningState.profession[STATE.ACTIVE_INSTRUMENTS].length, 0);
+  assert.equal(atDeadline.planningState.profession[STATE.NOTES].value, 3);
   const canceled = simulateMesmer(
     [
       { name: 'Tale of the August Queen', interruptMs: 0 },
@@ -585,7 +585,8 @@ test('Second Scion snapshots its performance requirement at cast acceptance', ()
   const endMs = probe.steps.at(-1).end;
   for (const [offset, expected] of [
     [-40, 1],
-    [0, 0]
+    [0, 1],
+    [1, 0]
   ]) {
     const result = simulateMesmer(
       [

@@ -11,6 +11,11 @@ export function gw2EffectExpiresAt(at: number, duration: number): number {
   return canonicalTime(quantizeGw2ActionDurationUp((appliedAt + duration) * 1000) / 1000);
 }
 
+/** Private timers store zero for an absent window, so a zero-duration grant never reads as live. */
+export function gw2TimerDeadline(at: number, duration: number): number {
+  return duration > 0 ? gw2EffectExpiresAt(at, duration) : 0;
+}
+
 /** Final effect durations use half-even whole milliseconds; expiration stays relative to the application time. */
 export function roundEffectDuration(duration: number): number {
   if (!Number.isFinite(duration)) throw new RangeError('Effect duration must be finite.');

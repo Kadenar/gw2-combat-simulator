@@ -108,7 +108,7 @@ test('Elemental Balance resets its entry cycle and arms before Dynamo grants', (
     ['Elemental Balance', 0, 8],
     ['familiarCharges', 1, 0, 8]
   ]);
-  context.time = 8;
+  context.time = 8.000001;
   assert.equal(commitRechargeDuration(context, skill, 100), 100);
   assert.equal(state.elementalBalanceProgress, 0);
 });
@@ -132,25 +132,23 @@ test('Elemental Balance arms on every second selected-attunement entry and resta
   }
 });
 
-test('Elemental Balance resets after one reward for nonpositive patched thresholds', () => {
+test('Elemental Balance resets after one reward for zero patched thresholds', () => {
   // Unlike Bountiful Power, these thresholds do not disable entry progress or the recharge window.
-  for (const threshold of [0, -1]) {
-    const state = evokerState.create({ evokerElement: 'Fire' });
-    const { effects, announcements } = captureEffectEmissions();
-    const context = {
-      helpers: applyBalanceProfilePatch(elementalistCatalog, {
-        balanceProfiles: { [TRAIT.ELEMENTAL_BALANCE]: { fields: { threshold: { from: 2, to: threshold } } } }
-      }),
-      traits: new Set([TRAIT.ELEMENTAL_BALANCE]),
-      profession: { specialization: { kind: 'Evoker', state } },
-      effects
-    };
-    bindTriggerPoints(context, elementalistProfession, { specialization: 'Evoker' });
-    context.fireTrigger(evokerEntryObserved, entry(1, 'Fire'));
-    assert.equal(state.elementalBalanceProgress, 0);
-    assert.equal(state.elementalBalanceUntil, 6);
-    assert.equal(announcements.length, 1);
-  }
+  const state = evokerState.create({ evokerElement: 'Fire' });
+  const { effects, announcements } = captureEffectEmissions();
+  const context = {
+    helpers: applyBalanceProfilePatch(elementalistCatalog, {
+      balanceProfiles: { [TRAIT.ELEMENTAL_BALANCE]: { fields: { threshold: { from: 2, to: 0 } } } }
+    }),
+    traits: new Set([TRAIT.ELEMENTAL_BALANCE]),
+    profession: { specialization: { kind: 'Evoker', state } },
+    effects
+  };
+  bindTriggerPoints(context, elementalistProfession, { specialization: 'Evoker' });
+  context.fireTrigger(evokerEntryObserved, entry(1, 'Fire'));
+  assert.equal(state.elementalBalanceProgress, 0);
+  assert.equal(state.elementalBalanceUntil, 6);
+  assert.equal(announcements.length, 1);
 });
 
 test('etching counters retain independent crossing values and reset only with their owned lifecycle', () => {

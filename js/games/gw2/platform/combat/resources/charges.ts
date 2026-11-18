@@ -1,5 +1,5 @@
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { canonicalTime, type ExpiryPolicy } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { consumeBatch, createBatch, refreshBatch, type Batch } from '#kernel/resources/batch.js';
 
 /** One recipient's finite grant, consumed and expired directly by its owning mechanic. */
@@ -14,25 +14,24 @@ export function createChargeGrant(charges: number, expiresAt: number): ChargeGra
   return { ...createBatch(charges, expiresAt), readyAt: 0 };
 }
 
-/** Returns a new grant, retaining charges and cooldown only when the previous grant is live under this policy. */
+/** Returns a new grant, retaining charges and cooldown only when the previous grant is still live. */
 export function refreshChargeGrant(
   previous: Readonly<ChargeGrant> | undefined,
   charges: number,
   expiresAt: number,
-  at: number,
-  expiry: ExpiryPolicy
+  at: number
 ): ChargeGrant {
   if (!Number.isFinite(expiresAt)) throw new TypeError('Charge grants require a finite expiry.');
 
-  const { batch, refreshed } = refreshBatch(previous, charges, { at, expiresAt, expiry });
+  const { batch, refreshed } = refreshBatch(previous, charges, { at, expiresAt });
   return { ...batch, readyAt: refreshed ? (previous?.readyAt ?? 0) : 0 };
 }
 
-/** Consumes only the selected recipient's grant, preserving each mechanic's explicit expiry boundary and ICD. */
-export function consumeCharge(grant: ChargeGrant | undefined, at: number, expiry: ExpiryPolicy, cooldown = 0): boolean {
+/** Consumes only the selected recipient's grant, preserving each mechanic's ICD. */
+export function consumeCharge(grant: ChargeGrant | undefined, at: number, cooldown = 0): boolean {
   if (!grant || (cooldown > 0 && !isInternalCooldownReady(at, grant.readyAt ?? 0))) return false;
 
-  if (!consumeBatch(grant, 1, at, expiry)) return false;
+  if (!consumeBatch(grant, 1, at)) return false;
 
   if (cooldown > 0) grant.readyAt = canonicalTime(at + cooldown);
 

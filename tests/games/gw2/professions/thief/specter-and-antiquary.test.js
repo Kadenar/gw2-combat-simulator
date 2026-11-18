@@ -1009,7 +1009,7 @@ test('Skale and Devourer Venom grant party charges that proc together on attacks
   assert.equal(personalProcs(ID.DEVOURER_VENOM).length, 2);
 });
 
-// Player and ally batches are separate, but both spend only before the batch's exclusive expiry.
+// Player and ally batches are separate; both may spend charges on the natural expiry timestamp.
 test('Venom allies spend native batches under the player expiry policy', () => {
   const skill = thiefCatalog.skillsById.get(ID.SPIDER_VENOM);
   const result = runThief(
@@ -1032,8 +1032,8 @@ test('Venom allies spend native batches under the player expiry policy', () => {
           Boolean(event.metadata?.triggeredByAlly) === allied
       )
       .map((event) => event.at);
-  assert.deepEqual(procs(false), [12]);
-  assert.deepEqual(procs(true), [12]);
+  assert.deepEqual(procs(false), [12, 24]);
+  assert.deepEqual(procs(true), [12, 24]);
 });
 
 // The ground field enables projectile burning independently of the artifact's charged strikes.

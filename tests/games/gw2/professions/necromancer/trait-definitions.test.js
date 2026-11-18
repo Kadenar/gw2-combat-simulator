@@ -121,7 +121,10 @@ test('Carapace grants and Deadly Strength use the same patched capacity and expi
       const context = { catalog: profession.catalog, config, runtime, time: runtime.time };
       assert.equal(profession.calculations.modifyAttributes(context, { power: 1000 }).power, 1000 + expected * 10);
       const expiry = Math.max(runtime.time, ...runtime.profession.core.carapaceExpiries);
-      assert.equal(profession.calculations.modifyAttributes({ ...context, time: expiry }, { power: 1000 }).power, 1000);
+      assert.equal(
+        profession.calculations.modifyAttributes({ ...context, time: expiry + 0.000001 }, { power: 1000 }).power,
+        1000
+      );
     }
   }
 
@@ -142,10 +145,10 @@ test('Carapace rejects capped grants and admits only slots freed by expiry', () 
 
   addCarapace(runtime, 10, 5, 60);
   assert.deepEqual(state.carapaceExpiries, capped);
-  assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 10), 2);
+  assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 10.000001), 2);
   assert.equal(
     profession.calculations.modifyAttributes(
-      { catalog: profession.catalog, config, runtime, time: 10 },
+      { catalog: profession.catalog, config, runtime, time: 10.000001 },
       { power: 1000 }
     ).power,
     1020
@@ -153,8 +156,8 @@ test('Carapace rejects capped grants and admits only slots freed by expiry', () 
 
   addCarapace(runtime, 40, 10, 20);
   assert.deepEqual(state.carapaceExpiries, [21, 21, ...Array(28).fill(30)]);
-  assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 21), 28);
-  assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 30), 0);
+  assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 21.000001), 28);
+  assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 30.000001), 0);
 });
 
 // Selected minions occupy shared capacity. Rejected timed stacks must not appear when those minions disappear.
@@ -179,7 +182,7 @@ test('Carapace admission includes minion stacks only with Flesh of the Master se
       state.carapaceExpiries,
       selected ? [...Array(26).fill(10), ...Array(4).fill(25)] : Array(30).fill(10)
     );
-    assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 10), selected ? 4 : 0);
+    assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 10.000001), selected ? 4 : 0);
   }
 });
 
@@ -219,7 +222,7 @@ test('Soul Comprehension shares timed and selected-minion Carapace while retaini
         }
       };
       const result = observeGw2Runtime({ profession, config, rotation: [ID.DEATH_SHROUD] });
-      const available = Math.min(capacity, minionTraitSelected ? 8 : 4);
+      const available = Math.min(capacity, minionTraitSelected ? 9 : 5);
       assert.equal(
         lifeForcePercent(observedRuntime(result).profession.core.lifeForce),
         10 + Math.min(countedMaximum, available) * 0.5

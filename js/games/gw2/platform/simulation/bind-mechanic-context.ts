@@ -84,6 +84,7 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
   readonly expireFlip: MechanicContext<T, TSkill>['expireFlip'];
   readonly schedule: MechanicContext<T, TSkill>['schedule'];
   readonly scheduleForCast: MechanicContext<T, TSkill>['scheduleForCast'];
+  readonly scheduleExpiry: MechanicContext<T, TSkill>['scheduleExpiry'];
   readonly cancelOwner: MechanicContext<T, TSkill>['cancelOwner'];
   readonly fireTrigger: MechanicContext<T, TSkill>['fireTrigger'];
   constructor(runtime: Gw2Runtime<T, TSkill>) {
@@ -101,6 +102,7 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
     this.expireFlip = runtime.expireFlip;
     this.schedule = runtime.schedule;
     this.scheduleForCast = runtime.scheduleForCast;
+    this.scheduleExpiry = runtime.scheduleExpiry;
     this.cancelOwner = runtime.cancelOwner;
     this.fireTrigger = runtime.fireTrigger;
   }

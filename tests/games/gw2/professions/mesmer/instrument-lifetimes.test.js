@@ -163,7 +163,7 @@ test('instrument preview assumptions agree across history and planning state wit
   }
 });
 
-test('instrument commitment, damage bonuses, projection, and UI share exact exclusive deadlines', () => {
+test('instrument commitment, damage bonuses, projection, and UI share exact deadlines', () => {
   for (const at of [5.300999, 5.301, 5.301001]) {
     const context = instrumentContext();
     play(context, ID.LIVELY_LUTE, 0.1 + 0.201);
@@ -171,7 +171,7 @@ test('instrument commitment, damage bonuses, projection, and UI share exact excl
     assert.equal(state.instruments.Lute, 5.301);
     assert.equal(context.events.find((event) => event.type === 'mesmer.instrument').expiresAt, 5.301);
     context.time = at;
-    const active = at < 5.301;
+    const active = at <= 5.301;
     const projected = projectObservedState(mesmerProfession, {
       ...context,
       config: context.config,
@@ -204,25 +204,25 @@ test('shorter instrument replays replace their own window without reviving old b
   const state = context.profession.specialization.state;
   assert.deepEqual(state.instruments, { Lute: 7.301, Flute: 21.301 });
   assert.equal(activeInstrumentCount(modifierContext(context, 1.301)), 2, 'Historical queries retain earlier windows');
-  const query = modifierContext(context, 7.301);
+  const query = modifierContext(context, 7.301001);
   assert.equal(hasLute(query), false);
   assert.equal(
     evaluateAttributeDeclarations(query, { power: 100 }, (context) => [fortissimo.attributes(context)]).power,
     104
   );
-  context.time = 7.301;
+  context.time = 7.341;
   assert.deepEqual(
     projectObservedState(mesmerProfession, context)[STATE.ACTIVE_INSTRUMENTS].map(({ name }) => name),
     ['Flute']
   );
-  context.start = 7.301;
+  context.start = 7.341;
   const skill = { ...context.helpers.skillsById.get(ID.CRESCENDO), damageAtMs: 0 };
   troubadourHooks.tasks['mesmer.crescendo'](context, {
     cast: {
       skill,
-      start: 7.301,
-      fullEnd: 7.301,
-      effectiveEnd: 7.301,
+      start: 7.341,
+      fullEnd: 7.341,
+      effectiveEnd: 7.341,
       command: {},
       id: 'crescendo'
     }
@@ -266,7 +266,7 @@ test('Tales retain cast-start note eligibility after instrument expiry and rejec
     applySkillSideEffects(context, cast, 'castCommit', troubadourHooks.sideEffectHandlers);
     assert.equal(
       context.events.filter((event) => event.type === 'resource' && event.amount > 0).length,
-      start < 5.301 ? 1 : 0
+      start <= 5.301 ? 1 : 0
     );
   }
 });
@@ -351,7 +351,7 @@ test('Flute endurance regeneration uses the final live microsecond and loses the
   play(context, ID.FLUSTERING_FLUTE, 0.301);
   for (const at of [5.300999, 5.301, 5.301001]) {
     context.time = at;
-    assert.equal(troubadourEndurance.regenerationRate(context, false, at), at < 5.301 ? 6.25 : 5);
+    assert.equal(troubadourEndurance.regenerationRate(context, false, at), at <= 5.301 ? 6.25 : 5);
   }
 });
 
@@ -382,7 +382,7 @@ test('delayed performance packets survive instrument expiry without retaining it
     label: 'Short instrument window',
     professions: {
       mesmer: {
-        balanceProfiles: { [TRAIT.WANDERING_MINSTREL]: { fields: { baseDuration: 0.1, durationPerTier: 0 } } }
+        balanceProfiles: { [TRAIT.WANDERING_MINSTREL]: { fields: { baseDuration: 0.1, durationPerTier: 0.1 } } }
       }
     }
   });

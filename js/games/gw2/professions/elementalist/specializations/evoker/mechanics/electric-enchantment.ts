@@ -65,7 +65,7 @@ export function grantElectricEnchantments(
       ...(traitId == null ? {} : { traitId })
     },
     at,
-    { expiry: 'exclusive', order: 'earliest-expiry' }
+    { order: 'earliest-expiry' }
   );
   announceElectricEnchantment(context, {
     at,
@@ -142,7 +142,6 @@ function emitElectricEnchantment(context: ElementalistRuntime, event: Simulation
 export function consumeElectricEnchantment(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context.profession);
   const grant = consumeBatchFromList(state.electricEnchantmentGrants, event.at, {
-    expiry: 'exclusive',
     eligible: (candidate) => event.at >= canonicalTime(candidate.at)
   });
 

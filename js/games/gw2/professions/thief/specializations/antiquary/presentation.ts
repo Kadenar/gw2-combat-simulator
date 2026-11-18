@@ -94,11 +94,9 @@ function antiquaryStateSnapshot(
 
   // Artifact charge displays read canonical grants without expiring the live owner.
   const chakRefunds = activeBatches(state[STATE.CHAK_INITIATIVE_REFUNDS] || [], at, {
-    expiry: 'exclusive',
     order: 'earliest-expiry'
   });
   const guitarCharges = activeBatches(state[STATE.ANTIQUARY_GUITAR_CHARGES] || [], at, {
-    expiry: 'exclusive',
     order: 'insertion'
   });
   for (const [id, label, grant] of [
@@ -121,7 +119,7 @@ function antiquaryStateSnapshot(
     ]
   ] as const) {
     const remaining = (grant?.expiresAt || 0) - at;
-    const charges = Math.trunc(activeBatchCount(grant, at, 'exclusive'));
+    const charges = Math.trunc(activeBatchCount(grant, at));
 
     if (remaining <= 0 || charges <= 0) continue;
 

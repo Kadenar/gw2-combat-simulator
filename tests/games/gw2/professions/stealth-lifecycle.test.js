@@ -17,7 +17,7 @@ for (const [name, simulate] of [
   ['Thief', runThief],
   ['Ranger', runRanger]
 ]) {
-  test(`${name}: ordinary stealth grants extend to the common cap and expire exclusively`, () => {
+  test(`${name}: ordinary stealth grants extend to the common cap and expire after their deadline`, () => {
     const result = simulate(
       [{ type: 'wait', durationMs: 2000 }],
       {},
@@ -41,13 +41,13 @@ for (const [name, simulate] of [
     const core = observedRuntime(result).profession.core;
     assert.equal(core.stealthStartedAt, 0);
     assert.equal(core.stealthUntil, 16);
-    assert.equal(stealthActive(core, 16), false);
-    assert.equal(revealedActive(core, 16), false);
+    assert.equal(stealthActive(core, 16.000001), false);
+    assert.equal(revealedActive(core, 16.000001), false);
     assert.equal(planningBuffAt(result.planningState, 'stealth').remaining, 14);
   });
 
-  test(`${name}: Revealed rejects self grants until its exclusive expiry`, () => {
-    for (const grantAt of [1, 3]) {
+  test(`${name}: Revealed rejects tied self grants and permits grants after expiry`, () => {
+    for (const grantAt of [1, 3, 3.04]) {
       const result = simulate(
         [{ type: 'wait', durationMs: 4000 }],
         {},
@@ -60,8 +60,10 @@ for (const [name, simulate] of [
       );
       assert.deepEqual(result.warnings, []);
       const core = observedRuntime(result).profession.core;
-      assert.equal(core.stealthUntil, grantAt === 3 ? 8 : 0);
-      assert.equal(planningBuffAt(result.planningState, 'stealth')?.remaining ?? 0, grantAt === 3 ? 4 : 0);
+      assert.equal(core.stealthUntil, grantAt > 3 ? 8.04 : 0);
+      assert.ok(
+        Math.abs((planningBuffAt(result.planningState, 'stealth')?.remaining ?? 0) - (grantAt > 3 ? 4.04 : 0)) < 1e-9
+      );
     }
   });
 
@@ -106,7 +108,7 @@ for (const [name, simulate] of [
 
   test(`${name}: natural expiry removes the observed status without applying Revealed`, () => {
     const result = simulate(
-      [{ type: 'wait', durationMs: 3000 }],
+      [{ type: 'wait', durationMs: 3040 }],
       {},
       {
         timeline: [{ at: 0, run: (runtime) => emitStealth(runtime, externalSource, 3) }]

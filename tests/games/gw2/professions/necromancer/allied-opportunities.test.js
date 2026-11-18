@@ -94,15 +94,15 @@ test('Taste for Blood exhausts overlapping batches in order and retires their al
   assert.deepEqual(result.warnings, []);
 });
 
-// Exact expiry and removed damage cannot spend a recipient's batch even while the ambient clock keeps running.
-test('Taste for Blood allied opportunities preserve charges at expiry and with removed output', () => {
+// Tied opportunities can spend a live batch; removed damage still cannot consume its charges.
+test('Taste for Blood spends charges at expiry and preserves them with removed output', () => {
   const expired = run({ grants: [{ at: 0, duration: 0.5 }], end: 1 });
   const removed = run({ grants: [{ at: 0 }], removed: true, end: 1 });
-  for (const result of [expired, removed]) {
-    assert.equal(siphons(result).length, 0);
-    assert.equal(grantsOf(result)['ally:1'][0].count, 1);
-    assert.equal(grantsOf(result)['ally:2'][0].count, 1);
-  }
+  assert.equal(siphons(expired).length, 2);
+  assert.deepEqual(grantsOf(expired), { 'ally:1': [], 'ally:2': [] });
+  assert.equal(siphons(removed).length, 0);
+  assert.equal(grantsOf(removed)['ally:1'][0].count, 1);
+  assert.equal(grantsOf(removed)['ally:2'][0].count, 1);
 });
 
 // A zero-length application cannot borrow an older batch's charges or make the shared clock spend it twice.
@@ -118,7 +118,7 @@ test('immediately expired Taste for Blood applications never register a live all
   assert.deepEqual(siphons(run({ grants: [{ at: 0, duration: 0 }] })), []);
 });
 
-// Shared callbacks spend their own canonical batch at a rounded expiry, leaving no surviving scheduler work.
+// Shared callbacks spend the expiring batch first and retain the next opportunity for its surviving sibling.
 test('Taste for Blood cannot borrow a sibling batch at its canonical expiry', () => {
   const result = run({
     grants: [
@@ -130,14 +130,25 @@ test('Taste for Blood cannot borrow a sibling batch at its canonical expiry', ()
   for (const pool of Object.values(grantsOf(result))) {
     assert.deepEqual(
       pool.map(({ count, expiresAt }) => ({ count, expiresAt })),
-      [{ count: 1, expiresAt: 0.5 }]
+      [{ count: 1, expiresAt: 10.1 }]
     );
   }
 
   const applications = result.events.filter((event) => event.type === 'buff' && event.kind === 'taste-for-blood');
   assert.ok(siphons(result).length > 0);
-  assert.ok(siphons(result).every((event) => event.parentEventOrder === applications.at(-1).eventOrder));
-  assert.deepEqual(observedRuntime(result).alliedStrikeController.pendingEffects(), []);
+  assert.deepEqual(
+    siphons(result).map((event) => event.parentEventOrder),
+    [applications[0], applications[0], applications[1], applications[1]].map((event) => event.eventOrder)
+  );
+  assert.deepEqual(
+    observedRuntime(result)
+      .alliedStrikeController.pendingEffects()
+      .map(({ at, cause }) => [at, cause.eventOrder]),
+    [
+      [1.5, applications[1].eventOrder],
+      [1.5, applications[1].eventOrder]
+    ]
+  );
 });
 
 test('Taste for Blood does not create allied charge pools when no strikes can occur', () => {

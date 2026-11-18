@@ -60,14 +60,17 @@ test('Herald accepts simultaneous applications, caps at 250 concentration, and r
   assert.equal(context.announcements.length, 11, 'same-time applications have no ICD');
   context.grant(2);
   assert.equal(context.concentration(4.999999), 250);
-  assert.equal(context.concentration(5), 0);
+  assert.equal(context.concentration(5), 250);
+  assert.equal(context.concentration(5.000001), 0);
   assert.deepEqual(context.announcements.at(-1).announcement.effectState, { stacks: 10, maximumStacks: 10 });
   assert.equal(context.announcements.at(-1).announcement.expiresAt, 5);
   context.grant(5);
-  assert.equal(context.concentration(5), 25, 'an application at expiry starts a new pool');
+  assert.equal(context.concentration(5), 250, 'an application at the deadline refreshes the live pool');
+  context.grant(8.04);
+  assert.equal(context.concentration(8.04), 25, 'an application after the deadline starts a new pool');
   assert.equal(context.concentration(1), 250, 'later grants do not replace earlier observations');
   assert.equal(context.concentration(-0.000001), 0);
-  assert.equal(context.concentration(5), 25, 'earlier queries do not change the current pool');
+  assert.equal(context.concentration(5), 250, 'earlier queries do not change the current pool');
 });
 
 test('Herald refreshes a partial pool and does not scale its three-second lifetime with boon duration', () => {
@@ -75,10 +78,10 @@ test('Herald refreshes a partial pool and does not scale its three-second lifeti
   context.grant(0, { duration: 60 });
   context.grant(2, { duration: 60 });
   assert.equal(context.concentration(3), 50);
-  assert.equal(context.concentration(5), 0);
-  context.grant(5);
-  context.grant(8);
-  assert.equal(context.concentration(8), 25, 'three-second pulses cannot sustain the previous pool');
+  assert.equal(context.concentration(5.000001), 0);
+  context.grant(5.04);
+  context.grant(8.08);
+  assert.equal(context.concentration(8.08), 25, 'pulses after each deadline cannot sustain the previous pool');
 });
 
 test('Herald accepts self, ally-only, and player-owned effect boons but excludes companion and external grants', () => {
@@ -102,7 +105,7 @@ test('Herald accepts self, ally-only, and player-owned effect boons but excludes
   ])
     context.grant(1, overrides);
   assert.equal(context.concentration(1), 75);
-  assert.equal(context.concentration(3), 0, 'ineligible grants cannot refresh the pool');
+  assert.equal(context.concentration(3.000001), 0, 'ineligible grants cannot refresh the pool');
 });
 
 // Real resolution must scale a boon before its reaction earns concentration, including successive same-time grants.
@@ -130,7 +133,7 @@ test('live Herald concentration scales subsequent player and companion boons wit
     boon(0),
     boon(1, { actorType: 'summon', ownerActorType: 'player', summonKind: 'pet', summonOwner: 'fixture-pet' }),
     boon(2, { actorType: 'summon', ownerActorType: 'player', summonKind: 'minion', summonOwner: 'fixture-minion' }),
-    boon(3)
+    boon(3.04)
   ]);
   assert.deepEqual(result.warnings, []);
   const grants = result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'might');

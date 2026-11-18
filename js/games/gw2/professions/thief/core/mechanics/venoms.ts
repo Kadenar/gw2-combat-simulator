@@ -62,7 +62,6 @@ export function addVenomCharges(
   // Empty or invalid gains still prune the selected pool without constructing a new grant.
   if (!(charges > 0)) {
     state.venomChargeBatches[skillId] = activeBatches(state.venomChargeBatches[skillId] ?? [], at, {
-      expiry: 'exclusive',
       order: 'earliest-expiry'
     });
     return;
@@ -73,7 +72,6 @@ export function addVenomCharges(
     createChargeGrant(charges, at + duration),
     at,
     {
-      expiry: 'exclusive',
       order: 'earliest-expiry',
       maximum: cap
     }
@@ -82,7 +80,7 @@ export function addVenomCharges(
 
 /** Spend the earliest-expiring live batch in grant-established order, skipping exclusively expired entries. */
 function spendVenomCharge<T extends ChargeGrant>(batches: T[] | undefined, at: number): T | undefined {
-  return batches && consumeBatchFromList(batches, at, { expiry: 'exclusive' });
+  return batches && consumeBatchFromList(batches, at);
 }
 
 /** Consumes one charge from every active venom on a player strike and applies each venom's complete proc packet. */
@@ -157,10 +155,10 @@ export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
       core.alliedVenomChargeBatches[key] ?? [],
       { ...createChargeGrant(maximumStacks, at + duration), castId: cast.id, cause },
       at,
-      { expiry: 'exclusive', order: 'earliest-expiry' }
+      { order: 'earliest-expiry' }
     );
     const batches = () => runtime.profession.core.alliedVenomChargeBatches[key] ?? [];
-    const next = (time: number) => batches().find((batch) => activeBatchCount(batch, time, 'exclusive') > 0);
+    const next = (time: number) => batches().find((batch) => activeBatchCount(batch, time) > 0);
     return {
       id: `venom:${venom.skillId}:${allyIndex}`,
       isActive: (time) => next(time) != null,

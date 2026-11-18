@@ -7,11 +7,12 @@ import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timelin
 import {
   applyBoonExtension,
   boonIntervalsFromWindows,
+  durationStackState,
   prepareBoonWindows,
   recordBuffApplication,
-  remainingDurationStackSeconds,
   timedBuffApplicationsAt
 } from '#gw2/platform/combat/boons.js';
+import { buffApplicationExpiry } from '#gw2/platform/combat/buff-expiry.js';
 import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
@@ -57,10 +58,10 @@ const buff = (at, duration = 5, resolvedAudience = self, kind = 'fury', stacks =
   resolvedAudience
 });
 const remaining = (applications, at, audience = 'includesSelf') =>
-  remainingDurationStackSeconds(applications, at, {
+  durationStackState(applications, at, {
     includes: (application) => application.resolvedAudience[audience],
     maximum: 30
-  });
+  }).remaining;
 function check(name, actual, expected) {
   test(name, () => assert.deepEqual(actual, expected));
 }
@@ -84,12 +85,18 @@ test('prepared boon windows preserve capped pools, extension expiry, recipients,
       { start: 0, end: 1, active: true },
       { start: 1, end: 2, active: true },
       { start: 2, end: 32, active: true },
-      { start: 32, end: 33, active: false },
-      { start: 33, end: 33.04, active: true },
-      { start: 33.04, end: 34, active: false }
+      { start: 32, end: 33, active: true },
+      { start: 33, end: 34, active: true }
     ]
   );
-  assert.deepEqual([...boonIntervalsFromWindows(windows, 34, Infinity)], [{ start: 34, end: Infinity, active: false }]);
+  // The tied extension lands before cleanup, then the final grant adds duration to the surviving pool.
+  assert.deepEqual(
+    [...boonIntervalsFromWindows(windows, 34, Infinity)],
+    [
+      { start: 34, end: 35.04, active: true },
+      { start: 35.04, end: Infinity, active: false }
+    ]
+  );
   assert.deepEqual([...boonIntervalsFromWindows(windows, 0.5, 1)], [{ start: 0.5, end: 1, active: true }]);
   assert.deepEqual([...boonIntervalsFromWindows(windows, 2, 1)], []);
   assert.deepEqual(
@@ -153,9 +160,9 @@ test('extensions preserve past duration and intensity observations across recipi
   assert.equal(remaining(runtime.get('fury'), 7, 'includesSummons'), 3);
   for (const [at, player, pet] of [
     [2, 5, 5],
-    [6, 5, 0],
-    [9, 2, 0],
-    [10, 0, 0]
+    [6.000001, 5, 0],
+    [9.000001, 2, 0],
+    [10.000001, 0, 0]
   ]) {
     assert.equal(timeline.buffStacksAt('might', at, 0, 25), player);
     assert.equal(timeline.buffStacksAt('might', at, 0, 25, RECIPIENT.SUMMONS, 'pet'), pet);
@@ -164,7 +171,7 @@ test('extensions preserve past duration and intensity observations across recipi
         .get('might')
         .filter(
           (application) =>
-            application.resolvedAudience.includesSelf && application.at <= at && application.expiresAt > at
+            application.resolvedAudience.includesSelf && application.at <= at && buffApplicationExpiry(application) > at
         )
         .reduce((sum, application) => sum + application.stacks, 0),
       player

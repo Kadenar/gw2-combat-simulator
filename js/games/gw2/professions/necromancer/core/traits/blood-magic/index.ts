@@ -410,13 +410,16 @@ function addTasteForBloodApplication(
   cause?: Gw2ResolverEvent | null
 ): void {
   const grants = professionCoreState(context.profession).tasteForBloodGrants;
+
+  // A zero-duration application never becomes a live charge, even before timestamp cleanup.
+  if (!(Number(event.duration) > 0)) return;
+
   const application: TasteForBloodGrant = {
     ...createChargeGrant(Math.max(1, event.stacks ?? 1), canonicalTime(event.at + Math.max(0, event.duration || 0))),
     at: canonicalTime(event.at),
     ...(cause === undefined ? {} : { cause })
   };
   grants[recipient] = appendBatch(grants[recipient] ?? [], application, event.at, {
-    expiry: 'exclusive',
     order: 'insertion'
   });
 }
@@ -443,7 +446,9 @@ function consumeTasteForBlood(
 
   if (
     !effect ||
-    !consumeBatchFromList(grants, event.at, { expiry: 'exclusive', eligible: (grant) => grant.at <= event.at })
+    !consumeBatchFromList(grants, event.at, {
+      eligible: (grant) => grant.at <= event.at
+    })
   )
     return false;
 
@@ -471,7 +476,7 @@ function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: N
       addTasteForBloodApplication(context, event, recipient, cause);
       const next = (time: number) =>
         professionCoreState(context.profession).tasteForBloodGrants[recipient]?.find(
-          (grant) => grant.at <= time && activeBatchCount(grant, time, 'exclusive') > 0
+          (grant) => grant.at <= time && activeBatchCount(grant, time) > 0
         );
       return {
         id: `taste-for-blood:${allyIndex}`,

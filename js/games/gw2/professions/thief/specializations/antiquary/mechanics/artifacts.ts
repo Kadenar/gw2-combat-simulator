@@ -86,10 +86,7 @@ function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast<Thief
   state.initiativeSpentSincePilfer = addCounterProgress(state.initiativeSpentSincePilfer, cost);
 
   // Only paid weapon inputs consume a refund, so free skills and profession actions preserve the finite grant.
-  if (
-    cast.skill.type === 'Weapon' &&
-    consumeBatchFromList(state.chakInitiativeRefunds, runtime.time, { expiry: 'exclusive' })
-  )
+  if (cast.skill.type === 'Weapon' && consumeBatchFromList(state.chakInitiativeRefunds, runtime.time))
     runtime.resourceController.grant('initiative', cost);
 
   // Spending accrues before combat too, but it cannot trigger a pilfer until combat has begun.

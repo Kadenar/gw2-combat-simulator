@@ -80,7 +80,12 @@ test('Strength Might scales with boon duration, increases live attributes, and e
         attributeInputs: baseAttributeInputs({ power: 1000, precision: 4000, concentration: 750 }),
         sigilSets: [{ names: ['Strength'] }]
       },
-      events: [strike(1), strike(2, { canCrit: false }), strike(16, { canCrit: false })],
+      events: [
+        strike(1),
+        strike(2, { canCrit: false }),
+        strike(16, { canCrit: false }),
+        strike(16.000001, { canCrit: false })
+      ],
       endTime: 17,
       engineReactions: {
         'damage.resolved': (ctx, event) => {
@@ -92,7 +97,8 @@ test('Strength Might scales with boon duration, increases live attributes, and e
     assert.deepEqual(observed, [
       [1, 0, 1000],
       [2, 1, 1030],
-      [16, 0, 1000]
+      [16, 1, 1030],
+      [16.000001, 0, 1000]
     ]);
 
     if (output === 'detailed') {

@@ -1,3 +1,4 @@
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
@@ -28,6 +29,8 @@ export function projectSpellbreakerPlanningState(input: Gw2PlanningStateInput<Sp
 
   return {
     [STATE.ATTACKER_INSIGHT_EXPIRIES]: purgeExpiredStacks(state.attackerInsightExpiries, input.time),
-    [STATE.MAGEBANE_TETHER_UNTIL]: state.magebaneTetherUntil > input.time ? state.magebaneTetherUntil : 0
+    [STATE.MAGEBANE_TETHER_UNTIL]: buffDeadlineActive(state.magebaneTetherUntil, input.time)
+      ? state.magebaneTetherUntil
+      : 0
   };
 }

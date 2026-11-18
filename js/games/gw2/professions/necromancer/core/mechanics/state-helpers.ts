@@ -13,7 +13,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
-import { expireBatch } from '#kernel/resources/batch.js';
+import { purgeExpiredBatch } from '#kernel/resources/batch.js';
 import { purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 const SOUL_SHARD_DURATION_SECONDS = 10;
@@ -51,7 +51,7 @@ export function necromancerActiveBoonCompanionIds(context: Pick<NecromancerRunti
 /** Expires timed carapace and Soul Shard stacks, then synchronizes their public resource values. */
 export function purgeTimedState(state: NecromancerCoreState, at: number): void {
   state.carapaceExpiries = purgeExpiredStacks(state.carapaceExpiries, at);
-  expireBatch(state.soulShardGrant, at, 'exclusive');
+  purgeExpiredBatch(state.soulShardGrant, at);
 }
 
 /** Refreshes existing Soul Shards and admits new charges up to the selected capacity. */
@@ -65,8 +65,7 @@ export function addSoulShards(state: NecromancerCoreState, stacks: number, at: n
     state.soulShardGrant,
     added,
     canonicalTime(at + SOUL_SHARD_DURATION_SECONDS),
-    at,
-    'exclusive'
+    at
   );
 }
 
@@ -75,7 +74,7 @@ export function consumeSoulShards(state: NecromancerCoreState, stacks: number, a
   purgeTimedState(state, at);
   const requested = boundedInteger(stacks, 0, 0, state.soulShardGrant.count);
   let consumed = 0;
-  while (consumed < requested && consumeCharge(state.soulShardGrant, at, 'exclusive')) consumed += 1;
+  while (consumed < requested && consumeCharge(state.soulShardGrant, at)) consumed += 1;
   return consumed;
 }
 

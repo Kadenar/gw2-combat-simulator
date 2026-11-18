@@ -21,7 +21,7 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
 
   const state = antiquaryState.from(context.profession);
 
-  if (!consumeCharge(state.mistburn, event.at, 'exclusive')) return;
+  if (!consumeCharge(state.mistburn, event.at)) return;
 
   const mistburnProcProfile = requireSkill(context.helpers, ID.MISTBURN_MORTAR);
   const burning = requireEffect(

@@ -153,11 +153,11 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
   for (const [at, stacks] of [
     [15, 5],
     [15.999, 5],
-    [16, 4],
-    [17, 3],
-    [18, 2],
-    [19, 1],
-    [20, 0]
+    [16.000001, 4],
+    [17.000001, 3],
+    [18.000001, 2],
+    [19.000001, 1],
+    [20.000001, 0]
   ]) {
     assert.equal(
       rule.amount({ catalog: guardianCatalog, runtime: { profession }, time: at }, rule.target),
@@ -176,7 +176,14 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
     if (stacks) assert.ok(items[0].value.startsWith(stacks + '/5'));
   }
 
-  assert.deepEqual(observedRuntime(run(true)).profession.core.symbolicAvengerExpirations, [35]);
+  const finalRuntime = observedRuntime(run(true));
+  assert.deepEqual(
+    projectObservedState(guardianProfession, {
+      profession: finalRuntime.profession,
+      time: finalRuntime.time + 0.000001
+    })[STATE.SYMBOLIC_AVENGER_EXPIRATIONS],
+    [35]
+  );
 });
 
 test('Zeal symbol traits emit their full profiles and stack damage', () => {

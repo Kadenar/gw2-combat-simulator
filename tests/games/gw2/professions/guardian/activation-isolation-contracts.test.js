@@ -408,7 +408,7 @@ test('Core Resolution cadence starts only through enabled triggers and admitted 
       assert.ok(
         result.resolvedEvents
           .filter((event) => event.sourceId === TRAIT.RIGHTEOUS_INSTINCTS)
-          .every((event) => event.at < 2)
+          .every((event) => event.at <= 2)
       );
     }
 });

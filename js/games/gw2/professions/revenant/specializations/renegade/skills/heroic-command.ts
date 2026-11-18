@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { balanceProfileNumber, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
@@ -18,7 +19,9 @@ export function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast<Revena
   if (!fervor) return;
 
   const maximum = Math.max(1, balanceProfileNumber(profile, 'maximumStacks'));
-  state.kallasFervor = state.kallasFervor.filter((application) => application.expiresAt > runtime.time);
+  state.kallasFervor = state.kallasFervor.filter((application) =>
+    buffDeadlineActive(application.expiresAt, runtime.time)
+  );
   const duration = Math.max(0, effectNumber(profile, fervor, 'duration'));
   for (const application of state.kallasFervor)
     if (application.at <= runtime.time) application.expiresAt = runtime.time + duration;

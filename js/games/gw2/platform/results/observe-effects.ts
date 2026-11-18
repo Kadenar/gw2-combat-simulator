@@ -62,9 +62,10 @@ function visitRuntimeEffects<T extends object>(
           ? state
           : {
               ...state,
+              // Retirement removes every window; natural deadlines stay in `expiresAt`.
               windows: state.windows.map((window) => ({
                 ...window,
-                expiresAt: Math.min(window.expiresAt ?? Infinity, removedAt)
+                removedAt: Math.min(window.removedAt ?? Infinity, removedAt)
               }))
             };
       });

@@ -9,7 +9,7 @@ import { criticalChanceEventAt, planningBuffAt } from '#gw2/platform/results/res
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
-test('planning buff queries select accepted personal windows and respect exclusive expiry', () => {
+test('planning buff queries select accepted personal windows and respect expiry', () => {
   // Profession countdowns share this filter; foreign recipients and assumed/projected grants cannot extend them.
   const effect = (windows, options = {}) => timedEffectState('tracked', windows, 1, options);
   const personal = effect([{ stacks: 1, expiresAt: 9 }]);
@@ -23,7 +23,7 @@ test('planning buff queries select accepted personal windows and respect exclusi
     [[], 4, undefined],
     [others, 4, undefined],
     [[...others, personal], 4, 5],
-    [[personal], 9, undefined],
+    [[personal], 9.000001, undefined],
     [[personal], 10, undefined],
     [[effect([])], 4, undefined],
     [

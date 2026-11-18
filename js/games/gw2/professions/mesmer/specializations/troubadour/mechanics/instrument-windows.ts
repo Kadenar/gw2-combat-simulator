@@ -1,4 +1,5 @@
 /** Keep instrument replacement, historical ordering, and detached projections consistent across their readers. */
+import { buffDeadlineActive, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import type { ExecutedFactsReader } from '#gw2/platform/combat/history/executed-facts.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR } from '#gw2/platform/constants.js';
@@ -35,7 +36,7 @@ function instrumentsAt(
 
   return new Map(
     [...latest]
-      .filter(([, event]) => Number(event.expiresAt) > at)
+      .filter(([, event]) => buffWindowActive(at, event.at, Number(event.expiresAt)))
       .map(([name, event]) => [name, Number(event.expiresAt)])
   );
 }
@@ -86,7 +87,7 @@ export function replaceTroubadourInstrumentWindow(
 export function projectTroubadourInstruments(windows: Readonly<Record<string, number>>, at: number) {
   at = canonicalTime(at);
   return Object.entries(windows)
-    .filter(([, expiresAt]) => expiresAt > at)
+    .filter(([, expiresAt]) => buffDeadlineActive(expiresAt, at))
     .map(([name, expiresAt]) => ({
       name,
       remaining: Math.max(0, Math.round((expiresAt - at) * 1000))

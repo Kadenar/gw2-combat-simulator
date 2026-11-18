@@ -1,3 +1,4 @@
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -28,7 +29,7 @@ function reactToAmalgamDamage(context: EngineerRuntime, event: EngineerResolverE
   if (
     event.actorType === ACTOR.SUMMON ||
     event.sourceId === 'engineer.rapacious-strain' ||
-    strain.rapaciousUntil <= event.at
+    !buffDeadlineActive(strain.rapaciousUntil, event.at)
   )
     return;
 

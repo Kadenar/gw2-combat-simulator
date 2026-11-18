@@ -1,4 +1,5 @@
 /** Canonical Core ranger skill definitions grouped by their GW2 owner. */
+import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
@@ -161,7 +162,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
           return (applications ?? []).some(
             (application) =>
               application.at <= context.time &&
-              application.expiresAt > context.time &&
+              buffWindowActive(context.time, application.at, application.expiresAt, application.removedAt) &&
               application.stacks > 0 &&
               (recipient === ACTOR.PLAYER ||
                 application.resolvedAudience.companionIds.includes(String(context.event?.summonOwner)))
@@ -288,12 +289,12 @@ export function reactToRangerGreatswordDamage(context: RangerResolverContext, ev
   if (!recipient) return;
 
   const kind = `attack-of-opportunity-${recipient}`;
-  context.combat.reviseBuffExpiry(
+  context.combat.endBuffs(
     kind,
+    event.at,
     (application) =>
       application.at <= event.at &&
-      (recipient === ACTOR.PLAYER || application.resolvedAudience.companionIds.includes(String(event.summonOwner))),
-    (expiresAt) => Math.min(expiresAt, event.at)
+      (recipient === ACTOR.PLAYER || application.resolvedAudience.companionIds.includes(String(event.summonOwner)))
   );
 }
 

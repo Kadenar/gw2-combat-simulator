@@ -270,7 +270,7 @@ test('timeline indexes buff stacks by kind and summon audience', () => {
   assert.equal(timeline.buffStacksAt('might', 1, 0, 5), 5);
   assert.equal(timeline.buffStacksAt('might', 2, 0, 25), 0);
   assert.equal(timeline.buffStacksAt('quickness', 3.5, 0, 1), 1);
-  assert.equal(timeline.buffStacksAt('quickness', 4, 0, 1), 0);
+  assert.equal(timeline.buffStacksAt('quickness', 4.000001, 0, 1), 0);
 });
 
 test('effective boon and Vulnerability queries use their canonical runtime state', () => {
@@ -382,7 +382,7 @@ test('capped permanent Might skips history while uncapped and isolated summon qu
     ]) {
       assert.equal(query.mightStacksAt(0, runtime, event), Math.min(25, configured));
       assert.equal(query.mightStacksAt(1, runtime, event), Math.min(25, configured + 10));
-      assert.equal(query.mightStacksAt(3, runtime, event), Math.min(25, configured));
+      assert.equal(query.mightStacksAt(3.000001, runtime, event), Math.min(25, configured));
       assert.equal(query.mightStacksAt(1, null, event), Math.min(25, configured));
     }
 
@@ -392,7 +392,7 @@ test('capped permanent Might skips history while uncapped and isolated summon qu
     const summon = { actorType: 'summon', summonOwner: 'minion:one' };
     assert.equal(query.mightStacksAt(0, runtime, summon), 0);
     assert.equal(query.mightStacksAt(1, runtime, summon), 2);
-    assert.equal(query.mightStacksAt(3, runtime, summon), 0);
+    assert.equal(query.mightStacksAt(3.000001, runtime, summon), 0);
     assert.equal(query.mightStacksAt(1, runtime, { ...summon, summonOwner: 'minion:two' }), 0);
     liveEffects = createTestLiveEffects();
     assert.equal(query.mightStacksAt(1, runtime, summon), 0);
@@ -690,7 +690,7 @@ test('illusion stats and critical policies follow identity independently of disp
       assert.equal(query.critical(renamed, 1).chance, 0.05);
       assert.equal(query.furyActiveAt(1, null, renamed), false);
       assert.equal(query.critical(renamed, 1, runtime).chance, 0.3);
-      assert.equal(query.furyActiveAt(2, runtime, renamed), false);
+      assert.equal(query.furyActiveAt(2.000001, runtime, renamed), false);
       assert.equal(query.furyActiveAt(1, runtime, { ...renamed, summonOwner: 'other' }), false);
       assert.equal(query.furyActiveAt(1, runtime, { ...renamed, summonIgnoresBoons: true }), false);
       // Subtype metadata on a player-owned attack cannot turn it into a summon.

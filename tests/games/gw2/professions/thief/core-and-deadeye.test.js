@@ -94,7 +94,7 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
   // A grant misplaced on Core cannot unlock attacks or absorb active-elite consumption.
   for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {
     for (const stealthed of [false, true]) {
-      for (const expiresAt of [5, 6]) {
+      for (const expiresAt of [4.999999, 5, 6]) {
         const ownsCharges = specialization === 'Deadeye' || specialization === 'Antiquary';
         const attack = specialization === 'Deadeye' ? 'Malicious Backstab' : 'Backstab';
         const result = runThief(
@@ -116,7 +116,7 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
             }
           }
         );
-        const available = stealthed || (ownsCharges && expiresAt > 5);
+        const available = stealthed || (ownsCharges && expiresAt >= 5);
         assert.equal(result.warnings.length === 0, available, `${specialization} ${stealthed} ${expiresAt}`);
         const { core, specialization: elite } = observedRuntime(result).profession;
 
@@ -220,7 +220,7 @@ test('Silent Scope and Guitar grant bonus stealth attacks with their selected st
     for (const at of [8, 9, 10]) {
       // Runtime admission and the palette must agree before, at, and after the charge expires.
       runtime.time = at;
-      assert.equal(thiefBonusStealthAttack(context), at < 9);
+      assert.equal(thiefBonusStealthAttack(context), at <= 9);
       const skill = runtime.helpers.skills.find(
         (candidate) => candidate.name === (deadeye ? 'Malicious Backstab' : 'Backstab')
       );
@@ -235,7 +235,7 @@ test('Silent Scope and Guitar grant bonus stealth attacks with their selected st
           },
           skill
         ).tileActive,
-        at < 9
+        at <= 9
       );
     }
 
@@ -282,7 +282,7 @@ test('Guitar adds two charges up to four and spends grants LIFO without renewing
     { count: 2, expiresAt: 21 },
     { count: 1, expiresAt: 9 }
   ]);
-  runtime.time = 9;
+  runtime.time = 9.000001;
   attack();
   assert.deepEqual(counts(), [
     { count: 1, expiresAt: 21 },

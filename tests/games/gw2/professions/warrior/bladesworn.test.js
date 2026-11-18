@@ -78,7 +78,10 @@ test('Positive Flow works before combat and grants its final tick before its win
     const result = run(['Flow Stabilizer', wait(duration), combat], config);
     assert.deepEqual(result.warnings, []);
     close(state(result).flow.value, 32);
-    assert.deepEqual(state(result).flowStabilizerWindows, []);
+    assert.deepEqual(
+      state(result).flowStabilizerWindows.filter((window) => window.expiresAt > observedRuntime(result).time),
+      []
+    );
   }
 
   const offGrid = run([wait(1), 'Flow Stabilizer', wait(8039), combat], config);
@@ -213,7 +216,7 @@ test('Gunsaber entry traits respect actual combat and explicit precombat does no
   assert.deepEqual(active.warnings, []);
   assert.ok(active.resolvedEvents.some((event) => event.sourceId === TRAIT.UNSEEN_SWORD && event.type === 'damage'));
   close(state(active).flow.value, 30);
-  assert.equal(state(active).traitPositiveFlowUntil, 0);
+  assert.ok(state(active).traitPositiveFlowUntil <= observedRuntime(active).time);
 });
 
 test('Unseen Sword defers impact without delaying its entry rewards or extending the observation window', () => {
@@ -602,10 +605,10 @@ test('Dragonspike resets exit recharge and an old expiry cannot close a replacem
   assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.DRAGON_TRIGGER), false);
 });
 
-test('Tactical Reload can be consumed before expiry and closes exactly at its deadline', () => {
+test('Tactical Reload can be consumed through its deadline and expires afterward', () => {
   for (const [delay, expected] of [
     [9960, 2],
-    [10000, 1],
+    [10000, 2],
     [10001, 1]
   ]) {
     const result = run(['Tactical Reload', wait(delay), 'Dragon Trigger', wait(240), combat], {
@@ -885,7 +888,10 @@ test('Flow Stabilizer uses authored stacks for regeneration and both observation
   assert.match(display.find((item) => item.id === 'positive-flow').value, /^3 stacks/);
   const expired = run(['Flow Stabilizer', wait(400), 'Flow Stabilizer', wait(1000)], config, source);
   close(state(expired).flow.value, 27);
-  assert.deepEqual(state(expired).flowStabilizerWindows, []);
+  assert.deepEqual(
+    state(expired).flowStabilizerWindows.filter((window) => window.expiresAt > observedRuntime(expired).time),
+    []
+  );
 });
 
 // Ammunition spent multiplies the selected trait grant rather than replacing it.

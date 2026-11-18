@@ -104,7 +104,7 @@ test('temporary Elemental Empowerment stacks survive the final microsecond and e
   grantCatalystElementalEmpowerment(state, 1.039999, 1, 1, 10);
   assert.deepEqual(state.elementalEmpowermentExpiries, [1.04, 2.04]);
   grantCatalystElementalEmpowerment(state, 1.04, 1, 1, 10);
-  assert.deepEqual(state.elementalEmpowermentExpiries, [2.04, 2.04]);
+  assert.deepEqual(state.elementalEmpowermentExpiries, [1.04, 2.04, 2.04]);
 });
 
 // Each grant evicts before insertion, so shorter replacements may evict one another while older long stacks survive.
@@ -122,7 +122,7 @@ test('Elemental Empowerment preserves expiry ordering and per-grant replacement 
   }
 });
 
-test('Shattering Ice uses the same exclusive tick deadline for grants and hits', () => {
+test('Shattering Ice uses the same tick deadline for grants and hits', () => {
   for (const at of [1.039999, 1.04, 1.040001]) {
     const context = elementalistContext('Catalyst');
     applyShatteringIce(context, {
@@ -135,7 +135,7 @@ test('Shattering Ice uses the same exclusive tick deadline for grants and hits',
     applyCatalystResolvedDamage(context, { type: 'damage', at, actorType: 'player', coefficient: 1 });
     assert.equal(
       context.events.some((event) => event.type === 'damage'),
-      at < 1.04
+      at <= 1.04
     );
   }
 });
@@ -156,7 +156,7 @@ test('Perfect Weave grant and Tailored Victory gate share the emitted buff expir
     context.time = at;
     assert.equal(
       weaverHooks.availability(context, context.helpers.skillsById.get(E.TAILORED_VICTORY)).ready,
-      at < 10.04
+      at <= 10.04
     );
   }
 });
@@ -173,7 +173,7 @@ test('Elemental Balance is consumable through its final microsecond and only onc
     assert.equal(state.elementalBalanceUntil, 5.04);
     context.time = at;
     context.skill = { type: 'Weapon', slot: 'Weapon_2' };
-    assert.equal(commitRechargeDuration(context, context.skill, 10), at < 5.04 ? 10 * 0.34 : 10);
+    assert.equal(commitRechargeDuration(context, context.skill, 10), at <= 5.04 ? 10 * 0.34 : 10);
     assert.equal(commitRechargeDuration(context, context.skill, 10), 10);
   }
 });
@@ -196,7 +196,7 @@ test('Electric Enchantment cannot consume hits before its grant, at its exact bo
     consumeElectricEnchantment(context, event);
     assert.equal(
       context.events.some((event) => event.type === 'damage' && event.source === 'Electric Enchantment'),
-      at >= 0.301 && at < 1.32
+      at >= 0.301 && at <= 1.32
     );
   }
 });

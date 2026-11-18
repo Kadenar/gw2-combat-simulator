@@ -79,5 +79,5 @@ test('editor effect snapshots preserve grants and expiry without a chart history
   const live = run(2);
   assert.equal(planningBuffStacks(live.planningState, 'might'), 3);
   assert.equal(planningBuffAt(live.planningState, 'might').remaining, 3);
-  assert.equal(planningBuffAt(run(5).planningState, 'might'), null);
+  assert.equal(planningBuffAt(run(5.04).planningState, 'might'), null);
 });

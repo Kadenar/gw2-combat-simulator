@@ -59,8 +59,8 @@ test('reaching the threshold arms Vow, and the reward outlives independently exp
   assert.equal(stacks(filledAt - tuning.intervalMs / 1000 / 2), tuning.threshold - 1);
   assert.equal(stacks(filledAt), tuning.threshold);
   // Later applications do not refresh earlier ones, so the first stack leaves alone.
-  assert.equal(stacks(first + tuning.stackDuration), stackApplications.length - 1);
-  assert.equal(stacks(first + tuning.decayMs / 1000), 0);
+  assert.equal(stacks(first + tuning.stackDuration + 0.000001), stackApplications.length - 1);
+  assert.equal(stacks(first + tuning.decayMs / 1000 + 0.000001), 0);
   assert.equal(state.biorhythmArmed, true);
 });
 
@@ -112,7 +112,7 @@ test('the Vow effect grants the Vow bonus once in either unleash state and never
   };
   assert.equal(petState.strikeMultiplier(player, vowAt), expected);
   assert.equal(petState.strikeMultiplier(player, vowEndsAt - 0.001), expected);
-  assert.equal(petState.strikeMultiplier(player, vowEndsAt), 1);
+  assert.equal(petState.strikeMultiplier(player, vowEndsAt + 0.000001), 1);
   assert.equal(petState.strikeMultiplier(pet, vowAt), 1);
 
   const rangerState = simulate([ID.UNLEASH_PET, wait(tuning.fillMs), ID.UNLEASH_RANGER], {

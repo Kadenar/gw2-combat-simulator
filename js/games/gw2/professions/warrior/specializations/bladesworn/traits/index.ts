@@ -1,7 +1,8 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2EffectExpiresAt, gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -370,10 +371,10 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
 
   if (!flow) return;
 
-  if (state.traitPositiveFlowUntil <= runtime.time) state.traitPositiveFlowStartedAt = runtime.time;
+  if (!buffDeadlineActive(state.traitPositiveFlowUntil, runtime.time)) state.traitPositiveFlowStartedAt = runtime.time;
 
   const duration = effectNumber(profile, flow, 'duration');
-  state.traitPositiveFlowUntil = gw2EffectExpiresAt(runtime.time, duration);
+  state.traitPositiveFlowUntil = gw2TimerDeadline(runtime.time, duration);
   state.traitPositiveFlowStacks = effectNumber(profile, flow, 'stacks');
   runtime.effects.emit({
     kind: 'packet',

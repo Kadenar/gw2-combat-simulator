@@ -1,3 +1,5 @@
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
@@ -245,7 +247,7 @@ export function applyFerventStance(
   // Swift Revenge pays out per element of the dual skill that was just cast.
   // Dual attacks claim Superior Elements at completion, before attempting its Weakness packet.
   // Dual attacks grant Might only while the stance is armed and strictly unexpired.
-  if (dualAttunements && state.ferventStanceUntil > 0 && state.ferventStanceUntil > at) {
+  if (dualAttunements && state.ferventStanceUntil > 0 && buffDeadlineActive(state.ferventStanceUntil, at)) {
     const stance = requireSkill(context.helpers, ID.FERVENT_STANCE);
     const might = requireEffect(stance, 'boon', BOON.MIGHT, requireSkillAction(stance, 'dual-attack-might'));
 
@@ -278,7 +280,8 @@ export const ferventStanceLifecycle = {
 
       // Arm directly at commitment: only later dual-attack completions read this window, and the stance itself is
       // not a dual attack, so deferring past this cast's completion traits would change nothing.
-      weaverState.from(runtime.profession).ferventStanceUntil = runtime.time + skillNumber(trigger.skill, 'duration');
+      const duration = skillNumber(trigger.skill, 'duration');
+      weaverState.from(runtime.profession).ferventStanceUntil = gw2TimerDeadline(runtime.time, duration);
     }
   }
 } satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

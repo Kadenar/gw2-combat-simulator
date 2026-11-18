@@ -272,8 +272,8 @@ test('buff history bounds preserve mixed lifetimes, fallback durations, and back
     buffEvent({ at: 20, duration: 1, stacks: 32 })
   ];
   const timeline = createGw2TimelineIndex({ events });
-  assert.equal(timeline.buffStacksAt('might', 9, 2, 100), 2);
-  assert.equal(timeline.buffStacksAt('might', 11, 2, 100), 0);
+  assert.equal(timeline.buffStacksAt('might', 9.000001, 2, 100), 2);
+  assert.equal(timeline.buffStacksAt('might', 11.000001, 2, 100), 0);
   assert.equal(timeline.buffStacksAt('might', 4, 2, 100), 6);
   assert.equal(timeline.buffStacksAt('might', 4, 0, 100), 2);
   assert.equal(timeline.buffStacksAt('might', 12, 10, 100), 4);

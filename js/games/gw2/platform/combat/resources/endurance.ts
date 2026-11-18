@@ -3,6 +3,7 @@ import { boonIntervalsFromWindows, prepareBoonWindows, type BoonWindow } from '#
 import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { timeKey } from '#kernel/core/clock.js';
 import type { RateInterval } from '#kernel/core/rate-intervals.js';
 import type { ResourceClock } from '#kernel/resources/accrual.js';
 import { cappedResource, grantCapped, resourceAtLeast } from '#kernel/resources/pool.js';
@@ -35,6 +36,14 @@ export function createVigorWindowReader(events: readonly SimulationEvent[]): () 
   };
 }
 
+/**
+ * Rates are constant across each segment, so sample its interior: a bonus whose deadline is the segment start still
+ * counts at that instant, but contributes no regeneration to the segment that follows it.
+ */
+function segmentSample(from: number, to: number): number {
+  return Number.isFinite(to) ? from + Math.floor(timeKey(to - from) / 2) / 1_000_000 : from + 1;
+}
+
 /** Shares self-Vigor history for recovery and readiness while professions retain their rate policy. */
 export function* vigorEnduranceIntervals(
   context: {
@@ -62,11 +71,11 @@ export function* vigorEnduranceIntervals(
 
       if (boundary <= from) continue;
 
-      yield { start: from, end: boundary, rate: rateAt(interval.active, from) };
+      yield { start: from, end: boundary, rate: rateAt(interval.active, segmentSample(from, boundary)) };
       from = boundary;
     }
 
-    yield { start: from, end: interval.end, rate: rateAt(interval.active, from) };
+    yield { start: from, end: interval.end, rate: rateAt(interval.active, segmentSample(from, interval.end)) };
   }
 }
 

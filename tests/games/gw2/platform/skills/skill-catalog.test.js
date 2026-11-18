@@ -16,12 +16,12 @@ test('cast-start recharge requires an explicit finite offset', () => {
     });
   }
 
-  for (const rechargeOffsetMs of [0, 40, -80]) {
+  for (const rechargeOffsetMs of [0, 40, 80]) {
     assert.equal(load({ rechargeAnchor: 'castStart', rechargeOffsetMs }).rechargeOffsetMs, rechargeOffsetMs);
   }
 
-  for (const rechargeOffsetMs of [NaN, Infinity, -Infinity]) {
-    assert.throws(() => load({ rechargeAnchor: 'castStart', rechargeOffsetMs }), /finite rechargeOffsetMs/);
+  for (const rechargeOffsetMs of [-80, NaN, Infinity, -Infinity]) {
+    assert.throws(() => load({ rechargeAnchor: 'castStart', rechargeOffsetMs }), /rechargeOffsetMs/);
   }
 
   assert.doesNotThrow(() => load({}));

@@ -11,6 +11,6 @@ export function expireSpearIllumination(runtime: GuardianRuntime, data: unknown)
   if (symbol) {
     if (state.spearLuminanceUntil === expiresAt) state.spearLuminanceUntil = 0;
   } else if (state.spearIlluminated.expiresAt === expiresAt) {
-    expireBatch(state.spearIlluminated, runtime.time, 'exclusive');
+    expireBatch(state.spearIlluminated, runtime.time);
   }
 }

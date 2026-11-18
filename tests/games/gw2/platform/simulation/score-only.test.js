@@ -73,7 +73,8 @@ test('combo and aura handlers skip score report rows while preserving state and 
       traits: new Set(),
       profession: { core: { activeAuras: [] } },
       observations: facts.writer,
-      schedule() {}
+      schedule() {},
+      scheduleExpiry() {}
     };
     // Resolver handlers notify the registry even when reporting is disabled.
     const handlers = createGw2ComboResolution({

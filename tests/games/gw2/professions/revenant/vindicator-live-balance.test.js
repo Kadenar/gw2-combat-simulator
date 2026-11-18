@@ -264,7 +264,7 @@ test('Luxon activations refresh one bonus and unrelated skills leave its expiry 
     selected,
     {
       catalog: (catalog) => withSkill(catalog, SKILL.ARCHEMORUS_STRIKE, { cooldown: 0, castTimeMs: 0 }),
-      probes: [1, 6, 11, 15].map((at) => [
+      probes: [1, 6, 11, 15.000001].map((at) => [
         at,
         (runtime) => {
           for (const actorType of ['player', 'summon']) {

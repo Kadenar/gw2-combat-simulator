@@ -282,16 +282,16 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
         state.rotWallowVenom[allyIndex] ?? [],
         { ...createChargeGrant(stacks, runtime.time + venomDuration), cause },
         runtime.time,
-        { expiry: 'inclusive', order: 'insertion' }
+        { order: 'insertion' }
       );
       const batches = () => specterState.from(runtime.profession).rotWallowVenom[allyIndex] ?? [];
-      const next = (time: number) => batches().find((batch) => activeBatchCount(batch, time, 'inclusive') > 0);
+      const next = (time: number) => batches().find((batch) => activeBatchCount(batch, time) > 0);
       return {
         id: `rot-wallow:${allyIndex}`,
         isActive: (time) => next(time) != null,
         causeAt: (time) => next(time)?.cause ?? null,
         trigger(proc) {
-          if (!consumeBatchFromList(batches(), proc.at, { expiry: 'inclusive' })) return false;
+          if (!consumeBatchFromList(batches(), proc.at)) return false;
 
           emitTraitProfile(runtime, TRAIT.DARK_SENTRY, TRAIT.DARK_SENTRY, undefined, {
             at: proc.at,

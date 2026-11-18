@@ -22,10 +22,10 @@ test('Combat High shares staggered stack expiry across grants, modifiers, projec
   const condition = antiquaryModule.modifiers.modifierRules.find((rule) => rule.id === 'thief.combat-high-condition');
   for (const [time, count] of [
     [0, 10],
-    [1.999999, 10],
-    [2, 9],
-    [18, 1],
-    [20, 0]
+    [2, 10],
+    [2.000001, 9],
+    [18.000001, 1],
+    [20.000001, 0]
   ]) {
     // Modifier rates and stack state come from the same selected runtime.
     const query = { catalog: observedRuntime(result).helpers, runtime: { profession }, time };

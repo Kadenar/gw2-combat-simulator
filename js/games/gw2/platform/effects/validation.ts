@@ -93,7 +93,13 @@ function validateEffectNumbers(candidate: UnvalidatedFields, label: string): voi
     ...strikePayloadNumericKeys,
     'interruptCommitMs'
   ]) {
-    if (candidate[field] !== undefined) requireBalanceNumber(candidate[field], `${label} field=${field}`);
+    if (candidate[field] === undefined) continue;
+
+    const value = requireBalanceNumber(candidate[field], `${label} field=${field}`);
+
+    // Reject empty effect lifetimes and duration adjustments before runtime grants are constructed.
+    if (field.startsWith('duration') && value <= 0)
+      throw new TypeError(`${label} field=${field} requires a positive duration.`);
   }
 }
 
@@ -590,7 +596,7 @@ export function createEffectNormalizer(vocabulary: CatalogVocabulary) {
       if (normalizedEffect.maximumDuration != null) {
         requireBalanceNumber(normalizedEffect.maximumDuration, 'field=maximumDuration');
 
-        if (normalizedEffect.maximumDuration < 0) throw new TypeError('Status maximumDuration must be nonnegative.');
+        if (normalizedEffect.maximumDuration <= 0) throw new TypeError('Status maximumDuration must be positive.');
       }
 
       if (normalizedEffect.stacks !== undefined && !(normalizedEffect.stacks > 0)) {

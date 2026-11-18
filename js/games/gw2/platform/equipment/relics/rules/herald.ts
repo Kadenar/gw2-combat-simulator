@@ -1,10 +1,11 @@
 /** Player boon applications earn concentration and refresh the entire pool, without an internal cooldown. */
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { announceRelic, defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { refreshBatch } from '#kernel/resources/batch.js';
 
 const MAXIMUM_STACKS = 10;
@@ -28,7 +29,6 @@ export const herald = defineRelic({
     const buff = refreshBatch(state.refreshedStacks, 1, {
       at: event.at,
       expiresAt: gw2EffectExpiresAt(event.at, 3),
-      expiry: 'exclusive',
       maximum: MAXIMUM_STACKS
     }).batch;
     state.refreshedStacks = buff;
@@ -50,7 +50,7 @@ export const herald = defineRelic({
 
       if (activation.at > time) continue;
 
-      return isTimeInWindow(time, activation.at, activation.expiresAt)
+      return buffWindowActive(time, activation.at, activation.expiresAt)
         ? activation.stacks * CONCENTRATION_PER_STACK
         : 0;
     }

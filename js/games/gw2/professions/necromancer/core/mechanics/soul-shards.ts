@@ -21,7 +21,7 @@ const SHARD_EXPIRY = 'necromancer.soul-shards-expire';
 /** A refresh extends the actual grant; an older expiry cannot erase shards gained later. */
 export function grantNecromancerSoulShards(runtime: NecromancerRuntime, amount: number): void {
   addSoulShards(runtime.profession.core, amount, runtime.time, necromancerSoulShardMaximum(runtime.helpers));
-  runtime.schedule(SHARD_EXPIRY, runtime.profession.core.soulShardGrant.expiresAt, null, undefined, -20);
+  runtime.scheduleExpiry(SHARD_EXPIRY, runtime.profession.core.soulShardGrant.expiresAt, null, { priority: -20 });
 }
 
 /** The consumed shard emits an independent siphon through the shared formula and cannot recursively consume another shard. */
@@ -69,7 +69,7 @@ export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEve
 /** Expire only the current Soul Shards grant so stale scheduled tasks cannot clear refreshed charges. */
 const soulShardTasks = {
   [SHARD_EXPIRY](runtime: NecromancerRuntime) {
-    expireBatch(runtime.profession.core.soulShardGrant, runtime.time, 'exclusive');
+    expireBatch(runtime.profession.core.soulShardGrant, runtime.time);
   }
 };
 

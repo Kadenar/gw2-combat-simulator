@@ -6,11 +6,8 @@
  * offset tables and land well after the cast ends. Declarative data merged into the Core
  * skill catalog by `core/skills/index.ts`.
  */
-import {
-  buffMatchesAudience,
-  durationStackingBoonCapSeconds,
-  remainingDurationStackSeconds
-} from '#gw2/platform/combat/boons.js';
+import { buffMatchesAudience, durationStackingBoonCapSeconds, durationStackState } from '#gw2/platform/combat/boons.js';
+import { buffApplicationExpiry, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import {
   ACTOR,
   AURA,
@@ -31,7 +28,6 @@ import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/even
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-import { isTimeInWindow } from '#kernel/core/clock.js';
 
 // Layers keep same-time Vulnerability behind its matching Lightning Orb strike while retaining multi-tick effects.
 const LIGHTNING_ORB_STRIKE_TICK_LAYERS = [
@@ -356,15 +352,20 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
       ? [
           {
             stacks: 1,
-            duration: remainingDurationStackSeconds(applications, event.at, {
+            duration: durationStackState(applications, event.at, {
               maximum: durationStackingBoonCapSeconds(kind),
               ordered: true
-            })
+            }).remaining
           }
         ]
       : applications
-          .filter((application) => isTimeInWindow(event.at, application.at, application.expiresAt))
-          .map((application) => ({ stacks: application.stacks, duration: application.expiresAt - event.at }))
+          .filter((application) =>
+            buffWindowActive(event.at, application.at, application.expiresAt, application.removedAt)
+          )
+          .map((application) => ({
+            stacks: application.stacks,
+            duration: buffApplicationExpiry(application) - event.at
+          }))
           .sort((left, right) => right.duration - left.duration);
 
   // At the Might cap, copy the longest-lived stacks rather than extending shorter stacks to match them.

@@ -363,7 +363,6 @@ function gainLethalTempo(
   state.lethalTempo = refreshBatch(state.lethalTempo, stacks, {
     at,
     expiresAt: gw2EffectExpiresAt(at, duration),
-    expiry: 'inclusive',
     maximum: maximumStacks
   }).batch;
   return state.lethalTempo.count;

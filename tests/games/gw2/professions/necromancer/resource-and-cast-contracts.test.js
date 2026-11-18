@@ -174,7 +174,7 @@ test('Meltdown adds overlapping grant durations and expires after the accumulate
     .effects.find((effect) => effect.kind === 'meltdown').duration;
   assert.equal(grants[1].expiresAt, grants[0].expiresAt + duration);
   assert.equal(runtime.combat.activeBuffStacks('meltdown', result.combatEndTime, 1), 1);
-  assert.equal(runtime.combat.activeBuffStacks('meltdown', grants[1].expiresAt, 1), 0);
+  assert.equal(runtime.combat.activeBuffStacks('meltdown', grants[1].expiresAt + 0.000001, 1), 0);
   assert.equal(runtime.query.conditionMultiplier('Torment', result.combatEndTime, null, runtime), 1.07);
 });
 

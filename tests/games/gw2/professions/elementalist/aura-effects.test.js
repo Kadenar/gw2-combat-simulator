@@ -184,6 +184,7 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
     engagement: enteredCombat(),
     profession: { core: { activeAuras: [] }, specialization: { kind: 'Catalyst', state } },
     schedule() {},
+    scheduleExpiry() {},
     observations: { record() {} },
     traits: new Set([TRAIT.EMPOWERING_AURAS, TRAIT.ELEMENTAL_EPITOME]),
     liveEffects: createTestLiveEffects(),
@@ -229,6 +230,7 @@ test('Empowering Auras keeps queued grants, tick-aligned refreshes, exclusive ex
     engagement: enteredCombat(),
     profession: { core: { activeAuras: [] }, specialization: { kind: 'Catalyst', state } },
     schedule() {},
+    scheduleExpiry() {},
     observations: { record() {} },
     traits: new Set([TRAIT.EMPOWERING_AURAS]),
     helpers: withProfile(elementalistCatalog, TRAIT.EMPOWERING_AURAS, { maximumStacks: 2 }),
@@ -260,9 +262,9 @@ test('Empowering Auras keeps queued grants, tick-aligned refreshes, exclusive ex
   const snapshot = catalystEffectStates(context).find((effect) => effect.kind === 'empowering auras');
   const prior = structuredClone(state.empoweringAuras);
   assert.equal(empoweringAuraStacks({ runtime: context, time: 12.039 }), 2);
-  assert.equal(empoweringAuraStacks({ runtime: context, time: 12.04 }), 0);
+  assert.equal(empoweringAuraStacks({ runtime: context, time: 12.040001 }), 0);
   assert.deepEqual(state.empoweringAuras, prior);
-  aura(12.04);
+  aura(12.08);
   assert.equal(state.empoweringAuras.count, 0);
   apply(events.at(-1));
   assert.equal(state.empoweringAuras.count, 1);

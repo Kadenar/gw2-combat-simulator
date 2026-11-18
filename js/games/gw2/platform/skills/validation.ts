@@ -23,7 +23,7 @@ import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
 /** Validate skill declarations and cross-catalog references before runtime selection. */
 
-const RECHARGE_ANCHORS = new Set(['castStart', 'castEnd']);
+const RECHARGE_ANCHORS = new Set(['castStart', 'castEnd', 'beforeCastEnd']);
 
 // Summons retain both timelines; player fragments supply their effective castTimeMs directly.
 const QUICKNESS_ACTION_RATE = 1.5;
@@ -102,18 +102,6 @@ function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): voi
   for (const variant of skill.effectVariants ?? [])
     if (variant.profileId != null && !catalog.balanceProfilesById.has(variant.profileId))
       throw new TypeError(`Skill ${skill.id} effect variant references missing profile ${variant.profileId}.`);
-}
-
-/** State lifetimes and duration additions use finite, nonnegative seconds, including explicit zero. */
-function validateDurationFields(owner: object, label: string): void {
-  for (const field of ['duration', 'baseDuration', 'durationPerTier', 'durationExtension', 'flipDuration']) {
-    if (!Object.hasOwn(owner, field)) continue;
-
-    const value = fieldValue(owner, field);
-
-    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
-      throw new TypeError(`${label} field=${field} expected=finite nonnegative seconds.`);
-  }
 }
 
 const attributeGroupsByFields = new WeakMap<FieldSpecs, readonly string[]>();
@@ -283,7 +271,6 @@ export function createCatalogNormalizer(vocabulary: CatalogVocabulary) {
    */
   function normalizeSkill<TSkill extends Skill>(source: TSkill): TSkill {
     const id = source.id;
-    validateDurationFields(source, `skill=${id}`);
 
     // Input observations accept only canonical control identifiers.
     if (source.inputControl != null && !INPUT_CONTROL_IDS.includes(source.inputControl))

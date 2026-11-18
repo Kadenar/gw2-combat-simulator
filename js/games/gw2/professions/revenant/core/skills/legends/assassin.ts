@@ -204,7 +204,7 @@ export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEve
   const totalHits = effectNumber(skill, buff, 'stacks');
   const delay = (strike.atMs || 0) / 1000;
 
-  if (!consumeCharge(daggers, runtime.time, 'exclusive', delay)) return;
+  if (!consumeCharge(daggers, runtime.time, delay)) return;
 
   // Preserve strict same-timestamp gating even when a patched strike has no delay.
   if (delay === 0) daggers.readyAt = runtime.time;

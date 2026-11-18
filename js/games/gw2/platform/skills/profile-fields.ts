@@ -45,8 +45,8 @@ export const SHARED_PROFILE_FIELDS: FieldSpecs = defineFields({
   damagePerCondition: numberField({ patch: 'primary', unit: 'fraction' }),
 
   // Tiered damage curves and activation thresholds.
-  // Counter owners define nonpositive thresholds as disabled or immediately satisfied gates.
-  threshold: numberField({ patch: 'primary', minimum: -Infinity }),
+  // Counter owners define zero thresholds as disabled or immediately satisfied gates.
+  threshold: numberField({ patch: 'primary' }),
   lowerThreshold: numberField({ patch: 'primary' }),
   middleThreshold: numberField({ patch: 'primary' }),
   upperThreshold: numberField({ patch: 'primary' }),

@@ -31,7 +31,7 @@ test('Shaper of Chaos waits for F1 and consumes one active self Chaos Aura', () 
 });
 
 test('Shaper of Chaos cannot detonate an expired or absent aura', () => {
-  for (const rotation of [[ID.MIND_WRACK], [ID.CHAOS_ARMOR, { type: 'wait', durationMs: 5000 }, ID.MIND_WRACK]]) {
+  for (const rotation of [[ID.MIND_WRACK], [ID.CHAOS_ARMOR, { type: 'wait', durationMs: 5001 }, ID.MIND_WRACK]]) {
     const result = runMesmer(rotation, core);
     assert.deepEqual(result.warnings, []);
     assert.equal(detonation(result).length, 0);

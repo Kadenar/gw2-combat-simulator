@@ -5,6 +5,7 @@
  */
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -587,8 +588,11 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
         (skill.flipSkillId == null ? undefined : catalog.skillsById.get(skill.flipSkillId)?.transmuteAura);
 
       if (aura) {
+        // Match transmute availability: an aura ending at the inspected instant can still be consumed.
         const active = Boolean(
-          state[STATE.ACTIVE_AURAS]?.some((entry) => entry.type === aura && entry.expiresAt > (context.time || 0))
+          state[STATE.ACTIVE_AURAS]?.some(
+            (entry) => entry.type === aura && buffDeadlineActive(entry.expiresAt, context.time || 0)
+          )
         );
         return { tileActive: Boolean(skill.transmuteAura) === active };
       }

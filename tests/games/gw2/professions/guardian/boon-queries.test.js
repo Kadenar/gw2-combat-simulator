@@ -48,7 +48,7 @@ test('Guardian boons prefer live self applications over later same-time timeline
     grantTestEffect(context.runtime.liveEffects, self);
     assert.equal(guardianBoonActive(context, kind), true);
     assert.equal(guardianBoonActive({ ...context, time: 3 }, kind), false);
-    assert.equal(guardianBoonActive({ ...context, time: 6 }, kind), false);
+    assert.equal(guardianBoonActive({ ...context, time: 6.000001 }, kind), false);
     assert.equal(guardianBoonActive({ ...context, time: 6, config: { boons: { [kind]: true } } }, kind), true);
     assert.equal(guardianBoonActive({ time: 4 }, kind), false);
   }
@@ -105,10 +105,10 @@ test('Righteous Instincts preserves stacked self Resolution without accepting ot
     );
     assert.deepEqual(
       might.map((event) => event.at),
-      self ? [4, 5, 6, 7] : []
+      self ? [4, 5, 6, 7, 8] : []
     );
     assert.equal(guardianBoonActive({ time: 6, runtime }, 'resolution'), self);
-    assert.equal(guardianBoonActive({ time: 8, runtime }, 'resolution'), false);
+    assert.equal(guardianBoonActive({ time: 8.000001, runtime }, 'resolution'), false);
     assert.equal(runtime.profession.core.resolutionUntil, 0);
   }
 });

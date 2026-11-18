@@ -260,11 +260,7 @@ export const maceLifecycle = {
         return;
 
       // Consume through the shared buff ledger so damage queries and observations see the same stack removal.
-      runtime.combat.reviseBuffExpiry(
-        NATURES_STRENGTH,
-        () => true,
-        (at) => Math.min(at, runtime.time)
-      );
+      runtime.combat.endBuffs(NATURES_STRENGTH, runtime.time, () => true);
       for (const skillId of RESET_SKILLS) runtime.cooldownController.clear(skillId);
       // Queue Tapped Out at Force of Nature expiry, keeping stack gains blocked through both phases of the cycle.
       for (const [kind, name, at, duration, stacks] of [

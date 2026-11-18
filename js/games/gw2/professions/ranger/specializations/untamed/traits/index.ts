@@ -193,8 +193,7 @@ const ferociousSymbiosis = defineTrait({
         // Damage ownership selects the pool: Ranger-owned pet skills such as Poisonous Cloud use player stacks.
         const stacks = activeBatchCount(
           pet ? companion?.ferociousSymbiosis : state.ferociousSymbiosisPlayer,
-          context.time,
-          'exclusive'
+          context.time
         );
         return (
           Math.min(balanceNumber(context.catalog, TRAIT.FEROCIOUS_SYMBIOSIS, 'maximumStacks'), stacks) *
@@ -335,11 +334,7 @@ const biorhythm = defineTrait({
         const state = untamedState.from(runtime.profession);
         // Owned pending stacks are cancelled and live stacks end now, so an early unleash cannot inherit progress.
         runtime.cancelOwner(BIORHYTHM_OWNER);
-        runtime.combat.reviseBuffExpiry(
-          BIORHYTHM,
-          () => true,
-          (expiresAt) => Math.min(expiresAt, runtime.time)
-        );
+        runtime.combat.endBuffs(BIORHYTHM, runtime.time, () => true);
 
         if (state.biorhythmArmed) emitBiorhythmEffect(runtime, VOW_OF_THE_UNTAMED, 'Vow of the Untamed', input.skill);
 
@@ -451,7 +446,6 @@ function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2Res
     pet.ferociousSymbiosis = refreshBatch(pet.ferociousSymbiosis, 1, {
       at: event.at,
       expiresAt: event.at + duration,
-      expiry: 'exclusive',
       maximum: maximumStacks
     }).batch;
   } else if (isPetStrike(event) && event.actorType === ACTOR.SUMMON && event.summonOwner === pet.id) {
@@ -461,7 +455,6 @@ function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2Res
     state.ferociousSymbiosisPlayer = refreshBatch(state.ferociousSymbiosisPlayer, 1, {
       at: event.at,
       expiresAt: event.at + duration,
-      expiry: 'exclusive',
       maximum: maximumStacks
     }).batch;
   }

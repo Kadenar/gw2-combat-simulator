@@ -48,7 +48,7 @@ test('Clarity only arms for self and reapplication replaces its single charge an
 });
 
 // Accepted buff delivery and cast-start consumption must agree at the exact canonical expiry.
-test('Clarity cannot empower a cast accepted at its fractional expiry', () => {
+test('Clarity cannot empower a cast accepted after its fractional expiry', () => {
   for (const [at, duration, expiry] of [
     [0.56, 0.04, 0.6],
     [0.137, 5, 5.137]
@@ -56,26 +56,26 @@ test('Clarity cannot empower a cast accepted at its fractional expiry', () => {
     const { runtime, core, apply } = fixture();
     apply(at, duration);
     assert.equal(core.clarity.expiresAt, expiry);
-    assert.equal(effectStateValue(mesmerEffectStates(runtime)[0], expiry).count, 0);
-    assert.equal(consumeMesmerClarity(runtime, expiry), false);
+    assert.equal(effectStateValue(mesmerEffectStates(runtime)[0], expiry + 0.000001).count, 0);
+    assert.equal(consumeMesmerClarity(runtime, expiry + 0.000001), false);
     apply(at, duration);
     assert.equal(consumeMesmerClarity(runtime, expiry - 0.000001), true);
   }
 });
 
-test('Clarity consumption and its derived timer exclude exact expiry without mutating observations', () => {
+test('Clarity consumption and its derived timer keep the exact deadline without mutating observations', () => {
   for (const at of [4.999999, 5, 5.000001]) {
     const { runtime, core, apply } = fixture();
     apply(1, 4);
     runtime.time = at;
     const before = structuredClone(core.clarity);
     const effect = mesmerEffectStates(runtime)[0];
-    assert.equal(effectStateValue(effect, at).count, at < 5 ? 1 : 0);
+    assert.equal(effectStateValue(effect, at).count, at <= 5 ? 1 : 0);
 
-    if (at >= 5) assert.equal(projectObservedState(mesmerProfession, runtime)[STATE.CLARITY_REMAINING], 0);
+    if (at > 5) assert.equal(projectObservedState(mesmerProfession, runtime)[STATE.CLARITY_REMAINING], 0);
 
     assert.deepEqual(core.clarity, before);
-    assert.equal(consumeMesmerClarity(runtime, at), at < 5);
+    assert.equal(consumeMesmerClarity(runtime, at), at <= 5);
     assert.equal(consumeMesmerClarity(runtime, at), false);
   }
 });

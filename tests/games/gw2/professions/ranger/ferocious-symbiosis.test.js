@@ -93,13 +93,13 @@ test('Ferocious Symbiosis independently throttles, caps, refreshes, and expires 
     summonUsesProfessionModifiers: true
   };
   assert.equal(runtime.query.strikeMultiplier(petEvent, 8.99, runtime), 1.25);
-  assert.equal(runtime.query.strikeMultiplier(petEvent, 9, runtime), 1);
+  assert.equal(runtime.query.strikeMultiplier(petEvent, 9.000001, runtime), 1);
   const playerEvent = { source: 'ranger', actorType: 'player' };
   assert.equal(runtime.query.strikeMultiplier(playerEvent, 6.59, runtime), 1.1);
-  assert.equal(runtime.query.strikeMultiplier(playerEvent, 6.6, runtime), 1);
-  hit(9);
+  assert.equal(runtime.query.strikeMultiplier(playerEvent, 6.600001, runtime), 1);
+  hit(9.04);
   assert.equal(pet.ferociousSymbiosis.count, 1);
-  assert.equal(pet.ferociousSymbiosis.expiresAt, 14);
+  assert.equal(pet.ferociousSymbiosis.expiresAt, 14.04);
 });
 
 test('Ranger-owned pet skill damage uses player Symbiosis even when the pet has different stacks', () => {

@@ -63,7 +63,7 @@ test('all spear duals arm without damage and consume once on a non-spear strike'
 
 test('spear follow-ups expire at the buff boundary and refresh without stacking', () => {
   for (const skill of skills) {
-    const expired = run(skill, [cast(skill.id), wait(5000), cast(ID.ARCANE_BLAST)]);
+    const expired = run(skill, [cast(skill.id), wait(5001), cast(ID.ARCANE_BLAST)]);
     assert.deepEqual(expired.warnings, [], skill.name);
     assert.deepEqual(strikes(expired, skill.id), [], skill.name);
 

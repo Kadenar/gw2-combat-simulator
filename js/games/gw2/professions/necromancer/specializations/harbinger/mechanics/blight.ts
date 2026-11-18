@@ -11,6 +11,7 @@ import {
 import {
   addBlight,
   consumeBlight,
+  expireHarbingerBlight,
   harbingerBlightMaximum,
   harbingerState,
   purgeHarbingerTimedState
@@ -24,6 +25,7 @@ import type {
 import { canonicalInterval, canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 const BLIGHT = 'harbinger.blight-clock';
+const BLIGHT_EXPIRY = 'harbinger.blight-expiry';
 
 /** Align accrual to a strictly later clock boundary; disabling accrual must leave stack expiry active. */
 function nextBlightAt(runtime: NecromancerRuntime): number {
@@ -41,9 +43,15 @@ function refreshBlight(runtime: NecromancerRuntime): void {
   const state = harbingerState.from(runtime.profession);
   runtime.cancelOwner({ id: BLIGHT, generation: state.blightGeneration });
   state.blightGeneration++;
-  const at = Math.min(state.nextBlightAt ?? Infinity, ...state.blightExpiries);
+  const owner = { id: BLIGHT, generation: state.blightGeneration };
+  const accrualAt = state.nextBlightAt ?? Infinity;
+  const at = Math.min(accrualAt, ...state.blightExpiries);
 
-  if (Number.isFinite(at)) runtime.schedule(BLIGHT, at, null, { id: BLIGHT, generation: state.blightGeneration }, -20);
+  if (!Number.isFinite(at)) return;
+
+  // Accrual can affect tied hits; an expiry-only wake cleans up after them.
+  if (at < accrualAt) runtime.scheduleExpiry(BLIGHT_EXPIRY, at, null, { owner, priority: -20 });
+  else runtime.schedule(BLIGHT, at, null, owner, -20);
 }
 
 /** Report the current Blight count and reschedule its next update before returning the count. */
@@ -106,7 +114,7 @@ function initializeHarbingerBlight(runtime: NecromancerRuntime): void {
   publishBlight(runtime);
 }
 
-/** Accrual and expiry share one replaceable wake so spending observes settled Blight. */
+/** Accrual retains its resource ordering; natural expiry waits for same-time spending and damage. */
 const harbingerBlightTasks = {
   [BLIGHT](runtime) {
     const state = harbingerState.from(runtime.profession);
@@ -118,6 +126,14 @@ const harbingerBlightTasks = {
     } else {
       publishBlight(runtime);
     }
+  },
+  [BLIGHT_EXPIRY](runtime) {
+    expireHarbingerBlight(
+      harbingerState.from(runtime.profession),
+      runtime.time,
+      harbingerBlightMaximum(runtime.helpers)
+    );
+    publishBlight(runtime);
   }
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['tasks']>;
 

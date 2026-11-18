@@ -72,7 +72,7 @@ test('Aristocracy preview queries own their assumed window without changing live
   }
 
   assert.equal(relicConditionDurationBonus({ relic: preview }, 1), 0.09);
-  assert.equal(relicConditionDurationBonus({ relic: preview }, 60), 0);
+  assert.equal(relicConditionDurationBonus({ relic: preview }, 60.000001), 0);
   assert.equal(relicConditionDurationBonus({ relic: preview }, 1), 0.09);
   assert.equal(relicConditionDurationBonus({ relic: live }, 1), 0);
   assert.equal(relicConditionDurationBonus({ relic: historical }, 1), 0);

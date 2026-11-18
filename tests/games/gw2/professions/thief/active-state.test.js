@@ -197,7 +197,7 @@ test('Lead Attacks displays current stacks as separate initiative-spending grant
     '3 stacks'
   );
   assert.equal(
-    activeState(simulate('Core', [...rotation, { type: 'wait', durationMs: 10000 }], config))['thief-lead-attacks'],
+    activeState(simulate('Core', [...rotation, { type: 'wait', durationMs: 10040 }], config))['thief-lead-attacks'],
     undefined
   );
   assert.equal(activeState(simulate('Core', ['Venomous Volley']))['thief-lead-attacks'], undefined);

@@ -314,11 +314,11 @@ test('THF-001: Hidden Killer requires stealth and lingers after either natural e
   assert.equal(active(natural, 1), true);
   assert.equal(active(natural, 4), true);
   assert.equal(active(natural, 7.99), true);
-  assert.equal(active(natural, 8), false);
+  assert.equal(active(natural, 8.000001), false);
   const attacked = run(true);
   assert.equal(attacked.profession.core.hiddenKillerUntil, 6);
   assert.equal(active(attacked, 5.99), true);
-  assert.equal(active(attacked, 6), false);
+  assert.equal(active(attacked, 6.000001), false);
   const opening = simulate('Core', ['Double Strike'], { selectedTraitIds: [TRAIT.HIDDEN_KILLER] });
   assert.ok(
     opening.resolvedEvents.filter((event) => event.type === 'damage').every((event) => event.criticalChance < 1)

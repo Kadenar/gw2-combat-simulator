@@ -7,15 +7,15 @@
         "build": "data/gw2/builds/guardian/b-power-willbender-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-willbender-spear-greatsword",
-        "benchmarkDps": 44828,
+        "benchmarkDps": 43907,
         "upToDate": true,
-        "benchmarkApm": 78.6,
+        "benchmarkApm": 76.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 47624, "phase": 47624 },
-          "80-60": { "cumulative": 46121, "phase": 44692 },
-          "60-40": { "cumulative": 45353, "phase": 43853 },
-          "40-20": { "cumulative": 44425, "phase": 41866 },
-          "20-0": { "cumulative": 44828, "phase": 44828 }
+          "100-80": { "cumulative": 48995, "phase": 48995 },
+          "80-60": { "cumulative": 45491, "phase": 42379 },
+          "60-40": { "cumulative": 45038, "phase": 44147 },
+          "40-20": { "cumulative": 44342, "phase": 42400 },
+          "20-0": { "cumulative": 43907, "phase": 42219 }
         }
       },
       {
@@ -86,15 +86,15 @@
         "label": "Condition Alacrity (Pistol / Torch + Pistol / Pistol)",
         "build": "data/gw2/builds/guardian/b-condi-alac-willbender-pistol-torch.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-alac-willbender-pistol-torch-bench.json",
-        "benchmarkDps": 39419,
+        "benchmarkDps": 39421,
         "upToDate": true,
         "benchmarkApm": 79.7,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 38852, "phase": 38852 },
-          "80-60": { "cumulative": 39917, "phase": 41093 },
-          "60-40": { "cumulative": 39271, "phase": 38027 },
-          "40-20": { "cumulative": 39476, "phase": 40092 },
-          "20-0": { "cumulative": 39419, "phase": 39188 }
+          "80-60": { "cumulative": 39922, "phase": 41103 },
+          "60-40": { "cumulative": 39417, "phase": 38435 },
+          "40-20": { "cumulative": 39479, "phase": 39659 },
+          "20-0": { "cumulative": 39421, "phase": 39188 }
         }
       }
     ]
@@ -144,15 +144,15 @@
         "build": "data/gw2/builds/guardian/b-power-dragonhunter-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-dragonhunter-radiance-spear-greatsword",
-        "benchmarkDps": 41786,
+        "benchmarkDps": 41808,
         "upToDate": true,
         "benchmarkApm": 62.3,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 46747, "phase": 46747 },
-          "80-60": { "cumulative": 44106, "phase": 41705 },
-          "60-40": { "cumulative": 42929, "phase": 40799 },
-          "40-20": { "cumulative": 41890, "phase": 38996 },
-          "20-0": { "cumulative": 41786, "phase": 41370 }
+          "80-60": { "cumulative": 44120, "phase": 41732 },
+          "60-40": { "cumulative": 42643, "phase": 39966 },
+          "40-20": { "cumulative": 41918, "phase": 39904 },
+          "20-0": { "cumulative": 41808, "phase": 41370 }
         }
       },
       {
@@ -181,30 +181,30 @@
         "build": "data/gw2/builds/guardian/b-power-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-spear-greatsword",
-        "benchmarkDps": 42019,
+        "benchmarkDps": 42026,
         "upToDate": true,
         "benchmarkApm": 95.9,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 47144, "phase": 47144 },
-          "80-60": { "cumulative": 43551, "phase": 40414 },
-          "60-40": { "cumulative": 42638, "phase": 40915 },
-          "40-20": { "cumulative": 43321, "phase": 45467 },
-          "20-0": { "cumulative": 42019, "phase": 37428 }
+          "80-60": { "cumulative": 43570, "phase": 40450 },
+          "60-40": { "cumulative": 42651, "phase": 40915 },
+          "40-20": { "cumulative": 43331, "phase": 45467 },
+          "20-0": { "cumulative": 42026, "phase": 37428 }
         }
       },
       {
         "label": "Power (Greatsword / Spear) - Nagy Rotation",
         "build": "data/gw2/builds/guardian/b-power-luminary-nagy.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-nagy.json",
-        "benchmarkDps": 42921,
+        "benchmarkDps": 42954,
         "upToDate": true,
         "benchmarkApm": 97.4,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 51794, "phase": 51794 },
-          "80-60": { "cumulative": 44148, "phase": 38321 },
-          "60-40": { "cumulative": 43290, "phase": 41663 },
-          "40-20": { "cumulative": 43796, "phase": 45380 },
-          "20-0": { "cumulative": 42921, "phase": 39676 }
+          "80-60": { "cumulative": 44187, "phase": 38388 },
+          "60-40": { "cumulative": 43315, "phase": 41663 },
+          "40-20": { "cumulative": 43816, "phase": 45380 },
+          "20-0": { "cumulative": 42954, "phase": 39761 }
         }
       },
       {
@@ -228,15 +228,15 @@
         "build": "data/gw2/builds/guardian/b-power-alac-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-luminary-spear-greatsword",
-        "benchmarkDps": 37330,
+        "benchmarkDps": 37351,
         "upToDate": true,
         "benchmarkApm": 100.4,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 40879, "phase": 40879 },
-          "80-60": { "cumulative": 37394, "phase": 34463 },
-          "60-40": { "cumulative": 37805, "phase": 38659 },
-          "40-20": { "cumulative": 36810, "phase": 34098 },
-          "20-0": { "cumulative": 37330, "phase": 39555 }
+          "80-60": { "cumulative": 37408, "phase": 34489 },
+          "60-40": { "cumulative": 37814, "phase": 38659 },
+          "40-20": { "cumulative": 36879, "phase": 34308 },
+          "20-0": { "cumulative": 37351, "phase": 39344 }
         }
       }
     ]

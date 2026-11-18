@@ -1,3 +1,4 @@
+import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -271,10 +272,12 @@ function renewForerunnerOfDeath(runtime: RevenantRuntime, profile: RevenantSkill
     if (window) {
       const duration = Math.max(0, effectNumber(forerunner, window, 'duration'));
       // Renewal replaces the previous bonus even if the selected profile grants a shorter window.
-      runtime.combat.reviseBuffExpiry(
+      runtime.combat.endBuffs(
         'forerunner-of-death',
-        (application) => application.at <= runtime.time && application.expiresAt > runtime.time,
-        () => runtime.time
+        runtime.time,
+        (application) =>
+          application.at <= runtime.time &&
+          buffWindowActive(runtime.time, application.at, application.expiresAt, application.removedAt)
       );
       runtime.effects.emit({
         kind: 'packet',

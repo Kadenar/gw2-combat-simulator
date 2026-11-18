@@ -71,6 +71,19 @@ test('Guardian recharge applies Alacrity, ammo, and trait reductions', () => {
   assert.deepEqual(ammo.warnings, []);
 });
 
+// Helio's reuse gap and depleted-charge recovery both count from activation under Alacrity.
+test('Helio Rush reuses and replenishes charges from activation', () => {
+  const result = runGuardian(
+    [GUARDIAN_SKILL_IDS.HELIO_RUSH, GUARDIAN_SKILL_IDS.HELIO_RUSH, GUARDIAN_SKILL_IDS.HELIO_RUSH],
+    { primaryWeapon: 'Spear', boons: { alacrity: true } }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.steps.map((step) => step.start),
+    [0, 1600, 6400]
+  );
+});
+
 // Utility effects retain their control, finisher, and virtue ownership through the shared runtime.
 test('Willbender utilities deliver control, per-hit conditions, and virtue effects', () => {
   const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Willbender' })(

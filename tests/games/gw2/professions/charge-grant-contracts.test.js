@@ -134,19 +134,19 @@ test('Taste for Blood spends insertion-ordered batches independently with applic
     [5]
   );
   const count = context.events.length;
-  hit(5);
+  hit(5.04);
   assert.equal(context.events.length, count);
   const expired = pools.self[0];
   // Appending prunes the closed batch without refreshing other recipients' grants.
-  grantTasteForBlood(context, { at: 5, stacks: 1, duration: 2, resolvedAudience: { includesSelf: true } });
+  grantTasteForBlood(context, { at: 5.04, stacks: 1, duration: 2, resolvedAudience: { includesSelf: true } });
   assert.equal(pools.self.includes(expired), false);
   assert.equal(expired.expiresAt, 5, 'pruning leaves the captured expiry unchanged');
   assert.deepEqual(
     pools.self.map((grant) => grant.expiresAt),
-    [7]
+    [7.04]
   );
   assert.equal(pools['ally:1'], undefined);
-  hit(5);
+  hit(5.04);
   assert.deepEqual(pools.self, []);
 });
 
@@ -181,20 +181,17 @@ test('Sharpening Stone batches spend earliest expiry without spending on expired
   );
   // Observe live entitlement at each hit boundary independently of retained expired storage.
   for (const fields of [{ actorType: 'effect' }, { actorType: 'summon' }, { coefficient: 0 }])
-    triggerSharpeningStone(context, { ...hit, at: 5, ...fields });
+    triggerSharpeningStone(context, { ...hit, at: 5.000001, ...fields });
   assert.deepEqual(
-    activeBatches(core.sharpeningStoneGrants, 5, { expiry: 'exclusive', order: 'earliest-expiry' }).map((grant) => [
+    activeBatches(core.sharpeningStoneGrants, 5.000001, { order: 'earliest-expiry' }).map((grant) => [
       grant.count,
       grant.expiresAt
     ]),
     [[2, 11]]
   );
   assert.equal(context.events.length, 1);
-  triggerSharpeningStone(context, { ...hit, at: 5 });
-  assert.equal(
-    activeBatches(core.sharpeningStoneGrants, 5, { expiry: 'exclusive', order: 'earliest-expiry' })[0].count,
-    1
-  );
+  triggerSharpeningStone(context, { ...hit, at: 5.000001 });
+  assert.equal(activeBatches(core.sharpeningStoneGrants, 5.000001, { order: 'earliest-expiry' })[0].count, 1);
   // Remove only the skill-owned follow-up while retaining the independently expiring charge batches.
   const catalog = context.helpers;
   context.helpers = applySkillPatch(context.helpers, {
@@ -205,20 +202,14 @@ test('Sharpening Stone batches spend earliest expiry without spending on expired
     }
   });
   triggerSharpeningStone(context, { ...hit, at: 6 });
-  assert.equal(
-    activeBatches(core.sharpeningStoneGrants, 6, { expiry: 'exclusive', order: 'earliest-expiry' })[0].count,
-    1
-  );
+  assert.equal(activeBatches(core.sharpeningStoneGrants, 6, { order: 'earliest-expiry' })[0].count, 1);
   context.helpers = catalog;
-  triggerSharpeningStone(context, { ...hit, at: 11 });
-  assert.deepEqual(
-    activeBatches(core.sharpeningStoneGrants, 11, { expiry: 'exclusive', order: 'earliest-expiry' }),
-    []
-  );
+  triggerSharpeningStone(context, { ...hit, at: 11.000001 });
+  assert.deepEqual(activeBatches(core.sharpeningStoneGrants, 11.000001, { order: 'earliest-expiry' }), []);
   assert.equal(context.events.length, 2);
 });
 
-test('Shattering Stone replaces self grants and spends player or effect hits before exclusive expiry', () => {
+test('Shattering Stone replaces self grants and spends eligible player or effect hits', () => {
   const context = contextFor(elementalistProfession, 'Core');
   const core = context.profession.core;
   const grant = { kind: 'shattering stone', at: 1, stacks: 2, duration: 2, resolvedAudience: { includesSelf: true } };
@@ -241,7 +232,7 @@ test('Shattering Stone replaces self grants and spends player or effect hits bef
   assert.equal(core.shatteringStone.count, 2);
   assert.equal(core.shatteringStone.expiresAt, 4);
   triggerShatteringStone(context, { at: 3, actorType: 'player', coefficient: 1 });
-  triggerShatteringStone(context, { at: 4, actorType: 'player', coefficient: 1 });
+  triggerShatteringStone(context, { at: 4.000001, actorType: 'player', coefficient: 1 });
   assert.equal(core.shatteringStone.count, 1);
 });
 
@@ -331,7 +322,7 @@ test('Blood Thirst grants merged players twelve seconds, replaces remaining char
   reactToRangerCoreDamage(context, { ...hit, at: 13.999 });
   assert.equal(core.bloodThirst.count, 2);
   const count = context.events.length;
-  reactToRangerCoreDamage(context, { ...hit, at: 14 });
+  reactToRangerCoreDamage(context, { ...hit, at: 14.000001 });
   reactToRangerCoreDamage(context, { ...hit, at: 15 });
   assert.equal(core.bloodThirst.count, 0);
   assert.equal(context.events.length, count);
@@ -402,7 +393,7 @@ test('Mistburn replaces grants, spends on eligible strikes, and excludes its gra
         ],
         [3.9, (runtime) => (observed.replaced = charges(runtime))],
         [
-          13.8,
+          13.84,
           (runtime) => {
             react(runtime, {});
             observed.atExpiry = charges(runtime);
@@ -426,7 +417,7 @@ test('Mistburn replaces grants, spends on eligible strikes, and excludes its gra
     )
   );
   assert.equal(observed.replaced, observed.initial);
-  // The grant expires at its exclusive deadline: a strike there spends nothing and the projection is empty.
+  // After its deadline the grant has expired: a strike spends nothing and the projection is empty.
   assert.equal(observed.atExpiry, observed.initial);
   assert.equal(observed.projected.count, 0);
 });
@@ -455,7 +446,7 @@ test('Mistburn projects its grant without aliases or mutations to runtime state'
     assert.equal(items.find((item) => item.id === 'antiquary-mistburn-mortar')?.value, '3 charges · 3.0s');
   }
 
-  context.state.time = 5;
+  context.state.time = 5.000001;
   assert.equal(projectObservedState(thiefProfession, { ...context.state })[STATE.MISTBURN].count, 0);
   assert.equal(state.mistburn.count, 3, 'projection must not expire the live runtime grant');
   state.mistburn.count = 0;

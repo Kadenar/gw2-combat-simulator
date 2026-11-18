@@ -31,7 +31,7 @@ test('Symphonic Resonance owns intrinsic Lute tuning, expiry, and personal addit
       const runtime = family.runtimeFor({ specialization, patchId });
       for (const selectedTraitIds of [[], [TRAIT.SYMPHONIC_RESONANCE]]) {
         for (const summonKind of [undefined, 'clone', 'phantasm', 'afterimage']) {
-          for (const time of [1, 2]) {
+          for (const time of [1, 2.000001]) {
             const context = {
               catalog: runtime.catalog,
               time,

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { buffApplicationStacks, timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import {
   buildBoonGeneration,
   createBoonGenerationCollector,
@@ -55,6 +56,49 @@ test('compact generation preserves capped extension eligibility, preparation, an
 });
 
 const profession = defineTestProfession({ id: 'generation-window', name: 'Generation window' });
+
+// A deadline stays live through its timestamp, so even cleanup-time extensions there extend the same boon.
+test('extensions at the exact deadline receive credit in live state, replay, and compact accounting', () => {
+  for (const kind of ['quickness', 'might']) {
+    const config = {};
+    const native = profession.runtimeFor(config);
+    const packet = (event) => ({ source: 'Fixture', sourceId: 'fixture', actorType: 'player', ...event });
+    const run = (output) =>
+      observeGw2Runtime({
+        profession: {
+          ...native,
+          tasks: {
+            ...native.tasks,
+            'fixture.cleanup-extension'(runtime) {
+              runtime.effects.emit({ kind: 'packet', event: packet(extension(3, 2, { kind })) });
+            }
+          }
+        },
+        config,
+        output,
+        rotation: ['__combat_start', { type: 'wait', durationMs: 4000 }],
+        engineInitialize(runtime) {
+          for (const event of [grant(0, 1, { kind }), grant(1, 1, { kind: 'alacrity' }), extension(1, 2, { kind })])
+            runtime.effects.emit({ kind: 'packet', event: packet(event) });
+          runtime.mechanics.scheduleExpiry('fixture.cleanup-extension', 3);
+        }
+      });
+    const detailed = run('detailed');
+    const replay = buildBoonGeneration(detailed.resolvedEvents, 0, 4);
+    assert.equal(replay.boons.get(kind).self.generatedStackSeconds, 5);
+    assert.equal(replay.boons.get(kind).ally.generatedStackSeconds, 5);
+    const applications = timedBuffApplicationsAt(detailed.resolvedEvents, kind, 4, 0, true);
+    const live = observedRuntime(detailed).liveEffects.queries;
+    for (const at of [2, 3.5]) {
+      assert.equal(buffApplicationStacks(applications, kind, at, 25), 1);
+      assert.equal(live.stacks(kind, at, 25), 1);
+    }
+
+    if (kind === 'quickness') assert.deepEqual(run('score').boonCoverage, detailed.boonCoverage);
+
+    assert.deepEqual(detailed.warnings, []);
+  }
+});
 
 // Named grants belong to ally 1 only; other allies cannot add supply or keep its pool alive for extensions.
 for (const audienceField of ['audience', 'resolvedAudience']) {

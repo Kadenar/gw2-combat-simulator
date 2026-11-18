@@ -40,10 +40,11 @@ export function createProfessionSimulator(defaultProfession, createDefaults = ()
         initialize(runtime) {
           // Extensions replace other hooks; fixture initialization always follows the native owner's setup.
           native.initialize?.(runtime);
-          // Timeline work chooses its queue priority; probes observe after ordinary same-timestamp work.
+          // Timeline work chooses its priority; probes observe after gameplay and natural expiry cleanup.
           for (const [index, entry] of timeline.entries())
             runtime.schedule('test.timeline', entry.at, index, undefined, entry.priority);
-          for (const [index, [at]] of probes.entries()) runtime.schedule('test.probe', at, { index }, undefined, 100);
+          for (const [index, [at]] of probes.entries())
+            runtime.scheduleExpiry('test.probe', at, { index }, { priority: 100 });
         }
       },
       config,

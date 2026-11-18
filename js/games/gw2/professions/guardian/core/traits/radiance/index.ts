@@ -1,4 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { durationStackingBoonCapSeconds, durationStackState } from '#gw2/platform/combat/boons.js';
+import { buffDeadlineActive, buffDeadlineReached } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, AURA, BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
@@ -272,8 +274,12 @@ export const innerFire = defineTrait({
 
 /** Resolution readiness follows the accepted self-boon pool, including its cap and extension records. */
 function resolutionDeadline(runtime: GuardianRuntime): number {
-  const remaining = runtime.combat.boonDuration(BOON.RESOLUTION, runtime.time);
-  return remaining > 0 ? canonicalTime(runtime.time + remaining) : 0;
+  const pool = durationStackState(runtime.combat.boonApplications(BOON.RESOLUTION), runtime.time, {
+    maximum: durationStackingBoonCapSeconds(BOON.RESOLUTION),
+    includes: (application) => application.resolvedAudience.includesSelf,
+    ordered: true
+  });
+  return pool.active ? canonicalTime(runtime.time + pool.remaining) : 0;
 }
 
 /** Grant the selected Might component without moving its emission outside the Resolution cadence. */
@@ -317,14 +323,14 @@ function righteousMight(runtime: GuardianRuntime, event: Gw2ResolverEvent): bool
 /** A new self Resolution window starts one cadence; additional applications extend its pool without duplicating ticks. */
 function startRighteousInstincts(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
   const state = runtime.profession.core;
-  const active = state.resolutionUntil > runtime.time;
+  const active = buffDeadlineActive(state.resolutionUntil, runtime.time);
   state.resolutionUntil = resolutionDeadline(runtime);
 
-  if (!(state.resolutionUntil > runtime.time)) return;
+  if (!buffDeadlineActive(state.resolutionUntil, runtime.time)) return;
 
   // Refresh attribution without restarting the cadence: later grants sustain the shared Resolution pool.
   state.righteousInstinctsCause = event;
-  runtime.schedule(RESOLUTION_EXPIRY, state.resolutionUntil, state.resolutionUntil, undefined, -220);
+  runtime.scheduleExpiry(RESOLUTION_EXPIRY, state.resolutionUntil, state.resolutionUntil, { priority: -220 });
 
   if (active) return;
 
@@ -352,9 +358,13 @@ function expireRighteousResolution(runtime: GuardianRuntime, deadline: unknown):
 
   state.resolutionUntil = resolutionDeadline(runtime);
 
-  if (state.resolutionUntil > runtime.time)
-    runtime.schedule(RESOLUTION_EXPIRY, state.resolutionUntil, state.resolutionUntil, undefined, -220);
-  else state.righteousInstinctsCause = null;
+  // Cleanup ends a pool whose deadline is this timestamp; only a later deadline keeps the cadence.
+  if (!buffDeadlineReached(state.resolutionUntil, runtime.time))
+    runtime.scheduleExpiry(RESOLUTION_EXPIRY, state.resolutionUntil, state.resolutionUntil, { priority: -220 });
+  else {
+    state.resolutionUntil = 0;
+    state.righteousInstinctsCause = null;
+  }
 }
 
 /** Continue one Might cadence while its generation and Resolution window remain live. */
@@ -367,7 +377,7 @@ function pulseRighteousMight(runtime: GuardianRuntime, data: unknown): void {
   state.resolutionUntil = resolutionDeadline(runtime);
 
   if (
-    !(state.resolutionUntil > runtime.time) ||
+    !buffDeadlineActive(state.resolutionUntil, runtime.time) ||
     !state.righteousInstinctsCause ||
     !righteousMight(runtime, state.righteousInstinctsCause)
   )

@@ -39,7 +39,7 @@ export const SHARED_SKILL_FIELDS = defineFields(
     // Recharge and ammunition.
     cooldown: numberField({ unit: 'seconds', patch: 'primary' }),
     rechargeReduction: numberField({ unit: 'seconds', patch: 'primary' }),
-    rechargeOffsetMs: numberField({ unit: 'milliseconds', minimum: -Infinity, runtimeOnly: true }),
+    rechargeOffsetMs: numberField({ unit: 'milliseconds', runtimeOnly: true }),
     /** Fraction of the accepted interval to the recharge anchor, before any fixed offset. */
     rechargeProgress: numberField({ maximum: 1, runtimeOnly: true }),
     ammo: numberField({ patch: 'primary' }),
@@ -53,7 +53,7 @@ export const SHARED_SKILL_FIELDS = defineFields(
     'cost.amount': numberField({ label: 'resource cost', patch: 'primary' }),
 
     // Effects, follow-up windows, and skill-owned tuning.
-    /** Duration in seconds of a skill-owned form or state, including a preparation's arming phase. */
+    /** Duration in seconds of a skill-owned form or state, validated as positive before simulation. */
     duration: numberField({ unit: 'seconds', patch: 'primary' }),
     /** Seconds a completed parent keeps its follow-up window open; professions supply their default when absent. */
     flipDuration: numberField({ unit: 'seconds', patch: 'primary' }),

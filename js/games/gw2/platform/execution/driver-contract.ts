@@ -16,10 +16,15 @@ export interface RuntimeDriverContext<T extends object> {
   readonly reject: (reason: string) => void;
 }
 
+/** A command that cannot become ready; the coordinator rejects it once same-time cleanup has run. */
+export interface RuntimeDriverRejection {
+  readonly rejection: string;
+}
+
 export interface RuntimeDriver<T extends object> {
   readonly cursor: RotationCursor;
-  /** Return handled after consuming work, otherwise the next command boundary or Infinity. */
-  advance(context: RuntimeDriverContext<T>): number | 'handled';
+  /** Return handled after consuming work, a pending rejection, or the next command boundary or Infinity. */
+  advance(context: RuntimeDriverContext<T>): number | 'handled' | RuntimeDriverRejection;
   /** Only grant-only concurrent commands may overtake a tied strike. */
   advanceBuff(context: RuntimeDriverContext<T>): boolean;
 }

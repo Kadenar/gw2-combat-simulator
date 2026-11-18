@@ -73,7 +73,7 @@ test('Berserk and individual Rage skills own independently selected mode duratio
             sideEffects: { berserk: { effects: [{ type: 'buff', name: 'berserk', duration: { from: 20, to: 4 } }] } }
           },
           [ID.OUTRAGE]: { fields: { durationExtension: { from: 3, to: 2 } } },
-          [ID.SHATTERING_BLOW]: { fields: { durationExtension: { from: 3, to: 0 } } }
+          [ID.SHATTERING_BLOW]: { fields: { durationExtension: { from: 3, to: 0.1 } } }
         }
       }
     }

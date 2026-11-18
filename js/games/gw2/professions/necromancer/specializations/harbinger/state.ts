@@ -11,7 +11,7 @@ import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
-import { consumeNewestStacks, purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
+import { consumeNewestStacks, expireStacks, purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 const BLIGHT_DURATION_SECONDS = 25;
 
@@ -70,6 +70,12 @@ function capHarbingerBlight(state: Pick<HarbingerState, 'blightExpiries'>, maxim
 /** Remove expired applications and enforce the selected capacity on the remaining stacks. */
 export function purgeHarbingerTimedState(state: HarbingerState, at: number, maximum: number): void {
   state.blightExpiries = purgeExpiredStacks(state.blightExpiries, at);
+  capHarbingerBlight(state, maximum);
+}
+
+/** Expiry cleanup also removes stacks whose deadline is this timestamp. */
+export function expireHarbingerBlight(state: HarbingerState, at: number, maximum: number): void {
+  state.blightExpiries = expireStacks(state.blightExpiries, at);
   capHarbingerBlight(state, maximum);
 }
 

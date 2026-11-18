@@ -34,7 +34,7 @@ export function lethalTempoParameters(source: BalanceProfileSource, context: unk
 
 export function activeLethalTempo(state: GuardianWillbenderState, at: number): number {
   // Damage on the final effect tick still receives the bonus, matching the refresh boundary.
-  return activeBatchCount(state.lethalTempo, canonicalTime(at), 'inclusive');
+  return activeBatchCount(state.lethalTempo, canonicalTime(at));
 }
 
 export function lethalTempoStacks(context: Gw2ModifierContext): number {

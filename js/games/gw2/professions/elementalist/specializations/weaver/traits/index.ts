@@ -1,4 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -254,7 +255,7 @@ function applyElementsOfRageAttunement(
     previous = transition.from,
     sourceId = transition.sourceId,
     source = transition.source,
-    unravelActive = weaverState.from(context.profession).unravelUntil > at;
+    unravelActive = buffDeadlineActive(weaverState.from(context.profession).unravelUntil, at);
 
   if (target === previous || unravelActive) {
     context.effects.emit(
@@ -283,7 +284,7 @@ function applyWeaversProwess(
     target = transition.to,
     previous = transition.from,
     sourceId = transition.sourceId,
-    unravelActive = weaverState.from(context.profession).unravelUntil > at;
+    unravelActive = buffDeadlineActive(weaverState.from(context.profession).unravelUntil, at);
 
   if (unravelActive || target === previous) {
     const weaversProwessProfile = requireBalanceProfile(context.helpers, TRAIT.WEAVERS_PROWESS);

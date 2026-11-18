@@ -155,7 +155,7 @@ test('Chaos Aura extends one damage bonus to its cap and expires at the boundary
     [5, 9, 13, 15]
   );
   assert.equal(observedRuntime(before).mechanics.combat.activeBuffStacks('illusionary-membrane', 17.999, 1), 1);
-  assert.equal(observedRuntime(atExpiry).mechanics.combat.activeBuffStacks('illusionary-membrane', 18, 1), 0);
+  assert.equal(observedRuntime(atExpiry).mechanics.combat.activeBuffStacks('illusionary-membrane', 18.000001, 1), 0);
   const expired = auraScenario([{}, { at: 6 }], 6001);
   assert.deepEqual(
     membrane(expired).map((event) => event.duration),

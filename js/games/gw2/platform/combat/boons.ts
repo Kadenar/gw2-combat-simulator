@@ -1,9 +1,10 @@
 import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
+import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt, roundEffectDuration } from '#gw2/platform/combat/effect-timing.js';
 import { BOON, BOON_NAMES, RECIPIENT, type BoonId } from '#gw2/platform/constants.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/events/events.js';
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
 
@@ -74,6 +75,7 @@ interface StandardBoonPresentation {
 }
 
 interface BuffStackApplication extends BuffAudienceMetadata {
+  readonly removedAt?: number;
   readonly at: number;
   readonly duration?: number;
   readonly expiresAt?: number;
@@ -96,14 +98,29 @@ interface DurationBoonCursor {
 
 const durationBoonCursors = new WeakMap<readonly object[], DurationBoonCursor[]>();
 
+/** A duration pool and whether it is present; a pool ending exactly now is present with zero seconds left. */
+export interface DurationPoolState {
+  readonly remaining: number;
+  readonly active: boolean;
+}
+
+/** Drains a pool from its last grant to `time`; the pool stays present through its own deadline. */
+function durationPoolState(remaining: number, previousTime: number, time: number): DurationPoolState {
+  const deadline = remaining === Infinity ? Infinity : canonicalTime(previousTime + remaining);
+  return {
+    remaining: normalizeDurationPool(Math.max(0, remaining - Math.max(0, time - previousTime))),
+    active: remaining > 0 && deadline >= time
+  };
+}
+
 /** Advance append-only accepted pools once per recipient; backwards queries replay without changing grant history. */
-export function orderedDurationBoonRemaining(
+export function orderedDurationBoonState(
   applications: readonly BuffStackApplication[],
   kind: string,
   time: number,
   audience: Gw2BuffAudience,
   companionId: string | null | undefined
-): number {
+): DurationPoolState {
   time = normalizeDurationPool(time);
   let cursors = durationBoonCursors.get(applications);
 
@@ -142,7 +159,7 @@ export function orderedDurationBoonRemaining(
 
   cursor.at = time;
   // Keep the checkpoint at the last grant, avoiding accumulated rounding from intermediate observations.
-  return normalizeDurationPool(Math.max(0, cursor.remaining - Math.max(0, time - cursor.previousTime)));
+  return durationPoolState(cursor.remaining, cursor.previousTime, time);
 }
 
 /** Query only the supplied history; callers retain ownership of phase visibility and permanent assumptions. */
@@ -171,16 +188,16 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
 
   if (isDurationStackingBoon(kind)) {
     // Custom filters and duration callbacks may change between reads, so only canonical accepted queries reuse a pool.
-    const remaining =
+    const state =
       ordered && !duration && !includes
-        ? orderedDurationBoonRemaining(applications, kind, time, audience, companionId)
-        : remainingDurationStackSeconds(applications, time, {
+        ? orderedDurationBoonState(applications, kind, time, audience, companionId)
+        : durationStackState(applications, time, {
             includes: matches,
             duration,
             ordered,
             maximum: durationStackingBoonCapSeconds(kind)
           });
-    return remaining > 0 ? clamp(1, 0, maximum) : 0;
+    return state.active ? clamp(1, 0, maximum) : 0;
   }
 
   let stacks = 0;
@@ -205,7 +222,7 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
       if (reusable && expiredThrough === index) {
         const expiresAt = expiryOf(application);
 
-        if (expiresAt !== Infinity && at >= canonicalTime(expiresAt)) {
+        if (expiresAt !== Infinity && at > canonicalTime(expiresAt)) {
           expiredThrough += 1;
           continue;
         }
@@ -215,11 +232,7 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
 
       const expiresAt = expiryOf(application);
 
-      if (
-        (startsAt === -Infinity || (ordered ? startsAt : canonicalTime(startsAt)) <= at) &&
-        (expiresAt === Infinity || at < canonicalTime(expiresAt))
-      )
-        stacks += application.stacks || 1;
+      if (buffWindowActive(at, startsAt, expiresAt, application.removedAt)) stacks += application.stacks || 1;
     }
 
     if (reusable && expiredThrough > (prefix?.length ?? 0))
@@ -311,9 +324,11 @@ export function advanceDurationStack<T extends DurationStackApplication>(
   duration?: (application: T) => number
 ): number {
   const appliedAt = canonicalTime(Number(application.at));
+  // An extension at the pool's exact deadline still finds the boon present.
+  const active = remaining > 0 && (remaining === Infinity || canonicalTime(previousTime + remaining) >= appliedAt);
   remaining = normalizeDurationPool(Math.max(0, remaining - Math.max(0, appliedAt - previousTime)));
 
-  if (application.extension && remaining <= 0) return remaining;
+  if (application.extension && !active) return remaining;
 
   const applicationDuration = duration
     ? duration(application)
@@ -328,14 +343,14 @@ export function advanceDurationStack<T extends DurationStackApplication>(
 }
 
 /**
- * Returns the remaining duration pool after chronological applications have
- * added their seconds and the active pool has drained at one second per second.
+ * Returns the duration pool after chronological applications have added their seconds and the active pool has
+ * drained at one second per second, together with its presence.
  */
-export function remainingDurationStackSeconds<T extends DurationStackApplication>(
+export function durationStackState<T extends DurationStackApplication>(
   applications: Iterable<T>,
   time: number,
   { includes = () => true, duration, maximum = Infinity, ordered = false }: DurationStackOptions<T> = {}
-): number {
+): DurationPoolState {
   // Pool depletion uses the same precision as availability, so an expired pool cannot be revived by numeric noise.
   time = normalizeDurationPool(time);
   // Ordered indexes can stream recipient filtering without allocating and sorting another history for each query.
@@ -355,7 +370,7 @@ export function remainingDurationStackSeconds<T extends DurationStackApplication
     previousTime = appliedAt;
   }
 
-  return normalizeDurationPool(Math.max(0, remaining - Math.max(0, time - previousTime)));
+  return durationPoolState(remaining, previousTime, time);
 }
 
 /** Resolved recipients select player or companion grants independently of the author's display label. */
@@ -503,13 +518,14 @@ export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>
       continue;
     }
 
-    // Intensity stacks keep their individual lifetimes; split at the extension boundary to preserve history.
+    // Intensity stacks keep their individual lifetimes; split at the extension boundary to preserve history. The
+    // pre-extension segment is removed at the boundary so it never counts beside its extended successor.
     boons.set(
       kind,
       applications
         .flatMap((application) => {
           if (
-            !isTimeInWindow(event.at, application.at, application.expiresAt) ||
+            !buffWindowActive(event.at, application.at, application.expiresAt, application.removedAt) ||
             (!all && !application.resolvedAudience.includesSelf)
           )
             return [application];
@@ -520,8 +536,12 @@ export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>
             recipientCount: application.resolvedAudience.recipientCount - 1
           };
           return [
-            { ...application, expiresAt: event.at },
-            ...(!all && others.recipientCount > 0 ? [{ ...application, at: event.at, resolvedAudience: others }] : []),
+            {
+              ...application,
+              removedAt: event.at,
+              resolvedAudience: all ? application.resolvedAudience : SELF
+            },
+            ...(!all && others.recipientCount > 0 ? [{ ...application, resolvedAudience: others }] : []),
             {
               ...application,
               at: event.at,
@@ -572,6 +592,7 @@ export function timedBuffApplicationsAt(
 export type Gw2BuffAudience = typeof RECIPIENT.SELF | typeof RECIPIENT.SUMMONS;
 
 export interface Gw2TimedBuffApplication {
+  readonly removedAt?: number;
   readonly event?: SimulationEvent;
   readonly extension?: boolean;
   readonly at: number;

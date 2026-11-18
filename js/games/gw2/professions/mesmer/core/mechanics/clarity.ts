@@ -10,7 +10,7 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Consume once at acceptance; canceled casts retain this start cost. */
 export function consumeMesmerClarity(state: MesmerRuntime, castStart: number): boolean {
-  return consumeCharge(professionCoreState(state.profession).clarity, castStart, 'exclusive');
+  return consumeCharge(professionCoreState(state.profession).clarity, castStart);
 }
 
 /** Track the skill's applied Clarity buff for consumption and publish its existing proc indicator. */

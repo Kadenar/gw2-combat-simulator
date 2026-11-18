@@ -1,3 +1,4 @@
+import { buffDeadlineActive, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { STATUS } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -30,15 +31,15 @@ export function createStealthState(): StealthState {
   return { stealthStartedAt: 0, stealthUntil: 0, revealedUntil: 0 };
 }
 
-/** Partial state is used by detached previews; expiry is exclusive for both statuses. */
+/** Revealed remains active for tied damage and expires before settled observations. */
 export function revealedActive(state: Readonly<Partial<StealthState>>, at: number): boolean {
-  return (state.revealedUntil ?? 0) > canonicalTime(at);
+  return buffDeadlineActive(state.revealedUntil ?? 0, at);
 }
 
-/** Gameplay and detached consumers use the same entry, exclusive expiry, and Revealed gate. */
+/** Natural stealth expiry follows gameplay; breaking stealth closes its window immediately. */
 export function stealthActive(state: Readonly<Partial<StealthState>>, at: number): boolean {
   const time = canonicalTime(at);
-  return (state.stealthStartedAt ?? 0) <= time && (state.stealthUntil ?? 0) > time && !revealedActive(state, time);
+  return buffWindowActive(time, state.stealthStartedAt ?? 0, state.stealthUntil ?? 0) && !revealedActive(state, time);
 }
 
 /** Attacks close stealth and optionally apply Revealed, including attacks enabled by a separate entitlement. */

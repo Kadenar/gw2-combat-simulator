@@ -44,7 +44,7 @@ export interface InternalWork<TType extends string = string, TPayload = unknown>
   readonly activationId?: string;
   readonly owner?: WorkOwner;
   /** Explicit grant tasks settle before tied strikes; arbitrary callbacks retain ordinary causality. */
-  readonly timing?: 'buffs';
+  readonly timing?: 'buffs' | 'expiry';
 }
 
 export type WorkInput<TWork extends InternalWork> = TWork extends InternalWork
@@ -54,6 +54,13 @@ export type WorkInput<TWork extends InternalWork> = TWork extends InternalWork
 /** Mechanics schedule owned work without obtaining the queue or advancing its clock. */
 export interface TaskScheduling<TSkill extends Skill = Skill> extends WorkScheduler {
   schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number, timing?: 'buffs'): void;
+  /** Cleanup runs after every same-time strike, tick, reaction, and command, so tied gameplay still sees the state. */
+  scheduleExpiry(
+    name: string,
+    at: number,
+    data?: unknown,
+    options?: { readonly owner?: WorkOwner; readonly priority?: number }
+  ): void;
   /** Owner lifetime is separate from cast attribution: committed projectiles can outlive their originating cast. */
   scheduleForCast(
     name: string,

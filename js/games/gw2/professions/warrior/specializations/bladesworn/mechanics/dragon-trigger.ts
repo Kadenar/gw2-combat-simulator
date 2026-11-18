@@ -1,5 +1,6 @@
 /** Own Gunsaber and Dragon Trigger admission, transitions, charge lifetimes, and cast-owned release notifications. */
 import { hasTrait, type Gw2TraitLookupContext } from '#gw2/platform/builds/selected-traits.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -124,7 +125,8 @@ function enterDragonTrigger(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
   state.dragonTriggerStartedAt = runtime.time;
   state.dragonTriggerChargeDeadline = canonicalTime(runtime.time + skillNumber(profile, 'duration'));
   runtime.resourceController.replace('dragonCharges', 0);
-  state.dragonChargesPerInterval = state.tacticalReloadUntil > 0 && runtime.time < state.tacticalReloadUntil ? 2 : 1;
+  state.dragonChargesPerInterval =
+    state.tacticalReloadUntil > 0 && buffDeadlineActive(state.tacticalReloadUntil, runtime.time) ? 2 : 1;
 
   if (state.dragonChargesPerInterval > 1) state.tacticalReloadUntil = 0;
 

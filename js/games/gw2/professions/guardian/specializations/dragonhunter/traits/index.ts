@@ -1,5 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
@@ -61,7 +61,10 @@ const bigGameHunter = defineTrait({
       // Uses context.time (resolver clock), not event.at, because modifier rules
       // are evaluated at the moment damage resolves, not when it was scheduled.
       when: (context) =>
-        dragonhunterState.from(context.runtime!.profession as GuardianRuntimeState).tetherUntil > context.time
+        buffDeadlineActive(
+          dragonhunterState.from(context.runtime!.profession as GuardianRuntimeState).tetherUntil,
+          context.time
+        )
     }
   ],
   triggers: [
@@ -73,7 +76,7 @@ const bigGameHunter = defineTrait({
         event.actorType === ACTOR.PLAYER &&
         Number(event.coefficient) > 0 &&
         details.hitContext.damage > 0 &&
-        dragonhunterState.from(runtime.profession).tetherUntil > runtime.time,
+        buffDeadlineActive(dragonhunterState.from(runtime.profession).tetherUntil, runtime.time),
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.VULNERABILITY,
       attribution: (_runtime, event) => ({
         source: 'guardian',

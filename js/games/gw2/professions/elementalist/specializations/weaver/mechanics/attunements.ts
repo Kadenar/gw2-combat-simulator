@@ -1,3 +1,5 @@
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { denyCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
@@ -70,7 +72,7 @@ function weaverAvailability(
     const state = weaverState.from(context.profession);
     const attunement = skill.attunement;
     const secondary = state.secondaryAttunement;
-    const unravelActive = state.unravelUntil > context.time;
+    const unravelActive = buffDeadlineActive(state.unravelUntil, context.time);
     const available = weaverWeaponAttunementAvailable(skill, core.primaryAttunement, secondary, unravelActive);
 
     if (!available) {
@@ -96,7 +98,7 @@ export function settleWeaverAttunement(
   const target = transition.to;
   const sourceId = transition.sourceId;
   const source = transition.source;
-  const unravelActive = state.unravelUntil > at;
+  const unravelActive = buffDeadlineActive(state.unravelUntil, at);
 
   // Fully attuned setup swaps can carry Elements of Rage into the opener.
   context.fireTrigger(weaverHandsChanged, { transition, cause });
@@ -121,13 +123,15 @@ export function completeDualAttunement(context: ElementalistRuntime, cast: Runti
 
   if (target) {
     const previous = core.primaryAttunement;
-    state.secondaryAttunement = state.unravelUntil > at ? target : previous;
+    state.secondaryAttunement = buffDeadlineActive(state.unravelUntil, at) ? target : previous;
     onAttunementComplete(context, cast, skill, target, {
       secondaryAttunement: state.secondaryAttunement,
       rechargeDuration: elementalistAttunementRechargeDuration(
         context,
         skill,
-        state.weaveSelfUntil > at ? WEAVE_SELF_ATTUNEMENT_RECHARGE_SECONDS : WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS,
+        buffDeadlineActive(state.weaveSelfUntil, at)
+          ? WEAVE_SELF_ATTUNEMENT_RECHARGE_SECONDS
+          : WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS,
         flowStateAttunementReduction(context.helpers, context)
       )
     });
@@ -167,7 +171,8 @@ const weaverAttunementTasks = {
       const previousPrimary = core.primaryAttunement;
       const previousSecondary = state.secondaryAttunement;
       state.secondaryAttunement = core.primaryAttunement;
-      state.unravelUntil = at + skillNumber(skill, 'duration');
+      const duration = skillNumber(skill, 'duration');
+      state.unravelUntil = gw2TimerDeadline(at, duration);
       core.attunementEnteredAt = at;
       context.effects.emit({
         kind: 'packet',

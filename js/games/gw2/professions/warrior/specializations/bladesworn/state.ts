@@ -1,3 +1,4 @@
+import { buffDeadlineActive, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
@@ -61,7 +62,7 @@ export function activeCartridgeWindow(
   for (let index = windows.length - 1; index >= 0; index--) {
     const window = windows[index];
 
-    if (window.startedAt <= at && window.expiresAt > at) return window;
+    if (buffWindowActive(at, window.startedAt, window.expiresAt)) return window;
   }
 
   return undefined;
@@ -78,8 +79,8 @@ export function projectBladeswornPlanningState(input: Gw2PlanningStateInput<Spec
     [STATE.TRAIT_POSITIVE_FLOW_UNTIL]: state.traitPositiveFlowUntil,
     [STATE.TRAIT_POSITIVE_FLOW_STACKS]: state.traitPositiveFlowStacks,
     [STATE.GUNSABER_ACTIVE]: state.gunsaberActive,
-    [STATE.OVERCHARGED_CARTRIDGE_WINDOWS]: state.overchargedCartridgeWindows.filter(
-      (window) => window.expiresAt > input.time
+    [STATE.OVERCHARGED_CARTRIDGE_WINDOWS]: state.overchargedCartridgeWindows.filter((window) =>
+      buffDeadlineActive(window.expiresAt, input.time)
     ),
     [STATE.DRAGON_TRIGGER_ACTIVE]: state.dragonTriggerActive
   };

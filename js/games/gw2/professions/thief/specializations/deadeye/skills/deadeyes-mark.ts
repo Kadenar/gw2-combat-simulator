@@ -1,3 +1,4 @@
+import { buffDeadlineActive, buffDeadlineReached } from '#gw2/platform/combat/buff-expiry.js';
 import { type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -46,11 +47,10 @@ const DEADEYE_MARK_EXPIRY = 'thief.deadeye-mark-expire';
 function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const state = deadeyeState.from(runtime.profession);
   runtime.fireTrigger(stealAccepted, { cast });
-  const remarking = state.markedTargetId === 'primary-target' && state.markExpiresAt > runtime.time;
-  state.markedTargetId = 'primary-target';
-  state.markExpiresAt = canonicalTime(
-    runtime.time + skillNumber(requireSkill(runtime.helpers, ID.DEADEYES_MARK), 'duration')
-  );
+  const remarking = state.markedTargetId === 'primary-target' && buffDeadlineActive(state.markExpiresAt, runtime.time);
+  const duration = skillNumber(requireSkill(runtime.helpers, ID.DEADEYES_MARK), 'duration');
+  state.markedTargetId = duration > 0 ? 'primary-target' : null;
+  state.markExpiresAt = canonicalTime(runtime.time + Math.max(0, duration));
   // A refresh is a new mark lifetime even on the same target; older expiry tasks must not clear its malice.
   state.markGeneration += 1;
 
@@ -61,14 +61,17 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   completeThiefSteal(runtime, stolenSkillGrant(runtime));
   runtime.fireTrigger(markCompleted, { cast });
 
-  runtime.schedule(DEADEYE_MARK_EXPIRY, state.markExpiresAt, { generation: state.markGeneration });
+  runtime.scheduleExpiry(DEADEYE_MARK_EXPIRY, state.markExpiresAt, { generation: state.markGeneration });
 }
 
 /** Mark expiry resets malice; a stale expiry from an earlier mark is ignored. */
 function expireDeadeyesMark(runtime: ThiefRuntime, data: unknown): void {
   const state = deadeyeState.from(runtime.profession);
 
-  if ((data as { generation: number }).generation !== state.markGeneration || runtime.time < state.markExpiresAt)
+  if (
+    (data as { generation: number }).generation !== state.markGeneration ||
+    !buffDeadlineReached(state.markExpiresAt, runtime.time)
+  )
     return;
 
   state.markedTargetId = null;
@@ -79,7 +82,7 @@ function expireDeadeyesMark(runtime: ThiefRuntime, data: unknown): void {
 /** Modifier eligibility reads the active specialization mark, including detached previews. */
 export function markedTarget(context: Gw2ModifierContext): boolean {
   const state = thiefRuntimeSpecializationState(context.runtime?.profession, 'Deadeye');
-  return Boolean(state.markedTargetId) && (state.markExpiresAt || Infinity) > context.time;
+  return Boolean(state.markedTargetId) && buffDeadlineActive(state.markExpiresAt || Infinity, context.time);
 }
 
 /** Register actions beside the skills whose accepted casts select them. */

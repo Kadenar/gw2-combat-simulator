@@ -71,18 +71,18 @@ test('Piercing Stance extends its live duration', () => {
   );
 });
 
-test('Radiant Armaments damage and display agree through the final live microsecond and weapon replacement', () => {
+test('Radiant Armaments includes tied damage while chart intervals end at expiry', () => {
   const settings = { ...config, selectedTraitIds: [TRAIT.RADIANT_ARMAMENTS] };
   const result = runGuardian([wait(1), ID.ENTER_RADIANT_FORGE, ID.DAZZLING_HAMMER, wait(11000)], settings);
   const buff = result.events.find((event) => event.kind === 'guardian-radiant-armaments');
   const expiry = timedBuffApplicationsAt(result.events, buff.kind, buff.at)[0].expiresAt;
   const rule = luminaryModule.modifiers.modifierRules.find((entry) => entry.id === 'guardian.radiant-armaments');
-  // Chart history must expose the same half-open lifetime as the damage modifier.
+  // The deadline still boosts tied damage but contributes no duration to the following chart interval.
   const track = result.effectReport.tracks.find(
     (track) => track.kind === buff.kind && track.recipient === 'self' && track.origin === 'simulated'
   );
   for (const time of [expiry - 0.000001, expiry, expiry + 0.000001]) {
-    assert.equal(rule.when({ events: result.events, time }), time < expiry);
+    assert.equal(rule.when({ events: result.events, time }), time <= expiry);
     assert.equal(effectStateAt(result.effectReport, track, time).count > 0, time < expiry);
   }
 
@@ -120,12 +120,12 @@ test('Light Aura refreshes on the effect clock and can be consumed only once bef
     });
     assert.equal(
       result.resolvedEvents.filter((event) => event.skillId === ID.SOVEREIGN_OF_LIGHT_DAMAGE).length,
-      Number(at < 5.04)
+      Number(at <= 5.04)
     );
   }
 });
 
-test('Effulgent counts the final live microsecond but excludes its exact detonation timestamp', () => {
+test('Effulgent counts tied hits before its detonation but excludes later hits', () => {
   const result = runGuardian([wait(1), ID.EFFULGENT_STANCE, wait(4100)], config, {
     initialize: (runtime) => {
       for (const at of [4.039999, 4.04, 4.040001])
@@ -145,7 +145,7 @@ test('Effulgent counts the final live microsecond but excludes its exact detonat
   });
   const detonation = result.resolvedEvents.find((event) => event.skillId === ID.EFFULGENT_STANCE_DAMAGE);
   assert.equal(detonation.at, 4.04);
-  assert.equal(detonation.coefficient, 0.85);
+  assert.equal(detonation.coefficient, 1.2);
   assert.equal(state(result).effulgentActiveUntil, 0);
   assert.equal(state(result).effulgentStacks, 0);
 });

@@ -1,3 +1,4 @@
+import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { isCombatEntryEvent } from '#gw2/platform/combat/state/targets.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
@@ -269,8 +270,9 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
       });
     }
 
-    const window = (state[STATE.OVERCHARGED_CARTRIDGE_WINDOWS] || []).find(
-      (candidate) => candidate.startedAt <= at && candidate.expiresAt > at
+    // Snapshot windows match combat: a window ending at the inspected instant still applies to tied hits.
+    const window = (state[STATE.OVERCHARGED_CARTRIDGE_WINDOWS] || []).find((candidate) =>
+      buffWindowActive(at, candidate.startedAt, candidate.expiresAt)
     );
 
     if (window) {
@@ -284,7 +286,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     }
 
     const positiveFlowSources = (state[STATE.FLOW_STABILIZER_WINDOWS] || [])
-      .filter((candidate) => candidate.startedAt <= at && candidate.expiresAt > at)
+      .filter((candidate) => buffWindowActive(at, candidate.startedAt, candidate.expiresAt))
       .map((candidate) => ({
         stacks: candidate.stacks,
         expiresAt: candidate.expiresAt

@@ -1,3 +1,4 @@
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -24,7 +25,7 @@ export function activeKallasFervorStacks(
   // Count in place so hit-time queries and repeated grants do not allocate temporary stack arrays.
   let count = 0;
   for (const application of state.kallasFervor || [])
-    if ((application.at || 0) <= at && (application.expiresAt || 0) > at) count++;
+    if ((application.at || 0) <= at && buffDeadlineActive(application.expiresAt || 0, at)) count++;
 
   return Math.min(Math.max(1, maximumStacks), count);
 }

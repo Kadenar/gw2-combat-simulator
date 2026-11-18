@@ -298,7 +298,7 @@ test('Deadeye skill-owned modifiers retain independent patch tuning and captured
     assert.equal(runtime.calculations.modifyStrikeDamage(context, 100), factor * 100);
     // Judgment retains its captured-malice bonus after the mark expires.
     assert.equal(
-      runtime.calculations.modifyStrikeDamage({ ...context, time: 10 }, 100),
+      runtime.calculations.modifyStrikeDamage({ ...context, time: 10.000001 }, 100),
       skillId === THIEF.MALICIOUS_DEATHS_JUDGMENT ? 130 : 100
     );
     assert.equal(

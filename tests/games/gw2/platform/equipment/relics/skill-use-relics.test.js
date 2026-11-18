@@ -63,7 +63,7 @@ test('Deadeye relic follows player cantrip completions independently of professi
   const hits = (simulation) => simulation.resolvedEvents.filter((event) => event.type === 'damage');
   const actual = hits(result);
   const expected = hits(baseline);
-  for (const [index, multiplier] of [1, 1, 1.1, 1.1, 1].entries())
+  for (const [index, multiplier] of [1, 1, 1.1, 1.1, 1.1].entries())
     assertFlooredDamageMultiplier(actual[index].damage, expected[index].damage, multiplier);
   const procs = result.procSteps.filter((step) => step.skill === 'Relic of the Deadeye');
   assert.equal(procs.length, 2);
@@ -83,7 +83,7 @@ test('Deadeye relic follows player cantrip completions independently of professi
   assert.equal(ctx.liveEffects.queries.buffApplications('relic-deadeye').at(-1).expiresAt, until);
   assert.equal(relicStrikeMultiplier(ctx, { at: until - 0.001, actorType: 'summon' }), 1);
   assert.equal(relicStrikeMultiplier(ctx, { at: until - 0.001, actorType: 'effect', ownerActorType: 'player' }), 1.1);
-  assert.equal(relicStrikeMultiplier(ctx, { at: until, actorType: 'player' }), 1);
+  assert.equal(relicStrikeMultiplier(ctx, { at: until + 0.000001, actorType: 'player' }), 1);
 });
 
 // Saved preparation is opt-in, survives JSON persistence, and rejects unsupported or duplicate selections.
@@ -151,7 +151,7 @@ test('Brawler precasts carry their remaining buff into combat without reactivati
       assert.equal(procs(result)[0].expiresAt, 4000);
       const actual = hits(result);
       assertFlooredDamageMultiplier(actual[0].damage, baseline[0].damage, 1.1);
-      assert.equal(actual[1].damage, baseline[1].damage);
+      assertFlooredDamageMultiplier(actual[1].damage, baseline[1].damage, 1.1);
       assertFlooredDamageMultiplier(actual[2].damage, baseline[2].damage, relic ? 1.1 : 1);
     }
 
@@ -159,7 +159,7 @@ test('Brawler precasts carry their remaining buff into combat without reactivati
     assert.equal(procs(run(['__combat_start', `Grant ${boon}`, 'Strike'])).length, 0);
     assert.equal(procs(run([`Grant ${boon}`, 'Strike'])).length, 0);
     const elapsed = run([`Grant ${boon}`, { type: 'wait', durationMs: 4000 }, '__combat_start', 'Strike']);
-    assert.equal(hits(elapsed)[0].damage, baseline[0].damage);
+    assertFlooredDamageMultiplier(hits(elapsed)[0].damage, baseline[0].damage, 1.1);
   }
 });
 
@@ -302,7 +302,7 @@ for (const [relic, skillType, cooldown, delay, multiplier] of [
     assert.equal(strike(1.04 + delay - 0.001), 1);
     assert.equal(strike(1.04 + delay), multiplier);
     assert.equal(strike(4), multiplier);
-    assert.equal(strike(7.04 + delay), 1);
+    assert.equal(strike(7.04 + delay + 0.000001), 1);
     assert.equal(strike(4, { actorType: 'summon' }), 1);
     assert.equal(strike(4, { actorType: 'effect', ownerActorType: 'player' }), multiplier);
 
@@ -410,5 +410,5 @@ test('Mount Balrior completes its earned precast activation after combat entry',
   assert.ok(grants[0].at > result.combatStartTime);
   assert.equal(relicStrikeMultiplier(runtime, { at: result.combatStartTime, actorType: 'player' }), 1);
   assert.equal(relicStrikeMultiplier(runtime, { at: grants[0].at, actorType: 'player' }), 1.15);
-  assert.equal(relicStrikeMultiplier(runtime, { at: grants[0].expiresAt, actorType: 'player' }), 1);
+  assert.equal(relicStrikeMultiplier(runtime, { at: grants[0].expiresAt + 0.000001, actorType: 'player' }), 1);
 });

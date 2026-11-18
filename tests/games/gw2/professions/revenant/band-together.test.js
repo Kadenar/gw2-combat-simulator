@@ -101,14 +101,14 @@ test('ordinary completion replaces the timed Band Together buff and cannot grant
   assert.equal(emitted.events.filter((event) => event.kind === 'band-together').length, 1);
 });
 
-test('only mapped skills are eligible, readiness is read-only, and acceptance excludes exact expiry', () => {
+test('only mapped skills are eligible, readiness is read-only, and acceptance includes the exact deadline', () => {
   for (const at of [1.999999, 2, 2.000001]) {
     const { runtime, cast, apply, grant } = fixture();
     grant(2);
     runtime.time = at;
     const before = structuredClone(runtime.combat.buffApplications('band-together'));
     for (const skillId of Object.keys(RENEGADE_ENHANCED_SKILL_BY_ID))
-      assert.equal(bandTogetherReady(runtime, Number(skillId)), at < 2);
+      assert.equal(bandTogetherReady(runtime, Number(skillId)), at <= 2);
     assert.equal(bandTogetherReady(runtime, ID.SOULCLEAVES_SUMMIT), false);
     assert.deepEqual(runtime.combat.buffApplications('band-together'), before);
     const accepted = cast(ID.ICERAZORS_IRE);
@@ -116,7 +116,7 @@ test('only mapped skills are eligible, readiness is read-only, and acceptance ex
     assert.equal(bandTogetherReady(runtime, ID.ICERAZORS_IRE), false);
     assert.deepEqual(
       renegadeHooks.modifyEffects(runtime, accepted, accepted.skill.effects),
-      at < 2 ? [] : accepted.skill.effects
+      at <= 2 ? [] : accepted.skill.effects
     );
     const next = cast(ID.DARKRAZORS_DARING);
     apply(next, 'castStart');
@@ -161,7 +161,7 @@ test('Band Together observations are detached and profession state contains no d
   const projected = projectObservedState(revenantProfession, runtime);
   assert.equal(Object.hasOwn(state, 'bandTogether'), false);
   assert.equal(Object.hasOwn(projected, 'bandTogether'), false);
-  assert.equal(effectStateValue(effect, 2).count, 0);
+  assert.equal(effectStateValue(effect, 2.000001).count, 0);
   assert.equal(bandTogetherReady(runtime, ID.ICERAZORS_IRE), true);
   apply(cast(ID.ICERAZORS_IRE), 'castStart');
   assert.equal(effectStateValue(effect, 1).count, 1);

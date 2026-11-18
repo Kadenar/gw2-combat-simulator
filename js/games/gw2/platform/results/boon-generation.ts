@@ -3,14 +3,15 @@ import {
   advanceDurationStack,
   applyBoonExtension,
   durationStackingBoonCapSeconds,
+  durationStackState,
   isDurationStackingBoon,
   isStandardBoon,
   normalizeBoonDuration,
   recordBuffApplication,
-  remainingDurationStackSeconds,
   standardBoonPresentation,
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
+import { buffApplicationExpiry, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { observeBuffState } from '#gw2/platform/combat/effect-state.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -140,13 +141,14 @@ export function createBoonGenerationCollector(retainHistory: boolean, window: ()
 
           const stacks = isDurationStackingBoon(kind)
             ? Number(
-                remainingDurationStackSeconds(applications, event.at, {
-                  maximum: durationStackingBoonCapSeconds(kind)
-                }) > 0
+                durationStackState(applications, event.at, { maximum: durationStackingBoonCapSeconds(kind) }).active
               )
             : applications.reduce(
                 (sum, application) =>
-                  sum + (application.at <= event.at && application.expiresAt > event.at ? application.stacks : 0),
+                  sum +
+                  (buffWindowActive(event.at, application.at, application.expiresAt, application.removedAt)
+                    ? application.stacks
+                    : 0),
                 0
               );
           credit(kind, stacks * Math.max(0, event.duration || 0));
@@ -158,9 +160,14 @@ export function createBoonGenerationCollector(retainHistory: boolean, window: ()
       // Compact score state after each accepted event; old receipts cannot affect future extension eligibility.
       if (!retainHistory)
         for (const [kind, applications] of boons) {
-          const duration = remainingDurationStackSeconds(applications, event.at, {
+          const pool = durationStackState(applications, event.at, {
             maximum: durationStackingBoonCapSeconds(kind)
           });
+
+          // A zero-second pool can still receive a later extension at this same timestamp.
+          if (pool.active && pool.remaining === 0) continue;
+
+          const duration = pool.remaining;
           boons.set(
             kind,
             duration > 0
@@ -236,7 +243,10 @@ export function projectedPartyEffects(generation: ReturnType<typeof buildBoonGen
     for (const application of applications) {
       if (application.at <= end) times.add(application.at);
 
-      if (application.expiresAt <= end) times.add(application.expiresAt);
+      // Extension splits end their earlier segment by removal, so boundaries use the actual end.
+      const expiry = buffApplicationExpiry(application);
+
+      if (expiry <= end) times.add(expiry);
     }
 
     // Generation histories are chronological, including extension splits; retain only live intensity windows.
@@ -246,7 +256,7 @@ export function projectedPartyEffects(generation: ReturnType<typeof buildBoonGen
     let previousTime = 0;
     let source: SimulationEvent | undefined;
     for (const at of [...times].sort((a, b) => a - b)) {
-      if (!duration) live = live.filter((application) => application.expiresAt > at);
+      if (!duration) live = live.filter((application) => buffApplicationExpiry(application) > at);
 
       while (next < applications.length && applications[next]!.at <= at) {
         const application = applications[next++]!;
@@ -256,7 +266,7 @@ export function projectedPartyEffects(generation: ReturnType<typeof buildBoonGen
           previousTime = application.at;
 
           if (application.event) source = application.event;
-        } else if (application.expiresAt > at) live.push(application);
+        } else if (buffApplicationExpiry(application) > at) live.push(application);
       }
 
       const pool = duration ? canonicalTime(Math.max(0, remaining - Math.max(0, at - previousTime))) : 0;

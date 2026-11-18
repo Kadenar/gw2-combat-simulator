@@ -5,7 +5,7 @@ import {
   buffMatchesAudience,
   isDurationStackingBoon,
   isStandardBoon,
-  orderedDurationBoonRemaining,
+  orderedDurationBoonState,
   recordBuffApplication,
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
@@ -19,6 +19,7 @@ import {
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { cloneData } from '#kernel/core/clone.js';
 
 type Applications = readonly Readonly<Gw2TimedBuffApplication>[];
@@ -156,15 +157,32 @@ export function createLiveEffects(config: Gw2Config = {}) {
 
       if (companionId && at >= (retired.get(companionId) ?? Infinity)) return 0;
 
-      return orderedDurationBoonRemaining(
+      return orderedDurationBoonState(
         storesFor(recipient)?.boons.get(kind) ?? empty,
         kind,
         at,
         recipient.actor === ACTOR.PLAYER ? RECIPIENT.SELF : RECIPIENT.SUMMONS,
         companionId
-      );
+      ).remaining;
     }
   });
+  /** Rewrites selected private buff grants for the player and every live companion, preserving other records. */
+  function reviseBuffs(
+    kind: string,
+    select: (application: Readonly<Gw2TimedBuffApplication>) => boolean,
+    revise: (application: Gw2TimedBuffApplication) => Gw2TimedBuffApplication
+  ): void {
+    for (const store of [buffs, ...[...companions.values()].map((stores) => stores.buffs)]) {
+      const applications = store.get(kind);
+
+      if (applications)
+        store.set(
+          kind,
+          applications.map((application) => (select(application) ? revise(application) : application))
+        );
+    }
+  }
+
   return Object.freeze({
     queries,
     /** Accounting observes accepted recipients before the stores change; reactions run after the grant returns. */
@@ -199,22 +217,24 @@ export function createLiveEffects(config: Gw2Config = {}) {
       applyBoonExtension(boons, event);
       for (const stores of companions.values()) applyBoonExtension(stores.boons, event);
     },
+    /** Moves selected grants to a new natural deadline, such as a refresh or a later expiry. */
     reviseBuffExpiry(
       kind: string,
       select: (application: Readonly<Gw2TimedBuffApplication>) => boolean,
       expiry: (at: number) => number
     ): void {
-      for (const store of [buffs, ...[...companions.values()].map((stores) => stores.buffs)]) {
-        const applications = store.get(kind);
-
-        if (applications)
-          store.set(
-            kind,
-            applications.map((application) =>
-              select(application) ? { ...application, expiresAt: expiry(application.expiresAt) } : application
-            )
-          );
-      }
+      reviseBuffs(kind, select, (application) => ({ ...application, expiresAt: expiry(application.expiresAt) }));
+    },
+    /**
+     * Consumption and replacement remove selected grants at `at`, even when a natural deadline ties that timestamp.
+     * The natural deadline stays in `expiresAt`; `removedAt` alone records the earlier removal.
+     */
+    endBuffs(kind: string, at: number, select: (application: Readonly<Gw2TimedBuffApplication>) => boolean): void {
+      const end = canonicalTime(at);
+      reviseBuffs(kind, select, (application) => ({
+        ...application,
+        removedAt: Math.min(application.removedAt ?? Infinity, end)
+      }));
     },
     /** Return whether retirement was new so the resolver retires condition ownership exactly once. */
     retireCompanion(id: string, at: number): boolean {

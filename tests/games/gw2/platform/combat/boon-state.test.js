@@ -5,9 +5,9 @@ import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timelin
 import {
   buffApplicationStacks,
   durationStackingBoonCapSeconds,
+  durationStackState,
   isDurationStackingBoon,
   recordBuffApplication,
-  remainingDurationStackSeconds,
   standardBoonPresentation
 } from '#gw2/platform/combat/boons.js';
 import { activeBoonStacks, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -30,9 +30,10 @@ test('intensity queries preserve canonical visibility in unordered and ordered h
       [0.199999, 0],
       [0.2, 3],
       [0.599999, 3],
-      [0.6, 0],
+      [0.6, 3],
+      [0.600001, 0],
       [2, 25],
-      [4, 0]
+      [4.000001, 0]
     ])
       assert.equal(buffApplicationStacks(applications, 'might', at, 100, { ordered }), stacks);
     assert.equal(buffApplicationStacks(applications, 'might', 0.4, 2, { ordered }), 2);
@@ -113,9 +114,9 @@ test('summon boon queries keep capped recipients in separate duration pools', ()
   assert.equal(active(1, 0), false);
   assert.equal(active(0, 1), true);
   assert.equal(active(1, 1), true);
-  assert.equal(active(0, 2), false);
+  assert.equal(active(0, 2.000001), false);
   assert.equal(active(1, 2), true);
-  assert.equal(active(1, 3), false);
+  assert.equal(active(1, 3.000001), false);
   // A self-only extension must neither extend a companion nor change which companion owned the original boon.
   context.effects.emit({
     kind: 'packet',
@@ -129,13 +130,13 @@ test('summon boon queries keep capped recipients in separate duration pools', ()
       resolvedAudience: { includesSelf: true, includesSummons: false, companionIds: [] }
     }
   });
-  assert.equal(active(0, 2), false);
+  assert.equal(active(0, 2.000001), false);
   assert.equal(active(1, 2), true);
-  assert.equal(active(1, 3), false);
+  assert.equal(active(1, 3.000001), false);
 });
 
-// Presence uses the same microsecond half-open boundary for duration pools, intensity boons, and conditions.
-test('status queries retain the last microsecond and exclude canonical expiry', () => {
+// Boon presence keeps its canonical deadline; target conditions keep their half-open lifetime.
+test('status queries keep boon deadlines and exclude condition expiry at the same microsecond', () => {
   const resolvedAudience = { includesSelf: true, includesSummons: false, companionIds: [] };
   const runtime = {
     liveEffects: createTestLiveEffects(
@@ -143,12 +144,12 @@ test('status queries retain the last microsecond and exclude canonical expiry', 
     ),
     conditionState: new Map([['Bleeding', { stacks: [{ at: 0.2, naturalExpiresAt: 0.56 + 0.04, stacks: 1 }] }]])
   };
-  for (const [time, active] of [
-    [0.199999, 0],
-    [0.2, 1],
-    [0.599999, 1],
-    [0.6, 0],
-    [0.600001, 0]
+  for (const [time, active, condition] of [
+    [0.199999, 0, 0],
+    [0.2, 1, 1],
+    [0.599999, 1, 1],
+    [0.6, 1, 0],
+    [0.600001, 0, 0]
   ]) {
     for (const kind of ['might', 'fury']) {
       const context = { time, runtime, config: {} };
@@ -156,8 +157,8 @@ test('status queries retain the last microsecond and exclude canonical expiry', 
       assert.equal(activeBoonStacks(context, kind), active);
     }
 
-    assert.equal(runtimeTargetConditionStacks(runtime, 'Bleeding', time), active);
-    assert.equal(targetHasCondition({}, ' bleeding ', time, runtime), Boolean(active));
+    assert.equal(runtimeTargetConditionStacks(runtime, 'Bleeding', time), condition);
+    assert.equal(targetHasCondition({}, ' bleeding ', time, runtime), Boolean(condition));
   }
 });
 
@@ -244,14 +245,14 @@ test('duration-stacking boons use their in-game duration caps', () => {
       maximumDuration: cap
     });
     assert.equal(
-      remainingDurationStackSeconds(
+      durationStackState(
         [
           { at: 0, duration: cap - 1 },
           { at: 1, duration: 5 }
         ],
         1,
         { maximum: durationStackingBoonCapSeconds(kind) }
-      ),
+      ).remaining,
       cap,
       kind
     );

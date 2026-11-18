@@ -78,7 +78,7 @@ test('party projection preserves unrelated tracks and projects partial recipient
   assert.ok(report.tracks.every((track) => track.origin === 'party-projection'));
 });
 
-// A pooled deadline can outlive individual receipts, but an extension at expiry cannot restart the pool.
+// A pooled deadline can outlive receipts; a tied extension sustains it until the extended deadline.
 test('party duration pools preserve caps, expiry gaps, and terminal observation', () => {
   const report = reportFor(
     [
@@ -92,7 +92,8 @@ test('party duration pools preserve caps, expiry gaps, and terminal observation'
   );
   assert.equal(valueAt(report, 'quickness', 5).expiresAt, 35);
   assert.equal(valueAt(report, 'quickness', 34).count, 1);
-  assert.equal(valueAt(report, 'quickness', 35).count, 0);
+  assert.equal(valueAt(report, 'quickness', 35).count, 1);
+  assert.equal(valueAt(report, 'quickness', 35).expiresAt, 39);
   assert.equal(valueAt(report, 'quickness', 39).count, 0);
   assert.equal(valueAt(report, 'quickness', 43).count, 1);
   assert.equal(valueAt(report, 'quickness', 43).expiresAt, 45);
@@ -106,7 +107,8 @@ test('party duration pools preserve caps, expiry gaps, and terminal observation'
     2
   );
   assert.equal(valueAt(rounded, 'fury', 1.399999).count, 1);
-  assert.equal(valueAt(rounded, 'fury', 1.4).count, 0);
+  assert.equal(valueAt(rounded, 'fury', 1.4).count, 1);
+  assert.equal(valueAt(rounded, 'fury', 1.4).expiresAt, 2.4);
 });
 
 // Excess stacks remain available after expiry; source follows application order while expiry uses all live windows.
@@ -126,7 +128,7 @@ test('party intensity projection retains excess stacks and switches back to the 
   assert.equal(valueAt(report, 'might', 10).count, 0);
 });
 
-// Equal-time grant/extension order changes whether the new pool receives the extension without creating zero-width segments.
+// A tied extension sustains the old pool, so same-time grant order cannot drop it.
 test('party projection preserves causal ordering of grants and extensions at expiry', () => {
   const extension = {
     type: 'boon_extension',
@@ -136,13 +138,10 @@ test('party projection preserves causal ordering of grants and extensions at exp
     extensionAudience: 'all',
     causalOrder: 2
   };
-  for (const [causalOrder, expiresAt] of [
-    [1, 6],
-    [3, 3]
-  ]) {
+  for (const causalOrder of [1, 3]) {
     const report = reportFor([grant('fury', 0, 2), extension, grant('fury', 2, 1, 1, { causalOrder })], 8);
-    assert.equal(valueAt(report, 'fury', 2).expiresAt, expiresAt);
-    assert.equal(valueAt(report, 'fury', expiresAt).count, 0);
+    assert.equal(valueAt(report, 'fury', 2).expiresAt, 6);
+    assert.equal(valueAt(report, 'fury', 6).count, 0);
     assert.ok(trackFor(report, 'fury').segments.every((segment) => segment.start < segment.end));
   }
 });

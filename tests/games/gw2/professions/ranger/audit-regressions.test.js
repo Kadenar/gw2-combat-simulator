@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { durationStackState } from '#gw2/platform/combat/boons.js';
 import { CONTROL } from '#gw2/platform/constants.js';
 import {
   rangerPetCombatMetadata,
@@ -219,9 +219,9 @@ test('configured golem boons copy finite duration across refresh boundaries for 
       assert.equal(copied.find((event) => event.kind === 'swiftness').duration, 50 + remaining);
       const runtime = observedRuntime(result);
       assert.equal(
-        remainingDurationStackSeconds(runtime.liveEffects.queries.boonApplications('quickness'), runtime.time, {
+        durationStackState(runtime.liveEffects.queries.boonApplications('quickness'), runtime.time, {
           includes: (application) => application.resolvedAudience.companionIds.includes(rangerPetCompanionId(runtime))
-        }),
+        }).remaining,
         0
       );
       assert.equal(runtime.config.boons.quickness, true);
@@ -303,7 +303,7 @@ test('merged Lesser Sic Em extends player boons through Resounding Timbre', () =
   assert.ok(effects[0].boonGeneration, 'Merged extensions retain their granting activation');
   assert.equal(effects[0].duration, 2);
   assert.equal(
-    remainingDurationStackSeconds(observedRuntime(result).liveEffects.queries.boonApplications('vigor'), 3),
+    durationStackState(observedRuntime(result).liveEffects.queries.boonApplications('vigor'), 3).remaining,
     9
   );
 });

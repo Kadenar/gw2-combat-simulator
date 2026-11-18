@@ -627,12 +627,18 @@ test('declared recharge progress scales the accepted anchor and validates its ra
     );
 });
 
-// A negative offset makes the next use eligible before the anchor's recharge would, but never before cast start.
-test('negative recharge offsets advance eligibility and clamp to cast start', () => {
-  const selected = withSkill(catalog, 991009, { castTimeMs: 1000, interruptCommitMs: 100, rechargeOffsetMs: -400 });
+// Early recharge advances cooldown eligibility relative to effective cast end, clamped to cast start.
+test('before-cast-end recharge advances eligibility and clamps to cast start', () => {
+  const selected = withSkill(catalog, 991009, {
+    castTimeMs: 1000,
+    interruptCommitMs: 100,
+    rechargeAnchor: 'beforeCastEnd',
+    rechargeOffsetMs: 400
+  });
   // Permanent Alacrity turns the 10 s cooldown into 8 s; the unclamped interrupted anchor would be eligible at 7.8 s.
   for (const [interruptAfterMs, readyAtMs] of [
     [undefined, 8600],
+    [600, 8200],
     [200, 8000]
   ]) {
     const result = run({ catalog: selected }, [cast(991009, { interruptAfterMs }), cast(991009)]);
@@ -640,11 +646,12 @@ test('negative recharge offsets advance eligibility and clamp to cast start', ()
   }
 
   assert.equal(
-    createCanonicalCatalog({ skills: [{ id: 1, name: 'Early', rechargeOffsetMs: -80 }] }).skillsById.get(1)
-      .rechargeOffsetMs,
-    -80
+    createCanonicalCatalog({
+      skills: [{ id: 1, name: 'Early', rechargeAnchor: 'beforeCastEnd', rechargeOffsetMs: 80 }]
+    }).skillsById.get(1).rechargeOffsetMs,
+    80
   );
-  for (const rechargeOffsetMs of [Infinity, -Infinity, NaN, 'early'])
+  for (const rechargeOffsetMs of [-80, Infinity, -Infinity, NaN, 'early'])
     assert.throws(
       () => createCanonicalCatalog({ skills: [{ id: 1, name: 'Invalid', rechargeOffsetMs }] }),
       /rechargeOffsetMs/
@@ -872,7 +879,7 @@ test('authored and procedural status caps apply after scaling and remain patchab
       .sort((a, b) => a - b),
     [6, 10]
   );
-  for (const maximumDuration of [-1, NaN, '10'])
+  for (const maximumDuration of [0, -1, NaN, '10'])
     assert.throws(() =>
       createCanonicalCatalog({
         skills: [{ id: 1, name: 'Invalid cap', effects: [{ ...effects[0], maximumDuration }] }]

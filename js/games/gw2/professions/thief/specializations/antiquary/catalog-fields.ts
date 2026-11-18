@@ -8,8 +8,16 @@ export const ANTIQUARY_SKILL_FIELDS = defineFields(
     // Repeat-schedule timing internal; not a patch-note value, so authoring never shows it.
     initialDelay: numberField({ unit: 'seconds', runtimeOnly: true }),
     backfireDelay: numberField({ label: 'backfire delay', patch: 'primary', unit: 'seconds' }),
-    enhancedDuration: numberField({ label: 'enhanced identity duration', patch: 'primary', unit: 'seconds' }),
-    maximumDuration: numberField({ label: 'maximum identity duration', patch: 'primary', unit: 'seconds' }),
+    enhancedDuration: numberField({
+      label: 'enhanced identity duration',
+      patch: 'primary',
+      unit: 'seconds'
+    }),
+    maximumDuration: numberField({
+      label: 'maximum identity duration',
+      patch: 'primary',
+      unit: 'seconds'
+    }),
     refundCharges: numberField({ label: 'initiative refund charges', patch: 'primary' }),
     antiquaryStealthAttackCharges: numberField({ label: 'stealth attack charges granted', patch: 'primary' }),
     rechargeMultiplier: numberField({ label: 'next utility recharge multiplier', patch: 'primary' })

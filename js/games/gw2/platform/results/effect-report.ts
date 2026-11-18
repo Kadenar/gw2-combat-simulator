@@ -1,4 +1,5 @@
-import { effectStateValue, type EffectState } from '#gw2/platform/combat/effect-state.js';
+import { buffApplicationExpiry } from '#gw2/platform/combat/buff-expiry.js';
+import { effectStateIntervalValue, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { EffectMetadata, SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { cloneData } from '#kernel/core/clone.js';
@@ -138,6 +139,7 @@ export class EffectRecorder implements EffectReportObserver {
         previous.state.windows.every(
           (window, index) =>
             window.expiresAt === state.windows[index]!.expiresAt &&
+            window.removedAt === state.windows[index]!.removedAt &&
             window.stacks === state.windows[index]!.stacks &&
             window.source?.eventOrder === state.windows[index]!.source?.eventOrder &&
             window.source?.at === state.windows[index]!.source?.at
@@ -173,9 +175,8 @@ export class EffectRecorder implements EffectReportObserver {
     const boundaries = [
       track.at,
       ...new Set(
-        track.state.windows
-          .map((window) => window.expiresAt)
-          .filter((at): at is number => at != null && at > track.at && at < end)
+        // A removed window's segment ends at its removal, not its natural deadline.
+        track.state.windows.map(buffApplicationExpiry).filter((at) => at > track.at && at < end)
       ),
       end
     ].sort((a, b) => a - b);
@@ -185,7 +186,8 @@ export class EffectRecorder implements EffectReportObserver {
 
       if (finish <= start) continue;
 
-      const value = effectStateValue(track.state, start);
+      // Each segment is half-open, so its value is the state just after its start.
+      const value = effectStateIntervalValue(track.state, start);
 
       if (!value.count) continue;
 
@@ -216,7 +218,7 @@ export class EffectRecorder implements EffectReportObserver {
       const segments = track.segments
         .filter((segment) => segment.start < end)
         .map((segment) => ({ ...segment, end: Math.min(end, segment.end) }));
-      const terminal = effectStateValue(track.state, end);
+      const terminal = effectStateIntervalValue(track.state, end);
       tracks.push({ ...metadata, id, segments, terminal });
     }
 

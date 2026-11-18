@@ -194,10 +194,10 @@ test('all six finite Guardian follow-ups retain deadline state until queued game
     const native = guardianProfession.runtimeFor(config);
     const checked = [];
     const result = runGuardian([parentId, wait(20000)], config, {
-      probes: [
-        [
-          deadline,
-          (runtime) => {
+      timeline: [
+        {
+          at: deadline,
+          run(runtime) {
             assert.ok(runtime.flips[flipId]);
             assert.equal(native.availability(runtime, guardianCatalog.skillsById.get(flipId)).ready, false);
             const projected = projectObservedPlanningState(guardianProfession, {
@@ -208,7 +208,9 @@ test('all six finite Guardian follow-ups retain deadline state until queued game
             assert.equal(projected.profession[STATE.AVAILABLE_FLIPS][flipId], undefined);
             checked.push('gameplay');
           }
-        ],
+        }
+      ],
+      probes: [
         [
           deadline + 0.000001,
           (runtime) => {

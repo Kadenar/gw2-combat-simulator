@@ -109,7 +109,7 @@ test('mech inheritance stays boon-free while copied Might gains, expiry and weap
   });
   assert.equal(sample().conditionDamage, 1210);
   assert.equal(sample().power, 1590);
-  context.time = 2;
+  context.time = 2.000001;
   assert.equal(sample().conditionDamage, 1120);
   context.weaponSet = context.runtime.activeWeaponSet = 2;
   assert.equal(sample().conditionDamage, 620);

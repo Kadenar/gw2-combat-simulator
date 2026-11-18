@@ -6,32 +6,32 @@
         "label": "Power (Greatsword-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-bench.json",
-        "benchmarkDps": 43541,
+        "benchmarkDps": 43543,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-greatsword-dagger-sword",
         "upToDate": true,
         "benchmarkApm": 98.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 51628, "phase": 51628 },
-          "80-60": { "cumulative": 44973, "phase": 39713 },
-          "60-40": { "cumulative": 42207, "phase": 37521 },
-          "40-20": { "cumulative": 41947, "phase": 41183 },
-          "20-0": { "cumulative": 43541, "phase": 51224 }
+          "100-80": { "cumulative": 51629, "phase": 51629 },
+          "80-60": { "cumulative": 44974, "phase": 39714 },
+          "60-40": { "cumulative": 42210, "phase": 37526 },
+          "40-20": { "cumulative": 41949, "phase": 41184 },
+          "20-0": { "cumulative": 43543, "phase": 51225 }
         }
       },
       {
         "label": "Power (Spear-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer-dagger-sword-spear.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-dagger-sword-spear-bench.json",
-        "benchmarkDps": 42708,
+        "benchmarkDps": 42711,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-spear-dagger-sword",
         "upToDate": false,
         "benchmarkApm": 97.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 49002, "phase": 49002 },
-          "80-60": { "cumulative": 41943, "phase": 36629 },
-          "60-40": { "cumulative": 41003, "phase": 39228 },
-          "40-20": { "cumulative": 42684, "phase": 48501 },
-          "20-0": { "cumulative": 42708, "phase": 42708 }
+          "100-80": { "cumulative": 49004, "phase": 49004 },
+          "80-60": { "cumulative": 41948, "phase": 36636 },
+          "60-40": { "cumulative": 41007, "phase": 39230 },
+          "40-20": { "cumulative": 42687, "phase": 48501 },
+          "20-0": { "cumulative": 42711, "phase": 42711 }
         }
       },
       {
@@ -75,13 +75,13 @@
         "build": "data/gw2/builds/mesmer/b-power-mirage-spear-dagger-sword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-dagger-sword-bench.json",
         "upToDate": true,
-        "benchmarkDps": 42805,
+        "benchmarkDps": 42809,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42070, "phase": 42070 },
-          "80-60": { "cumulative": 41905, "phase": 41742 },
-          "60-40": { "cumulative": 41706, "phase": 41319 },
-          "40-20": { "cumulative": 41264, "phase": 39953 },
-          "20-0": { "cumulative": 42805, "phase": 50201 }
+          "100-80": { "cumulative": 42072, "phase": 42072 },
+          "80-60": { "cumulative": 41908, "phase": 41745 },
+          "60-40": { "cumulative": 41708, "phase": 41320 },
+          "40-20": { "cumulative": 41266, "phase": 39956 },
+          "20-0": { "cumulative": 42809, "phase": 50212 }
         },
         "benchmarkApm": 110.1
       },
@@ -89,16 +89,16 @@
         "label": "Condition (Staff-Axe/Torch) - Dune Cloak",
         "build": "data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
-        "benchmarkDps": 40393,
+        "benchmarkDps": 40394,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-mirage-dune-cloak-staff-axe-torch",
         "upToDate": true,
         "benchmarkApm": 106,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 39787, "phase": 39787 },
-          "80-60": { "cumulative": 40866, "phase": 42001 },
+          "80-60": { "cumulative": 40866, "phase": 42003 },
           "60-40": { "cumulative": 40032, "phase": 38483 },
           "40-20": { "cumulative": 39735, "phase": 38845 },
-          "20-0": { "cumulative": 40393, "phase": 40393 }
+          "20-0": { "cumulative": 40394, "phase": 40394 }
         }
       }
     ]
@@ -126,16 +126,16 @@
         "label": "Condition (Dagger/Sword-Pistol)",
         "build": "data/gw2/builds/mesmer/b-condi-virtuoso.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-virtuoso-bench.json",
-        "benchmarkDps": 41288,
+        "benchmarkDps": 41289,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-virtuoso-dagger-sword-pistol",
         "upToDate": true,
         "benchmarkApm": 60.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 41969, "phase": 41969 },
-          "80-60": { "cumulative": 41599, "phase": 41248 },
-          "60-40": { "cumulative": 41278, "phase": 40620 },
-          "40-20": { "cumulative": 41426, "phase": 41876 },
-          "20-0": { "cumulative": 41288, "phase": 40736 }
+          "100-80": { "cumulative": 41970, "phase": 41970 },
+          "80-60": { "cumulative": 41600, "phase": 41249 },
+          "60-40": { "cumulative": 41280, "phase": 40622 },
+          "40-20": { "cumulative": 41427, "phase": 41876 },
+          "20-0": { "cumulative": 41289, "phase": 40736 }
         }
       }
     ]
@@ -147,16 +147,16 @@
         "label": "Power (Dagger-Sword / Spear)",
         "build": "data/gw2/builds/mesmer/b-power-troubadour.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-troubadour-bench.json",
-        "benchmarkDps": 41580,
+        "benchmarkDps": 41612,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-troubadour-spear-dagger-sword",
         "upToDate": true,
         "benchmarkApm": 74.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42136, "phase": 42136 },
-          "80-60": { "cumulative": 39368, "phase": 36944 },
-          "60-40": { "cumulative": 40643, "phase": 43474 },
-          "40-20": { "cumulative": 39931, "phase": 37936 },
-          "20-0": { "cumulative": 41580, "phase": 41580 }
+          "100-80": { "cumulative": 42140, "phase": 42140 },
+          "80-60": { "cumulative": 39246, "phase": 36706 },
+          "60-40": { "cumulative": 40690, "phase": 43888 },
+          "40-20": { "cumulative": 39968, "phase": 37943 },
+          "20-0": { "cumulative": 41612, "phase": 41612 }
         }
       },
       {
@@ -165,13 +165,13 @@
         "rotation": "data/gw2/rotations/mesmer/r-power-quickness-troubadour-spear-dagger-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-quickness-troubadour-spear-dagger-sword",
         "upToDate": true,
-        "benchmarkDps": 32454,
+        "benchmarkDps": 32438,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 29825, "phase": 29825 },
-          "80-60": { "cumulative": 30654, "phase": 31516 },
-          "60-40": { "cumulative": 31172, "phase": 32271 },
-          "40-20": { "cumulative": 31601, "phase": 32985 },
-          "20-0": { "cumulative": 32454, "phase": 32454 }
+          "100-80": { "cumulative": 29855, "phase": 29855 },
+          "80-60": { "cumulative": 30475, "phase": 31124 },
+          "60-40": { "cumulative": 31067, "phase": 32319 },
+          "40-20": { "cumulative": 31618, "phase": 33384 },
+          "20-0": { "cumulative": 32438, "phase": 32438 }
         },
         "benchmarkApm": 74.2
       },
@@ -181,13 +181,13 @@
         "rotation": "data/gw2/rotations/mesmer/r-power-quickness-troubadour-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-quickness-troubadour-spear-greatsword",
         "upToDate": true,
-        "benchmarkDps": 31776,
+        "benchmarkDps": 31786,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 31646, "phase": 31646 },
-          "80-60": { "cumulative": 30733, "phase": 29850 },
-          "60-40": { "cumulative": 30940, "phase": 31374 },
-          "40-20": { "cumulative": 31700, "phase": 34215 },
-          "20-0": { "cumulative": 31776, "phase": 31776 }
+          "100-80": { "cumulative": 31590, "phase": 31590 },
+          "80-60": { "cumulative": 31009, "phase": 30426 },
+          "60-40": { "cumulative": 30997, "phase": 30974 },
+          "40-20": { "cumulative": 31668, "phase": 33908 },
+          "20-0": { "cumulative": 31786, "phase": 31786 }
         },
         "benchmarkApm": 75.5
       }

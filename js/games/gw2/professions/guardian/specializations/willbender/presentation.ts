@@ -46,7 +46,7 @@ function willbenderStateSnapshot(
 
   const lethalRemaining = (state[STATE.LETHAL_TEMPO]?.expiresAt || 0) - at;
   const maximum = balanceNumber(context.balanceContext.catalog, WILLBENDER_TRAIT.LETHAL_TEMPO, 'maximumStacks');
-  const lethalStacks = boundedInteger(activeBatchCount(state[STATE.LETHAL_TEMPO], at, 'inclusive'), 0, 0, maximum);
+  const lethalStacks = boundedInteger(activeBatchCount(state[STATE.LETHAL_TEMPO], at), 0, 0, maximum);
 
   // Lethal Tempo remains available for damage and refreshes on its final tick.
   if ((state[STATE.LETHAL_TEMPO]?.expiresAt || 0) > 0 && lethalRemaining >= 0 && lethalStacks > 0) {

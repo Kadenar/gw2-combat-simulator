@@ -4,7 +4,7 @@ import {
 } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
+import { expireStacks } from '#kernel/resources/timed-stacks.js';
 
 export interface ScourgeState {
   shadeGeneration: number;
@@ -21,9 +21,9 @@ function createScourgeState(): ScourgeState {
   return state;
 }
 
-/** Removes expired shades at the Scourge module boundary. */
-export function purgeScourgeTimedState(state: ScourgeState, at: number): void {
-  state.shades = purgeExpiredStacks(state.shades, at);
+/** Shade expiry cleanup also removes shades whose deadline is this timestamp. */
+export function expireScourgeShades(state: ScourgeState, at: number): void {
+  state.shades = expireStacks(state.shades, at);
 }
 
 // Shade lifetime and Sand Sage attributes read the same state.

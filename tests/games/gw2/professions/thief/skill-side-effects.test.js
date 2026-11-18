@@ -190,7 +190,7 @@ test('Thief activation declarations are the sole owners of their state transitio
       config: { selectedSkillIds: [13037] },
       active: (runtime) =>
         Object.values(runtime.profession.core.venomChargeBatches).some((batches) =>
-          batches.some((grant) => activeBatchCount(grant, runtime.time, 'exclusive') > 0)
+          batches.some((grant) => activeBatchCount(grant, runtime.time) > 0)
         )
     },
     {

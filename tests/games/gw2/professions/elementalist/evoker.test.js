@@ -195,10 +195,10 @@ test('Electric Enchantment consumes accepted post-grant hits chronologically and
   );
 });
 
-test('Electric Enchantment includes grant time and excludes expiry for queued strikes', () => {
+test('Electric Enchantment includes its deadline for queued strikes and expires afterward', () => {
   for (const at of [2.5, 3, 8.999999, 9, 10]) {
     const result = enchantments({ hits: [[at]], grants: [[3, 1, 6]] });
-    assert.equal(enchantedHits(result).length, at >= 3 && at < 9 ? 1 : 0);
+    assert.equal(enchantedHits(result).length, at >= 3 && at <= 9 ? 1 : 0);
   }
 });
 
@@ -215,7 +215,6 @@ test('Electric Enchantment keeps overlapping grants independent of future queued
         run: (r) =>
           assert.deepEqual(
             activeBatches(evokerState.from(r.profession).electricEnchantmentGrants, r.time, {
-              expiry: 'exclusive',
               order: 'earliest-expiry'
             }).map((g) => g.count),
             [1, 2]
@@ -226,17 +225,16 @@ test('Electric Enchantment keeps overlapping grants independent of future queued
         run: (r) =>
           assert.deepEqual(
             activeBatches(evokerState.from(r.profession).electricEnchantmentGrants, r.time, {
-              expiry: 'exclusive',
               order: 'earliest-expiry'
             }).map((g) => g.count),
-            [1]
+            [2]
           )
       }
     ]
   });
   assert.deepEqual(
     enchantedHits(result).map((e) => e.at),
-    [8, 9]
+    [8, 9, 13]
   );
 });
 
@@ -796,7 +794,7 @@ test('Familiar Prowess retains its applied window and patched Focus scaling afte
     ),
     130
   );
-  assert.equal(runtime.calculations.modifyStrikeDamage({ ...context, time: 2 }, 100), 100);
+  assert.equal(runtime.calculations.modifyStrikeDamage({ ...context, time: 2.000001 }, 100), 100);
 });
 
 test('Familiar Focus replaces the shared Prowess bonus only while selected and the buff is active', () => {
@@ -821,7 +819,7 @@ test('Familiar Focus replaces the shared Prowess bonus only while selected and t
       ['Fire', 'modifyConditionDamage', focusCondition]
     ]) {
       for (const selected of [false, true]) {
-        for (const time of [1, 2]) {
+        for (const time of [1, 2.000001]) {
           const damageContributors = [];
           const context = {
             time,

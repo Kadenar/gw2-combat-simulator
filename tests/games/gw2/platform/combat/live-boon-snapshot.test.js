@@ -50,7 +50,7 @@ test('live boon snapshots isolate companion generations and observe only execute
   assert.deepEqual(combat.boonSnapshot('might', 2, pet('new')), { stacks: 5, duration: 4 });
   assert.deepEqual(combat.boonSnapshot('might', 2, pet('old')), { stacks: 3, duration: 5 });
   assert.deepEqual(combat.boonSnapshot('might', 2, player), { stacks: 7, duration: 8 });
-  assert.deepEqual(combat.boonSnapshot('might', 6, pet('new')), { stacks: 0, duration: 0 });
+  assert.deepEqual(combat.boonSnapshot('might', 6.000001, pet('new')), { stacks: 0, duration: 0 });
 });
 
 test('live boon snapshots retain pooled duration beyond individual grants and honor caps and expiry', () => {
@@ -58,7 +58,7 @@ test('live boon snapshots retain pooled duration beyond individual grants and ho
   grant('fury', 0, 2, 1, 'pet');
   grant('fury', 0, 2, 1, 'pet');
   assert.deepEqual(combat.boonSnapshot('fury', 3, pet('pet')), { stacks: 1, duration: 1 });
-  assert.deepEqual(combat.boonSnapshot('fury', 4, pet('pet')), { stacks: 0, duration: 0 });
+  assert.deepEqual(combat.boonSnapshot('fury', 4.000001, pet('pet')), { stacks: 0, duration: 0 });
   grant('fury', 5, 50, 1, 'pet');
   assert.deepEqual(combat.boonSnapshot('fury', 5, pet('pet')), { stacks: 1, duration: 30 });
   grant('might', 5, 10, 20, 'pet');

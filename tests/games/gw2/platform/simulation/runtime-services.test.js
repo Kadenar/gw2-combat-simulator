@@ -360,7 +360,9 @@ test('declarative recharge anchors govern cooldown eligibility and composed comp
       data:
         id === 'Core'
           ? {
-              skills: skills.map((skill) => (skill.id === 991002 ? { ...skill, rechargeOffsetMs: -500 } : skill)),
+              skills: skills.map((skill) =>
+                skill.id === 991002 ? { ...skill, rechargeAnchor: 'beforeCastEnd', rechargeOffsetMs: 500 } : skill
+              ),
               weapons: ['Sword']
             }
           : {},

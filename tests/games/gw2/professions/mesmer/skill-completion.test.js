@@ -82,7 +82,7 @@ test('Lancer consumes Clarity before preparation and never reuses another activa
   for (const [id, start, until, cancelled] of [
     ['first', 1, 2, true],
     ['next', 1.1, 0, false],
-    ['expiry', 2, 2, false]
+    ['expiry', 2.04, 2, false]
   ]) {
     runtime.profession.core.clarity = { count: until > 0 ? 1 : 0, expiresAt: until };
     runtime.profession.core.castDetails.set(id, {});

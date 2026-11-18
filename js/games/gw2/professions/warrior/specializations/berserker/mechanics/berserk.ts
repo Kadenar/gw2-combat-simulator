@@ -60,7 +60,7 @@ function publishBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>
       duration: until - runtime.time
     }
   });
-  runtime.schedule(BERSERK_EXPIRE, until, until, undefined, -220);
+  runtime.scheduleExpiry(BERSERK_EXPIRE, until, until, { priority: -220 });
 }
 
 /** Completed activation opens or extends the current mode; expiring during a cast cannot revive it. */

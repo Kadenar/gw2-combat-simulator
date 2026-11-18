@@ -87,12 +87,7 @@ test('Devastator samples Focused at its task deadline and requires a committed c
                       audience: { recipients: 'self' }
                     }
                   });
-                else
-                  runtime.combat.reviseBuffExpiry(
-                    'engineer-focused',
-                    () => true,
-                    () => runtime.time
-                  );
+                else runtime.combat.endBuffs('engineer-focused', runtime.time, () => true);
               }
             }
           };
@@ -176,7 +171,7 @@ test('Lightning Rod replacement retires old pulses and each charge expires after
   assert.equal(expiries.length, 1);
   assert.equal(expiries[0], pulses[1].at + 12);
   assert.equal(activeStackCount(expiries, expiries[0] - 0.001), 1);
-  assert.equal(activeStackCount(expiries, expiries[0]), 0);
+  assert.equal(activeStackCount(expiries, expiries[0] + 0.000001), 0);
 });
 
 // Consuming a projectile is separate from landing it, and later actions may run during its flight.

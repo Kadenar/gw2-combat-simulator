@@ -2,6 +2,7 @@
  * Owns Luminary stance and stance-chain skill definitions.
  * Persistent stance windows and scheduled effects remain in `hooks.ts`.
  */
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -17,7 +18,6 @@ import { AURA_GRANT, EFFULGENT, STANCE } from '#gw2/professions/guardian/special
 import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 // Cast-scaled impacts use the measured Quickness timeline as their source data.
 const PIERCING_STANCE_IMPACT_MS = 160;
@@ -63,7 +63,8 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
               event.type === 'buff' &&
               event.kind === kind &&
               event.at < context.time &&
-              gw2EffectExpiresAt(event.at, event.duration || 0) > context.time
+              // An older application ending at this impact still boosts it, like every other tied hit.
+              buffDeadlineActive(gw2EffectExpiresAt(event.at, event.duration || 0), context.time)
           );
         }
       }
@@ -195,12 +196,12 @@ const luminaryStanceActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>['
     runtime.schedule(AURA_GRANT, cast.start, { cause: event, skillId: cast.skill.id }, undefined, -10);
     const state = luminaryState.from(runtime.profession);
     const skill = requireSkill(runtime.helpers, cast.skill.id);
-    state.effulgentActiveUntil = canonicalTime(
-      cast.start + requireBalanceNumber(skill.duration, `skill=${skill.id} field=duration`)
-    );
+    const duration = requireBalanceNumber(skill.duration, `skill=${skill.id} field=duration`);
+    state.effulgentActiveUntil = gw2EffectExpiresAt(cast.start, duration);
     state.effulgentStacks = 0;
     state.effulgentActivationId = cast.id;
-    runtime.schedule(EFFULGENT, state.effulgentActiveUntil, event);
+    // The payoff resolves after every hit tied to the deadline, so those hits count toward its stacks.
+    runtime.scheduleExpiry(EFFULGENT, state.effulgentActiveUntil, event);
   }
 };
 

@@ -7,23 +7,27 @@ import {
   consumeNewestStacks,
   consumeOldestStacks,
   grantTimedStackApplications,
+  expireStacks,
   grantTimedStacks,
   purgeExpiredStacks
 } from '#kernel/resources/timed-stacks.js';
 
-// Tick-aligned and off-grid lifetimes must close at the same instant as the event clock.
+// Tick-aligned and off-grid lifetimes stay live through the event clock's deadline and close after it.
 for (const [at, duration, expiry] of [
   [0.56, 0.04, 0.6],
   [0.137, 5, 5.137]
 ]) {
-  test(`timed stacks expire at their canonical deadline ${expiry}`, () => {
+  test(`timed stacks expire after their canonical deadline ${expiry}`, () => {
     const grant = addTimedStacks([], 1, at, duration, 1);
     assert.deepEqual(grant, { expiries: [expiry], added: 1 });
     assert.equal(activeStackCount(grant.expiries, expiry - 0.000001), 1);
-    assert.equal(activeStackCount(grant.expiries, expiry), 0);
-    assert.deepEqual(purgeExpiredStacks(grant.expiries, expiry), []);
-    assert.equal(consumeOldestStacks(grant.expiries, 1, expiry).consumed, 0);
-    assert.equal(consumeNewestStacks(grant.expiries, 1, expiry).consumed, 0);
+    assert.equal(activeStackCount(grant.expiries, expiry), 1);
+    assert.equal(activeStackCount(grant.expiries, expiry + 0.000001), 0);
+    assert.deepEqual(purgeExpiredStacks(grant.expiries, expiry), [expiry]);
+    assert.deepEqual(purgeExpiredStacks(grant.expiries, expiry + 0.000001), []);
+    assert.deepEqual(expireStacks(grant.expiries, expiry), []);
+    assert.equal(consumeOldestStacks(grant.expiries, 1, expiry).consumed, 1);
+    assert.equal(consumeNewestStacks(grant.expiries, 1, expiry + 0.000001).consumed, 0);
     assert.equal(addTimedStacks(grant.expiries, 1, expiry, 1, 1).added, 1);
 
     for (const retain of ['latest-expiry', 'newest-grant', 'replace-earliest']) {
@@ -36,10 +40,12 @@ for (const [at, duration, expiry] of [
 
 test('timed-stack queries compare canonical instants and preserve unbounded preview stacks', () => {
   const expiries = Object.freeze([0.56 + 0.04, Infinity]);
-  assert.equal(activeStackCount(expiries, 0.6), 1);
-  assert.deepEqual(purgeExpiredStacks(expiries, 0.6), [Infinity]);
-  assert.equal(activeStackCount([0.1], 0.3 - 0.2), 0);
-  assert.equal(consumeNewestStacks(expiries, 2, 0.6).consumed, 1);
+  assert.equal(activeStackCount(expiries, 0.6), 2);
+  assert.equal(activeStackCount(expiries, 0.600001), 1);
+  assert.deepEqual(purgeExpiredStacks(expiries, 0.600001), [Infinity]);
+  assert.deepEqual(expireStacks(expiries, 0.6), [Infinity]);
+  assert.equal(activeStackCount([0.1], 0.3 - 0.2), 1);
+  assert.equal(consumeNewestStacks(expiries, 2, 0.600001).consumed, 1);
   assert.deepEqual(addTimedStacks([], 1, 0.137, Infinity, 1).expiries, [Infinity]);
   assert.deepEqual(
     grantTimedStacks([], {
@@ -53,10 +59,11 @@ test('timed-stack queries compare canonical instants and preserve unbounded prev
   );
 });
 
-test('purge and count drop applications expiring exactly at the observation time', () => {
+test('purge keeps applications expiring at the observation time while cleanup expiry drops them', () => {
   const expiries = Object.freeze([4, 5, 6]);
-  assert.deepEqual(purgeExpiredStacks(expiries, 5), [6]);
-  assert.equal(activeStackCount(expiries, 5), 1);
+  assert.deepEqual(purgeExpiredStacks(expiries, 5), [5, 6]);
+  assert.equal(activeStackCount(expiries, 5), 2);
+  assert.deepEqual(expireStacks(expiries, 5), [6]);
   assert.deepEqual(expiries, [4, 5, 6], 'reads never prune caller-owned state');
 });
 

@@ -8,7 +8,7 @@ import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { commitHammerOrbFixture } from '#tests/helpers/elementalist-hammer-orbs.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 
-// Aura expiry leaves orb cleanup to its owner; a new grant cannot refresh an orb already at its deadline.
+// Aura and orb cleanup retain separate owners; a tied grant can refresh an orb before either cleanup runs.
 test('coincident aura expiry preserves hammer orb ownership until its own task', () => {
   for (const refresh of [false, true]) {
     const result = runElementalist(
@@ -33,7 +33,7 @@ test('coincident aura expiry preserves hammer orb ownership until its own task',
             priority: 25,
             run(runtime) {
               const state = runtime.profession.core;
-              assert.deepEqual(state.activeAuras, []);
+              assert.deepEqual(state.activeAuras, [{ type: 'Fire Aura', expiresAt: 2 }]);
               assert.equal(state.hammerOrbs.Fire, runtime.time);
               assert.equal(state.hammerOrbActivationIds.Fire, 'first-orb');
 
@@ -46,8 +46,8 @@ test('coincident aura expiry preserves hammer orb ownership until its own task',
             2,
             (runtime) => {
               const state = runtime.profession.core;
-              assert.equal(state.hammerOrbs.Fire, null);
-              assert.equal(state.hammerOrbActivationIds.Fire, null);
+              assert.equal(state.hammerOrbs.Fire, refresh ? 4 : null);
+              assert.equal(state.hammerOrbActivationIds.Fire, refresh ? 'first-orb' : null);
               assert.equal(state.hammerOrbActivationIds.Water, refresh ? 'second-orb' : null);
             }
           ],

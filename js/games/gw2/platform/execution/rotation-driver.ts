@@ -1,7 +1,11 @@
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { ACTOR } from '#gw2/platform/constants.js';
-import type { RuntimeDriver, RuntimeDriverContext } from '#gw2/platform/execution/driver-contract.js';
+import type {
+  RuntimeDriver,
+  RuntimeDriverContext,
+  RuntimeDriverRejection
+} from '#gw2/platform/execution/driver-contract.js';
 import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import {
   createSkillSelectionContext,
@@ -29,7 +33,7 @@ export function createRotationDriver<T extends object>(
       reject
     }: RuntimeDriverContext<T>,
     buffsOnly: boolean
-  ): number | 'handled' {
+  ): number | 'handled' | RuntimeDriverRejection {
     selectionContext ??= createSkillSelectionContext(runtime.traits);
     const command = cursor.command;
     let nextCommandAt = Infinity;
@@ -183,15 +187,11 @@ export function createRotationDriver<T extends object>(
         const availability = evaluateReadiness(skill, command);
 
         if (!availability.ready) {
-          if (availability.retryAt == null) {
-            reject(availability.reason);
-            return 'handled';
-          }
+          // The coordinator rejects only after same-time cleanup, which can unlock this command.
+          if (availability.retryAt == null) return { rejection: availability.reason };
 
-          if (!Number.isFinite(availability.retryAt) || availability.retryAt <= runtime.time) {
-            reject(`${availability.reason} (no future retry boundary).`);
-            return 'handled';
-          }
+          if (!Number.isFinite(availability.retryAt) || availability.retryAt <= runtime.time)
+            return { rejection: `${availability.reason} (no future retry boundary).` };
 
           // GW2 retries wait for an absolute action tick, including deadlines less than a microsecond after a tick.
           const tickAt = gw2CooldownReadyAt(availability.retryAt);

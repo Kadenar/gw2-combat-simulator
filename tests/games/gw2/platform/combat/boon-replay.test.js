@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { buffApplicationStacks, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { buffApplicationStacks, durationStackState } from '#gw2/platform/combat/boons.js';
+import { createLiveEffects } from '#gw2/platform/combat/live-effects.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
+import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
 const attribution = { source: 'replay probe', sourceId: 'grant', actorType: 'player' };
@@ -30,6 +33,35 @@ const extension = (kind) => ({
   causalOrder: 1
 });
 
+// An extension at the exact deadline extends the boon in every reader.
+test('tied extensions agree across direct application, timeline, uptime, and generation', () => {
+  for (const kind of ['fury', 'might']) {
+    const events = [
+      {
+        ...grant(kind),
+        resolvedAudience: {
+          includesSelf: true,
+          includesSummons: false,
+          alliedPlayerCount: 0,
+          companionIds: [],
+          recipientCount: 1
+        }
+      },
+      { ...extension(kind), at: 1 }
+    ];
+    const live = createLiveEffects();
+    live.grant(events[0]);
+    live.extend(events[1]);
+    assert.equal(live.queries.stacks(kind, 1.5, 25), 1);
+    const timeline = createGw2TimelineIndex({ events });
+    assert.equal(timeline.buffStacksAt(kind, 1.5, 0, 25), 1);
+    const report = effectFields(events, 4);
+    const track = report.effectReport.tracks.find((track) => track.kind === kind && track.recipient === 'self');
+    assert.equal(effectStateAt(report.effectReport, track, 1.5).count, 1);
+    assert.equal(report.boonGeneration.boons[kind].self.generatedStackSeconds, 3);
+  }
+});
+
 test('executed boon replay preserves priority ahead of causal order in both output modes', () => {
   // Priority makes the grant happen first; equal priority instead lets the extension run against an empty pool.
   for (const output of ['detailed', 'score']) {
@@ -52,7 +84,7 @@ test('executed boon replay preserves priority ahead of causal order in both outp
         );
         assert.equal(runtime.query.timeline.buffStacksAt(kind, 1.5, 0, 25), expected);
         assert.equal(runtime.query.timeline.buffStacksAt(kind, 0.5, 0, 25), 1);
-        assert.equal(runtime.query.timeline.buffStacksAt(kind, 3, 0, 25), 0);
+        assert.equal(runtime.query.timeline.buffStacksAt(kind, 3.000001, 0, 25), 0);
       }
     }
   }
@@ -182,15 +214,15 @@ test('native No Quarter records its immediate extension once in gameplay history
     assert.equal(fact.parentEventOrder, hit.eventOrder);
     assert.equal(fact.causalOrder, hit.causalOrder);
     assert.equal(
-      remainingDurationStackSeconds(runtime.liveEffects.queries.boonApplications('fury'), 1, {
+      durationStackState(runtime.liveEffects.queries.boonApplications('fury'), 1, {
         includes: (application) => application.resolvedAudience.includesSelf,
         maximum: 30
-      }),
+      }).remaining,
       1 + fact.duration
     );
     for (const [at, expected] of [
       [3, 1],
-      [2 + fact.duration, 0]
+      [2 + fact.duration + 0.000001, 0]
     ]) {
       assert.equal(
         buffApplicationStacks(runtime.liveEffects.queries.boonApplications('fury'), 'fury', at, 1),
@@ -262,8 +294,8 @@ test('a nested extension is visible immediately and follows its grant without ex
       assert.equal(facts[1].eventOrder, receipt.eventOrder);
       assert.equal(facts[1].parentEventOrder, parent.eventOrder);
       assert.equal(facts[1].at, parent.at);
-      assert.equal(runtime.query.timeline.buffStacksAt(kind, 3, 0, 25), 0);
-      assert.equal(buffApplicationStacks(runtime.liveEffects.queries.boonApplications(kind), kind, 3, 25), 0);
+      assert.equal(runtime.query.timeline.buffStacksAt(kind, 3.000001, 0, 25), 0);
+      assert.equal(buffApplicationStacks(runtime.liveEffects.queries.boonApplications(kind), kind, 3.000001, 25), 0);
     }
   }
 });
@@ -272,7 +304,7 @@ test('an immediate extension records execution without resurrecting an expired b
   // An extension can execute successfully after expiry while leaving the expired pool empty in live and replay queries.
   let runtime;
   const result = resolveTestGw2Events({
-    events: [grant('fury'), { ...grant('might'), at: 1 }],
+    events: [grant('fury'), { ...grant('might'), at: 1.000001 }],
     endTime: 2,
     engineInitialize(owner) {
       runtime = owner;

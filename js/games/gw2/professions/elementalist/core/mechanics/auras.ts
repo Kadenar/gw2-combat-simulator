@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { buffDeadlineActive, buffDeadlineReached } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { ACTOR, type AuraName } from '#gw2/platform/constants.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -46,7 +47,7 @@ function insertAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void
     type: String(event.aura || ''),
     expiresAt
   });
-  context.schedule('elementalist.aura-expire', expiresAt, null);
+  context.scheduleExpiry('elementalist.aura-expire', expiresAt);
 }
 
 /** Standard aura acceptance records profession state once without republishing the shared reaction. */
@@ -66,14 +67,14 @@ export const elementalistAuraLifecycle = {
       const aura = trigger.skill.transmuteAura;
       const state = context.profession.core;
       state.activeAuras = state.activeAuras.filter(
-        (candidate) => candidate.type !== aura || candidate.expiresAt <= trigger.cast.effectiveEnd
+        (candidate) => candidate.type !== aura || !buffDeadlineActive(candidate.expiresAt, trigger.cast.effectiveEnd)
       );
     }
   },
   tasks: {
     'elementalist.aura-expire'(runtime) {
       runtime.profession.core.activeAuras = runtime.profession.core.activeAuras.filter(
-        (aura) => aura.expiresAt > runtime.time
+        (aura) => !buffDeadlineReached(aura.expiresAt, runtime.time)
       );
     }
   }

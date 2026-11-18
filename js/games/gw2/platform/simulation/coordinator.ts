@@ -216,6 +216,14 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     completion?: () => number
   ): void {
     const cursor = execution.driver.cursor;
+    const dispatchNext = (): void => {
+      try {
+        dispatch(queue.dequeue()!);
+      } finally {
+        queue.currentCausalOrder = null;
+      }
+    };
+
     // Each iteration either dispatches work, consumes one command, or advances to an actual boundary.
     let finished = false;
     for (let iteration = 0; iteration < DEFAULT_EXECUTION_ITERATION_LIMIT; iteration++) {
@@ -236,19 +244,37 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
       )
         continue;
 
-      if (due && due.at <= runtime.time) {
-        try {
-          dispatch(queue.dequeue()!);
-        } finally {
-          queue.currentCausalOrder = null;
-        }
+      // Gameplay at this timestamp runs before commands; expiry cleanup waits for same-time commands.
+      if (due && due.at <= runtime.time && queue.nextPhase! < GW2_RESOLVER_PHASE.Expiry) {
+        dispatchNext();
+        continue;
+      }
 
+      // Once cleanup starts, drain every tied entry and its consequences before retrying commands.
+      if (
+        due &&
+        due.at <= runtime.time &&
+        queue.currentTime === runtime.time &&
+        queue.currentPhase === GW2_RESOLVER_PHASE.Expiry
+      ) {
+        dispatchNext();
         continue;
       }
 
       const commandBoundary = execution.driver.advance(driverContext);
 
       if (commandBoundary === 'handled') continue;
+
+      // Cleanup can unlock a blocked command, so it runs before a readiness rejection becomes final.
+      if (due && due.at <= runtime.time) {
+        dispatchNext();
+        continue;
+      }
+
+      if (typeof commandBoundary === 'object') {
+        driverContext.reject(commandBoundary.rejection);
+        continue;
+      }
 
       let nextCommandAt = commandBoundary;
 

@@ -72,10 +72,10 @@ test('Renegade observations retain live charge consumption and strict Fervor exp
   const observed = effects(result);
   const razorclaw = observed.find(({ kind }) => kind === 'razorclaws-rage');
   assert.equal(effectStateValue(razorclaw, 1).count, 1);
-  assert.equal(effectStateValue(razorclaw, 2).count, 0);
+  assert.equal(effectStateValue(razorclaw, 2.000001).count, 0);
   const fervor = observed.find(({ kind }) => kind === 'kallas-fervor');
   assert.equal(effectStateValue(fervor, 1).count, 1);
-  assert.equal(effectStateValue(fervor, 2).count, 0);
+  assert.equal(effectStateValue(fervor, 2.000001).count, 0);
 });
 
 test('Band Together observation disappears when its enhancement is consumed or expires', () => {
@@ -108,7 +108,7 @@ test('Band Together observation disappears when its enhancement is consumed or e
   const idle = runRevenant([], config, options);
   const band = idle.planningState.effects.find(({ kind }) => kind === 'band-together');
   assert.equal(effectStateValue(band, 1).count, 1);
-  assert.equal(effectStateValue(band, 2).count, 0);
+  assert.equal(effectStateValue(band, 2.000001).count, 0);
   const consumed = runRevenant([{ type: 'cast', skillId: 40485 }], config, options);
   assert.deepEqual(consumed.warnings, []);
   assert.equal(

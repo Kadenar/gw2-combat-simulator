@@ -111,7 +111,7 @@ test('live empty stores never borrow scheduled grants or non-boon configuration'
   assert.equal(activeBoonStacks({ ...context, runtime }, 'superspeed'), 0);
   assert.equal(boonActive({ ...context, runtime }, 'superspeed'), false);
   assert.equal(countActiveBoons({ ...context, runtime }), 0);
-  assert.equal(activeBuffStacks({ ...context, runtime, time: 2 }, 'superspeed'), 0);
+  assert.equal(activeBuffStacks({ ...context, runtime, time: 2.000001 }, 'superspeed'), 0);
 });
 
 test('buff expiry revisions preserve historical intervals and select only the consumed recipient', () => {
@@ -131,7 +131,7 @@ test('buff expiry revisions preserve historical intervals and select only the co
     () => 2
   );
   assert.equal(combat.activeBuffStacks('fixture-buff', 1, 1), 1);
-  assert.equal(combat.activeBuffStacks('fixture-buff', 2, 1), 0);
+  assert.equal(combat.activeBuffStacks('fixture-buff', 2.000001, 1), 0);
   assert.equal(combat.buffApplications('fixture-buff')[1].expiresAt, 10);
   assert.deepEqual(combat.boonApplications('fixture-buff'), []);
 });
@@ -164,7 +164,7 @@ test('replacement and overlapping refresh windows retain their distinct historic
   replaceThiefBuff(runtime, 'fluid-strikes', 2, 'fixture', 'Fluid Strikes', 'Trait');
   assert.equal(runtime.combat.activeBuffStacks('fluid-strikes', 0.5, 1), 1);
   assert.equal(runtime.combat.activeBuffStacks('fluid-strikes', 2.999999, 1), 1);
-  assert.equal(runtime.combat.activeBuffStacks('fluid-strikes', 3, 1), 0);
+  assert.equal(runtime.combat.activeBuffStacks('fluid-strikes', 3.000001, 1), 0);
   assert.equal(runtime.combat.activeBuffStacks('fluid-strikes', 5, 1), 0, 'an older window cannot revive');
 
   for (const [at, duration] of [
@@ -182,5 +182,5 @@ test('replacement and overlapping refresh windows retain their distinct historic
       }
     );
   assert.equal(runtime.combat.activeBuffStacks('relic-claw', 5, 1), 1, 'Claw retains the longer overlapping grant');
-  assert.equal(runtime.combat.activeBuffStacks('relic-claw', 10, 1), 0);
+  assert.equal(runtime.combat.activeBuffStacks('relic-claw', 10.000001, 1), 0);
 });

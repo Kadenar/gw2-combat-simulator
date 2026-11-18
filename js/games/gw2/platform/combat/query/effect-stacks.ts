@@ -3,11 +3,12 @@ import {
   buffApplicationStacks,
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
+  durationStackState,
   isDurationStackingBoon,
   isStandardBoon,
-  remainingDurationStackSeconds,
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
+import { buffApplicationExpiry } from '#gw2/platform/combat/buff-expiry.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -69,7 +70,7 @@ export function liveBoonSnapshot(
   const phaseMs = ((Math.round(at * 1000) % 10000) + 10000) % 10000;
   const refreshAt = (Math.round(at * 1000) - phaseMs) / 1000;
   const duration = isDurationStackingBoon(kind)
-    ? remainingDurationStackSeconds(
+    ? durationStackState(
         permanent > 0
           ? [
               { at: refreshAt, duration: durationStackingBoonCapSeconds(kind) },
@@ -78,12 +79,15 @@ export function liveBoonSnapshot(
           : matching,
         at,
         { maximum: durationStackingBoonCapSeconds(kind), ordered: true }
-      )
+      ).remaining
     : permanent > 0
       ? (10000 - phaseMs) / 1000
-      : Math.max(
+      : // A removed grant, such as a pre-extension segment, contributes only its time before removal.
+        Math.max(
           0,
-          ...matching.filter((application) => application.at <= at).map((application) => application.expiresAt - at)
+          ...matching
+            .filter((application) => application.at <= at)
+            .map((application) => buffApplicationExpiry(application) - at)
         );
   return { stacks, duration };
 }

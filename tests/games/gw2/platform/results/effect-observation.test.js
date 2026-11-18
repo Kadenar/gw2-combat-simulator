@@ -60,14 +60,14 @@ test('player-buff observations preserve full report scopes across grants, policy
     assert.ok(complete.some((effect) => effect.category === 'condition'));
     assert.ok(complete.some((effect) => effect.origin === 'assumption'));
     const companion = complete.find((effect) => effect.kind === 'charges' && effect.recipient === 'companion:clone:1');
-    assert.equal(effectStateValue(companion, 2).count, 0);
+    assert.equal(effectStateValue(companion, 2.000001).count, 0);
     return effectStateValue(scoped[0], state.time).count;
   };
 
   assert.equal(compare(), 2);
   maximumStacks = 3;
   assert.equal(compare(), 3);
-  state.time = 4;
+  state.time = 4.000001;
   assert.equal(compare(), 0);
   grant(state, 'charges', 4, 1, 3);
   assert.equal(compare(), 1);
@@ -137,7 +137,7 @@ test('equipment policies cover both configured sets and surviving effects after 
   state.activeWeaponSet = 1;
   state.time = 1;
   assert.equal(value(state, 'sigil-severance').count, 1);
-  state.time = 5;
+  state.time = 5.000001;
   assert.equal(value(state, 'sigil-severance').count, 0);
 });
 
@@ -190,7 +190,7 @@ test('generic observation follows grants, expiry revisions, and historical reads
   assert.equal(read().count, 2);
   grant(state, 'charges', 0, 3, 8);
   for (const recipient of ['self', 'ally:1', 'companion:clone:1']) assert.equal(read(recipient).count, 5);
-  state.time = 4;
+  state.time = 4.000001;
   assert.equal(read().count, 3);
   state.liveEffects.reviseBuffExpiry(
     'charges',
@@ -198,7 +198,7 @@ test('generic observation follows grants, expiry revisions, and historical reads
     (expiry) => Math.min(expiry, 5)
   );
   assert.equal(read().expiresAt, 5);
-  state.time = 5;
+  state.time = 5.000001;
   assert.equal(read().count, 0);
   grant(state, 'charges', 5, 7, 2);
   assert.equal(read().count, 7);
@@ -218,10 +218,10 @@ test('duration observation retains pooled deadlines and audience-specific extens
   state.liveEffects.extend({ type: 'boon_extension', kind: 'fury', at: 2, duration: 2 });
   assert.equal(value(state, 'fury').expiresAt, 7);
   for (const recipient of ['ally:1', 'companion:clone:1']) assert.equal(value(state, 'fury', recipient).expiresAt, 5);
-  state.time = 5;
+  state.time = 5.000001;
   assert.equal(value(state, 'fury', 'companion:clone:1').count, 0);
   assert.equal(value(state, 'fury').count, 1);
-  state.time = 7;
+  state.time = 7.000001;
   assert.equal(value(state, 'fury').count, 0);
   // A historical query must not reuse a later expired observation.
   state.time = 0;
@@ -247,7 +247,7 @@ test('intensity extension replaces accepted windows without extending other audi
   state.time = 1;
   state.liveEffects.extend({ type: 'boon_extension', kind: 'might', at: 1, duration: 2 });
   assert.equal(value(state, 'might').expiresAt, 5);
-  state.time = 3;
+  state.time = 3.000001;
   assert.equal(value(state, 'might').count, 2);
   assert.equal(value(state, 'might', 'ally:1').count, 0);
   assert.equal(value(state, 'might', 'companion:clone:1').count, 0);

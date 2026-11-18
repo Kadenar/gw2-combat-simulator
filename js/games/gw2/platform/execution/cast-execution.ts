@@ -243,11 +243,13 @@ export function createCastExecution<T extends object>(
       ? baseWork
       : (profession.reserveRecharge?.(runtime.mechanics, skill, baseWork) ?? baseWork);
     const usesAmmo = cooldownController.ensureAmmo(skill);
+    const rechargeOffset = (skill.rechargeOffsetMs ?? 0) / 1000;
     // Reserve the selected skill's declarative recharge anchor once so completion uses the accepted value.
+    // Early recharge follows the effective cast end, including interruptions.
     const rechargeStart =
       start +
       (skill.rechargeAnchor === 'castStart' ? 0 : effectiveEnd - start) * (skill.rechargeProgress ?? 1) +
-      (skill.rechargeOffsetMs ?? 0) / 1000;
+      (skill.rechargeAnchor === 'beforeCastEnd' ? -rechargeOffset : rechargeOffset);
 
     if (!Number.isFinite(rechargeStart)) throw new RangeError('Recharge start must be finite.');
 

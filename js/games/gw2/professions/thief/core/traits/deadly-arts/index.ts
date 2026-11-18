@@ -6,6 +6,7 @@ import { skillForEvent, targetConditionCount, targetHealthBelow } from '#gw2/pla
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
+import { revealedActive } from '#gw2/platform/combat/stealth.js';
 import { ACTOR, BOON, BOON_NAMES, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -279,7 +280,7 @@ export const revealedTraining = defineTrait<ThiefSkill>({
           to: 'Power',
           amount: ownerAttributeBonusNumber(profile, 'power', 'conditionalAttributeBonuses'),
           feedsConversions: 'none',
-          enabled: (state.revealedUntil || 0) > context.time
+          enabled: revealedActive(state, context.time)
         }
       ]
     };

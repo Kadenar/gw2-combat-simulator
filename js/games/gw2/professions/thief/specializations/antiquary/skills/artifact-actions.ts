@@ -56,7 +56,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
         state.antiquaryGuitarCharges,
         createChargeGrant(skillNumber(context.skill, 'antiquaryStealthAttackCharges'), at + duration),
         at,
-        { expiry: 'exclusive', order: 'insertion', maximum: skillNumber(context.skill, 'maximumStacks') }
+        { order: 'insertion', maximum: skillNumber(context.skill, 'maximumStacks') }
       );
     },
     'thief.mortar'(runtime, context) {
@@ -89,7 +89,6 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
         createChargeGrant(Math.max(0, skillNumber(context.skill, 'refundCharges')), at + duration),
         at,
         {
-          expiry: 'exclusive',
           order: 'earliest-expiry',
           maximum: skillNumber(context.skill, 'maximumStacks')
         }

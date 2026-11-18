@@ -342,7 +342,7 @@ test('Might applies baseline and Notoriety together while unbuffed declarations 
 
   assert.equal(probe.query.statsAt(1, pet, runtime).power, 1290);
   assert.equal(probe.query.statsAt(1, pet, runtime).conditionDamage, 190);
-  assert.equal(probe.query.statsAt(2, pet, runtime).power, 1200);
+  assert.equal(probe.query.statsAt(2.000001, pet, runtime).power, 1200);
 });
 
 for (const [name, trait, kind, stat, perStack, maximum] of [
@@ -389,7 +389,7 @@ for (const [name, trait, kind, stat, perStack, maximum] of [
     });
     assert.equal(unselected.query.statsAt(1, null, runtime)[stat], maximum * perStack);
     const before = runtime.liveEffects.queries.buffApplications(kind);
-    assert.equal(unselected.query.statsAt(5, null, runtime)[stat], 0);
+    assert.equal(unselected.query.statsAt(5.000001, null, runtime)[stat], 0);
     assert.deepEqual(runtime.liveEffects.queries.buffApplications(kind), before);
   });
 }
@@ -403,8 +403,8 @@ test('accepted Insight remains until its exclusive expiry with no selected trait
   assert.equal(probe.query.statsAt(1, null, runtime).power, 1100);
   expiries.push(4);
   assert.equal(probe.query.statsAt(1, null, runtime).power, 1150);
-  assert.equal(probe.query.statsAt(2, null, runtime).power, 1100);
-  assert.equal(probe.query.statsAt(4, null, runtime).power, 1000);
+  assert.equal(probe.query.statsAt(2.000001, null, runtime).power, 1100);
+  assert.equal(probe.query.statsAt(4.000001, null, runtime).power, 1000);
   assert.deepEqual(expiries, [2, 3, 4]);
 });
 
@@ -534,7 +534,7 @@ test('conditional trait conversions follow buff expiry and regeneration', () => 
       ])
     };
     assert.equal(probe.query.statsAt(0, null, runtime).ferocity, bonus + Math.round(bonus * 0.03));
-    assert.equal(probe.query.statsAt(10, null, runtime).ferocity, 0);
+    assert.equal(probe.query.statsAt(10.000001, null, runtime).ferocity, 0);
   }
 
   for (const regeneration of [false, true]) {
@@ -560,7 +560,7 @@ test('Signet Mastery feeds oil conversions only while its stacks are active', ()
   assert.equal(probe.query.statsAt(0, null, runtime).ferocity, 458);
   grantTestEffect(runtime.liveEffects, { ...grant, kind: 'signet-mastery', stacks: 1 });
   assert.equal(probe.query.statsAt(0, null, runtime).ferocity, 561);
-  assert.equal(probe.query.statsAt(10, null, runtime).ferocity, 46);
+  assert.equal(probe.query.statsAt(10.000001, null, runtime).ferocity, 46);
 });
 
 // Blademaster's permanent Expertise contributes to the oil on either weapon set in both build and live queries.

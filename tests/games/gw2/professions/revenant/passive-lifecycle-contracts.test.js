@@ -332,7 +332,7 @@ test('Draconic Echo bonuses apply to active and retained facets only while selec
     core.activeUpkeeps = [];
     state.lingeringFacets[skillId] = { startsAt: 1, expiresAt: 7, legendId: LEGEND.DRAGON };
     assert.equal(rule.when(context), true);
-    assert.equal(rule.when({ ...context, time: 7 }), false);
+    assert.equal(rule.when({ ...context, time: 7.000001 }), false);
     assert.equal(rule.when({ ...context, config: base }), false);
   }
 
@@ -377,10 +377,10 @@ test('Assassin Nature procs only on eligible resolved strikes while its passive 
     }
   );
   const siphons = result.resolvedEvents.filter((event) => event.name === 'Facet of Nature - Life Siphon');
-  // The siphon's own effect-owned packet never recurses, and the retained passive ends at its exclusive expiry.
+  // The siphon's own packet cannot recurse; its retained passive admits the tied final hit.
   assert.deepEqual(
     siphons.map((event) => event.at),
-    [1, 4]
+    [1, 4, 9]
   );
   assert.ok(siphons.every((event) => event.flatStrikeBase === 53 && event.flatStrikePowerCoeff === 0.0666));
 });

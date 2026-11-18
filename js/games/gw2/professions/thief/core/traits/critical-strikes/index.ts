@@ -1,4 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import {
   buffActive,
@@ -8,6 +10,7 @@ import {
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { stealthActive } from '#gw2/platform/combat/stealth.js';
 import { ACTOR, BOON, BOON_NAMES, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
@@ -140,7 +143,7 @@ export const hiddenKiller = defineTrait({
           isGw2PlayerModifierOwnedEvent(context.event) &&
           // The explicit expiry is armed by stealth, never by the initial Revealed sentinel.
           (state.stealthStartedAt || 0) <= context.time &&
-          ((state.stealthUntil || 0) > context.time || (state.hiddenKillerUntil || 0) > context.time)
+          (stealthActive(state, context.time) || buffDeadlineActive(state.hiddenKillerUntil || 0, context.time))
         );
       }
     }
@@ -399,8 +402,9 @@ const unrelentingStrikesCriticalReaction = Object.freeze({
 const applyUnrelentingStrikes = criticalProcHandler(unrelentingStrikesCriticalReaction);
 
 function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEvent, duration: number): void {
-  // Extend Fury only while its canonical half-open window is active at the hit time.
-  if (context.combat.boonDuration(BOON.FURY, event.at) <= 0) return;
+  // A tied hit can extend active Fury even when its remaining duration has reached zero.
+  if (buffApplicationStacks(context.combat.boonApplications(BOON.FURY), BOON.FURY, event.at, 1, { ordered: true }) <= 0)
+    return;
 
   const attribution = {
     source: 'Trait',

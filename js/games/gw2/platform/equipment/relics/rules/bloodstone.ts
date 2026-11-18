@@ -31,14 +31,13 @@ export const bloodstone = defineRelic({
     // Volatility cannot accumulate while Fervor is active.
     if (relicBuffActive(ctx, 'bloodstone-fervor', event.at)) return;
 
-    const currentStacks = activeBatchCount(state.refreshedStacks, event.at, 'exclusive');
+    const currentStacks = activeBatchCount(state.refreshedStacks, event.at);
 
     if (currentStacks < VOLATILITY_TRIGGER_STACKS - 1) {
       // Each blast renews all Volatility stacks; the next blast at cap still belongs to the Fervor transition.
       const buff = refreshBatch(state.refreshedStacks, 1, {
         at: event.at,
         expiresAt: gw2EffectExpiresAt(event.at, 10),
-        expiry: 'exclusive',
         maximum: VOLATILITY_TRIGGER_STACKS - 1
       }).batch;
       state.refreshedStacks = buff;

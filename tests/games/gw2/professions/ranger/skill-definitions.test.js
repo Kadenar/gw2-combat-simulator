@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { buffApplicationExpiry } from '#gw2/platform/combat/buff-expiry.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
@@ -220,7 +221,7 @@ test('merged Maul consumes the old charge and leaves one fresh charge after stan
   const runtime = observedRuntime(result);
   const active = runtime.liveEffects.queries
     .buffApplications('attack-of-opportunity-player')
-    .filter((application) => application.expiresAt > runtime.time);
+    .filter((application) => buffApplicationExpiry(application) > runtime.time);
   assert.equal(active.length, 1);
   assert.equal(active[0].stacks, 1);
   assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.ONE_WOLF_PACK));

@@ -167,7 +167,7 @@ test('mech Quickness uses its own boon audience and retains copied applications'
   });
   assert.equal(engineerMechHasQuickness(context, 0), false);
   assert.equal(engineerMechHasQuickness(context, 2), true);
-  assert.equal(engineerMechHasQuickness(context, 3), false);
+  assert.equal(engineerMechHasQuickness(context, 3.000001), false);
 
   const result = simulate(
     'Mechanist',

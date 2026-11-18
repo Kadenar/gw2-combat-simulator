@@ -1,4 +1,5 @@
 /** Aristocracy relic rules. */
+import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -7,7 +8,7 @@ import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { createBatch, refreshBatch, type Batch } from '#kernel/resources/batch.js';
 
 const ARISTOCRACY_BONUS_PER_STACK = 0.03;
@@ -64,7 +65,6 @@ function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent
   state.batch = refreshBatch(state.batch, 1, {
     at: event.at,
     expiresAt: gw2EffectExpiresAt(event.at, ARISTOCRACY_DURATION),
-    expiry: 'exclusive',
     maximum: ARISTOCRACY_MAX_STACKS
   }).batch;
   state.readyAt = event.at + ARISTOCRACY_INTERNAL_COOLDOWN;
@@ -86,7 +86,7 @@ function aristocracyActivationAt(state: AristocracyState, at: number): Aristocra
     // A triggering application cannot benefit from its own same-time stack.
     if (activation.at >= at) continue;
 
-    return isTimeInWindow(at, activation.at, activation.expiresAt) ? activation : null;
+    return buffWindowActive(at, activation.at, activation.expiresAt) ? activation : null;
   }
 
   return null;

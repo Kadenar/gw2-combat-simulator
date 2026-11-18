@@ -16,7 +16,7 @@ import {
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { shadeDhuumfireParameters } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-projection.js';
 import { scourgeShadeManifested } from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
-import { purgeScourgeTimedState, scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
+import { expireScourgeShades, scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -39,7 +39,10 @@ function refreshShadeExpiry(runtime: NecromancerRuntime): void {
   const nextExpiry = Math.min(...state.shades);
 
   if (Number.isFinite(nextExpiry))
-    runtime.schedule(EXPIRE, nextExpiry, null, { id: EXPIRE, generation: state.shadeGeneration }, -20);
+    runtime.scheduleExpiry(EXPIRE, nextExpiry, null, {
+      owner: { id: EXPIRE, generation: state.shadeGeneration },
+      priority: -20
+    });
 }
 
 /** Every shade command owns one common strike and Torment application, independent of the number of active shades. */
@@ -169,7 +172,7 @@ const scourgeShadeActions = {
 /** Shade expiry and queued manifestation settle through the same lifetime and strike owners. */
 const scourgeShadeTasks = {
   [EXPIRE](runtime) {
-    purgeScourgeTimedState(scourgeState.from(runtime.profession), runtime.time);
+    expireScourgeShades(scourgeState.from(runtime.profession), runtime.time);
     refreshShadeExpiry(runtime);
   },
   [MANIFEST](runtime, data) {

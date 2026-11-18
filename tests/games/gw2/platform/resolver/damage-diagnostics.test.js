@@ -242,11 +242,7 @@ test('active buff diagnostics include tied grants and preserve state before afte
 
         // Mutating the live applications cannot retroactively alter the retained hit's facts.
         charges -= 1;
-        ctx.combat.reviseBuffExpiry(
-          'charge',
-          () => true,
-          () => event.at
-        );
+        ctx.combat.endBuffs('charge', event.at, () => true);
         ctx.effects.emit({ kind: 'packet', event: buff('after-hit', { at: event.at }) });
       }
     }
@@ -259,16 +255,32 @@ test('active buff diagnostics include tied grants and preserve state before afte
         Object.fromEntries(event.damageCalculation.activeBuffs.map(({ kind, stacks }) => [kind, stacks]))
       ])
   );
-  assert.deepEqual(snapshots.Before, { alacrity: 1, might: 25, quickness: 1, charge: 2, later: 1, 'native-charge': 2 });
+  assert.deepEqual(snapshots.Before, {
+    alacrity: 1,
+    fury: 1,
+    might: 25,
+    quickness: 1,
+    charge: 2,
+    later: 1,
+    'native-charge': 2
+  });
   assert.deepEqual(snapshots.After, {
     alacrity: 1,
+    fury: 1,
     might: 25,
     quickness: 1,
     'after-hit': 1,
     later: 1,
     'native-charge': 1
   });
-  assert.deepEqual(snapshots.Expired, { alacrity: 1, might: 25, 'after-hit': 1, later: 1, 'native-charge': 1 });
+  assert.deepEqual(snapshots.Expired, {
+    alacrity: 1,
+    quickness: 1,
+    might: 25,
+    'after-hit': 1,
+    later: 1,
+    'native-charge': 1
+  });
 });
 
 // Crit modifiers can bypass the Ferocity attribute, so recorded steps must rebuild the multiplier the hit really used.

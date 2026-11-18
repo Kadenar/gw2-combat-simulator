@@ -128,7 +128,7 @@ test('Ferocious Aggression follows self Fury activation and expiry for strike an
       [0, 1],
       [1, 1.1],
       [1.5, 1.1],
-      [2, 1]
+      [2.000001, 1]
     ]) {
       assert.equal(modify({ ...context, time }, 1), expected);
     }
@@ -568,7 +568,7 @@ test("Kalla's Fervor replaces the soonest-expiring stack at its cap", () => {
       [1, 2, 3, 4, 5].map((at) => at + duration)
     );
     assert.equal(activeKallasFervorStacks(capped, duration, 5), 5);
-    assert.equal(activeKallasFervorStacks(capped, duration + 1, 5), 4);
+    assert.equal(activeKallasFervorStacks(capped, duration + 1.000001, 5), 4);
     // Heroic Command explicitly refreshes every stack at its completion, unlike an ordinary capped application.
     const refreshed = run([{ type: 'wait', durationMs: 6000 }, 'Heroic Command']);
     assert.deepEqual(refreshed.warnings, []);
@@ -1663,8 +1663,8 @@ test('Kallas Fervor reports the same selected grant that updates its capped owne
       state.kallasFervor.map((entry) => entry.expiresAt),
       [4, 7, 7]
     );
-    assert.equal(activeKallasFervorStacks(state, 4, 3), 2);
-    assert.equal(activeKallasFervorStacks(state, 7, 3), 0);
+    assert.equal(activeKallasFervorStacks(state, 4.000001, 3), 2);
+    assert.equal(activeKallasFervorStacks(state, 7.000001, 3), 0);
     runtime.time = 2;
     grantKallasFervor(runtime, { sourceId: TRAIT.AMBUSH_COMMANDER, sourceName: 'Repeated grant' });
     assert.deepEqual(
@@ -1714,6 +1714,6 @@ test('Fervor counting preserves start, expiry, and cap boundaries on readonly pa
   assert.equal(activeKallasFervorStacks(state, 1, 1), 1);
   assert.equal(activeKallasFervorStacks(state, 2, 1), 1);
   assert.equal(activeKallasFervorStacks(state, 2, 2), 2);
-  assert.equal(activeKallasFervorStacks(state, 3, 2), 1);
-  assert.equal(activeKallasFervorStacks(state, 4, 1), 0);
+  assert.equal(activeKallasFervorStacks(state, 3.000001, 2), 1);
+  assert.equal(activeKallasFervorStacks(state, 4.000001, 1), 0);
 });

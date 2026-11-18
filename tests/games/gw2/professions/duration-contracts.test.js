@@ -43,13 +43,13 @@ test('patched venom duration owns personal and allied charge expiry and tooltip 
     );
     // The ally's registration answers liveness from its native batches, through the later batch's expiry.
     assert.equal(recipients.at(-1).isActive(12.999), true);
-    assert.equal(recipients.at(-1).isActive(13), false);
+    assert.equal(recipients.at(-1).isActive(13.000001), false);
     // The ally's native batches share the player's lifetime and exclusive expiry.
     const allied = runtime.profession.core.alliedVenomChargeBatches[`1:${skill.id}`];
     for (const owned of [batches, allied]) {
-      assert.equal(activeBatches(owned, 11.999, { expiry: 'exclusive', order: 'earliest-expiry' }).length, 2);
-      assert.equal(activeBatches(owned, 12, { expiry: 'exclusive', order: 'earliest-expiry' }).length, 1);
-      assert.equal(activeBatches(owned, 13, { expiry: 'exclusive', order: 'earliest-expiry' }).length, 0);
+      assert.equal(activeBatches(owned, 11.999, { order: 'earliest-expiry' }).length, 2);
+      assert.equal(activeBatches(owned, 12.000001, { order: 'earliest-expiry' }).length, 1);
+      assert.equal(activeBatches(owned, 13.000001, { order: 'earliest-expiry' }).length, 0);
     }
 
     const context = { catalog };
@@ -153,11 +153,11 @@ test('duration and flip patches reject obsolete names while real multipliers rem
 });
 
 // Both catalog construction and patch application reject malformed seconds before they enter runtime math.
-test('duration fields validate finite nonnegative seconds and preserve explicit zero', () => {
+test('duration fields require finite positive seconds in catalogs and patches', () => {
   for (const field of ['duration', 'baseDuration', 'durationPerTier', 'durationExtension']) {
     const profile = { id: 1, name: 'Duration', [field]: 2 };
     const catalog = createCanonicalCatalog({ balanceProfiles: [profile] });
-    for (const value of [-1, NaN, Infinity, '3', null]) {
+    for (const value of [0, -1, NaN, Infinity, '3', null]) {
       assert.throws(
         () => createCanonicalCatalog({ balanceProfiles: [{ ...profile, [field]: value }] }),
         /expected=finite number/
@@ -168,23 +168,33 @@ test('duration fields validate finite nonnegative seconds and preserve explicit 
     }
 
     assert.equal(
-      applyBalanceProfilePatch(catalog, { balanceProfiles: { 1: { fields: { [field]: 0 } } } }).balanceProfilesById.get(
-        1
-      )[field],
-      0
+      applyBalanceProfilePatch(catalog, {
+        balanceProfiles: { 1: { fields: { [field]: 0.5 } } }
+      }).balanceProfilesById.get(1)[field],
+      0.5
     );
   }
 
-  // Flip windows now belong to skills, so validate and patch them through the skill contract.
-  const skill = { id: 1, name: 'Flip', flipDuration: 2 };
-  const catalog = createCanonicalCatalog({ skills: [skill] });
-  for (const value of [-1, NaN, Infinity, '3', null]) {
-    assert.throws(() => createCanonicalCatalog({ skills: [{ ...skill, flipDuration: value }] }));
-    assert.throws(() => applySkillPatch(catalog, { skills: { 1: { fields: { flipDuration: value } } } }));
+  // Skill-owned lifetimes use the same admission rule as profile durations.
+  for (const field of ['duration', 'flipDuration']) {
+    const skill = { id: 1, name: 'Duration', [field]: 2 };
+    const catalog = createCanonicalCatalog({ skills: [skill] });
+    for (const value of [0, -1, NaN, Infinity, '3', null]) {
+      assert.throws(() => createCanonicalCatalog({ skills: [{ ...skill, [field]: value }] }));
+      assert.throws(() => applySkillPatch(catalog, { skills: { 1: { fields: { [field]: value } } } }));
+    }
+
+    assert.equal(
+      applySkillPatch(catalog, { skills: { 1: { fields: { [field]: 0.5 } } } }).skillsById.get(1)[field],
+      0.5
+    );
   }
 
-  assert.equal(
-    applySkillPatch(catalog, { skills: { 1: { fields: { flipDuration: 0 } } } }).skillsById.get(1).flipDuration,
-    0
+  assert.throws(
+    () =>
+      applySkillPatch(elementalistCatalog, {
+        skills: { [ELEMENTALIST.SHATTERING_STONE]: { fields: { duration: 0 } } }
+      }),
+    /field=duration/
   );
 });

@@ -4,12 +4,12 @@
  * Every function purges expired applications first, so callers never need their own filter pass.
  *
  * Cap policies live here and are chosen per resource, never inferred. `addTimedStacks` is
- * reject-on-overflow: a grant that would exceed the cap lands partially and never evicts a live
- * application. `grantTimedStacks` combines survivors and grants, then retains applications under
- * an explicitly named rule; that rule can discard either an existing stack or the incoming grant.
+ * reject-on-overflow: a grant that would exceed the cap lands partially and never evicts an application
+ * that outlives this timestamp. `grantTimedStacks` combines survivors and grants, then retains applications
+ * under an explicitly named rule; that rule can discard either an existing stack or the incoming grant.
  *
- * The comparison is strict (`expiresAt > at`); a stack expiring exactly at `at` is gone. Callers that
- * need inclusive expiry own that decision and must not extend the canonical deadline.
+ * A stack stays live through its own deadline, so work tied to that timestamp still reads it. New grants
+ * need a deadline after their own timestamp. Cleanup that runs after a timestamp's work uses `expireStacks`.
  */
 
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
@@ -30,15 +30,25 @@ interface TimedStackConsumption {
   readonly consumed: number;
 }
 
-/** Drops closed windows while retaining application order for oldest/newest consumption. */
+/** A deadline remains live at equality; stored timestamps never receive padding. */
+function stackActive(expiresAt: number, at: number): boolean {
+  return expiresAt === Infinity || canonicalTime(at) <= canonicalTime(expiresAt);
+}
+
+/** Drops applications that are no longer live while retaining application order for oldest/newest consumption. */
 export function purgeExpiredStacks(expiries: TimedStackExpiries, at: number): number[] {
+  return expiries.filter((expiresAt) => stackActive(expiresAt, at));
+}
+
+/** Cleanup after a timestamp's work also drops applications whose deadline is that timestamp. */
+export function expireStacks(expiries: TimedStackExpiries, at: number): number[] {
   return expiries.filter((expiresAt) => isTimeInWindow(at, -Infinity, expiresAt));
 }
 
 /** Counts the applications still live at `at` without rebuilding the array. */
 export function activeStackCount(expiries: TimedStackExpiries, at: number): number {
   let count = 0;
-  for (const expiresAt of expiries) if (isTimeInWindow(at, -Infinity, expiresAt)) count += 1;
+  for (const expiresAt of expiries) if (stackActive(expiresAt, at)) count += 1;
   return count;
 }
 
@@ -51,11 +61,25 @@ export function addTimedStacks(
   maximum: number
 ): TimedStackGrant {
   const active = purgeExpiredStacks(expiries, at);
-  const added = boundedInteger(stacks, 0, 0, Math.max(0, maximum - active.length));
   // Match event-clock precision without changing exact lifetimes or unbounded preview stacks.
   const expiresAt = at + duration === Infinity ? Infinity : canonicalTime(at + duration);
-  active.push(...Array.from({ length: added }, () => expiresAt));
-  return { expiries: active, added };
+
+  if (!isTimeInWindow(at, -Infinity, expiresAt)) return { expiries: active, added: 0 };
+
+  // Stacks ending at this timestamp remain readable, but cannot block a grant that outlives it.
+  const survivors = active.filter((deadline) => isTimeInWindow(at, -Infinity, deadline)).length;
+  const added = boundedInteger(stacks, 0, 0, Math.max(0, maximum - survivors));
+  let replacements = Math.max(0, active.length + added - maximum);
+  const retained = active.filter((deadline) => {
+    if (replacements > 0 && !isTimeInWindow(at, -Infinity, deadline)) {
+      replacements--;
+      return false;
+    }
+
+    return true;
+  });
+  retained.push(...Array.from({ length: added }, () => expiresAt));
+  return { expiries: retained, added };
 }
 
 /**
@@ -119,8 +143,7 @@ interface TimedStackGrantOptions {
  *
  * `count` and `maximumStacks` are truncated to non-negative integers here, so a caller whose count can
  * be fractional owns its own rounding before this boundary. A zero `count` still prunes and caps, and
- * a zero cap returns empty. A grant already dead at `at` is never retained, matching the strict
- * `expiresAt > at` comparison every reader in this module uses.
+ * a zero cap returns empty. A grant whose deadline does not follow `at` is never retained.
  */
 export function grantTimedStacks(expiries: TimedStackExpiries, options: TimedStackGrantOptions): number[] {
   return grantStackEntries(
@@ -147,8 +170,7 @@ export function grantTimedStackApplications<T extends TimedStackApplication>(
     throw new RangeError('Timed stack grants cannot precede their application start.');
 
   const pending = applications.filter(
-    (entry) =>
-      canonicalTime(entry.at) > canonicalTime(options.at) && isTimeInWindow(options.at, -Infinity, entry.expiresAt)
+    (entry) => canonicalTime(entry.at) > canonicalTime(options.at) && stackActive(entry.expiresAt, options.at)
   );
   const started = applications.filter((entry) => canonicalTime(entry.at) <= canonicalTime(options.at));
   return [
@@ -176,7 +198,7 @@ function grantStackEntries<T>(
   const expiresAt = options.expiresAt === Infinity ? Infinity : canonicalTime(options.expiresAt);
   const live = isTimeInWindow(options.at, -Infinity, expiresAt);
   const count = boundedInteger(options.count, 0, 0, Number.MAX_SAFE_INTEGER);
-  const active = entries.filter((entry) => isTimeInWindow(options.at, -Infinity, expiryOf(entry)));
+  const active = entries.filter((entry) => stackActive(expiryOf(entry), options.at));
 
   if (options.retain === 'replace-earliest') {
     // Reconcile a lowered cap before the next grant, retaining the longest-lived existing applications.

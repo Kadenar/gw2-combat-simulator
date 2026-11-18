@@ -46,7 +46,7 @@ test('Engineer No Scope survives overlapping Fury packet expiries', () => {
     engineerProfession
       .resolveProfession({})
       .calculations.modifyAttributes(
-        { catalog: engineerProfession.resolveProfession({}).catalog, ...context, time: 10 },
+        { catalog: engineerProfession.resolveProfession({}).catalog, ...context, time: 10.000001 },
         { ferocity: 0 }
       ).ferocity,
     0
@@ -56,7 +56,7 @@ test('Engineer No Scope survives overlapping Fury packet expiries', () => {
 // Resolver queries use the requested event time and count only player applications.
 test('Engineer boon stacks preserve permanent stacks, caps, and live visibility', () => {
   const applications = [
-    { at: 0, expiresAt: 5, stacks: 20, resolvedAudience: { includesSelf: true } },
+    { at: 0, expiresAt: 4.96, stacks: 20, resolvedAudience: { includesSelf: true } },
     { at: 5, expiresAt: 10, stacks: 3, resolvedAudience: { includesSelf: true } },
     { at: 5, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: false, includesSummons: true } }
   ];
@@ -91,7 +91,7 @@ test('Engineer boon stacks preserve permanent stacks, caps, and live visibility'
   });
   assert.equal(resolverBoonStacks(context, 'might', 25, 5), 8);
   assert.equal(resolverBoonStacks(context, 'might', 25, 6), 18);
-  assert.equal(resolverBoonStacks(context, 'might', 25, 10), 4);
+  assert.equal(resolverBoonStacks(context, 'might', 25, 10.000001), 4);
   const combatRuntime2 = { config: {}, liveEffects: createTestLiveEffects() };
   assert.equal(
     resolverBoonStacks(

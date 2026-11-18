@@ -15,16 +15,16 @@ test('accepted duration queries advance grants without reviving expired pools', 
   assert.equal(stacks(history, 0), 1);
   assert.equal(stacks(history, 1), 1);
   assert.equal(stacks(history, 30.999999), 1);
-  assert.equal(stacks(history, 31), 0);
-  history.push(grant(31, 5, { extension: true }));
-  assert.equal(stacks(history, 31), 0);
+  assert.equal(stacks(history, 31.000001), 0);
+  history.push(grant(31.000001, 5, { extension: true }));
+  assert.equal(stacks(history, 31.000001), 0);
   history.push(grant(32, 1));
   assert.equal(stacks(history, 32), 1);
   history.push(grant(32, 2, { extension: true }));
   assert.equal(stacks(history, 34.999999), 1);
-  assert.equal(stacks(history, 35), 0);
+  assert.equal(stacks(history, 35.000001), 0);
   assert.equal(stacks(history, 0.5), 1);
-  assert.equal(stacks(history, 31), 0);
+  assert.equal(stacks(history, 31.000001), 0);
   assert.equal(stacks(history, 34), 1);
   assert.equal(buffApplicationStacks(history, 'fury', 34, 0, { ordered: true }), 0);
 });
@@ -39,13 +39,13 @@ test('duration checkpoints isolate recipient and boon cap selections', () => {
   const summon = (companionId) => ({ audience: RECIPIENT.SUMMONS, companionId });
   assert.equal(stacks(history, 2, summon('a')), 1);
   assert.equal(stacks(history, 2, summon(null)), 0);
-  assert.equal(stacks(history, 3, summon('a')), 0);
+  assert.equal(stacks(history, 3.000001, summon('a')), 0);
   assert.equal(stacks(history, 3, summon('b')), 1);
   assert.equal(stacks(history, 3, summon(undefined)), 1);
-  assert.equal(stacks(history, 30), 0);
+  assert.equal(stacks(history, 30.000001), 0);
   assert.equal(buffApplicationStacks(history, 'swiftness', 30, 1, { ordered: true }), 1);
   assert.equal(stacks(history, 1, summon('b')), 0);
-  assert.equal(stacks(history, 6, summon('b')), 0);
+  assert.equal(stacks(history, 6.000001, summon('b')), 0);
 });
 
 // Dynamic callbacks are evaluated afresh, while append-only queries must agree with uncached replay in either direction.

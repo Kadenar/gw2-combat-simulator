@@ -20,7 +20,6 @@ export const thief = defineRelic({
     const buff = refreshBatch(state.refreshedStacks, 1, {
       at: event.at,
       expiresAt: gw2EffectExpiresAt(event.at, 6),
-      expiry: 'exclusive',
       maximum: 5
     }).batch;
     state.refreshedStacks = buff;
@@ -34,6 +33,6 @@ export const thief = defineRelic({
   },
   // Return 1 when no stacks are active because the result is a multiplier.
   strikeMultiplier(_ctx, state, event) {
-    return 1 + activeBatchCount(state.refreshedStacks, event.at, 'exclusive') * 0.01;
+    return 1 + activeBatchCount(state.refreshedStacks, event.at) * 0.01;
   }
 });

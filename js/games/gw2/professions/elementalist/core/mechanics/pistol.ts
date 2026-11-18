@@ -1,4 +1,6 @@
 /** Owns pistol enhancement actions, charge rewards, recharge grants, and deferred tasks. */
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, COMBO_FINISHER, WEAPON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -133,7 +135,8 @@ const pistolSideEffectHandlers: RuntimeHooks<ElementalistRuntimeState, Elemental
     // Arms a window that shortens the next pistol skill's recharge; the
     // reduction is consumed by this weapon's recharge reservation. That
     // reservation compares against the deadline, so no expiry task is needed.
-    professionCoreState(context.profession).dazingDischargeUntil = at + skillNumber(cast.skill, 'duration');
+    const duration = skillNumber(cast.skill, 'duration');
+    professionCoreState(context.profession).dazingDischargeUntil = gw2TimerDeadline(at, duration);
   },
   'elementalist.pistol.shattering-stone'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
@@ -205,7 +208,7 @@ export function triggerShatteringStone(context: ElementalistResolverContext, eve
   if (
     (event.actorType === ACTOR.PLAYER || event.actorType === ACTOR.EFFECT) &&
     Number(event.coefficient) > 0 &&
-    consumeCharge(core.shatteringStone, event.at, 'exclusive')
+    consumeCharge(core.shatteringStone, event.at)
   ) {
     // Follow-up hits read the same patched action that armed the charges, without emitting its payload on cast.
     const skill = requireSkill(context.helpers, ID.SHATTERING_STONE);
@@ -308,7 +311,7 @@ function reservePistolRecharge(context: ElementalistRuntime, skill: Skill, durat
 
   const state = professionCoreState(context.profession);
 
-  if (state.dazingDischargeUntil > context.time && skillWeapon(skill) === WEAPON.PISTOL) {
+  if (buffDeadlineActive(state.dazingDischargeUntil, context.time) && skillWeapon(skill) === WEAPON.PISTOL) {
     // Spend when reserving recharge so a later expiry or another cast cannot change this cast's accepted reduction.
     state.dazingDischargeUntil = 0;
     return duration * skillNumber(requireSkill(context.helpers, ID.DAZING_DISCHARGE), 'nextSkillRechargeMultiplier');

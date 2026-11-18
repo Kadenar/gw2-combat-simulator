@@ -367,13 +367,12 @@ function applyEnergizedElements(
 function applyEmpoweringAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   const { maximumStacks, duration } = empoweringAurasParameters(context.helpers);
   const state = catalystState.from(context.profession);
-  const activeStacks = activeBatchCount(state.empoweringAuras, event.at, 'exclusive');
+  const activeStacks = activeBatchCount(state.empoweringAuras, event.at);
   // Refresh survivors now, including at cap; new stacks still arrive at their queued buff-application boundary.
   const expiresAt = gw2EffectExpiresAt(event.at, duration);
   state.empoweringAuras = refreshBatch(state.empoweringAuras, 0, {
     at: event.at,
     expiresAt,
-    expiry: 'exclusive',
     maximum: maximumStacks
   }).batch;
 
@@ -575,7 +574,6 @@ export function applyEmpoweringAurasBuff(context: ElementalistRuntime, event: Gw
   state.empoweringAuras = refreshBatch(state.empoweringAuras, event.stacks || 1, {
     at: event.at,
     expiresAt: gw2EffectExpiresAt(event.at, event.duration || 0),
-    expiry: 'exclusive',
     maximum: maximumStacks
   }).batch;
 }
@@ -583,7 +581,7 @@ export function applyEmpoweringAurasBuff(context: ElementalistRuntime, event: Gw
 /** Strike and condition modifiers read the canonical Catalyst pool without replaying buff receipts. */
 export function empoweringAuraStacks(context: Gw2ModifierContext): number {
   const state = readProfessionSpecializationState<CatalystState>(context.runtime?.profession, 'Catalyst');
-  return activeBatchCount(state?.empoweringAuras, context.time, 'exclusive');
+  return activeBatchCount(state?.empoweringAuras, context.time);
 }
 
 /** Shares aura-stack parameters while each phase retains its grant and refresh rules. */

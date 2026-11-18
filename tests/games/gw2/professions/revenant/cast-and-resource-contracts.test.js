@@ -337,7 +337,11 @@ for (const [name, skillId, cooldown] of [
       [revenantHit(3 + buff.duration)],
       (4 + buff.duration) * 1000
     );
-    assert.equal(owner(observedRuntime(expired))[key].count, buff.stacks, 'exact expiry cannot consume');
+    assert.equal(
+      owner(observedRuntime(expired))[key].count,
+      buff.stacks - 1,
+      'a tied hit spends before natural cleanup'
+    );
     const exhausted = scenario({ count: 1, expiresAt: 100, readyAt: 0 }, [revenantHit(50), revenantHit(60)], 61000);
     assert.equal(owner(observedRuntime(exhausted))[key].count, 0, 'exhausted grants cannot underflow');
     assert.equal(derived(exhausted).length, 1);
@@ -418,8 +422,8 @@ for (const cooldown of [0, 1]) {
             Boolean(event.metadata?.triggeredByAlly) === ally
         )
         .map((event) => event.at);
-    // Expiry is exclusive and a cooldown blocks its exact deadline for the player and the ally alike.
-    const expected = cooldown ? [1, 3] : [1, 2, 3];
+    // Natural expiry admits the tied hit; the independent cooldown keeps its existing strict boundary.
+    const expected = cooldown ? [1, 3] : [1, 2, 3, 4];
     assert.deepEqual(bleeds(false), expected);
     assert.deepEqual(bleeds(true), expected);
   });
@@ -494,7 +498,11 @@ test('Battle Scars rejects overflow and consumes newest before longest-lived', (
   const full = scars(4500);
   assert.equal(full.length, cap);
   assert.deepEqual(scars(5500), full, 'overflow cannot replace or refresh retained scars');
-  assert.deepEqual(scars(14500), [], 'exact expiry removes newer grants before consuming the oldest survivor');
+  assert.deepEqual(
+    scars(14500).filter((expiry) => expiry > 14.5),
+    [30],
+    'the tied hit spends a newer expiring grant before the oldest survivor'
+  );
 });
 
 test('Thrill of Combat catches up on its original cadence while capped grants remain rejected', () => {
@@ -523,10 +531,11 @@ test('Thrill of Combat catches up on its original cadence while capped grants re
     );
     assert.deepEqual(result.warnings, []);
     // Published grants report only stacks accepted by the cap, including partially accepted intervals.
-    assert.ok(
+    assert.deepEqual(
       result.events
         .filter((event) => event.type === 'buff' && event.sourceId === TRAIT.THRILL_OF_COMBAT)
-        .every((event) => event.stacks === 3)
+        .map((event) => event.stacks),
+      untilMs < 12000 ? [3] : [3, 3]
     );
     return core(result);
   };
@@ -535,7 +544,10 @@ test('Thrill of Combat catches up on its original cadence while capped grants re
   assert.deepEqual(first.battleScars, [11, 11, 12]);
   assert.equal(first.nextThrillOfCombatAt, 4);
   const second = run(12500);
-  assert.deepEqual(second.battleScars, [21, 21, 22]);
+  assert.deepEqual(
+    second.battleScars.filter((expiry) => expiry > 12.5),
+    [21, 21, 22]
+  );
   assert.equal(second.nextThrillOfCombatAt, 13);
 });
 

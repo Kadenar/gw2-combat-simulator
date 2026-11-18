@@ -39,7 +39,7 @@ const state = (result) => observedRuntime(result).profession.specialization.stat
 test('Tactical Reload follows an off-grid wait and closes exactly at its displayed deadline', () => {
   for (const [delay, charges] of [
     [9960, 2],
-    [10000, 1],
+    [10000, 2],
     [10040, 1]
   ]) {
     const result = run('Bladesworn', [wait(1), ID.TACTICAL_RELOAD, wait(delay), ID.DRAGON_TRIGGER, wait(240), combat]);
@@ -65,7 +65,7 @@ test('Positive Flow state and displayed expiry agree after off-grid waits', () =
   }
 });
 
-test('trait and combo fire auras detonate once before their exclusive rounded expiry', () => {
+test('trait and combo fire auras admit a tied detonation and expire afterward', () => {
   for (const source of ['trait', 'combo']) {
     for (const at of [5000, 5040, 5080]) {
       const result = run('Berserker', [wait(at), ID.BERSERK], [TRAIT.KING_OF_FIRES], (runtime) => {
@@ -91,9 +91,9 @@ test('trait and combo fire auras detonate once before their exclusive rounded ex
       assert.equal(auras.length, 1);
       assert.equal(auras[0].duration, 5);
 
-      assert.equal(result.procSteps.filter((proc) => proc.skill === 'King of Fires').length, at < 5040 ? 1 : 0);
+      assert.equal(result.procSteps.filter((proc) => proc.skill === 'King of Fires').length, at <= 5040 ? 1 : 0);
 
-      if (at < 5040) assert.equal(state(result).fireAuraUntil, 0);
+      if (at <= 5040) assert.equal(state(result).fireAuraUntil, 0);
       else assert.ok(state(result).fireAuraUntil <= observedRuntime(result).time);
     }
   }

@@ -1,4 +1,5 @@
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -20,7 +21,9 @@ export function applyShatteringIce(
 
   if (kind === 'shattering ice' && event.resolvedAudience?.includesSelf) {
     const state = catalystState.from(context.profession);
-    state.shatteringIceUntil = gw2EffectExpiresAt(event.at, Math.max(0, event.duration || 0));
+    const duration = Math.max(0, event.duration || 0);
+    // A zero-duration grant cannot arm a proc for tied damage.
+    state.shatteringIceUntil = gw2TimerDeadline(event.at, duration);
     // Refreshing the buff rearms its first strike; subsequent strikes use the canonical strict ICD.
     context.procs.setDeadline('elementalist.catalyst.shatteringIce', 0);
   }
@@ -43,7 +46,7 @@ export function applyCatalystResolvedDamage(
     (event.actorType !== ACTOR.PLAYER && event.actorType !== ACTOR.EFFECT) ||
     event.metadata?.packetKind === SHATTERING_ICE_PACKET ||
     !(Number(event.coefficient) > 0) ||
-    state.shatteringIceUntil <= event.at
+    !buffDeadlineActive(state.shatteringIceUntil, event.at)
   ) {
     return;
   }

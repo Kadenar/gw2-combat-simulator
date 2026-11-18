@@ -121,7 +121,8 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     // Empowerment spends this skill's Blight independently of its removable payload.
     blightCost: 5,
     // Recharge starts during the final 80 ms of the cast, including casts shortened by interruption.
-    rechargeOffsetMs: -80,
+    rechargeAnchor: 'beforeCastEnd',
+    rechargeOffsetMs: 80,
     type: 'Profession',
     slot: 'Weapon_3',
     shroud: 'harbinger',

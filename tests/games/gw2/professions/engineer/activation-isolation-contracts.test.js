@@ -440,7 +440,7 @@ test('Scrapper admitted Mass Momentum survives isolation and stops when Stabilit
     }
   );
   const might = rewards(result, TRAIT.MASS_MOMENTUM);
-  assert.equal(might.length, 1);
+  assert.equal(might.length, 2);
   assert.equal(might[0].at, 2);
   assert.equal(scrapperState.from(runtime.profession).massMomentumAt, Infinity);
 });

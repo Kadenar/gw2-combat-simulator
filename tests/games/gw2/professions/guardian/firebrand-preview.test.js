@@ -76,7 +76,7 @@ test('provisional damage modifiers respect conditions, Ashes ownership, selectio
     resolvedAudience: { includesSelf: true }
   });
   assert.ok(Math.abs(damage('Bleeding') - bleeding * multiplier(TRAIT.IMBUED_HASTE)) < 1e-9);
-  context.time = 2;
+  context.time = 2.000001;
   assert.ok(Math.abs(damage('Bleeding') - bleeding) < 1e-9);
   context.config.selectedTraitIds = [];
   assert.equal(damage('Burning', 'guardian.ashes-of-the-just'), 100);

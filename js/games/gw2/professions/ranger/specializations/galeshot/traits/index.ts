@@ -1,5 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -46,11 +46,13 @@ function windForce(context: RangerModifierContext): number {
   return galeshotRuntimeState(context)?.windForce?.value ?? 0;
 }
 
+/** Gale Force is a timed buff, so a hit at its deadline still receives the flat bonus. */
+function galeForceActive(context: RangerModifierContext): boolean {
+  return buffDeadlineActive(galeshotRuntimeState(context)?.galeForceUntil || 0, context.time);
+}
+
 function galeForceAmount(context: RangerModifierContext): number {
-  const galeForce =
-    (galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time
-      ? balanceNumber(context.catalog, TRAIT.GALE_FORCE, 'damageIncrease')
-      : 0;
+  const galeForce = galeForceActive(context) ? balanceNumber(context.catalog, TRAIT.GALE_FORCE, 'damageIncrease') : 0;
   // Hawkeye converts the five existing stacks into a 25% flat bonus (galeForce),
   // but Wind Force earned while Gale Force is active still adds 3% per stack on top.
   return galeForce + windForce(context) * balanceNumber(context.catalog, TRAIT.GALE_FORCE, 'damageIncreasePerStack');
@@ -179,8 +181,7 @@ const galeForce = defineTrait({
 
       amount: (context) => galeForceAmount(context),
       when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        ((galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time || windForce(context) > 0)
+        isGw2PlayerModifierOwnedEvent(context.event) && (galeForceActive(context) || windForce(context) > 0)
     }
   ],
   triggers: [

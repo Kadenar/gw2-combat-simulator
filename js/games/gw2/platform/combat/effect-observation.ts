@@ -1,5 +1,6 @@
 /** Projects accepted private grant histories into recipient states, reusing observations until their next boundary. */
 import { buffMatchesAudience, type Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import { buffApplicationExpiry } from '#gw2/platform/combat/buff-expiry.js';
 import { observeBuffState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 
@@ -29,7 +30,7 @@ export function observeGenericBuff(
   const reusable =
     previous &&
     at >= previous.at &&
-    at < previous.until &&
+    (at === previous.at || at < previous.until) &&
     previous.name === policy.name &&
     previous.maximumStacks === policy.maximumStacks &&
     previous.maximumDuration === policy.maximumDuration &&
@@ -86,9 +87,14 @@ export function observeGenericBuff(
     );
 
   // Duration pools can outlive individual grants; invalidate at the resolved deadline, not the grant's expiry.
+  // A removed window invalidates at its removal rather than its natural deadline.
   for (const state of states)
-    for (const window of state.windows)
-      if (window.expiresAt != null && window.expiresAt > at) until = Math.min(until, window.expiresAt);
+    for (const window of state.windows) {
+      const end = buffApplicationExpiry(window);
+
+      if (end >= at) until = Math.min(until, end);
+    }
+
   cache.set(kind, {
     applications,
     length: applications.length,

@@ -49,7 +49,7 @@ test('shortbow conditions use live base durations without retired trait extensio
 });
 
 // Charge ownership follows Beastmode, while the resulting condition always belongs to the Ranger.
-test('Blood Thirst spends only eligible pet or merged-player charges and expires before a hit at its boundary', () => {
+test('Blood Thirst spends only eligible pet or merged-player charges and expires before a hit after its boundary', () => {
   for (const merged of [false, true]) {
     const core = createRangerCoreState({});
     core.bloodThirst = { count: 3, expiresAt: 12 };
@@ -88,7 +88,7 @@ test('Blood Thirst spends only eligible pet or merged-player charges and expires
     }
 
     core.bloodThirst.count = 1;
-    triggerBloodThirst(context, { ...eligible, at: 12 });
+    triggerBloodThirst(context, { ...eligible, at: 12.000001 });
     assert.equal(core.bloodThirst.count, 0);
     assert.equal(emitted.length, 3);
   }
@@ -112,7 +112,7 @@ test('Crippling Shot grants pet bleeding with player condition duration', () => 
 
 // Poison Volley applies its intrinsic extension before the ordinary duration cap.
 test('Poison Volley intrinsic duration edits preserve the duration cap', () => {
-  for (const durationExtension of [0, 4]) {
+  for (const durationExtension of [0.5, 4]) {
     const profession = withPatchPreview(rangerProfession, {
       id: 'shortbow-duration',
       label: 'Shortbow duration',

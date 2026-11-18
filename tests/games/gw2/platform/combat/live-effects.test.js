@@ -52,7 +52,7 @@ test('live effects isolate input packets and preserve prior observations across 
   assert.equal(states[0].windows[0].expiresAt, 4);
   assert.equal(effects.queries.effectStates('charges', 1, policy, false)[0].windows[0].expiresAt, 2);
   assert.equal(effects.queries.stacks('charges', 1, 25, pet('pet')), 1);
-  assert.equal(effects.queries.stacks('charges', 2, 25, pet('pet')), 0);
+  assert.equal(effects.queries.stacks('charges', 2.000001, 25, pet('pet')), 0);
   assert.equal(effects.queries.stacks('charges', 1, 25, pet('other')), 0);
 });
 
@@ -75,9 +75,9 @@ test('same-time grants and extensions invalidate observations without changing e
   assert.equal(effects.queries.boonDuration('fury', 3), 3);
   assert.equal(effects.queries.boonDuration('fury', 2), 2);
   assert.deepEqual(effects.queries.boonSnapshot('fury', 2, player), { stacks: 1, duration: 2 });
-  assert.equal(effects.queries.stacks('fury', 6, 1), 0);
-  effects.extend({ type: 'boon_extension', kind: 'fury', at: 6, duration: 2 });
-  assert.equal(effects.queries.stacks('fury', 6, 1), 0);
+  assert.equal(effects.queries.stacks('fury', 6.000001, 1), 0);
+  effects.extend({ type: 'boon_extension', kind: 'fury', at: 6.000001, duration: 2 });
+  assert.equal(effects.queries.stacks('fury', 6.000001, 1), 0);
 });
 
 test('retirement disposes only the named recipient and rejects its delayed grants', () => {
@@ -153,7 +153,7 @@ test('recipient selection preserves sharing settings and isolates ordinary buffs
   assert.equal(effects.queries.stacks('might', 1, 25, pet('pet')), 0);
   assert.equal(effects.queries.stacks('charges', 1, 25, pet('pet')), 1);
   effects.extend({ type: 'boon_extension', at: 1, duration: 4, extensionAudience: 'all' });
-  assert.equal(effects.queries.stacks('charges', 4, 25, pet('pet')), 0);
+  assert.equal(effects.queries.stacks('charges', 4.000001, 25, pet('pet')), 0);
   assert.equal(effects.queries.stacks('might', 4, 25, player), 1);
   assert.deepEqual(effects.queries.boonApplications('charges'), []);
   assert.deepEqual(effects.queries.buffApplications('might'), []);

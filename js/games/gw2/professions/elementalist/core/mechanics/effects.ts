@@ -5,6 +5,7 @@
  * catalog and state lookups they depend on. Skill and trait handlers depend on
  * this module; it must not depend on them.
  */
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { AnnouncementEmission, EffectDelivery, ProfileEmission } from '#gw2/platform/effects/emission.js';
@@ -26,7 +27,10 @@ export function activeAura(
   aura: string,
   at: number
 ): ElementalistAuraState | null {
-  return state.activeAuras.find((candidate) => candidate.type === aura && candidate.expiresAt > at) || null;
+  return (
+    state.activeAuras.find((candidate) => candidate.type === aura && buffDeadlineActive(candidate.expiresAt, at)) ||
+    null
+  );
 }
 
 /** Gates combat-only traits on combat already observed, including runs without an explicit start marker. */

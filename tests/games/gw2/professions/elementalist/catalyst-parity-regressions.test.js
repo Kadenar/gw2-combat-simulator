@@ -111,7 +111,7 @@ test('Empowerment scales defensive and healing attributes without compounding Re
   for (const [stacks, at, vitality, toughness, healingPower] of [
     [3, 0, 1352, 1045, 418],
     [10, 0, 1544, 1200, 480],
-    [10, 10, 1297, 1000, 400]
+    [10, 10.000001, 1297, 1000, 400]
   ]) {
     const resolved = evaluateAttributeDeclarations(
       {

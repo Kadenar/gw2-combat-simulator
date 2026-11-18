@@ -139,7 +139,7 @@ test('Bird of Prey accepts permanent and timed movement buffs only for player-ow
     for (const [time, expected] of [
       [0, false],
       [1, true],
-      [2, false]
+      [2.000001, false]
     ]) {
       assert.equal(rule.when({ ...context, runtime, time }), expected);
     }

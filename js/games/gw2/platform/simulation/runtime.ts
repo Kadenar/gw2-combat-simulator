@@ -535,7 +535,15 @@ export function runRuntime<T extends object>(
     runtime,
     evaluateReadiness: casts.evaluateReadiness,
     resetCooldowns: casts.resetCooldowns,
-    advanceFrontier: (reason) => queue.advanceFrontier(runtime.time, GW2_RESOLVER_PHASE.Ordinary, reason),
+    // A cleanup wake may change readiness; subsequent commands retain that causal phase instead of rewinding it.
+    advanceFrontier: (reason) =>
+      queue.advanceFrontier(
+        runtime.time,
+        queue.currentTime === runtime.time
+          ? Math.max(queue.currentPhase, GW2_RESOLVER_PHASE.Ordinary)
+          : GW2_RESOLVER_PHASE.Ordinary,
+        reason
+      ),
     acceptCast: casts.acceptCast,
     acceptBuffCast(skill, command) {
       const strike = queue.peek();

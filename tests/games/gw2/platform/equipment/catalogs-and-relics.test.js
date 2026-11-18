@@ -387,7 +387,7 @@ test('Severance critical contributions are data-driven and expire exactly', () =
       }
     ]
   });
-  assert.deepEqual(severanceCriticalContribution(runtime, 4), {
+  assert.deepEqual(severanceCriticalContribution(runtime, 4.000001), {
     chance: 0,
     damage: 0,
     chanceContributors: []
@@ -414,7 +414,7 @@ test('Severance queries retain application windows across refreshes and gaps', (
     assert.equal(severanceCriticalContribution(runtime, at).chance, chance);
   }
 
-  for (const at of [0.999, 7, 9, 13.04]) {
+  for (const at of [0.999, 7.000001, 9, 13.040001]) {
     assert.equal(severanceCriticalContribution(runtime, at).chance, 0);
   }
 });
@@ -448,7 +448,7 @@ test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
   for (const at of [1.001, 2.002, 3.003, 4.004, 5.005]) trigger(at);
   assert.equal(relicConditionDurationBonus(context, 5.006), 0.15);
   assert.equal(relicConditionDurationBonus(context, 13.039999), 0.15);
-  assert.equal(relicConditionDurationBonus(context, 13.04), 0);
+  assert.equal(relicConditionDurationBonus(context, 13.040001), 0);
 });
 
 test('Aristocracy accepted applications preserve combat entry and historical stack windows', () => {

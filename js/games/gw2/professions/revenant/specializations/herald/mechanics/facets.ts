@@ -1,4 +1,5 @@
 /** Own facet activation, consumption, retained passives, and their shared pulse cadence. */
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { ACTOR, BOON_NAMES, RECIPIENT } from '#gw2/platform/constants.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -40,7 +41,9 @@ export function heraldFacetPassiveLegend(
     return core.activeLegendId ?? '';
 
   const lingering = state.lingeringFacets?.[skillId];
-  return lingering && lingering.startsAt <= at && at < lingering.expiresAt ? lingering.legendId : undefined;
+  return lingering && lingering.startsAt <= at && buffDeadlineActive(lingering.expiresAt, at)
+    ? lingering.legendId
+    : undefined;
 }
 
 /** Retention preserves the existing pulse phase without keeping an Energy-draining upkeep alive. */
@@ -56,7 +59,7 @@ export function retainHeraldFacet(runtime: RevenantRuntime, facet: RevenantSkill
 
   if (facet.upkeepPulse && nextAt >= runtime.time && nextAt < expiresAt) scheduleFacetPulse(runtime, facet.id, nextAt);
 
-  runtime.schedule(RETENTION_EXPIRY, expiresAt, { skillId: facet.id, expiresAt });
+  runtime.scheduleExpiry(RETENTION_EXPIRY, expiresAt, { skillId: facet.id, expiresAt });
 }
 
 /** An old retention expiry cannot clear a replacement window or a reactivated facet. */

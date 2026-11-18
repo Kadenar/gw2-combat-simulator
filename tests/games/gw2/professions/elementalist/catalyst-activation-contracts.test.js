@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { skillEffectKey } from '#gw2/platform/effects/validation.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { applyShatteringIce } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
 import { catalystCombatStarted } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/trigger-points.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { elementalEmpowermentAttributes } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
@@ -13,6 +15,7 @@ import {
   baseEmpowermentPassive,
   empoweringAuraStacks
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';
+import { activeStackCount } from '#kernel/resources/timed-stacks.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
@@ -32,6 +35,34 @@ const combo = (runtime) => emitTestCombo(runtime, cause(runtime.time));
 const aura = (runtime) =>
   applyElementalistAura(runtime.mechanics, { ...cause(runtime.time), aura: 'Fire Aura', duration: 4 });
 const buffs = (result, id) => result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === id);
+
+// A zero-length native grant must not gain a proc window merely because damage precedes cleanup.
+test('Shattering Ice only arms a positive-duration grant at a nonzero timestamp', () => {
+  for (const duration of [0, 1])
+    run(
+      {},
+      {
+        timeline: [
+          {
+            at: 1,
+            run(runtime) {
+              applyShatteringIce(runtime.mechanics, {
+                ...cause(1),
+                type: 'buff',
+                kind: 'shattering ice',
+                duration,
+                resolvedAudience: { includesSelf: true }
+              });
+              assert.equal(
+                buffDeadlineActive(catalystState.from(runtime.profession).shatteringIceUntil, 1),
+                duration > 0
+              );
+            }
+          }
+        ]
+      }
+    );
+});
 
 /** Use native delivery with producer registration chosen independently from selected traits and explicit state. */
 function run({ traitTriggers = true, duration = 2, rotation, ...config } = {}, options = {}) {
@@ -191,7 +222,10 @@ test('Elemental Empowerment starts only one selected and enabled renewal loop', 
         buffs(result, TRAIT.ELEMENTAL_EMPOWERMENT).map((event) => event.at),
         active ? [0, 15, 30] : []
       );
-      assert.equal(catalystState.from(runtime.profession).elementalEmpowermentExpiries.length, active ? 3 : 0);
+      assert.equal(
+        activeStackCount(catalystState.from(runtime.profession).elementalEmpowermentExpiries, runtime.time),
+        active ? 3 : 0
+      );
     }
   }
 });
@@ -207,7 +241,10 @@ test('An explicitly admitted renewal task survives disabled or unselected produc
       buffs(result, TRAIT.ELEMENTAL_EMPOWERMENT).map((event) => event.at),
       [1, 16]
     );
-    assert.equal(catalystState.from(runtime.profession).elementalEmpowermentExpiries.length, 3);
+    assert.equal(
+      activeStackCount(catalystState.from(runtime.profession).elementalEmpowermentExpiries, runtime.time),
+      3
+    );
   }
 });
 
@@ -243,7 +280,7 @@ test('Explicit Catalyst stacks keep recipient rules, passive attributes and expi
         probes: [2, 4].map((at) => [
           at,
           (runtime) => {
-            const live = at < 4;
+            const live = at <= 4;
             const modifier = {
               runtime,
               time: at,

@@ -1,6 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
@@ -418,7 +418,7 @@ function applyElementalBalanceEntry(
     if (progress.reached) {
       // Temporary-effect expiry uses the absolute combat tick, including patched durations.
       const duration = balanceProfileNumber(elementalBalanceProfile, 'duration');
-      state.elementalBalanceUntil = gw2EffectExpiresAt(transition.at, duration);
+      state.elementalBalanceUntil = gw2TimerDeadline(transition.at, duration);
       context.effects.emit({
         cause,
         ...elementalistAnnouncement({

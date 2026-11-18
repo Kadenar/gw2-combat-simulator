@@ -374,11 +374,7 @@ function consumeSolarFocusingLens(
   if (!condition) return;
 
   // Lens cannot activate before its grant; zero-ICD consumption does not enforce readyAt.
-  if (
-    event.at < (state.solarFocusingLens.readyAt ?? 0) ||
-    !consumeCharge(state.solarFocusingLens, event.at, 'inclusive', 0)
-  )
-    return;
+  if (event.at < (state.solarFocusingLens.readyAt ?? 0) || !consumeCharge(state.solarFocusingLens, event.at, 0)) return;
 
   emitTraitProfile(context, TRAIT.SOLAR_FOCUSING_LENS, TRAIT.SOLAR_FOCUSING_LENS, undefined, {
     at: event.at,

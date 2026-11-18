@@ -334,8 +334,8 @@ test('extensions count only existing boons and retain independent intensity life
     ...effectFields(events, 6)
   });
   const summaries = series.effectSummaries;
-  close(summaries.fury.uptime, 5 / 6);
-  assert.equal(series.boonGeneration.fury.self.generatedStackSeconds, 5);
+  close(summaries.fury.uptime, 1);
+  assert.equal(series.boonGeneration.fury.self.generatedStackSeconds, 8);
   close(summaries.might.averageStacks, 10 / 6);
   assert.equal(series.boonGeneration.might.self.generatedStackSeconds, 10);
 });
@@ -524,8 +524,9 @@ test('personal boons and extensions cannot inflate shared generation, including 
   });
   const quickness = series.boonGeneration.quickness;
   assert.equal(quickness.self.generatedStackSeconds, 11);
-  assert.equal(quickness.ally.generatedStackSeconds, 2);
-  assert.equal(quickness.ally.generatedStackSeconds / 10, 0.2);
+  // The shared extension reaches allies at their exact expiry; the personal extension still excludes them.
+  assert.equal(quickness.ally.generatedStackSeconds, 3);
+  assert.equal(quickness.ally.generatedStackSeconds / 10, 0.3);
   assert.equal(series.boonGeneration.alacrity.ally.generatedStackSeconds, 0);
 });
 

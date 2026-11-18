@@ -1,4 +1,5 @@
 /** Own Core and Weaver hammer orb admission, expiry, packet cancellation, and Finale consumption. */
+import { buffDeadlineActive, buffDeadlineReached, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -40,7 +41,7 @@ function hammerOrbActiveAt(
   at: number
 ): boolean {
   const expiresAt = state.hammerOrbs[element];
-  return expiresAt != null && expiresAt > at;
+  return expiresAt != null && buffDeadlineActive(expiresAt, at);
 }
 
 /** Only declared orb creators own orb resources and pending contacts. */
@@ -146,7 +147,7 @@ function createHammerOrbs(
       (application) =>
         application.event?.activationId === state.hammerOrbActivationIds[element] &&
         application.at <= at &&
-        application.expiresAt > at,
+        buffWindowActive(at, application.at, application.expiresAt, application.removedAt),
       () => expiresAt
     );
   }
@@ -175,7 +176,7 @@ function createHammerOrbs(
     }
   }
 
-  context.schedule('elementalist.hammer-orb-expire', expiresAt, null, undefined, 50);
+  context.scheduleExpiry('elementalist.hammer-orb-expire', expiresAt, null, { priority: 50 });
   state.hammerOrbLastCastAt = at;
 }
 
@@ -222,7 +223,7 @@ export const elementalistHammerOrbLifecycle = {
           (application) =>
             application.event?.activationId === activationId &&
             application.at <= cast.start &&
-            application.expiresAt > cast.start,
+            buffWindowActive(cast.start, application.at, application.expiresAt, application.removedAt),
           () => canonicalTime(cast.effectiveEnd + 1)
         );
       }
@@ -260,7 +261,7 @@ export const elementalistHammerOrbLifecycle = {
       const state = runtime.profession.core;
       const expired = new Set<string>();
       for (const element of ELEMENTALIST_ATTUNEMENTS) {
-        if (state.hammerOrbs[element] != null && state.hammerOrbs[element] <= runtime.time) {
+        if (state.hammerOrbs[element] != null && buffDeadlineReached(state.hammerOrbs[element], runtime.time)) {
           const activation = state.hammerOrbActivationIds[element];
 
           if (activation) expired.add(activation);

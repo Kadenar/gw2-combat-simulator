@@ -1,10 +1,10 @@
 /** Visionary relic rules. */
+import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { COMBO_FINISHER } from '#gw2/platform/constants.js';
 import { announceRelic, defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
-import { isTimeInWindow } from '#kernel/core/clock.js';
 import { advanceCounter } from '#kernel/resources/counters.js';
 
 const VISIONARY_STACKS_NEEDED = 8;
@@ -20,7 +20,7 @@ export const visionary = defineRelic({
     const windows = state.windows as { from: number; until: number }[];
 
     // Like Bloodstone, stacks cannot accumulate while Vloxx's Vision is active.
-    if (windows.some((window) => isTimeInWindow(event.at, window.from, window.until))) return;
+    if (windows.some((window) => buffWindowActive(event.at, window.from, window.until))) return;
 
     if (event.finisherType === COMBO_FINISHER.WHIRL) {
       if (!isInternalCooldownReady(event.at, state.whirlReadyAt || 0)) return;
@@ -56,6 +56,6 @@ export const visionary = defineRelic({
   // Windows are retained so out-of-order condition tick queries still see the buff active at their own time.
   outgoingDamageBonus(_ctx, state, at) {
     const windows = state.windows || [];
-    return windows.some((window) => isTimeInWindow(at, window.from, window.until)) ? VISIONARY_DAMAGE_BONUS : 0;
+    return windows.some((window) => buffWindowActive(at, window.from, window.until)) ? VISIONARY_DAMAGE_BONUS : 0;
   }
 });

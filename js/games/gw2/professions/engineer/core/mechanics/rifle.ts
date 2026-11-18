@@ -4,7 +4,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { consumeOldestStacks, purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
+import { consumeOldestStacks, expireStacks, purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Expiry removes only elapsed charges and keeps the ambush exposed until the final charge closes. */
 function syncRocketBurstCharges(runtime: EngineerRuntime): void {
@@ -28,7 +28,7 @@ export const engineerRifleLifecycle = {
       const expiresAt = canonicalTime(runtime.time + sideEffectAmount(runtime, action.amount));
       runtime.profession.core.rocketBurstChargeExpiries.push(expiresAt);
       syncRocketBurstCharges(runtime);
-      runtime.schedule('engineer.rocket-burst-expire', expiresAt);
+      runtime.scheduleExpiry('engineer.rocket-burst-expire', expiresAt);
     },
     'engineer.rocket-burst-consume'(runtime) {
       // Spend the oldest grant so the other charge deadlines remain unchanged, even after interruption.
@@ -38,7 +38,11 @@ export const engineerRifleLifecycle = {
     }
   },
   tasks: {
-    // A spent charge's queued expiry cannot remove a later grant.
-    'engineer.rocket-burst-expire': syncRocketBurstCharges
+    // A spent charge's queued expiry cannot remove a later grant; expiry also drops charges ending now.
+    'engineer.rocket-burst-expire'(runtime) {
+      const state = runtime.profession.core;
+      state.rocketBurstChargeExpiries = expireStacks(state.rocketBurstChargeExpiries, runtime.time);
+      syncRocketBurstCharges(runtime);
+    }
   }
 } satisfies RuntimeHooks<EngineerRuntimeState, EngineerSkill>;

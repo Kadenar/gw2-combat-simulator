@@ -59,7 +59,7 @@ function untamedStateSnapshot(
     ['untamed-ferocious-symbiosis-pet', 'Pet', state[STATE.PET]?.ferociousSymbiosis]
   ] as const) {
     const remaining = (pool?.expiresAt || 0) - at;
-    const stacks = boundedInteger(activeBatchCount(pool, at, 'exclusive'), 0, 0, maximumStacks);
+    const stacks = boundedInteger(activeBatchCount(pool, at), 0, 0, maximumStacks);
 
     if (stacks <= 0) continue;
 

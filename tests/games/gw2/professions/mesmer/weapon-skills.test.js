@@ -170,7 +170,7 @@ test('Clarity makes only an empowered Mental Collapse a control skill', () => {
     ['Mind the Gap', { name: '__wait', waitMs: 14960 }, 'Mental Collapse'],
     config
   );
-  const expired = simulateMesmer(['Mind the Gap', { name: '__wait', waitMs: 15000 }, 'Mental Collapse'], config);
+  const expired = simulateMesmer(['Mind the Gap', { name: '__wait', waitMs: 15001 }, 'Mental Collapse'], config);
   const hasMentalCollapseControl = (result) =>
     result.events.some((event) => event.type === 'control' && event.skillName === 'Mental Collapse');
 

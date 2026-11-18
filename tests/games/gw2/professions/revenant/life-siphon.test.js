@@ -99,8 +99,8 @@ test('expired Fury and Fervor leave only the remaining live contribution', () =>
   ]);
   for (const [time, expected] of [
     [0.5, 1.25],
-    [1, 1.15],
-    [2, 1]
+    [1.000001, 1.15],
+    [2.000001, 1]
   ]) {
     context.time = time;
     assert.equal(resolve(siphon).flatStrikeMultiplier, expected);

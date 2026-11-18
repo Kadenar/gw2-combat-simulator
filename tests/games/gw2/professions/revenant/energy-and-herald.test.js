@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { applyMightAttributes, attributeContext } from '#gw2/platform/attributes/evaluation.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { remainingDurationStackSeconds, timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { durationStackState, timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
@@ -1439,8 +1439,8 @@ test('Core Value extends allied boons by three seconds without duration scaling'
     )
   );
   assert.equal(
-    remainingDurationStackSeconds(extended, extension.at, { maximum: 30 }),
-    remainingDurationStackSeconds(original, extension.at, { maximum: 30 }) + 3
+    durationStackState(extended, extension.at, { maximum: 30 }).remaining,
+    durationStackState(original, extension.at, { maximum: 30 }).remaining + 3
   );
 });
 

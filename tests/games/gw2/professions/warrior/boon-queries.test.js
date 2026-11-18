@@ -43,7 +43,7 @@ test('Warrior Fury modifiers and boon counts survive individual packet expiry', 
     .resolveProfession({})
     .calculations.modifyAttributes({ catalog: warriorCatalog, ...context }, attributes);
   assert.equal(resolved.conditionDamage, 180);
-  assert.equal(warriorActiveBoonCount({ ...context, time: 10 }), 0);
+  assert.equal(warriorActiveBoonCount({ ...context, time: 10.000001 }), 0);
   assert.equal(warriorBoonActive({ ...context, runtime: undefined }, 'fury'), false);
   assert.equal(warriorBoonActive({ ...context, runtime: undefined, config: { boons: { fury: true } } }, 'fury'), true);
   applications[1].resolvedAudience.includesSelf = false;
@@ -104,7 +104,8 @@ test('Flow Stabilizer uses exact Fury application and expiry boundaries', () => 
     [0.96, 0],
     [1, 15],
     [1.96, 15],
-    [2, 0]
+    [2, 15],
+    [2.04, 0]
   ]) {
     assert.equal(stabilizedFlow(at, [{ at: 1, duration: 1, activationId: 'prior' }]), expected, 'cast at ' + at);
   }
@@ -113,7 +114,7 @@ test('Flow Stabilizer uses exact Fury application and expiry boundaries', () => 
 // Core and Bladesworn count only live self stacks; configured boons and future timeline entries cannot grant them.
 test('Warrior and Bladesworn stacks preserve self audience, caps, expiry, and same-time visibility', () => {
   const applications = [
-    { at: 0, expiresAt: 5, stacks: 10, resolvedAudience: { includesSelf: true } },
+    { at: 0, expiresAt: 4, stacks: 10, resolvedAudience: { includesSelf: true } },
     { at: 5, expiresAt: 10, stacks: 4, resolvedAudience: { includesSelf: true } },
     { at: 5, expiresAt: 10, stacks: 10, resolvedAudience: { includesSelf: false, includesSummons: true } }
   ];
@@ -148,6 +149,6 @@ test('Warrior and Bladesworn stacks preserve self audience, caps, expiry, and sa
   });
   assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 25), 12);
   assert.equal(warriorActiveBuffStacks({ ...context, time: 6 }, 'fierce-as-fire', 25), 22);
-  assert.equal(rule.amount({ ...context, time: 10 }), 0);
+  assert.equal(rule.amount({ ...context, time: 10.000001 }), 0);
   assert.equal(rule.amount({ ...context, runtime: undefined }), 0);
 });

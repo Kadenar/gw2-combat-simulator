@@ -35,7 +35,7 @@ export function applyConduitEnergyCostRules(
 
   if (hazeCost != null) return hazeCost;
 
-  // The exclusive deadline also governs queries before queued form-expiry work runs.
+  // Tied gameplay retains form costs until expiry cleanup removes the form.
   if (!revenantConduitFormIsActive(state, 'Mesmer', time)) return baseCost;
 
   if (!MESMER_FORM_COSTS.has(skill.id)) return baseCost;

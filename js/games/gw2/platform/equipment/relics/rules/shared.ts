@@ -1,4 +1,5 @@
 /** Helpers shared by more than one relic rule module. */
+import { buffApplicationExpiry } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -73,7 +74,7 @@ export function recordTimedBuffProc(
     gw2EffectExpiresAt(event.at, duration),
     ...(ctx.liveEffects?.queries.buffApplications(kind) ?? [])
       .filter((application) => application.at <= event.at && application.resolvedAudience.includesSelf)
-      .map((application) => application.expiresAt)
+      .map(buffApplicationExpiry)
   );
   const proc = ctx.effects.emit({
     receipt: true,

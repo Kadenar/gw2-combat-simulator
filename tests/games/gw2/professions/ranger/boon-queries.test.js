@@ -44,7 +44,7 @@ test('Ranger and Soulbeast standard boons use live player recipients and duratio
   assert.equal(furiousStrength.when(context), true);
   assert.equal(rangerActiveBoonCount({ ...context, time: 3 }, 'player'), 0);
   assert.equal(rangerActiveBoonCount({ ...context, time: 6 }, 'player'), 1);
-  assert.equal(furiousStrength.when({ ...context, time: 8 }), false);
+  assert.equal(furiousStrength.when({ ...context, time: 8.000001 }), false);
   assert.equal(rangerActiveBoonCount({ time: 8, config: { boons: { fury: true, might: 25 } } }, 'player'), 2);
   assert.equal(boonActive({ time: 4 }, 'fury'), false);
   // Pure boon queries cannot retrieve custom pet-command windows.
@@ -76,7 +76,7 @@ test('pet retirement clears live boon queries while preserving pre-swap history'
   grantTestEffect(runtime.liveEffects, fury);
   assert.equal(rangerActiveBoonCount({ ...context, time: 3 }, 'pet'), 0);
   assert.equal(rangerActiveBoonCount({ ...context, time: 6 }, 'pet'), 1);
-  assert.equal(rangerActiveBoonCount({ ...context, time: 8 }, 'pet'), 0);
+  assert.equal(rangerActiveBoonCount({ ...context, time: 8.000001 }, 'pet'), 0);
 
   runtime.combat.retireCompanion(oldPet, 5);
   history.push({ type: 'marker', action: 'companion-retired', at: 5, summonOwner: oldPet });

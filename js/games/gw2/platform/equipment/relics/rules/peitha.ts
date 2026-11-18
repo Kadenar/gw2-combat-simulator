@@ -1,3 +1,4 @@
+import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -34,9 +35,9 @@ export const peitha = defineRelic({
     if (!isGw2PlayerModifierOwnedEvent(event)) return 1;
 
     const at = canonicalTime(event.at);
-    // The latest eligible grant preserves Peitha's inclusive expiry boundary for live and historical hits.
+    // The latest eligible grant decides live and historical hits through its inclusive deadline.
     const application = ctx.liveEffects?.queries.latestApplication(PEITHA_BUFF, at, { actor: 'player' });
-    return application && at <= application.expiresAt ? 1.1 : 1;
+    return application && buffWindowActive(at, application.at, application.expiresAt, application.removedAt) ? 1.1 : 1;
   }
 });
 

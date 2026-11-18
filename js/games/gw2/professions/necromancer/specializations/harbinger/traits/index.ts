@@ -1,6 +1,7 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
+import { buffApplicationExpiry } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -451,7 +452,7 @@ function applyCascadingCorruption(
           ...runtime.combat
             .buffApplications('meltdown')
             .filter((application) => application.resolvedAudience.includesSelf)
-            .map((application) => application.expiresAt - runtime.time)
+            .map((application) => buffApplicationExpiry(application) - runtime.time)
         );
         runtime.effects.emit({
           kind: 'profile',

@@ -166,7 +166,7 @@ test('Battle Scars honors skill damage patches and trait grant removal and expir
     const siphons = result.events.filter((event) => event.skillId === battleScarsSkill.id);
     assert.deepEqual(
       siphons.map((event) => event.at),
-      removed ? [] : [2]
+      removed ? [] : [2, 3]
     );
 
     if (!removed) {

@@ -8,7 +8,11 @@ export const EVOKER_SKILL_FIELDS = defineFields(
     // Seconds after a basic familiar completes before its empowered form becomes available.
     empoweredUnlockDelay: numberField({ label: 'empowered familiar unlock delay', unit: 'seconds', patch: 'primary' }),
     // Seconds of inactivity before Ignite's consecutive-use tier resets.
-    tierResetDuration: numberField({ label: 'tier reset inactivity window', unit: 'seconds', patch: 'primary' })
+    tierResetDuration: numberField({
+      label: 'tier reset inactivity window',
+      unit: 'seconds',
+      patch: 'primary'
+    })
   },
   'Evoker'
 );

@@ -236,7 +236,7 @@ test('Weave Self owns its form and Perfect Weave windows and starts recharge at 
     ) < 1e-9
   );
   const victory = context.catalog.skillsById.get(ID.TAILORED_VICTORY);
-  runtime.time = state.perfectWeaveUntil;
+  runtime.time = state.perfectWeaveUntil + 0.000001;
   assert.equal(weaveSelfAvailability(runtime, victory).ready, false);
 });
 
@@ -352,7 +352,6 @@ test('skill-owned mechanic tuning validates explicit zero and numeric bounds', (
     [ID.CALCIFY, 'internalCooldown'],
     [ID.FOXS_FURY, 'mightTierThreshold'],
     [ID.IGNITE, 'empoweredUnlockDelay'],
-    [ID.IGNITE, 'tierResetDuration'],
     [ID.FROZEN_FUSILLADE, 'detonationDelay'],
     [ID.GLYPH_OF_ELEMENTALS, 'rechargeAfterExpiry'],
     [ID.GLYPH_OF_ELEMENTALS, 'summonStartupDelay'],
@@ -373,6 +372,16 @@ test('skill-owned mechanic tuning validates explicit zero and numeric bounds', (
           skills: [{ id: 1, name: 'Invalid tuning', [field]: '1' }]
         }),
       /finite|nonnegative|number|numeric/
+    );
+  }
+});
+
+// State lifetimes reject zero even when neighboring tuning fields allow it.
+test('skill-owned duration tuning requires positive seconds', () => {
+  for (const tierResetDuration of [0, -1, Infinity, NaN]) {
+    assert.throws(
+      () => applySkillPatch(elementalistCatalog, { skills: { [ID.IGNITE]: { fields: { tierResetDuration } } } }),
+      /tierResetDuration/
     );
   }
 });

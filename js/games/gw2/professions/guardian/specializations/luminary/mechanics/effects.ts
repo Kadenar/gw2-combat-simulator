@@ -1,3 +1,4 @@
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, AURA, CONTROL } from '#gw2/platform/constants.js';
@@ -51,6 +52,9 @@ export function grantLuminaryAura(
 
 /** Native and combo grants share acceptance; detonation sees the old aura before its replacement is stored. */
 export function acceptLuminaryAura(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
+  // Empty aura grants cannot detonate or replace an existing aura.
+  if (!(Number(event.duration) > 0)) return;
+
   runtime.fireTrigger(lightAuraGranting, { cause: event });
   luminaryState.from(runtime.profession).lightAuraUntil = gw2EffectExpiresAt(runtime.time, event.duration ?? 0);
 }
@@ -59,7 +63,12 @@ export function acceptLuminaryAura(runtime: GuardianRuntime, event: Gw2ResolverE
 export function countEffulgentHit(runtime: GuardianRuntime, event: Gw2ResolverEvent, damage: number): void {
   const state = luminaryState.from(runtime.profession);
 
-  if (!(damage > 0) || !(Number(event.coefficient) > 0) || runtime.time >= state.effulgentActiveUntil) return;
+  if (
+    !(damage > 0) ||
+    !(Number(event.coefficient) > 0) ||
+    !buffDeadlineActive(state.effulgentActiveUntil, runtime.time)
+  )
+    return;
 
   if (!isGw2PlayerActorEvent(event) && !(event.source === 'guardian' && event.actorType === ACTOR.EFFECT)) return;
 

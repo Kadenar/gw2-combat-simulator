@@ -72,18 +72,18 @@ test('Revenant and Renegade use live self boons, duration stacking, and timeline
   assert.equal(bloodFury.when(context), true);
   assert.equal(criticalBonus(context), 0.25);
   assert.equal(countActiveBoons({ ...context, time: 3 }), 0);
-  assert.equal(countActiveBoons({ ...context, time: 6 }), 1);
-  assert.equal(bloodFury.when({ ...context, time: 6 }), true);
-  assert.equal(reprisal.when({ ...context, time: 6 }), false);
-  assert.equal(criticalBonus({ ...context, time: 8 }), 0);
-  assert.equal(countActiveBoons({ ...context, time: 8 }), 0);
+  assert.equal(countActiveBoons({ ...context, time: 6.000001 }), 1);
+  assert.equal(bloodFury.when({ ...context, time: 6.000001 }), true);
+  assert.equal(reprisal.when({ ...context, time: 6.000001 }), false);
+  assert.equal(criticalBonus({ ...context, time: 8.000001 }), 0);
+  assert.equal(countActiveBoons({ ...context, time: 8.000001 }), 0);
   assert.equal(countActiveBoons({ time: 8, config: { boons: { fury: true, might: 25, vigor: 0 } } }), 2);
   assert.equal(countActiveBoons({ time: 8 }), 0);
 });
 
 test('Notoriety converts configured and live self Might with a combined cap', () => {
   const context = {
-    time: 4,
+    time: 4.000001,
     config: { boons: { might: 4 } },
     traits: new Set([TRAIT.NOTORIETY]),
     runtime: { liveEffects: createTestLiveEffects() }
@@ -103,7 +103,7 @@ test('Notoriety converts configured and live self Might with a combined cap', ()
     power: 2000,
     conditionDamage: 1500
   });
-  assert.deepEqual(notorietyAttributes({ catalog: revenantCatalog, ...context, time: 10 }, attributes), {
+  assert.deepEqual(notorietyAttributes({ catalog: revenantCatalog, ...context, time: 10.000001 }, attributes), {
     power: 1160,
     conditionDamage: 1080
   });
@@ -124,6 +124,6 @@ test('Herald custom buffs retain their local query and never count as standard b
     }
   };
   assert.equal(buffActive(context, 'burst-of-strength'), true);
-  assert.equal(buffActive({ ...context, time: 6 }, 'burst-of-strength'), false);
+  assert.equal(buffActive({ ...context, time: 6.000001 }, 'burst-of-strength'), false);
   assert.equal(countActiveBoons(context), 0);
 });

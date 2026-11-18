@@ -15,7 +15,7 @@ import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { rangerTargetImpaired } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
-import { expireBatch } from '#kernel/resources/batch.js';
+import { purgeExpiredBatch } from '#kernel/resources/batch.js';
 
 /** Poison Volley extends its base duration against impaired or defiant targets. */
 export function shortbowConditionDuration(context: Gw2ModifierContext) {
@@ -268,7 +268,7 @@ export function handleRangerBloodThirst(context: RangerResolverContext, event: G
 /** Pet hits, or player hits in Beastmode, spend charges using the Ranger's condition attributes. */
 export function triggerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context.profession);
-  expireBatch(state.bloodThirst, event.at, 'exclusive');
+  purgeExpiredBatch(state.bloodThirst, event.at);
 
   // The granting skill cannot spend its own new charges, and its attributed bonus packets cannot spend further charges.
   if (event.sourceId === ID.CRIPPLING_SHOT) return;
@@ -282,7 +282,7 @@ export function triggerBloodThirst(context: RangerResolverContext, event: Gw2Res
     event,
     ID.CRIPPLING_SHOT,
     'blood-thirst',
-    () => consumeCharge(state.bloodThirst, event.at, 'exclusive'),
+    () => consumeCharge(state.bloodThirst, event.at),
     {
       // Player ownership implements the June 2024 change, even when a pet delivers the strike.
       attribution: {

@@ -70,7 +70,7 @@ test('configured duration stacks bypass history and retain output caps without c
     });
     assert.equal(activeBoonStacks(current, kind), 5);
     assert.equal(activeBoonStacks(current, kind, 4), 4);
-    assert.equal(activeBoonStacks({ ...current, time: 10 }, kind), 3);
+    assert.equal(activeBoonStacks({ ...current, time: 10.000001 }, kind), 3);
   }
 });
 
@@ -94,7 +94,7 @@ test('duration boon stacks use capped presence in live state', () => {
       assert.equal(activeBoonStacks({ ...current, time: -1 }, kind), 0);
       assert.equal(activeBoonStacks({ ...current, time: 1 }, kind), 1);
       assert.equal(activeBoonStacks({ ...current, time: 7 }, kind), 1);
-      assert.equal(activeBoonStacks({ ...current, time: 10 }, kind), 0);
+      assert.equal(activeBoonStacks({ ...current, time: 10.000001 }, kind), 0);
       assert.equal(activeBoonStacks({ ...current, time: 7 }, kind, 0), 0);
       assert.equal(activeBoonStacks({ ...current, config: { boons: { [kind]: true } } }, kind), 1);
       assert.equal(activeBoonStacks({ ...current, time: 100, config: { boons: { [kind]: 3 } } }, kind), 1);
@@ -114,7 +114,10 @@ test('duration boon stacks use capped presence in live state', () => {
       1
     );
     assert.equal(
-      activeBoonStacks(context({ time: 2 + cap, runtime: { liveEffects: createTestLiveEffects(boons) } }), kind),
+      activeBoonStacks(
+        context({ time: 2 + cap + 0.000001, runtime: { liveEffects: createTestLiveEffects(boons) } }),
+        kind
+      ),
       0
     );
   }
@@ -172,7 +175,7 @@ test('duration stack queries retain player audience filtering and live insertion
     { at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } }
   ].forEach((application) => grantTestEffect(runtime.liveEffects, { ...application, kind: 'custom' }));
   assert.equal(activeBuffStacks(current, 'custom'), 5);
-  assert.equal(activeBuffStacks({ ...current, time: 10 }, 'custom'), 0);
+  assert.equal(activeBuffStacks({ ...current, time: 10.000001 }, 'custom'), 0);
 });
 
 test('additive damage uses the live weapon set before and after a same-time swap', () => {
@@ -384,7 +387,7 @@ test('boon-dependent damage sees same-time buffs only after their live applicati
     grantTestEffect(runtime.liveEffects, { ...application, kind: 'fury' })
   );
   assert.equal(query.strikeMultiplier(hit, hit.at, runtime), 1.1);
-  assert.equal(query.strikeMultiplier(hit, 10, runtime), 1);
+  assert.equal(query.strikeMultiplier(hit, 10.000001, runtime), 1);
 });
 
 test('live boon presence respects duration pools, audience, and application windows', () => {
@@ -405,7 +408,7 @@ test('live boon presence respects duration pools, audience, and application wind
 
   // Duration stacks remain active after individual expiry times; intensity stacks do not.
   assert.equal(boonActive(modifierContext, 'fury'), true);
-  assert.equal(boonActive({ ...modifierContext, time: 6 }, 'fury'), false);
+  assert.equal(boonActive({ ...modifierContext, time: 6.000001 }, 'fury'), false);
   assert.equal(boonActive(modifierContext, 'might'), false);
   assert.equal(boonActive({ ...modifierContext, time: -1 }, 'might'), false);
   assert.equal(boonActive({ ...modifierContext, time: 0 }, 'might'), true);

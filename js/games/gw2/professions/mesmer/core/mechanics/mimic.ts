@@ -22,7 +22,7 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
     skill.id === ID.MIMIC ||
     skill.type !== 'Utility' ||
     skill.flipParentId ||
-    !consumeCharge(core.mimic, cast.start, 'inclusive', 0)
+    !consumeCharge(core.mimic, cast.start, 0)
   ) {
     return;
   }

@@ -1,4 +1,6 @@
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -72,7 +74,7 @@ const magebaneTether = defineTrait({
             .damageIncreasePerStack
         ),
       order: 110,
-      when: (context) => (spellbreakerStateAt(context).magebaneTetherUntil || 0) > context.time
+      when: (context) => buffDeadlineActive(spellbreakerStateAt(context).magebaneTetherUntil || 0, context.time)
     }
   ],
   triggers: [
@@ -242,7 +244,8 @@ function triggerMagebaneTether(context: WarriorRuntime, state: SpellbreakerState
   if (!effect) return false;
 
   context.cooldownController.startRecharge(skill, at);
-  state.magebaneTetherUntil = canonicalTime(at + effectNumber(skill, effect, 'duration'));
+  const duration = effectNumber(skill, effect, 'duration');
+  state.magebaneTetherUntil = gw2TimerDeadline(at, duration);
   invokeTraitSkill(context, TRAIT.MAGEBANE_TETHER, skill.id, event);
   return true;
 }

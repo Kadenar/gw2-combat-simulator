@@ -1,4 +1,5 @@
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
@@ -31,9 +32,12 @@ function flowTick(runtime: WarriorRuntime): void {
       ? state.traitPositiveFlowStacks * balanceProfileNumber(profile, 'attributePerStack')
       : 0);
   runtime.resourceController.grant('flow', rate * (GW2_ACTION_TICK_MS / 1000));
-  state.flowStabilizerWindows = state.flowStabilizerWindows.filter((window) => window.expiresAt > runtime.time);
+  // Keep tied grants visible to gameplay; the next tick can discard their expired records.
+  state.flowStabilizerWindows = state.flowStabilizerWindows.filter((window) =>
+    buffDeadlineActive(window.expiresAt, runtime.time)
+  );
 
-  if (state.traitPositiveFlowUntil <= runtime.time) {
+  if (!buffDeadlineActive(state.traitPositiveFlowUntil, runtime.time)) {
     state.traitPositiveFlowStartedAt = 0;
     state.traitPositiveFlowUntil = 0;
     state.traitPositiveFlowStacks = 0;

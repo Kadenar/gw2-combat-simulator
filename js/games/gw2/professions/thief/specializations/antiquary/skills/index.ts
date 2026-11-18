@@ -1,3 +1,4 @@
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, COMBO_FIELD, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
@@ -488,10 +489,14 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
         factor: 1.15,
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
-          (thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').kryptisDamageUntil || 0) >
-            context.time &&
-          (thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').antiquaryKryptisTargetUntil || 0) >
+          buffDeadlineActive(
+            thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').kryptisDamageUntil || 0,
             context.time
+          ) &&
+          buffDeadlineActive(
+            thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').antiquaryKryptisTargetUntil || 0,
+            context.time
+          )
       }
     ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.

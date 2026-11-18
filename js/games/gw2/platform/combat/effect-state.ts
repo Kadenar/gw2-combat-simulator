@@ -1,10 +1,11 @@
 import {
   buffApplicationStacks,
   durationStackingBoonCapSeconds,
+  durationStackState,
   isDurationStackingBoon,
-  remainingDurationStackSeconds,
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
+import { buffApplicationExpiry, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -20,7 +21,10 @@ export interface EffectState<Source = SimulationEvent> {
   readonly durationLimit: number | null;
   readonly measure: 'count' | 'remaining-duration';
   readonly windows: readonly {
+    /** Natural deadline; null means permanent. */
     readonly expiresAt: number | null;
+    /** Explicit removal, such as consumption or companion retirement, closes the window at this instant. */
+    readonly removedAt?: number;
     readonly stacks: number;
     readonly source?: Source;
   }[];
@@ -58,25 +62,48 @@ export function timedEffectState(
   };
 }
 
-/** Reuse the combat query for capped intensity; a window snapshot contains no future applications. */
+/**
+ * Value at an instant: a buff window ending exactly then still counts, matching gameplay tied to its deadline.
+ * Target conditions keep half-open lifetimes, and explicit removal always closes a window at its instant.
+ */
 export function effectStateValue<Source>(
   state: EffectState<Source>,
   at: number
 ): { count: number; expiresAt: number | null; source?: Source } {
-  const live = state.windows.filter(
-    (window) => window.stacks > 0 && (window.expiresAt == null || window.expiresAt > at)
+  if (state.category === 'condition') return effectStateIntervalValue(state, at);
+
+  return windowValue(state, at, (expiresAt, removedAt) => buffWindowActive(at, -Infinity, expiresAt, removedAt));
+}
+
+/** Value over the interval starting at `at`; a window ending exactly then has no remaining extent. */
+export function effectStateIntervalValue<Source>(
+  state: EffectState<Source>,
+  at: number
+): { count: number; expiresAt: number | null; source?: Source } {
+  return windowValue(state, at, (expiresAt, removedAt) => expiresAt > at && !(removedAt != null && removedAt <= at));
+}
+
+/** Reuse the combat query for capped intensity; a window snapshot contains no future applications. */
+function windowValue<Source>(
+  state: EffectState<Source>,
+  at: number,
+  live: (expiresAt: number, removedAt: number | undefined) => boolean
+): { count: number; expiresAt: number | null; source?: Source } {
+  const windows = state.windows.filter(
+    (window) => window.stacks > 0 && live(window.expiresAt ?? Infinity, window.removedAt)
   );
   const count = buffApplicationStacks(
-    live.map((window) => ({ at: 0, expiresAt: window.expiresAt ?? Infinity, stacks: window.stacks })),
+    windows.map((window) => ({ at: -Infinity, expiresAt: buffApplicationExpiry(window), stacks: window.stacks })),
     '',
     at,
     state.countLimit ?? Infinity,
     { includes: () => true }
   );
-  const expiresAt = live.some((window) => window.expiresAt == null)
+  // The reported deadline is when the last live window actually ends, including an earlier removal.
+  const expiresAt = windows.some((window) => window.expiresAt == null && window.removedAt == null)
     ? null
-    : Math.max(at, ...live.map((window) => window.expiresAt!));
-  return { count, expiresAt, source: live.at(-1)?.source ?? state.source };
+    : Math.max(at, ...windows.map(buffApplicationExpiry));
+  return { count, expiresAt, source: windows.at(-1)?.source ?? state.source };
 }
 
 /** Observe already resolved boon storage, preserving recipient-specific duration pools and absolute deadlines. */
@@ -89,9 +116,9 @@ export function observeBuffState(
   includes = (application: Gw2TimedBuffApplication) => application.resolvedAudience.includesSelf
 ): EffectState {
   const duration = isDurationStackingBoon(kind);
-  const remaining = duration
-    ? remainingDurationStackSeconds(applications, at, { includes, maximum: durationStackingBoonCapSeconds(kind) })
-    : 0;
+  const pool = duration
+    ? durationStackState(applications, at, { includes, maximum: durationStackingBoonCapSeconds(kind) })
+    : null;
   return {
     kind,
     category: duration || [BOON.MIGHT, BOON.STABILITY, BOON.AEGIS].some((boon) => boon === kind) ? 'boon' : 'buff',
@@ -100,7 +127,10 @@ export function observeBuffState(
     origin: 'simulated',
     source: applications
       .filter(
-        (application) => includes(application) && application.at <= at && (duration || application.expiresAt > at)
+        (application) =>
+          includes(application) &&
+          application.at <= at &&
+          (duration || buffWindowActive(at, application.at, application.expiresAt, application.removedAt))
       )
       .filter((application) => application.event)
       .at(-1)?.event,
@@ -109,14 +139,19 @@ export function observeBuffState(
     measure: duration || policy.maximumDuration != null ? 'remaining-duration' : 'count',
     // Keep a stable execution-clock deadline so floating-point drift cannot create extra chart transitions.
     windows: duration
-      ? remaining > 0
-        ? [{ stacks: 1, expiresAt: canonicalTime(at + remaining) }]
+      ? pool!.active
+        ? [{ stacks: 1, expiresAt: canonicalTime(at + pool!.remaining) }]
         : []
       : applications
-          .filter((application) => includes(application) && application.at <= at && application.expiresAt > at)
+          .filter(
+            (application) =>
+              includes(application) &&
+              buffWindowActive(at, application.at, application.expiresAt, application.removedAt)
+          )
           .map((application) => ({
             stacks: application.stacks,
             expiresAt: application.expiresAt,
+            ...(application.removedAt == null ? {} : { removedAt: application.removedAt }),
             source: application.event
           }))
   };

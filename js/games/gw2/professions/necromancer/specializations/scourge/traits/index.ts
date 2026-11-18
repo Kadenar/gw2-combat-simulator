@@ -1,5 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { barrierBoonAudience } from '#gw2/platform/combat/barrier.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -243,7 +244,7 @@ const sandSage = defineTrait({
   attributes(context) {
     const profile = requireBalanceProfile(context.balanceContext.catalog, TRAIT.SAND_SAGE);
     const shadeActive = (necromancerRuntimeSpecializationState(context, 'Scourge')?.shades || []).some(
-      (expiresAt: number) => expiresAt > context.time
+      (expiresAt: number) => buffDeadlineActive(expiresAt, context.time)
     );
     return {
       attributeEffects: [

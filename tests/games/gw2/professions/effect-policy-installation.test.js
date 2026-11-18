@@ -228,12 +228,12 @@ for (const [family, specialization, field, kind] of [
     state[field] = [1, 2];
     const snapshot = profession.observeEffects(context.queries).find((entry) => entry.kind === kind);
     assert.equal(effectStateValue(snapshot, 0).count, 2);
-    assert.equal(effectStateValue(snapshot, 1).count, 1);
-    assert.equal(effectStateValue(snapshot, 2).count, 0);
+    assert.equal(effectStateValue(snapshot, 1.000001).count, 1);
+    assert.equal(effectStateValue(snapshot, 2.000001).count, 0);
     state[field] = [0.5];
     const replaced = profession.observeEffects(context.queries).find((entry) => entry.kind === kind);
     assert.equal(effectStateValue(replaced, 0).count, 1);
-    assert.equal(effectStateValue(replaced, 0.5).count, 0);
+    assert.equal(effectStateValue(replaced, 0.500001).count, 0);
     assert.equal(effectStateValue(snapshot, 0).count, 2);
   });
 }

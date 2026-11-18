@@ -86,13 +86,13 @@ test('Harbinger entry grants precede depletion and its passive clock stops on ev
   assert.deepEqual(state(partitioned), state(run([cast(ID.HARBINGER_SHROUD), wait(3000)])));
 });
 
-test('Blight expiry runs before same-time spending and records no replay state', () => {
+test('Blight expiry follows same-time spending and records no replay state', () => {
   const result = run([wait(24640), cast(ID.ELIXIR_OF_BLISS)], { ...base, initialBlight: 5 });
   const strike = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.ELIXIR_OF_BLISS);
   assert.equal(
     strike.coefficient,
     necromancerProfession.catalog.skillsById.get(ID.ELIXIR_OF_BLISS).effects.find((effect) => effect.type === 'strike')
-      .coefficient
+      .coefficient * 2
   );
   assert.equal(state(result).blightExpiries.length, 10);
   // New Blight lasts 25 seconds from impact, after launch has resolved the expiring stacks.
@@ -276,7 +276,7 @@ test('removing the Meltdown buff preserves the proc and delayed explosion withou
 test('initial accepted Meltdown buffs are visible to combat, planning, and reporting until exclusive expiry', () => {
   // Generic observation now exposes the initial buff already used by the damage modifier.
   const config = { ...base, initialBuffs: [{ kind: 'meltdown', stacks: 1, duration: 2 }] };
-  for (const at of [1, 2]) {
+  for (const at of [1, 2.04]) {
     const result = run([wait(at * 1000)], config, { combatStartTime: 0 });
     assert.deepEqual(result.warnings, []);
     const expected = at < 2 ? 1 : 0;

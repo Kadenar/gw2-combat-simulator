@@ -1,5 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -31,6 +32,9 @@ export function isBerserkerSkill(skill: WarriorSkill): boolean {
 }
 
 export function armAura(runtime: WarriorRuntime, until: number): void {
+  // A nonpositive grant leaves any existing aura unchanged.
+  if (until <= runtime.time) return;
+
   const state = berserkerState.from(runtime.profession);
   state.fireAuraUntil = Math.max(state.fireAuraUntil, until);
 }
@@ -38,7 +42,7 @@ export function armAura(runtime: WarriorRuntime, until: number): void {
 export function detonate(runtime: WarriorRuntime, payload: { activationId: string; skillId: number | string }): void {
   const state = berserkerState.from(runtime.profession);
 
-  if (state.fireAuraUntil <= runtime.time) return;
+  if (!buffDeadlineActive(state.fireAuraUntil, runtime.time)) return;
 
   const skill = runtime.helpers.skillsById.get(payload.skillId);
 

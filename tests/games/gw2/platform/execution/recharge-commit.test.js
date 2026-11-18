@@ -95,10 +95,10 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
       // Grant order differs from expiry order: the first live grant must be consumed first.
       runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations = [0, 10, 5];
     },
-    probes: [
-      [
-        1,
-        (runtime) => {
+    timeline: [
+      {
+        at: 1,
+        run(runtime) {
           observed.projected = projected(runtime);
           observed.keys = [
             Object.hasOwn(runtime.profession.specialization.state, 'holoUtilityCooldownReductionExpiresAt'),
@@ -111,9 +111,9 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
           observed.afterQueries = [...holo(runtime)];
           observed.before = before;
         }
-      ],
-      [1.0005, (runtime) => (observed.afterNeedles = [[...holo(runtime)], projected(runtime)])]
-    ]
+      }
+    ],
+    probes: [[1.0005, (runtime) => (observed.afterNeedles = [[...holo(runtime)], projected(runtime)])]]
   });
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(observed.projected, [10, 5]);
@@ -178,7 +178,8 @@ test('Holo-Dancer charges survive healing, unavailable utilities, and cancellati
     probes: [
       [
         20,
-        (runtime) => observed.push(holo(runtime), projected(runtime), projected(runtime, 35), projected(runtime, 40))
+        (runtime) =>
+          observed.push(holo(runtime), projected(runtime), projected(runtime, 35.000001), projected(runtime, 40.000001))
       ]
     ]
   });

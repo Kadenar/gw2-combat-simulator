@@ -58,7 +58,7 @@ test("Hunter's Tactics refreshes after a hit and expires eight seconds after the
   assert.deepEqual(result.warnings, []);
   const hits = result.resolvedEvents.filter((event) => event.type === 'damage');
   const base = hits[0].criticalChance;
-  for (const [index, bonus] of [0, 0.1, 0.1, 0].entries())
+  for (const [index, bonus] of [0, 0.1, 0.1, 0.1].entries())
     assert.ok(Math.abs(hits[index].criticalChance - base - bonus) < 1e-9);
   assert.equal(result.events.filter((event) => event.kind === 'hunters-tactics').length, 2);
 });

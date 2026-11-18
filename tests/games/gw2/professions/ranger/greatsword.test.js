@@ -261,7 +261,7 @@ test('Attack of Opportunity ignores effect damage and consumes only its recipien
   assert.equal(active(player), true);
   assert.equal(active(pet), true);
   assert.equal(active({ ...pet, summonOwner: 'pet-2' }), false);
-  assert.equal(active({ ...pet, at: 10 }), false);
+  assert.equal(active({ ...pet, at: 10.000001 }), false);
   reactToRangerGreatswordDamage(context, player);
   assert.equal(active(player), false);
   assert.equal(active(pet), true);

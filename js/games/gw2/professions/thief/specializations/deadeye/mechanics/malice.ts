@@ -1,4 +1,5 @@
 /** Own malice changes and accepted values so skills cannot change snapshot lifetimes or cycle rules. */
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -26,7 +27,7 @@ const deadeyeMalice: ResourcePolicy<ThiefRuntime> = {
 /** Live eligibility requires an unexpired mark; detached modifier previews keep their own query. */
 export function deadeyeMarked(runtime: ThiefRuntime): boolean {
   const state = deadeyeState.from(runtime.profession);
-  return Boolean(state.markedTargetId) && state.markExpiresAt > runtime.time;
+  return Boolean(state.markedTargetId) && buffDeadlineActive(state.markExpiresAt, runtime.time);
 }
 
 /** Gains notify cycle traits only after the resource controller has applied the selected capacity. */

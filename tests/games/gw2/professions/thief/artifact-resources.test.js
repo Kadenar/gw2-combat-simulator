@@ -83,7 +83,7 @@ test('Chak Shield caps stacked refunds at four and expired grants cannot fund we
     state.chakInitiativeRefunds.reduce((sum, grant) => sum + grant.count, 0),
     4
   );
-  for (const grant of state.chakInitiativeRefunds) grant.expiresAt = runtime.time;
+  for (const grant of state.chakInitiativeRefunds) grant.expiresAt = runtime.time - 0.000001;
   antiquaryArtifactLifecycle.onCastStart(runtime, {
     skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 4 } }
   });

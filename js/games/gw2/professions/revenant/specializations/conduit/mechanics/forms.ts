@@ -1,4 +1,6 @@
 /** Own Conduit form transitions and expiry so trait rewards cannot separate deadline changes from scheduling. */
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -10,7 +12,6 @@ import { REVENANT_CONDUIT_FORM_BY_LEGEND } from '#gw2/professions/revenant/data/
 import { validateConduitMesmerEnergyCosts } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
 import { conduitState, revenantConduitFormIsActive } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const FORM_EXPIRY = 'revenant.conduit-form-expiry';
 
@@ -18,14 +19,14 @@ const FORM_EXPIRY = 'revenant.conduit-form-expiry';
 function scheduleFormExpiry(runtime: RevenantRuntime): void {
   const until = conduitState.from(runtime.profession).cosmicWisdomUntil;
 
-  if (until > runtime.time) runtime.schedule(FORM_EXPIRY, until, { until }, undefined, -200);
+  if (until > runtime.time) runtime.scheduleExpiry(FORM_EXPIRY, until, { until }, { priority: -200 });
 }
 
 /** Apply a selected trait's extension and arm its expiry together, without reviving an expired form. */
 export function extendConduitForm(runtime: RevenantRuntime, duration: number): void {
   const state = conduitState.from(runtime.profession);
 
-  if (state.cosmicWisdomUntil <= runtime.time) return;
+  if (!buffDeadlineActive(state.cosmicWisdomUntil, runtime.time)) return;
 
   state.cosmicWisdomUntil += duration;
   scheduleFormExpiry(runtime);
@@ -35,7 +36,7 @@ export function extendConduitForm(runtime: RevenantRuntime, duration: number): v
 function updateConduitForm(runtime: RevenantRuntime): void {
   const state = conduitState.from(runtime.profession);
 
-  if (state.cosmicWisdomUntil <= runtime.time) {
+  if (!buffDeadlineActive(state.cosmicWisdomUntil, runtime.time)) {
     state.cosmicWisdomUntil = 0;
     state.conduitForm = '';
     return;
@@ -63,9 +64,8 @@ function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>
 
   const window = requireEffect(cast.skill, 'buff', 'cosmic-wisdom');
   // Only a positive window activates a form; the independent Numinous Gift still resolves.
-  state.cosmicWisdomUntil = canonicalTime(
-    runtime.time + (window ? Math.max(0, effectNumber(cast.skill, window, 'duration')) : 0)
-  );
+  const duration = window ? Math.max(0, effectNumber(cast.skill, window, 'duration')) : 0;
+  state.cosmicWisdomUntil = gw2TimerDeadline(runtime.time, duration);
   updateConduitForm(runtime);
   scheduleFormExpiry(runtime);
   runtime.fireTrigger(cosmicWisdomEntered, { cast });
@@ -76,7 +76,7 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
   const state = conduitState.from(runtime.profession);
   const combat = runtime.engagement.combatMechanicsAllowed();
   // The form state before the reset decides Enhanced Embodiment and the form update.
-  const formActive = state.cosmicWisdomUntil > runtime.time;
+  const formActive = buffDeadlineActive(state.cosmicWisdomUntil, runtime.time);
   runtime.resourceController.replace('affinity', 0);
   runtime.fireTrigger(conduitLegendReset, { combat, formActive });
 

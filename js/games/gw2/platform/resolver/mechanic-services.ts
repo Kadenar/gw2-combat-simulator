@@ -51,6 +51,7 @@ export interface MechanicCombatServices extends MechanicCombatQueries {
     select: (application: Readonly<Gw2TimedBuffApplication>) => boolean,
     expiry: (at: number) => number
   ): void;
+  endBuffs(kind: string, at: number, select: (application: Readonly<Gw2TimedBuffApplication>) => boolean): void;
   retireCompanion(companionId: string, removedAt: number): void;
   fieldFor(skillId: SkillId, at: number | undefined): Readonly<ComboFieldEvent> | undefined;
   expireField(fieldId: string, at: number): void;
@@ -63,7 +64,7 @@ export function createMechanicCombatServices(
   runtime: Gw2ResolverRuntime,
   conditions: Pick<Gw2ConditionResolution, 'retireCompanionConditions'>,
   commands: {
-    readonly liveEffects: Pick<LiveEffects, 'reviseBuffExpiry' | 'retireCompanion'>;
+    readonly liveEffects: Pick<LiveEffects, 'reviseBuffExpiry' | 'endBuffs' | 'retireCompanion'>;
     readonly combo: Pick<Gw2ComboController, 'expireField'>;
   }
 ): MechanicCombatServices {
@@ -99,6 +100,7 @@ export function createMechanicCombatServices(
     boonSnapshot: runtime.liveEffects.queries.boonSnapshot,
     boonDuration: runtime.liveEffects.queries.boonDuration,
     reviseBuffExpiry: commands.liveEffects.reviseBuffExpiry,
+    endBuffs: commands.liveEffects.endBuffs,
     retireCompanion(companionId: string, removedAt: number): void {
       // Retire condition ownership once, after the live recipient's boons and buffs are disposed.
       if (commands.liveEffects.retireCompanion(companionId, removedAt))

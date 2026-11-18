@@ -65,7 +65,6 @@ export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput<Speci
   const state = antiquaryState.from(input.profession);
   return {
     [STATE.ANTIQUARY_GUITAR_CHARGES]: activeBatches(state.antiquaryGuitarCharges, input.time, {
-      expiry: 'exclusive',
       order: 'insertion'
     }),
     [STATE.ARTIFACT_SLOTS]: state.artifactSlots,
@@ -75,10 +74,12 @@ export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput<Speci
     [STATE.NEXT_SKRITT_SCUFFLE_PILFER_AT]: state.nextSkrittScufflePilferAt,
     [STATE.ANTIQUARY_DAMAGE_UNTIL]: state.antiquaryDamageUntil,
     [STATE.COMBAT_HIGH_EXPIRATIONS]: purgeExpiredStacks(state.combatHighExpirations, input.time),
-    [STATE.MISTBURN]: { ...state.mistburn, count: activeBatchCount(state.mistburn, input.time, 'exclusive') },
+    [STATE.MISTBURN]: {
+      ...state.mistburn,
+      count: activeBatchCount(state.mistburn, input.time)
+    },
     [STATE.KRYPTIS_DAMAGE_UNTIL]: state.kryptisDamageUntil,
     [STATE.CHAK_INITIATIVE_REFUNDS]: activeBatches(state.chakInitiativeRefunds, input.time, {
-      expiry: 'exclusive',
       order: 'earliest-expiry'
     }),
     [STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS]: purgeExpiredStacks(

@@ -2,11 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import {
-  buffApplicationStacks,
-  buffMatchesAudience,
-  remainingDurationStackSeconds
-} from '#gw2/platform/combat/boons.js';
+import { buffApplicationStacks, buffMatchesAudience, durationStackState } from '#gw2/platform/combat/boons.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -60,10 +56,10 @@ function simulate({ might = 0, concentration = 0, count = 4, grants = [] } = {})
               3,
               25
             );
-            playerFury = remainingDurationStackSeconds(runtime.liveEffects.queries.boonApplications('fury') ?? [], 3, {
+            playerFury = durationStackState(runtime.liveEffects.queries.boonApplications('fury') ?? [], 3, {
               maximum: 30,
               includes: (application) => buffMatchesAudience(application, RECIPIENT.SELF)
-            });
+            }).remaining;
           }
         ]
       ]

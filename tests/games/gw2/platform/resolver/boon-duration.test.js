@@ -124,7 +124,7 @@ test('resolver boon grants and extensions retain rounded expiry in detailed and 
       [1.399999, 1, true],
       [1.4, 1, true],
       [1.439999, 1, true],
-      [1.44, 0, false]
+      [1.44, 1, true]
     ]);
     assert.equal(events[0].duration, 1.01);
 

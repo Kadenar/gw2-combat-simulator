@@ -53,13 +53,13 @@ test('Thief relic refreshes all stacks at cap and rejects hits outside its weapo
   hit(6, 'player', { type: 'Weapon', cooldown: 0 });
   assert.equal(stackReport(context), buff);
   assert.equal(context.relic.queries.strikeMultiplier(context, { at: 11.039 }), 1.05);
-  assert.equal(context.relic.queries.strikeMultiplier(context, { at: 11.04 }), 1);
+  assert.equal(context.relic.queries.strikeMultiplier(context, { at: 11.040001 }), 1);
   assert.equal(
     context.relic.queries.strikeMultiplier(context, { at: 11.039 }),
     1.05,
     'later queries do not erase earlier windows'
   );
-  hit(11.04);
+  hit(11.08);
   assert.equal(stackReport(context)?.effectState.stacks ?? 0, 1);
   const refresh = context.announcements[5].announcement;
   assert.equal(refresh.expiresAt, 11.04);
@@ -91,11 +91,14 @@ test('Bloodstone refreshes Volatility until the fourth blast consumes it and blo
   assert.equal(context.announcements.at(-1).announcement.name, 'Relic of Bloodstone');
   combo(27.999);
   assert.equal(stackReport(context, 'Bloodstone Volatility').effectState.stacks, 0);
+  // Fervor still covers a blast at its own deadline.
   combo(28);
+  assert.equal(stackReport(context, 'Bloodstone Volatility').effectState.stacks, 0);
+  combo(28.04);
   assert.equal(stackReport(context)?.effectState.stacks ?? 0, 1);
-  combo(38);
+  combo(38.08);
   assert.equal(stackReport(context).effectState.stacks, 1);
-  assert.equal(stackReport(context).expiresAt, 48);
+  assert.equal(stackReport(context).expiresAt, 48.08);
 });
 
 test('Thorns preserves its deterministic ramp while reporting finite refreshes after reaching the cap', () => {

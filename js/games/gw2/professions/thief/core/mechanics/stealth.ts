@@ -1,3 +1,4 @@
+import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import {
   createStealthLifecycle,
@@ -27,11 +28,10 @@ export function thiefBonusStealthAttack(runtime: MechanicQueriesOf<ThiefRuntime>
   const at = runtime.time;
   const elite = runtime.profession.specialization;
 
-  if (elite.kind === 'Deadeye') return activeBatchCount(elite.state.bonusStealthAttack, at, 'exclusive') > 0;
+  if (elite.kind === 'Deadeye') return activeBatchCount(elite.state.bonusStealthAttack, at) > 0;
 
   return (
-    elite.kind === 'Antiquary' &&
-    elite.state.antiquaryGuitarCharges.some((grant) => activeBatchCount(grant, at, 'exclusive') > 0)
+    elite.kind === 'Antiquary' && elite.state.antiquaryGuitarCharges.some((grant) => activeBatchCount(grant, at) > 0)
   );
 }
 
@@ -75,7 +75,8 @@ function breakThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, at: number)
 
   endStealth(core, at);
   // Only a real stealth exit starts the linger; bonus attack charges do not.
-  core.hiddenKillerUntil = at + hiddenKillerLinger(runtime);
+  const linger = hiddenKillerLinger(runtime);
+  core.hiddenKillerUntil = gw2TimerDeadline(at, linger);
 
   return true;
 }
@@ -142,13 +143,15 @@ export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast
 
   // Actual stealth supplies the attack first; only the active owner can spend a bonus entitlement.
   if (!stealthActive(core, runtime.time)) {
-    if (elite.kind === 'Deadeye') consumeCharge(elite.state.bonusStealthAttack, runtime.time, 'exclusive');
+    if (elite.kind === 'Deadeye') consumeCharge(elite.state.bonusStealthAttack, runtime.time);
 
     if (elite.kind === 'Antiquary') {
       // Spend the newest live Guitar grant first, preserving older grants and their expiry.
       const grants = elite.state.antiquaryGuitarCharges;
-      const newest = [...grants].reverse().find((grant) => activeBatchCount(grant, runtime.time, 'exclusive') > 0);
-      consumeBatchFromList(grants, runtime.time, { expiry: 'exclusive', eligible: (grant) => grant === newest });
+      const newest = [...grants].reverse().find((grant) => activeBatchCount(grant, runtime.time) > 0);
+      consumeBatchFromList(grants, runtime.time, {
+        eligible: (grant) => grant === newest
+      });
     }
   }
 

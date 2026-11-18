@@ -1,5 +1,4 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, buffActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -134,7 +133,7 @@ export const quickDraw = defineTrait({
       when: (runtime: MechanicQueriesOf<RangerRuntime>, skill) =>
         skill.type === 'Weapon' &&
         skill.slot !== 'Weapon_1' &&
-        activeBatchCount(runtime.profession.core.quickDraw, runtime.time, 'exclusive') > 0,
+        activeBatchCount(runtime.profession.core.quickDraw, runtime.time) > 0,
       multiplier: { profile: TRAIT.QUICK_DRAW, field: 'rechargeMultiplier' }
     }
   ],
@@ -147,7 +146,7 @@ export const quickDraw = defineTrait({
     reserveRecharge(runtime: RangerRuntime, skill, work) {
       // Quick Draw is reserved at acceptance so concurrent casts cannot consume the same grant twice.
       if (skill.type === 'Weapon' && skill.slot !== 'Weapon_1')
-        consumeCharge(runtime.profession.core.quickDraw, runtime.time, 'exclusive');
+        consumeCharge(runtime.profession.core.quickDraw, runtime.time);
 
       return work;
     }

@@ -1,4 +1,5 @@
 import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
+import { buffApplicationExpiry, buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, AURA, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
@@ -183,6 +184,7 @@ export const chaoticTransference = defineTrait<MesmerSkill>({
       on: 'aura.applied',
       when: (_runtime, event) =>
         event.aura === AURA.CHAOS &&
+        Number(event.duration) > 0 &&
         event.actorType === ACTOR.PLAYER &&
         (event.recipient == null || event.recipient === RECIPIENT.SELF),
       emit: TRAIT.CHAOTIC_TRANSFERENCE,
@@ -373,7 +375,7 @@ function applyIllusionaryMembrane(context: MechanicCombatContext, event: Gw2Reso
 
   const expiresAt = context.combat
     .buffApplications('illusionary-membrane')
-    .reduce((latest, application) => Math.max(latest, application.expiresAt), event.at);
+    .reduce((latest, application) => Math.max(latest, buffApplicationExpiry(application)), event.at);
   const duration = Math.min(balanceProfileNumber(profile, 'maximumDuration'), expiresAt - event.at + buff.duration);
   emitTraitProfile(context, TRAIT.ILLUSIONARY_MEMBRANE, TRAIT.ILLUSIONARY_MEMBRANE, event, {
     effect: { type: 'buff', name: 'illusionary-membrane' },
@@ -456,7 +458,7 @@ export const shaperOfChaos = defineTrait<MesmerSkill>({
     },
     onTriggerPoint(mesmerProfessionActionCommitted, {
       run(runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerProfessionActionCommitted>) {
-        if (input.slot !== 1 || runtime.profession.core.chaosAuraUntil <= input.at) return;
+        if (input.slot !== 1 || !buffDeadlineActive(runtime.profession.core.chaosAuraUntil, input.at)) return;
 
         runtime.profession.core.chaosAuraUntil = 0;
         emitTraitProfile(runtime, TRAIT.SHAPER_OF_CHAOS, TRAIT.SHAPER_OF_CHAOS, undefined, {

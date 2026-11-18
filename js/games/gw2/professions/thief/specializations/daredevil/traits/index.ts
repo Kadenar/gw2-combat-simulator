@@ -1,4 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -294,8 +296,8 @@ function armWeakeningStrikes(runtime: ThiefRuntime, { cast }: DaredevilCast): vo
   if (!requireEffect(weakening, 'condition', CONDITION.WEAKNESS)) return;
 
   const duration = balanceProfileNumber(weakening, 'duration');
-  state.weakeningStrikeReady = true;
-  state.weakeningStrikeExpiresAt = runtime.time + duration;
+  state.weakeningStrikeReady = duration > 0;
+  state.weakeningStrikeExpiresAt = gw2TimerDeadline(runtime.time, duration);
   runtime.effects.emit({
     kind: 'packet',
     event: buildThiefBuff(skill, {
@@ -315,7 +317,7 @@ function weakeningStrike(runtime: ThiefRuntime, { cause: event }: DaredevilStrik
 
   if (
     !state.weakeningStrikeReady ||
-    state.weakeningStrikeExpiresAt <= event.at ||
+    !buffDeadlineActive(state.weakeningStrikeExpiresAt, event.at) ||
     event.actorType !== ACTOR.PLAYER ||
     !(Number(event.coefficient) > 0) ||
     event.skillId === SHARED_SKILL_IDS.DODGE

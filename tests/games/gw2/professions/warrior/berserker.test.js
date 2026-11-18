@@ -49,7 +49,9 @@ test('Rage extension survives the original expiry and cannot revive mode after e
   assert.equal(state(extended).berserkUntil, 23);
   const expired = run([...rotation, wait(2000)], config);
   assert.equal(state(expired).berserkUntil, null);
-  const late = run(['Berserk', wait(20000), 'Outrage'], config);
+  const tied = run(['Berserk', wait(20000), 'Outrage'], config);
+  assert.equal(state(tied).berserkUntil, 23);
+  const late = run(['Berserk', wait(20001), 'Outrage'], config);
   assert.equal(state(late).berserkUntil, null);
   assert.equal(late.planningState.profession[STATE.ADRENALINE].maximum, 30);
   const reentry = run(['Berserk', 'Berserk']);

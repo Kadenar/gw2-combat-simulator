@@ -15,7 +15,7 @@ function carapaceCapacity(source: BalanceProfileSource): number {
   return balanceNumber(source, TRAIT.FLESH_OF_THE_MASTER, 'maximumStacks');
 }
 
-/** Reject overflow against all live Carapace so capped grants never replace or refresh existing stacks. */
+/** Reserve minion capacity, then admit timed grants against stacks that survive this timestamp's cleanup. */
 export function addCarapace(
   context: NecromancerRuntime | NecromancerResolverContext,
   stacks: number,
@@ -24,16 +24,12 @@ export function addCarapace(
 ): void {
   const state = professionCoreState(context.profession);
   purgeTimedState(state, at);
-  const available = Math.max(
-    0,
-    carapaceCapacity(context.helpers) - deathCarapaceStacks(context.helpers, context, state, at)
-  );
   state.carapaceExpiries = addTimedStacks(
     state.carapaceExpiries,
-    Math.min(stacks, available),
+    stacks,
     at,
     duration,
-    carapaceCapacity(context.helpers)
+    Math.max(0, carapaceCapacity(context.helpers) - minionCarapaceStacks(context.helpers, context, state))
   ).expiries;
 }
 

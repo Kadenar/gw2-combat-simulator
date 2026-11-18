@@ -55,7 +55,7 @@ test('Blightbringer counts distinct activations, banks at cap during ICD and res
 });
 
 // Buildup consumption must be visible before the new damage window, and historical queries retain the old window.
-test('Visionary publishes its consumed counter before its reward and resumes buildup at expiry', () => {
+test('Visionary publishes its consumed counter before its reward and resumes buildup after expiry', () => {
   const state = visionary.createState();
   state.stacks = 7;
   const observations = [];
@@ -73,9 +73,9 @@ test('Visionary publishes its consumed counter before its reward and resumes bui
     ["Vloxx's Vision", 0, 1]
   ]);
   const until = state.windows[0].until;
-  visionary.combo(ctx, state, { ...combo, at: until - 0.001 });
-  assert.equal(state.stacks, 0);
   visionary.combo(ctx, state, { ...combo, at: until });
+  assert.equal(state.stacks, 0);
+  visionary.combo(ctx, state, { ...combo, at: until + 0.000001 });
   assert.equal(state.stacks, 1);
   assert.equal(visionary.outgoingDamageBonus(ctx, state, 2), 0.1);
   assert.equal(visionary.outgoingDamageBonus(ctx, state, until + 1), 0);

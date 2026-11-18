@@ -128,7 +128,7 @@ test('Electric Artillery converts whole charges into Focused-sensitive Vulnerabi
   ]) {
     for (const [expiresAt, expectedStacks] of [
       [11, focusedStacks],
-      [10, unfocusedStacks]
+      [9.96, unfocusedStacks]
     ]) {
       const conditions = [];
       const combatRuntime = {

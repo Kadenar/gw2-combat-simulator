@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denyCast } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -26,7 +27,7 @@ export function commitRechargeDuration(context: ElementalistRuntime, skill: Skil
 
   const state = evokerState.from(context.profession);
 
-  if (state.elementalBalanceUntil <= context.time) {
+  if (!buffDeadlineActive(state.elementalBalanceUntil, context.time)) {
     return duration;
   }
 

@@ -204,14 +204,14 @@ test('Twin Fangs refreshes its eight-second window only from qualifying hits', (
           for (const at of [1, 5]) runtime.effects.emit({ kind: 'packet', event: thiefHit(at) });
           runtime.effects.emit({ kind: 'packet', event: thiefHit(10, { actorType: 'summon' }) });
         },
-        probes: [0.5, 1, 5, 9.1, 13].map((at) => [
+        probes: [0.5, 1, 5, 9.1, 13, 13.000001].map((at) => [
           at,
           (runtime) => active.push(buffActive({ runtime, time: runtime.time }, 'twin-fangs'))
         ])
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.deepEqual(active, [false, defiant, defiant, defiant, false]);
+    assert.deepEqual(active, [false, defiant, defiant, defiant, defiant, false]);
   }
 });
 

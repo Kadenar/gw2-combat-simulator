@@ -1,3 +1,4 @@
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { BOON } from '#gw2/platform/constants.js';
@@ -13,7 +14,7 @@ export function guardianRuntimeState(context: Gw2ModifierContext): Partial<Guard
 export function guardianBoonActive(context: Gw2ModifierContext, boon: string): boolean {
   return (
     boonActive(context, boon) ||
-    (boon === BOON.RESOLUTION && (guardianRuntimeState(context).resolutionUntil || 0) > context.time)
+    (boon === BOON.RESOLUTION && buffDeadlineActive(guardianRuntimeState(context).resolutionUntil || 0, context.time))
   );
 }
 

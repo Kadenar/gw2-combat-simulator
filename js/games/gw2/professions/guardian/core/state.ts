@@ -59,7 +59,7 @@ export function projectGuardianPlanningState(input: Gw2PlanningStateInput) {
     [STATE.RESOLUTION_UNTIL]: state.resolutionUntil,
     [STATE.SPEAR_ILLUMINATED]: {
       ...state.spearIlluminated,
-      count: activeBatchCount(state.spearIlluminated, input.time, 'exclusive')
+      count: activeBatchCount(state.spearIlluminated, input.time)
     },
     [STATE.SPEAR_LUMINANCE_UNTIL]: state.spearLuminanceUntil
   };

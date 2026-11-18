@@ -16,8 +16,6 @@ export interface NumericFieldSpec {
   /** Author-facing name; when omitted, labels split the camel-case key. */
   readonly label?: string;
   readonly unit?: FieldUnit;
-  /** Inclusive lower bound; omitted means zero, because catalog tuning is nonnegative unless declared otherwise. */
-  readonly minimum?: number;
   /** Inclusive upper bound. */
   readonly maximum?: number;
   /** Patches may edit the value; advanced fields sit behind the editor's calibration disclosure. */
@@ -89,11 +87,9 @@ function validateFieldSpec(field: string, candidate: unknown, owner: string): vo
 
   const spec = candidate as NumericFieldSpec;
 
-  const minimum = spec.minimum ?? 0;
   const maximum = spec.maximum ?? Infinity;
 
-  if (Number.isNaN(minimum) || Number.isNaN(maximum) || minimum > maximum || minimum === Infinity)
-    throw new TypeError(`${owner} field ${field} has invalid bounds.`);
+  if (Number.isNaN(maximum) || maximum < 0) throw new TypeError(`${owner} field ${field} has invalid bounds.`);
 
   if (spec.unit !== undefined && !FIELD_UNITS.has(spec.unit))
     throw new TypeError(`${owner} field ${field} has an invalid unit.`);
@@ -166,7 +162,6 @@ function fieldValueAtPath(owner: unknown, path: readonly string[]): unknown {
 interface NumericFieldValidation {
   readonly field: string;
   readonly path: readonly string[];
-  readonly minimum: number;
   readonly maximum: number;
 }
 
@@ -178,9 +173,7 @@ function numericValidationFields(fields: FieldSpecs): readonly NumericFieldValid
 
   if (!validations) {
     validations = Object.entries(fields).flatMap(([field, spec]) =>
-      spec.kind === 'number'
-        ? [{ field, path: field.split('.'), minimum: spec.minimum ?? 0, maximum: spec.maximum ?? Infinity }]
-        : []
+      spec.kind === 'number' ? [{ field, path: field.split('.'), maximum: spec.maximum ?? Infinity }] : []
     );
     numericFieldValidations.set(fields, validations);
   }
@@ -188,16 +181,20 @@ function numericValidationFields(fields: FieldSpecs): readonly NumericFieldValid
   return validations;
 }
 
-/** Every declared numeric value must be finite and inside its inclusive bounds; absent values stay unchecked. */
+/** Catalog numbers are finite and nonnegative; duration values and additions must be strictly positive. */
 export function validateFieldValues(owner: object, fields: FieldSpecs, label: string): void {
-  for (const { field, path, minimum, maximum } of numericValidationFields(fields)) {
+  for (const { field, path, maximum } of numericValidationFields(fields)) {
     const value = fieldValueAtPath(owner, path);
 
     if (value === undefined) continue;
 
-    if (typeof value !== 'number' || !Number.isFinite(value) || value < minimum || value > maximum)
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > maximum)
       throw new TypeError(
-        `${label} field=${field} expected=finite number in [${minimum}, ${maximum === Infinity ? 'Infinity' : maximum}].`
+        `${label} field=${field} expected=finite number in [0, ${maximum === Infinity ? 'Infinity' : maximum}].`
       );
+
+    // Duration multipliers and bonuses are tuning, while durations and per-unit additions cannot be empty.
+    if (value === 0 && /duration(?:$|Per[A-Z]|Extension$)/i.test(field))
+      throw new TypeError(`${label} field=${field} expected=finite number greater than zero.`);
   }
 }

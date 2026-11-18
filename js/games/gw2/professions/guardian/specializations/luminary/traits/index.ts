@@ -1,5 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -154,10 +154,10 @@ const radiantArmaments = defineTrait({
         // The buff is emitted for every radiant weapon, but the +7% bonus is
         // exclusive to the hammer (Dazzling Hammer). The shared effect-clock expiry check is
         // necessary because latestRadiantArmaments returns the most-recently
-        // applied record regardless of whether it has expired.
+        // applied record regardless of whether it has expired. A hammer hit at the deadline still receives the bonus.
         return (
           armament?.metadata?.radiantWeapon === 'hammer' &&
-          gw2EffectExpiresAt(armament.at, armament.duration || 0) > context.time
+          buffDeadlineActive(gw2EffectExpiresAt(armament.at, armament.duration || 0), context.time)
         );
       }
     }
@@ -379,7 +379,7 @@ function reduceVirtueRecharge(runtime: GuardianRuntime, { cast }: LuminaryCast):
 function detonate(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
   const state = luminaryState.from(runtime.profession);
 
-  if (state.lightAuraUntil <= runtime.time) return;
+  if (!buffDeadlineActive(state.lightAuraUntil, runtime.time)) return;
 
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.SOVEREIGN_OF_LIGHT);
   const strike = requireEffect(profile, 'strike', 'Strike');

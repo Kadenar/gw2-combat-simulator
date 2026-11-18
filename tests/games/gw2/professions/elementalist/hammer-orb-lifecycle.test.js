@@ -263,8 +263,8 @@ test('successive Finales extend only their own orb buff applications', () => {
   assert.deepEqual(runtime.profession.core.hammerOrbs, { Fire: null, Water: null, Air: null, Earth: null });
 });
 
-// A refresh at another orb's exact expiry must leave that expired state and buff retired.
-test('orb creation excludes an element at its exact expiry', () => {
+// A refresh at the deadline extends the old orb before its stale cleanup can retire it.
+test('orb creation refreshes an element at its exact expiry', () => {
   const rotation = [
     { type: 'cast', skillId: ID.FLAME_WHEEL },
     { type: 'cast', skillId: ID.WATER_ATTUNEMENT },
@@ -282,17 +282,17 @@ test('orb creation excludes an element at its exact expiry', () => {
   });
   assert.deepEqual(result.warnings, []);
   const runtime = observedRuntime(result);
-  assert.equal(runtime.profession.core.hammerOrbs.Fire, null);
+  assert.equal(runtime.profession.core.hammerOrbs.Fire, runtime.profession.core.hammerOrbs.Water);
   assert.ok(runtime.profession.core.hammerOrbs.Water > coil.end / 1000);
   assert.ok(
     runtime.liveEffects.queries
       .buffApplications('hammer fire orb')
-      .every((buff) => buff.expiresAt === canonicalTime(coil.end / 1000))
+      .some((buff) => buff.expiresAt === runtime.profession.core.hammerOrbs.Fire)
   );
 });
 
-// Finale may consume a live primary orb while a secondary orb expires at that same cast-start boundary.
-test('Finale excludes an orb expiring exactly at cast start', () => {
+// Explicit removal precedes the cast's snapshot even when it shares the cast-start timestamp.
+test('Finale excludes an orb explicitly removed at cast start', () => {
   const rotation = [
     { type: 'cast', skillId: ID.DUAL_ORBITS_FIRE_AND_WATER },
     { type: 'wait', durationMs: 100 },
@@ -309,12 +309,8 @@ test('Finale excludes an orb expiring exactly at cast start', () => {
         at: start,
         priority: -100,
         run(runtime) {
-          runtime.profession.core.hammerOrbs.Water = start;
-          runtime.mechanics.combat.reviseBuffExpiry(
-            'hammer water orb',
-            () => true,
-            () => start
-          );
+          runtime.profession.core.hammerOrbs.Water = null;
+          runtime.mechanics.combat.endBuffs('hammer water orb', start, () => true);
         }
       }
     ]
@@ -329,7 +325,7 @@ test('Finale excludes an orb expiring exactly at cast start', () => {
   assert.ok(
     observedRuntime(result)
       .liveEffects.queries.buffApplications('hammer water orb')
-      .every((buff) => buff.expiresAt === start)
+      .every((buff) => buff.removedAt === start)
   );
 });
 

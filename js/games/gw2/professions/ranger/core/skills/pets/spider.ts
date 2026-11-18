@@ -231,7 +231,7 @@ export function consumeParalyzingVenom(context: RangerResolverContext, event: Gw
     event,
     ID.PARALYZING_VENOM,
     'paralyzing-venom',
-    () => consumeCharge(pet.paralyzingVenom, event.at, 'exclusive'),
+    () => consumeCharge(pet.paralyzingVenom, event.at),
     {
       attribution: {
         source: 'ranger-pet',

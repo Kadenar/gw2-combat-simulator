@@ -14,7 +14,6 @@ import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 // Exercise authored thresholds with both callers' progress gains; bound emissions so regressions cannot hang the suite.
 for (const { threshold, progress, grants } of [
   { threshold: 0, progress: [0, 0, 0, 0], grants: [0, 0, 0, 0] },
-  { threshold: -1, progress: [0, 0, 0, 0], grants: [0, 0, 0, 0] },
   { threshold: 1.5, progress: [1, 0, 0, 1], grants: [0, 1, 2, 2] },
   { threshold: 5, progress: [1, 3, 0, 1], grants: [0, 0, 1, 1] }
 ]) {

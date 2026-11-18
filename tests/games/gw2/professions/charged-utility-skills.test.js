@@ -29,7 +29,6 @@ const thief = createObservedProfessionSimulator(thiefProfession, config);
 const liveVenomCharges = (result, id) => {
   const runtime = observedRuntime(result);
   return activeBatches(runtime.profession.core.venomChargeBatches[id], runtime.time, {
-    expiry: 'exclusive',
     order: 'earliest-expiry'
   }).reduce((sum, batch) => sum + batch.count, 0);
 };
@@ -66,7 +65,7 @@ test('player venoms spend shorter grants first and regrants prune only their sel
     spider.map((grant) => grant.count),
     [1, 2]
   );
-  assert.equal(applyActiveVenoms(context, thiefHit(3)), 1);
+  assert.equal(applyActiveVenoms(context, thiefHit(3.000001)), 1);
   assert.deepEqual(
     spider.map((grant) => grant.count),
     [1, 1]
@@ -74,7 +73,7 @@ test('player venoms spend shorter grants first and regrants prune only their sel
   assert.equal(core.venomChargeBatches[THIEF.SPIDER_VENOM], spider);
   assert.equal(core.venomChargeBatches[THIEF.SKALE_VENOM], skale);
   assert.equal(skale[0].count, 2);
-  assert.equal(applyActiveVenoms(context, thiefHit(10)), 0);
+  assert.equal(applyActiveVenoms(context, thiefHit(10.000001)), 0);
   addVenomCharges(core, THIEF.SPIDER_VENOM, 10, 5, 4, 2);
   assert.deepEqual(
     core.venomChargeBatches[THIEF.SPIDER_VENOM].map(({ count: charges, expiresAt }) => [charges, expiresAt]),
@@ -112,13 +111,13 @@ test('nonpositive and NaN venom gains prune expired grants', () => {
   for (const charges of [0, -1, NaN]) {
     const core = thiefProfession.runtimeFor({}).createState({}).core;
     addVenomCharges(core, THIEF.SPIDER_VENOM, 0, 2, 1);
-    addVenomCharges(core, THIEF.SPIDER_VENOM, 1, charges, 10);
+    addVenomCharges(core, THIEF.SPIDER_VENOM, 1.000001, charges, 10);
     assert.deepEqual(core.venomChargeBatches[THIEF.SPIDER_VENOM], []);
   }
 });
 
 test('venom planning and reports exclude retained expired charges and observe a later regrant', () => {
-  // A real strike at expiry cannot spend the old grant; reporting derives liveness without pruning private storage.
+  // A tied strike spends the old grant before cleanup; settled reporting excludes its remaining charge.
   for (const regrant of [false, true]) {
     const result = runThief(
       [wait(3000)],
@@ -134,12 +133,12 @@ test('venom planning and reports exclude retained expired charges and observe a 
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(conditions(result, THIEF.SPIDER_VENOM).length, 0);
+    assert.equal(conditions(result, THIEF.SPIDER_VENOM).length, 1);
     assert.equal(planningBuffStacks(result.planningState, 'spider-venom'), regrant ? 1 : 0);
     const grants = observedRuntime(result).profession.core.venomChargeBatches[THIEF.SPIDER_VENOM];
     assert.deepEqual(
       grants.map(({ count, expiresAt }) => [count, expiresAt]),
-      regrant ? [[1, 6]] : [[2, 1]]
+      regrant ? [[1, 6]] : [[1, 1]]
     );
     const track = result.effectReport.tracks.find(
       (track) => track.kind === 'spider-venom' && track.recipient === 'self'
@@ -190,7 +189,6 @@ test('Sharpening Stone applications expire independently at their authored durat
   const runtime = observedRuntime(result);
   assert.equal(
     activeBatches(runtime.profession.core.sharpeningStoneGrants, runtime.time, {
-      expiry: 'exclusive',
       order: 'earliest-expiry'
     }).reduce((sum, grant) => sum + grant.count, 0),
     charges - 1

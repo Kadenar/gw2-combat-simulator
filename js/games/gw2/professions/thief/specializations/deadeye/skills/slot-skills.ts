@@ -218,7 +218,8 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition<ThiefS
 /** Register actions beside the skills whose accepted casts select them. */
 const deadeyeSlotActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> = {
   'thief.clear-revealed'(runtime) {
-    runtime.profession.core.revealedUntil = Math.min(runtime.profession.core.revealedUntil, runtime.time);
+    // Shadow Meld removes Revealed immediately, including before another same-time hit.
+    runtime.profession.core.revealedUntil = 0;
   },
   'thief.mercy'(runtime) {
     // Consume live commitment-time malice before refunding the selected skill's amount.

@@ -870,7 +870,7 @@ export function handleRangerSharpeningStone(context: RangerResolverContext, even
     state.sharpeningStoneGrants,
     createChargeGrant(Math.trunc(Math.max(0, Number(event.charges || 0))), event.at + (event.duration || 0)),
     event.at,
-    { expiry: 'exclusive', order: 'earliest-expiry' }
+    { order: 'earliest-expiry' }
   );
 }
 
@@ -886,7 +886,7 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
     ID.SHARPENING_STONE,
     'sharpening-stone',
     // Grants stay in expiry order, so this spends the earliest live batch and skips expired ones.
-    () => consumeBatchFromList(state.sharpeningStoneGrants, event.at, { expiry: 'exclusive' }) !== undefined,
+    () => consumeBatchFromList(state.sharpeningStoneGrants, event.at) !== undefined,
     {
       attribution: {
         source: 'ranger',

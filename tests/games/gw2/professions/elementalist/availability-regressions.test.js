@@ -307,7 +307,8 @@ test('Fervent Stance grants dual-attack Might only inside an armed window', () =
     [false, 0, false],
     [true, 0, true],
     [true, 7.999, true],
-    [true, 8, false],
+    [true, 8, true],
+    [true, 8.000001, false],
     [true, 9, false]
   ]) {
     const events = [];

@@ -42,6 +42,11 @@ export function createRuntimeTaskScheduler<T extends object, TSkill extends Skil
 
       enqueueWork(makeWork({ type: 'runtime.task', at, priority, payload: { name, data }, owner, timing }));
     },
+    scheduleExpiry(name, at, data = null, { owner, priority = 0 } = {}) {
+      if (!tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
+
+      enqueueWork(makeWork({ type: 'runtime.task', at, priority, payload: { name, data }, owner, timing: 'expiry' }));
+    },
     scheduleForCast(name, at, cast, data = {}, owner, priority = 0, timing) {
       if (!tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
 

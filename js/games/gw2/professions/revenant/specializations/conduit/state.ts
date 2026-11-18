@@ -1,3 +1,4 @@
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
 import {
   defineProfessionSpecializationState,
@@ -17,12 +18,13 @@ export interface ConduitState {
   beguilingHazeRecharge: RechargeProgress | null;
 }
 
+/** Form-gated effects share the Cosmic Wisdom deadline with form updates, so a hit at that deadline still has it. */
 export function revenantConduitFormIsActive(
   state: Partial<ConduitState> | null | undefined,
   form: string,
   at = 0
 ): boolean {
-  return state?.conduitForm === form && (state.cosmicWisdomUntil || 0) > (at || 0);
+  return state?.conduitForm === form && buffDeadlineActive(state.cosmicWisdomUntil || 0, at || 0);
 }
 
 /** The selected resource policy initializes affinity; form and recharge lifetimes stay with Conduit. */

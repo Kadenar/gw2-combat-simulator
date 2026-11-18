@@ -67,16 +67,15 @@ export function resolveAshesGrantData(
 export function grantAshes(runtime: GuardianRuntime, request: AshesGrantRequest): void {
   const expiresAt = gw2EffectExpiresAt(runtime.time, request.lifetimeSeconds);
   const state = firebrandState.from(runtime.profession);
-  // Preserve the unverified mixed policy: reads and consumes are inclusive, refresh and expiry are exclusive.
-  // At the deadline, self events before the expiry task can spend charges; events after it cannot.
+  // Tied gameplay can spend or refresh charges before the cleanup phase clears the grant.
   const install = (previous: ChargeGrant | undefined) =>
     request.source === 'epilogue'
       ? createChargeGrant(request.charges, expiresAt)
-      : refreshChargeGrant(previous, request.charges, expiresAt, runtime.time, 'exclusive');
+      : refreshChargeGrant(previous, request.charges, expiresAt, runtime.time);
 
   if (request.recipients.includesSelf) {
     state.ashes = install(state.ashes);
-    runtime.schedule(FIREBRAND_ASHES_EXPIRE, expiresAt, undefined, undefined, 10);
+    runtime.scheduleExpiry(FIREBRAND_ASHES_EXPIRE, expiresAt, undefined, { priority: 10 });
   }
 
   // Self-only grants never touch the allied controller.
@@ -95,7 +94,7 @@ export function grantAshes(runtime: GuardianRuntime, request: AshesGrantRequest)
       const current = () => firebrandState.from(runtime.profession).alliedAshes[allyIndex];
       return {
         id: `ashes:${allyIndex}`,
-        isActive: (at) => activeBatchCount(current(), at, 'inclusive') > 0,
+        isActive: (at) => activeBatchCount(current(), at) > 0,
         trigger(opportunity) {
           const resolved = spendAshesCharge(
             { catalog: runtime.helpers, traits: runtime.traits },
@@ -131,11 +130,11 @@ function spendAshesCharge(
   grant: ChargeGrant | undefined,
   at: number
 ): ResolvedAshes | undefined {
-  if (activeBatchCount(grant, at, 'inclusive') === 0) return;
+  if (activeBatchCount(grant, at) === 0) return;
 
   const resolved = resolveAshes(context);
 
-  if (!resolved || !consumeCharge(grant, at, 'inclusive', resolved.triggerIntervalSeconds)) return;
+  if (!resolved || !consumeCharge(grant, at, resolved.triggerIntervalSeconds)) return;
 
   return resolved;
 }
@@ -304,7 +303,7 @@ const firebrandAshesTasks = {
     grantFirebrandAshes(runtime, (data as { cast: RuntimeCast<GuardianSkill> }).cast);
   },
   [FIREBRAND_ASHES_EXPIRE](runtime: GuardianRuntime) {
-    expireBatch(firebrandState.from(runtime.profession).ashes, runtime.time, 'exclusive');
+    expireBatch(firebrandState.from(runtime.profession).ashes, runtime.time);
   }
 };
 

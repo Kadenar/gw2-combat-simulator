@@ -107,7 +107,7 @@ test('Carapace state tracking follows the inspected observation across Necromanc
             selectedTraitIds: minionTraitSelected ? [TRAIT.FLESH_OF_THE_MASTER] : []
           },
           (runtime) => {
-            runtime.profession.core.carapaceExpiries = [0, 5, 10, 10];
+            runtime.profession.core.carapaceExpiries = [-1, 5, 9.96, 9.96];
             runtime.profession.core.activeMinions = { [ID.SUMMON_BONE_MINIONS]: 2 };
           }
         );

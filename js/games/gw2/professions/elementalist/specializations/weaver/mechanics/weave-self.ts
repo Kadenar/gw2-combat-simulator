@@ -1,4 +1,5 @@
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -52,7 +53,7 @@ function handleWeaveSelfActivation(
   const sourceId = data as Skill['id'];
   const duration = skillNumber(requireSkill(context.helpers, ID.WEAVE_SELF), 'duration');
   // Availability and emitted temporary buffs expire on the same combat tick.
-  state.weaveSelfUntil = gw2EffectExpiresAt(at, duration);
+  state.weaveSelfUntil = gw2TimerDeadline(at, duration);
   state.weaveSelfVisited = [core.primaryAttunement];
   state.perfectWeaveUntil = 0;
 
@@ -87,7 +88,7 @@ export function applyWeaveSelfAttunement(
 ): void {
   const state = weaverState.from(context.profession);
 
-  if (!(state.weaveSelfUntil > at)) return;
+  if (!buffDeadlineActive(state.weaveSelfUntil, at)) return;
 
   // Attunement completion already applied recharge; this observer only advances Weave Self's buffs and visited elements.
   const visited = new Set(state.weaveSelfVisited);
@@ -119,7 +120,7 @@ export function applyWeaveSelfAttunement(
   state.weaveSelfVisited = [];
   // Perfect Weave is Weave Self's follow-up window: Tailored Victory stays available for its flip duration.
   const perfectWeaveDuration = skillNumber(requireSkill(context.helpers, ID.WEAVE_SELF), 'flipDuration');
-  state.perfectWeaveUntil = gw2EffectExpiresAt(at, perfectWeaveDuration);
+  state.perfectWeaveUntil = gw2TimerDeadline(at, perfectWeaveDuration);
   for (const kind of ['perfect weave', 'weave self fire', 'weave self air']) {
     context.effects.emit(
       elementalistBuffRequest({
@@ -148,7 +149,7 @@ export function weaveSelfAvailability(
   if (skill.id !== ID.TAILORED_VICTORY) return { ready: true };
 
   const state = weaverState.from(context.profession);
-  return state.perfectWeaveUntil > context.time
+  return buffDeadlineActive(state.perfectWeaveUntil, context.time)
     ? { ready: true }
     : denySkillCast(skill, 'elementalist.weaver-perfect-weave', `requires Perfect Weave.`);
 }

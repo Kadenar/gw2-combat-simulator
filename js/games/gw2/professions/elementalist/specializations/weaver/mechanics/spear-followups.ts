@@ -1,3 +1,4 @@
+import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -23,17 +24,17 @@ export function triggerWeaverSpearFollowups(context: ElementalistResolverContext
           application.resolvedAudience.includesSelf &&
           application.stacks > 0 &&
           application.at <= event.at &&
-          application.expiresAt > event.at
+          buffWindowActive(event.at, application.at, application.expiresAt, application.removedAt)
       )
       .at(-1);
 
     if (!grant) return [];
 
     // Retire every live application before emitting any payload, so simultaneous buffs cannot recursively retrigger.
-    context.combat.reviseBuffExpiry(
+    context.combat.endBuffs(
       kind,
-      (application) => application.resolvedAudience.includesSelf && application.at <= event.at,
-      (expiresAt) => Math.min(expiresAt, event.at)
+      event.at,
+      (application) => application.resolvedAudience.includesSelf && application.at <= event.at
     );
     return [{ id: Number(id), grant }];
   });

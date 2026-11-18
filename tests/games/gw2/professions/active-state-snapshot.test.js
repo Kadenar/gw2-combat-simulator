@@ -94,7 +94,7 @@ test('Ranger pet projections expose detached observations without traversing pri
   assert.equal(pet.ferociousSymbiosis.count, 0);
 });
 
-test('public expiry projections use exclusive deadlines without mutating the live owner', () => {
+test('public expiry projections keep buff deadlines through their timestamp without mutating the live owner', () => {
   // Expiration is an observation of stored deadlines, independent of queued work or a later grant.
   for (const [family, specialization, slice, key, value, expired, stateId] of [
     [
@@ -116,7 +116,6 @@ test('public expiry projections use exclusive deadlines without mutating the liv
       [],
       STATE.OVERCHARGED_CARTRIDGE_WINDOWS
     ],
-    [rangerProfession, 'Untamed', 'specialization', 'ambushReadyUntil', 5, 0, STATE.AMBUSH_READY_UNTIL],
     [guardianProfession, 'Core', 'core', 'symbolicAvengerExpirations', [5, 7], [7], STATE.SYMBOLIC_AVENGER_EXPIRATIONS],
     [guardianProfession, 'Dragonhunter', 'specialization', 'tetherUntil', 5, 0, STATE.TETHER_UNTIL]
   ]) {
@@ -126,10 +125,23 @@ test('public expiry projections use exclusive deadlines without mutating the liv
     owner[key] = structuredClone(value);
     for (const time of [4.999999, 5, 5.000001]) {
       const projected = projectObservedState(family, { profession, config, time });
-      assert.deepEqual(projected[stateId], time < 5 ? value : expired, `${specialization}.${key} at ${time}`);
+      assert.deepEqual(projected[stateId], time <= 5 ? value : expired, `${specialization}.${key} at ${time}`);
       assert.deepEqual(owner[key], value, 'Projection leaves the stored deadlines untouched');
     }
   }
+
+  // Ambush readiness is a skill window, not a buff, so it closes when time reaches its deadline.
+  const config = { specialization: 'Untamed' };
+  const profession = rangerProfession.runtimeFor(config).createState(config);
+  profession.specialization.state.ambushReadyUntil = 5;
+  for (const [time, expected] of [
+    [4.999999, 5],
+    [5, 0]
+  ])
+    assert.equal(
+      projectObservedState(rangerProfession, { profession, config, time })[STATE.AMBUSH_READY_UNTIL],
+      expected
+    );
 });
 
 // Charge observations may expire ahead of queued cleanup without consuming the authoritative grant.
@@ -143,7 +155,7 @@ test('charge expiry projections preserve live grants and earlier observations', 
     const owner = slice === 'core' ? profession.core : profession.specialization.state;
     owner[key] = Object.freeze({ count: 3, expiresAt: 5, readyAt: 2 });
     const earlier = projectObservedState(family, { profession, config, time: 4 });
-    const expired = projectObservedState(family, { profession, config, time: 5 });
+    const expired = projectObservedState(family, { profession, config, time: 5.000001 });
     assert.deepEqual(expired[stateId], { count: 0, expiresAt: 5, readyAt: 2 });
     assert.deepEqual(owner[key], { count: 3, expiresAt: 5, readyAt: 2 });
     owner[key] = { count: 7, expiresAt: 9, readyAt: 6 };
@@ -214,7 +226,7 @@ test('Mesmer public endurance and instrument observations remain detached', () =
     const profession = mesmerProfession.runtimeFor(config).createState(config);
     const state = profession.specialization.state;
 
-    if (specialization === 'Troubadour') state.instruments = { Lute: 7, Flute: 5 };
+    if (specialization === 'Troubadour') state.instruments = { Lute: 7, Flute: 4 };
 
     const projected = projectObservedState(mesmerProfession, { profession, config, time: 5 });
     assert.deepEqual(projected[STATE.ENDURANCE], state.endurance);
@@ -224,7 +236,7 @@ test('Mesmer public endurance and instrument observations remain detached', () =
     if (specialization === 'Troubadour') {
       assert.deepEqual(projected[STATE.ACTIVE_INSTRUMENTS], [{ name: 'Lute', remaining: 2000 }]);
       projected[STATE.ACTIVE_INSTRUMENTS][0].name = 'edited';
-      assert.deepEqual(state.instruments, { Lute: 7, Flute: 5 });
+      assert.deepEqual(state.instruments, { Lute: 7, Flute: 4 });
     }
   }
 });
@@ -239,7 +251,7 @@ test('Antiquary filters refund grants without sharing surviving grants with live
     { count: 3, expiresAt: 7 }
   ];
   profession.specialization.state.chakInitiativeRefunds = grants;
-  const projected = projectObservedState(thiefProfession, { profession, config, time: 5 });
+  const projected = projectObservedState(thiefProfession, { profession, config, time: 5.000001 });
   assert.deepEqual(projected[STATE.CHAK_INITIATIVE_REFUNDS], [grants[2], grants[0]]);
   projected[STATE.CHAK_INITIATIVE_REFUNDS][0].count = 0;
   assert.deepEqual(grants, [
@@ -425,7 +437,7 @@ test('Guardian snapshots combine core and elite active state', () => {
       4
     )
   );
-  assert.equal(willbender['guardian-symbolic-avenger'], '3/5 · 5.0s');
+  assert.equal(willbender['guardian-symbolic-avenger'], '4/5 · 5.0s');
   assert.equal(willbender['willbender-rushing-justice'], '4.0s');
   assert.equal(willbender['willbender-flowing-resolve'], '3.0s');
   assert.equal(willbender['willbender-crashing-courage'], undefined);
@@ -558,7 +570,7 @@ test('Soulbeast countdown waits for stance acceptance and disappears at expiry',
   for (const [at, active] of [
     [1, false],
     [2, true],
-    [8, false]
+    [8.04, false]
   ]) {
     const result = runRanger(
       [{ type: 'wait', durationMs: at * 1000 }],

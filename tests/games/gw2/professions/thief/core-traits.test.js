@@ -4,7 +4,7 @@ import test from 'node:test';
 import { buildChartSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { durationStackState } from '#gw2/platform/combat/boons.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
@@ -63,7 +63,7 @@ test('Thief critical boons read pre-hit Fury with same-time ordering and expiry'
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.deepEqual(observed, [initialFury, true, false]);
+    assert.deepEqual(observed, [initialFury, true, true]);
   }
 });
 
@@ -424,7 +424,11 @@ test('Lead Attacks replaces oldest stacks across and at the cap while preserving
     const expected = grants === 4 ? [12, 8, 4, 0, 0] : [15, 12, 8, 4, 0];
     for (let index = 0; index < expected.length; index += 1) {
       const at = 10 + index;
-      assert.equal(activeStackCount(expirations, at), expected[index], `state at ${at}s after ${grants} grants`);
+      assert.equal(
+        activeStackCount(expirations, at + 0.000001),
+        expected[index],
+        `state at ${at}s after ${grants} grants`
+      );
       assert.equal(chartValueAt(series.effects['Lead Attacks'], at * 1000), expected[index]);
     }
   }
@@ -521,7 +525,7 @@ test('No Quarter extends active self Fury for each threshold proc', () => {
   // Extension is a new chronological delta; the original application remains unchanged.
   assert.equal(context.liveEffects.queries.boonApplications('fury')[0].expiresAt, 5);
   assert.equal(
-    remainingDurationStackSeconds(context.liveEffects.queries.boonApplications('fury'), 6, { maximum: 30 }),
+    durationStackState(context.liveEffects.queries.boonApplications('fury'), 6, { maximum: 30 }).remaining,
     1
   );
   assert.equal(context.queue.dequeue().sourceId, TRAIT.NO_QUARTER);
@@ -563,9 +567,9 @@ test('Thief critical proc batches reread patched effects and leave duration samp
 
       if (id === TRAIT.NO_QUARTER) {
         assert.equal(
-          remainingDurationStackSeconds(context.liveEffects.queries.boonApplications('fury'), duration + 1, {
+          durationStackState(context.liveEffects.queries.boonApplications('fury'), duration + 1, {
             maximum: 30
-          }),
+          }).remaining,
           4 + duration
         );
       }
@@ -573,10 +577,11 @@ test('Thief critical proc batches reread patched effects and leave duration samp
   }
 });
 
-test("No Quarter follows Fury's exact half-open expiration boundary", () => {
+test('No Quarter can extend Fury through its deadline but cannot revive it afterward', () => {
   for (const [at, expectedProcs] of [
     [0.99995, 1],
-    [1, 0]
+    [1, 1],
+    [1.000001, 0]
   ]) {
     const { context } = traitContext([TRAIT.NO_QUARTER]);
     [
@@ -595,7 +600,7 @@ test("No Quarter follows Fury's exact half-open expiration boundary", () => {
     fireCritical(
       context,
       { type: 'damage', at, actorType: 'player', coefficient: 1, skillName: 'Boundary Test' },
-      at < 1
+      at <= 1
     );
     assert.equal(context.liveEffects.queries.boonApplications('fury')[0].expiresAt, 1);
     assert.equal(context.queue.pending().length, expectedProcs);

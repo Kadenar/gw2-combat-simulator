@@ -194,7 +194,15 @@ for (const [kind, section, apply, index] of [
       assert.throws(() => patch({ addEffects: [{ ...first, name: 'Invalid', duration }] }), /duration/);
     }
 
-    assert.throws(() => patch({ effects: [{ name: 'First', duration: 0 }] }), /positive stacks and duration/);
+    assert.throws(() => patch({ effects: [{ name: 'First', duration: 0 }] }), /positive duration/);
+    for (const field of ['durationPerAffinity', 'durationReductionPerAffinity']) {
+      for (const value of [0, -1])
+        assert.throws(
+          () => patch({ addEffects: [{ ...first, name: 'Invalid duration', [field]: value }] }),
+          /positive duration/
+        );
+    }
+
     assert.throws(
       () => patch({ addEffects: [{ type: 'strike', name: 'Invalid', coefficient: Infinity }] }),
       /coefficient/

@@ -77,7 +77,7 @@ test('summon conditions use player Might, condition equipment, traits, and durat
   });
   const clone = { ...player, actorType: 'summon', summonKind: 'clone', source: 'Clone' };
   assert.equal(combat.statsAt(0.2, clone, runtime).conditionDamage, 1450);
-  assert.equal(combat.statsAt(2.2, clone, runtime).conditionDamage, 1300);
+  assert.equal(combat.statsAt(2.200001, clone, runtime).conditionDamage, 1300);
 });
 
 test('Thieves Guild strike scaling and explicitly independent pet/mech conditions retain their own profiles', () => {

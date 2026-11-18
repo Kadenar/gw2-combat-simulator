@@ -31,7 +31,7 @@ test("interrupted Gladiator's Defense requires and spends 20 energy without atta
   const block = result.events.find((event) => event.kind === 'blocking');
   const cast = result.steps.find((step) => step.skillId === SKILL.GLADIATORS_DEFENSE);
   assert.equal(block.duration, (cast.end - cast.start) / 1000);
-  assert.equal(observedRuntime(result).combat.activeBuffStacks('blocking', cast.end / 1000, 1), 0);
+  assert.equal(observedRuntime(result).combat.activeBuffStacks('blocking', cast.end / 1000 + 0.000001, 1), 0);
   assert.ok(Math.abs(result.planningState.profession[STATE.ENERGY].value - (30 + 5 * result.rotationEndTime)) < 1e-9);
 });
 
@@ -62,7 +62,7 @@ test('Conduit costs preserve follow-up charges, unmapped skills, and free active
   assert.equal(effectiveRevenantEnergyCost(input, upkeep), 0);
 });
 
-// Form discounts come from the selected patch and stop at the exclusive deadline, even before expiry work runs.
+// Form discounts include tied gameplay and stop at the first canonical instant after the deadline.
 test('Mesmer costs read each selected skill and preserve native costs outside the active form', () => {
   const skills = [
     [SKILL.EMPOWERING_MISERY],
@@ -81,7 +81,8 @@ test('Mesmer costs read each selected skill and preserve native costs outside th
     for (const [id] of skills) {
       const skill = catalog.skillsById.get(id);
       assert.equal(effectiveRevenantEnergyCost(input, skill), cost);
-      for (const time of [10, 11]) {
+      assert.equal(effectiveRevenantEnergyCost({ ...input, time: 10 }, skill), cost);
+      for (const time of [10.000001, 11]) {
         assert.equal(effectiveRevenantEnergyCost({ ...input, time }, skill), skill.energyCost);
       }
 

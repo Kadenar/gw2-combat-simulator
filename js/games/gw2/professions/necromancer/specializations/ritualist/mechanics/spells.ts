@@ -1,3 +1,4 @@
+import { buffApplicationExpiry } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
@@ -33,7 +34,7 @@ function bondExpiresAt(runtime: NecromancerRuntime): number {
     ...runtime.combat
       .buffApplications('necromancer-painful-bond')
       .filter((application) => application.at <= runtime.time)
-      .map((application) => application.expiresAt)
+      .map(buffApplicationExpiry)
   );
 }
 
@@ -111,7 +112,9 @@ function grantWeaponSpell(
     recipients: RECIPIENT.PARTY,
     eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
   });
-  const recipients: Record<string, ChargeGrant> = { player: createChargeGrant(effect.stacks ?? 0, expiresAt) };
+  const recipients: Record<string, ChargeGrant> = {
+    player: createChargeGrant(effect.stacks ?? 0, expiresAt)
+  };
   for (const key of audience.companionIds) recipients[key] = createChargeGrant(allyStacks, expiresAt);
 
   // Defensive grants retain allied effect windows independently of the party's offensive strike cadence.
@@ -142,7 +145,8 @@ function grantWeaponSpell(
       resolvedAudience: audience
     }
   });
-  runtime.schedule(EXPIRE, expiresAt, { spell, generation }, owner(spell, generation), -20);
+  // Charges stay spendable by hits tied to the deadline; the spell retires after that timestamp's gameplay.
+  runtime.scheduleExpiry(EXPIRE, expiresAt, { spell, generation }, { owner: owner(spell, generation), priority: -20 });
 
   if (spell !== 'resilient') grantAlliedWeaponSpell(runtime, spell, audience.alliedPlayerCount, allyStacks, expiresAt);
 }
@@ -165,7 +169,7 @@ function grantAlliedWeaponSpell(
         // A replacement spell retires this registration; otherwise the ally's native grant answers liveness.
         isActive: (at) =>
           ritualistState.from(runtime.profession).weaponSpells[spell] === active &&
-          activeBatchCount(active.recipients[`ally:${allyIndex}`], at, 'exclusive') > 0,
+          activeBatchCount(active.recipients[`ally:${allyIndex}`], at) > 0,
         trigger(opportunity) {
           triggerRitualistWeaponSpell(
             runtime,

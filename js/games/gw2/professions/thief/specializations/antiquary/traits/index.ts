@@ -1,5 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -122,8 +123,10 @@ const exhilaratingEphemera = defineTrait({
       amount: (context) => balanceNumber(context.catalog, TRAIT.EXHILARATING_EPHEMERA, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        (thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').antiquaryDamageUntil || 0) >
+        buffDeadlineActive(
+          thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').antiquaryDamageUntil || 0,
           context.time
+        )
     }
   ],
   triggers: [onTriggerPoint(artifactActivated, { run: applyExhilaratingEphemera })]

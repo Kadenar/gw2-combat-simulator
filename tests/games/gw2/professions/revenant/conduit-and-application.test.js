@@ -380,12 +380,16 @@ test('Pain Absorption grants its base boons and changes cost and recharge only i
       );
     }
 
-    const expired = simulate('Conduit', ['Cosmic Wisdom', { type: 'wait', durationMs: 7000 }, skillId], config);
+    // A command tied to natural expiry still uses the form; the next action tick uses native costs and recharge.
+    const tied = simulate('Conduit', ['Cosmic Wisdom', { type: 'wait', durationMs: 7000 }, skillId], config);
+    assert.deepEqual(tied.warnings, []);
+    assert.notEqual(rechargeReadyAt(tied, SKILL.PAIN_ABSORPTION), null);
+    const expired = simulate('Conduit', ['Cosmic Wisdom', { type: 'wait', durationMs: 7040 }, skillId], config);
     assert.deepEqual(expired.warnings, []);
     assert.equal(rechargeReadyAt(expired, SKILL.PAIN_ABSORPTION), null);
     assert.ok(
       Math.abs(
-        expired.planningState.profession[STATE.ENERGY].value - (20 + (expired.planningState.atSeconds - 7) * 5)
+        expired.planningState.profession[STATE.ENERGY].value - (20 + (expired.planningState.atSeconds - 7.04) * 5)
       ) < 1e-9
     );
   }
@@ -618,19 +622,23 @@ test('Dervish casts retain their scythes through form expiry and concurrent lege
     assert.equal(scythes.length, 2);
   }
 
-  const expired = simulate(
-    'Conduit',
-    ['Cosmic Wisdom', { type: 'wait', durationMs: 7000 }, { type: 'cast', skillId: 76968 }],
-    {
-      selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.ENTITY,
-      initialEnergy: 100
-    }
-  );
-  assert.equal(
-    expired.events.some((event) => event.skillName === 'Form of the Dervish'),
-    false
-  );
+  // Cast-start eligibility includes the exact deadline and excludes the following action tick.
+  for (const durationMs of [7000, 7040]) {
+    const result = simulate(
+      'Conduit',
+      ['Cosmic Wisdom', { type: 'wait', durationMs }, { type: 'cast', skillId: 76968 }],
+      {
+        selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+        startingLegend: LEGEND.ENTITY,
+        initialEnergy: 100
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(
+      result.events.some((event) => event.skillName === 'Form of the Dervish'),
+      durationMs === 7000
+    );
+  }
 });
 
 test('Impossible Odds cannot chain from Lesser Enchanted Daggers procs', () => {

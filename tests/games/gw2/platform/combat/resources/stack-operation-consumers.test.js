@@ -60,18 +60,18 @@ test('Holo-Dancer commits spend grant order even when the newest charge expires 
   });
   assert.deepEqual(result.warnings, []);
   const runtime = observedRuntime(result);
-  // The accepted utility spends the oldest live entry, skipping the one already expired at its start.
-  assert.deepEqual(runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations, [5]);
+  // The accepted utility can spend the oldest entry on its natural expiry timestamp.
+  assert.deepEqual(runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations, [30, 5]);
   // Compare recharge after placement completes so the discount does not scale the cast duration.
   const reduced = runtime.cooldownController.readyAt(skill.id) - result.steps[0].end / 1000;
   const baseline = runThief(['Prepare Pitfall'], config);
   const unreduced = observedRuntime(baseline).cooldownController.readyAt(skill.id) - baseline.steps[0].end / 1000;
   assert.ok(Math.abs(reduced - unreduced * 0.2) < 1e-9);
   assert.deepEqual(
-    projectObservedState(thiefProfession, { profession: runtime.profession, time: 5 })[
+    projectObservedState(thiefProfession, { profession: runtime.profession, time: 5.000001 })[
       STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS
     ],
-    []
+    [30]
   );
   assert.deepEqual(snapshot.holoUtilityCooldownReductionExpirations, prior);
 });
@@ -90,22 +90,19 @@ test('Sharpening Stone ignores excluded hits and spends the earliest live expiry
   const event = { type: 'damage', at: 1, actorType: 'effect', coefficient: 1 };
   triggerSharpeningStone(context, event);
   assert.deepEqual(
-    activeBatches(core.sharpeningStoneGrants, event.at, { expiry: 'exclusive', order: 'earliest-expiry' }),
-    [5, 30].map((expiresAt) => ({ count: 1, expiresAt }))
+    activeBatches(core.sharpeningStoneGrants, event.at, { order: 'earliest-expiry' }),
+    [1, 5, 30].map((expiresAt) => ({ count: 1, expiresAt }))
   );
   assert.deepEqual(queued, []);
   triggerSharpeningStone(context, { ...event, actorType: 'player' });
-  assert.deepEqual(
-    activeBatches(core.sharpeningStoneGrants, event.at, { expiry: 'exclusive', order: 'earliest-expiry' }),
-    [{ count: 1, expiresAt: 30 }]
-  );
+  assert.deepEqual(activeBatches(core.sharpeningStoneGrants, event.at, { order: 'earliest-expiry' }), [
+    { count: 1, expiresAt: 5 },
+    { count: 1, expiresAt: 30 }
+  ]);
   assert.equal(queued.length, 1);
   assert.equal(queued[0].condition, 'Bleeding');
-  assert.equal(prior[1].count, 0);
-  assert.equal(
-    activeBatches(core.sharpeningStoneGrants, event.at, { expiry: 'exclusive', order: 'earliest-expiry' })[0],
-    prior[2]
-  );
+  assert.equal(prior[0].count, 0);
+  assert.equal(activeBatches(core.sharpeningStoneGrants, event.at, { order: 'earliest-expiry' })[0], prior[1]);
   assert.deepEqual(
     snapshot,
     [1, 5, 30].map((expiresAt) => ({ count: 1, expiresAt }))

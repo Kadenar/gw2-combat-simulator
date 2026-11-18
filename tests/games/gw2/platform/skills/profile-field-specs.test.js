@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
 import { professionProfileFields } from '#gw2/platform/skills/profile-fields.js';
@@ -17,6 +18,13 @@ test('profile declarations enforce ownership, numeric bounds, and grouped attrib
     });
   for (const value of [-1, 2, Infinity, NaN, '0.5'])
     assert.throws(() => load({ chance: value }), /field=chance expected=finite number/);
+  // Thresholds share the nonnegative rule at both catalog and patch admission.
+  assert.throws(() => load({ threshold: -1 }), /field=threshold/);
+  const catalog = load({ threshold: 0 });
+  assert.throws(
+    () => applyBalanceProfilePatch(catalog, { balanceProfiles: { 1: { fields: { threshold: -1 } } } }),
+    /field=threshold/
+  );
   for (const attributeBonuses of [null, [], { misspelled: 1 }, { power: -1 }])
     assert.throws(() => load({ attributeBonuses }), /attributeBonuses/);
   assert.throws(() => load({ expertiseBonus: 10 }), /unsupported field: expertiseBonus/);
