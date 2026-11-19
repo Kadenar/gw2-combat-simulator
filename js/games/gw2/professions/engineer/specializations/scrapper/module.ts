@@ -20,6 +20,5 @@ export const scrapperModule = defineNativeModule({
   // Scrapper traits share the live state with their actual combo and boon reactions.
   state: { create: scrapperState.create },
   traitDefinitions: scrapperTraits,
-
   presentation: bindScrapperUi
 });

@@ -36,8 +36,9 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
 
     cooldown: 10,
     kitId: ID.ELITE_MORTAR_KIT,
-    // Use the measured Quickness animation so the poison field and its pulses start at the observed time.
     castTimeMs: 560,
+    interruptCommitMs: 520,
+    retainsCastLockoutAfterInterrupt: true,
     comboFields: [
       {
         ownerId: 'engineer',
@@ -54,10 +55,12 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         coefficient: 1,
         hits: 1,
         name: 'Poison Gas Shell',
+        persistsAfterInterrupt: true,
         actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
+        persistsAfterInterrupt: true,
         ticks: Array.from({ length: 5 }, (_, index) => ({
           atMs: 0 + index * 1000,
           condition: CONDITION.POISONED,
@@ -79,6 +82,10 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     cooldown: 15,
     kitId: ID.ELITE_MORTAR_KIT,
     castTimeMs: 360,
+    // The ice field persists after stowing the kit, so hammer finishers can use it.
+    comboFields: [
+      { ownerId: 'engineer', fieldType: COMBO_FIELD.ICE, duration: 5, startAnchor: 'castEnd', inclusiveExpiry: true }
+    ],
     effects: [
       {
         weaponStrengthProfileId: 'bundle.ascended',
@@ -106,6 +113,9 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     cooldown: 20,
     kitId: ID.ELITE_MORTAR_KIT,
     castTimeMs: 360,
+    comboFields: [
+      { ownerId: 'engineer', fieldType: COMBO_FIELD.LIGHT, duration: 5, startAnchor: 'castEnd', inclusiveExpiry: true }
+    ],
     effects: [
       {
         weaponStrengthProfileId: 'bundle.ascended',

@@ -71,8 +71,10 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     castTimeMs: 440,
-    // A kit swap after the final attack packet still commits Equalizing Blow's effects.
-    interruptCommitMs: 400,
+    // A 360 ms interrupt keeps the full cast lockout. At 400 ms the next skill can start immediately.
+    interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 400,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {

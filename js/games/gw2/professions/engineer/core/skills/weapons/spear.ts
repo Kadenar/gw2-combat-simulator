@@ -118,6 +118,8 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     duration: 10,
     cooldown: 5,
     castTimeMs: 520,
+    interruptCommitMs: 480,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [],
     // Resolve the committed impact through the owner that establishes the target's Focused window.
     sideEffects: [

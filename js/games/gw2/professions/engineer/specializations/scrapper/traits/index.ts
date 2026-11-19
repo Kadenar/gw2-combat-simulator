@@ -5,7 +5,6 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONTROL, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
 import { type SimulationEvent } from '#gw2/platform/events/events.js';
-import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
@@ -138,7 +137,7 @@ const systemShocker = defineTrait<EngineerSkill>({
   ]
 });
 
-/** Owns Kinetic Accelerators tuning and its existing gameplay boundaries. */
+/** Kinetic Accelerators makes Function Gyro a blast finisher and grants boons on successful combos. */
 export const kineticAccelerators = defineTrait<EngineerSkill>({
   id: TRAIT.KINETIC_ACCELERATORS,
   balance: {
@@ -159,12 +158,24 @@ export const kineticAccelerators = defineTrait<EngineerSkill>({
       input: 'eligible'
     }
   ]),
-  // Both the selected Function Gyro finisher and accepted-combo rewards obey producer isolation.
   triggers: [
     {
       on: 'castCommit',
       when: (_runtime, cast) => cast.skill.id === ID.FUNCTION_GYRO,
-      run: applyKineticAcceleratorsCast
+      run(runtime, cast) {
+        produceRuntimeCombos(runtime, runtime.helpers, {
+          type: 'marker',
+          at: runtime.time,
+          source: 'engineer',
+          sourceId: cast.skill.id,
+          actorType: ACTOR.PLAYER,
+          skillId: cast.skill.id,
+          skillName: cast.skill.name,
+          name: 'Kinetic Accelerators - Function Gyro blast finisher',
+          activationId: cast.id,
+          comboFinishers: [{ ownerId: 'engineer', finisherType: COMBO_FINISHER.BLAST }]
+        });
+      }
     },
     { on: 'combo.resolved', run: reactToScrapperCombo }
   ]
@@ -397,32 +408,6 @@ function reactToAppliedForceBuff(context: EngineerRuntime, event: EngineerResolv
       }
     }
   }
-}
-
-function applyKineticAcceleratorsCast(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
-  const skill = cast.skill;
-  // Kinetic Accelerators (GM trait): Function Gyro becomes a blast finisher.
-  // The marker gives the shared combo materializer a trait-gated descriptor
-  // while preserving Function Gyro as the source of the resulting combo.
-  produceRuntimeCombos(context, context.helpers, {
-    type: 'action',
-    endsAt: context.time,
-    at: context.time,
-    source: 'engineer',
-    sourceId: skill.id,
-    actorType: ACTOR.PLAYER,
-    skillId: skill.id,
-    skillName: skill.name,
-    name: 'Kinetic Accelerators - Function Gyro blast finisher',
-    activationId: cast.id,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: COMBO_FINISHER.BLAST,
-        chance: 1
-      }
-    ]
-  });
 }
 
 function reactToScrapperCombo(context: EngineerRuntime, event: EngineerResolverEvent): void {

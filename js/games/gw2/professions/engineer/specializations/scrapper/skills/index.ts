@@ -159,6 +159,15 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<E
     cooldown: 25,
     mechanicSlot: 5,
     castTimeMs: 280,
+    comboFields: [
+      {
+        ownerId: 'engineer',
+        fieldType: COMBO_FIELD.LIGHTNING,
+        duration: 5,
+        startAnchor: 'castEnd',
+        inclusiveExpiry: true
+      }
+    ],
     effects: [
       {
         type: 'strike',
