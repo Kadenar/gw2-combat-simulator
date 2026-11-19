@@ -1,9 +1,14 @@
 import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
+import {
+  applyDpsReportProfessionEvidence,
+  dpsReportSourceGroups
+} from '#gw2/integrations/logs/dps-report/rotation/professions/index.js';
 import type {
   DpsReportCast,
   DpsReportPhase,
   DpsReportPlayer,
   DpsReportRotationAction,
+  DpsReportRotationGroup,
   DpsReportRotationPlayer,
   DpsReportRotationReconstruction,
   DpsReportSkillMetadata,
@@ -31,10 +36,6 @@ import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rot
 import { BLINK_OR_PHASE_RETREAT_ID } from '#gw2/integrations/logs/shared/rotation/professions/mesmer.js';
 import { alignConduitHazeCombatOffset } from '#gw2/integrations/logs/shared/rotation/professions/revenant/conduit.js';
 import {
-  SIGNET_OF_MIGHT_PASSIVE_ID,
-  signetOfMightProcAt
-} from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
-import {
   findRotationProfile,
   ROTATION_PROFILES,
   type RotationProfessionProfile
@@ -49,8 +50,6 @@ import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
-import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
-import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
 
 /** Selects the player, phase, and build evidence used when reconstructing an imported rotation. */
 export interface DpsReportRotationOptions {
@@ -126,50 +125,23 @@ function castStatus(cast: DpsReportCast): RotationActionStatus {
 
 function recordedActions(
   report: ParsedDpsReport,
-  player: DpsReportPlayer,
   phase: DpsReportPhase,
-  profile: RotationProfessionProfile,
-  catalog: RotationCatalog | null
+  groups: readonly DpsReportRotationGroup[]
 ): RecordedLogAction[] {
   const actions: RecordedLogAction[] = [];
-  const signetPassiveStates = player.buffUptimes?.find((buff) => buff.id === SIGNET_OF_MIGHT_PASSIVE_ID)?.states ?? [];
-  // Ranger commands use owned pet animations; delayed F2 markers otherwise let autonomous attacks run too long.
-  // Soulbeast retains the player rotation, including merged Beast skills.
-  const petGroups =
-    profile.professionId === 'ranger' && profile.specializationId !== 'soulbeast'
-      ? (player.minions || []).flatMap((minion) =>
-          (minion.rotation || []).filter((group) => {
-            const skill = catalog?.skills.find((candidate) => candidate.id === group.id);
-            return rangerPetSkillCommandable(skill, profile.specializationName);
-          })
-        )
-      : [];
-  const petSkillIds = new Set(petGroups.filter((group) => group.skills.length > 0).map((group) => group.id));
-
-  // EI records the mech animation separately from the instant player command that started it.
-  const mechAnimations =
-    profile.specializationId === 'mechanist' ? player.minions?.flatMap((m) => m.rotation ?? []) : [];
 
   let eventIndex = 0;
-  for (const group of [...player.rotation.filter((group) => !petSkillIds.has(group.id)), ...petGroups]) {
+  for (const group of groups) {
     const metadata = skillMetadata(report, group.id);
 
     if (automaticProc(metadata)) {
       continue;
     }
 
-    const animations = mechAnimations?.filter((animation) => animation.id === group.id).flatMap((g) => g.skills) ?? [];
-    const skill = animations.length ? catalog?.skills.find((candidate) => candidate.id === group.id) : null;
     for (const cast of group.skills) {
       if (!castIntersectsPhase(cast, phase)) continue;
 
       const duration = Math.max(0, cast.duration);
-      // Matching timestamps identify the same activation. A channel shorter than its fastest full cast ended early.
-      const animation =
-        duration === 0 && skill?.independentCast && skill.interruptMode === 'per-packet'
-          ? animations.find((candidate) => candidate.castTime === cast.castTime)
-          : undefined;
-      const mechCutoff = quantizeGw2ActionTimingMs(animation?.duration ?? 0);
       actions.push({
         start: cast.castTime,
         end: cast.castTime + duration,
@@ -179,15 +151,7 @@ function recordedActions(
         eventIndex,
         isSwap: metadata?.isSwap === true,
         metadataAccurate: metadata?.isNotAccurate !== true,
-        expectedDurationMs: duration + Math.max(0, Number(cast.timeGained || 0)),
-        ...(mechCutoff > 0 && mechCutoff < referenceCastTimeMs(skill ?? null) ? { replayInterruptMs: mechCutoff } : {}),
-        // EI's shared signet visual is a trait proc when the equipped signet's passive never switches off.
-        ...(profile.professionId === 'warrior' &&
-        group.id === WARRIOR_SKILL_IDS.SIGNET_OF_MIGHT &&
-        duration === 0 &&
-        signetOfMightProcAt(cast.castTime, signetPassiveStates)
-          ? { canonicalSkillId: WARRIOR_SKILL_IDS.LESSER_SIGNET_OF_MIGHT }
-          : {})
+        expectedDurationMs: duration + Math.max(0, Number(cast.timeGained || 0))
       });
       eventIndex += 1;
     }
@@ -389,7 +353,9 @@ function reconstructDpsReportWithProfile(
   }
 
   const { phase, index: phaseIndex } = phaseFor(report, options.phaseIndex);
-  const recorded = recordedActions(report, player, phase, profile, catalog);
+  const sourceGroups = dpsReportSourceGroups(player, profile, catalog);
+  const decoded = recordedActions(report, phase, sourceGroups);
+  const recorded = applyDpsReportProfessionEvidence(decoded, player, profile, catalog);
   const professionActions = normalizeLogProfessionActions({
     profile,
     catalog,

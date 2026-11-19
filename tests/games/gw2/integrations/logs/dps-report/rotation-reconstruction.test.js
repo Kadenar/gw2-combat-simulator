@@ -308,6 +308,29 @@ test('restores an EI-omitted Sun Edge only from its complete sword-chain gap', (
   assert.deepEqual(replay.warnings, []);
 });
 
+test('only the matching mech animation can interrupt a recorded player command', () => {
+  const fixture = reportFixture();
+  const player = fixture.players[0];
+  player.profession = 'Mechanist';
+  player.rotation = [{ id: 63141, skills: [{ castTime: 500, duration: 0 }] }];
+  fixture.skillMap = { s63141: { name: 'Barrier Burst' } };
+  const baseline = reconstructDpsReportRotation(parseDpsReport(fixture), engineerCatalog);
+
+  // A nearby cast or another skill at the same time belongs to a different activation.
+  for (const [skillId, start, matches] of [
+    [63141, 500, true],
+    [63141, 499, false],
+    [63188, 500, false]
+  ]) {
+    player.minions = [{ name: 'Jade Mech', rotation: [{ id: skillId, skills: [{ castTime: start, duration: 800 }] }] }];
+    const result = reconstructDpsReportRotation(parseDpsReport(fixture), engineerCatalog);
+    assert.deepEqual(result.sourceActions, baseline.sourceActions);
+    const command = result.rotation.find((entry) => entry.type === 'cast' && entry.skillId === 63141);
+    assert.ok(command);
+    assert.equal(command.interruptAfterMs != null, matches);
+  }
+});
+
 test('keeps Vent Exhaust trait-proc rows out of Engineer rotations without relying on EI metadata', () => {
   const fixture = reportFixture();
   fixture.players[0].rotation.push({ id: 43630, skills: [{ castTime: 2_750, duration: 0, timeGained: 0 }] });
