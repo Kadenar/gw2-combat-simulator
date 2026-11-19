@@ -1,6 +1,7 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionCount, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
@@ -91,12 +92,13 @@ export const deadlyAmbition = defineTrait<ThiefSkill>({
   triggers: [
     {
       on: 'castStart',
-      when: (_runtime, cast) => cast.skill.id === ID.DEATH_BLOSSOM,
+      when: (_runtime, cast) => cast.skill.id === ID.DEATH_BLOSSOM || cast.skill.id === ID.TWILIGHT_COMBO,
       run(runtime: ThiefRuntime, cast) {
-        // A foreign player strike during Death Blossom consumes its poison opportunity in the live game.
-        professionCoreState(runtime.profession).deadlyAmbitionBlossom = {
+        professionCoreState(runtime.profession).deadlyAmbitionOpportunity = {
           id: cast.id,
-          start: cast.start
+          skillId: cast.skill.id,
+          // Twilight launches at 400 ms. Another strike can take the proc starting on the next tick.
+          firstEligibleAt: cast.skill.id === ID.TWILIGHT_COMBO ? gw2Time(cast.start + 0.44) : cast.start
         };
       }
     },
@@ -373,15 +375,17 @@ function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStri
   if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
   const state = professionCoreState(context.profession);
-  const blossom = state.deadlyAmbitionBlossom;
+  const opportunity = state.deadlyAmbitionOpportunity;
 
-  // Only Death Blossom has reproduced this bug; other dual attacks retain their own activation claims.
+  // Another player strike can spend this cast's claim before its own first hit.
   if (
-    blossom &&
-    event.at >= blossom.start &&
-    (event.activationId !== blossom.id || event.skillId !== ID.DEATH_BLOSSOM || event.sourceId !== ID.DEATH_BLOSSOM)
+    opportunity &&
+    event.at >= opportunity.firstEligibleAt &&
+    (event.activationId !== opportunity.id ||
+      event.skillId !== opportunity.skillId ||
+      event.sourceId !== opportunity.skillId)
   )
-    claimActivation(state.activationClaims, 'thief.deadly-ambition', blossom.id);
+    claimActivation(state.activationClaims, 'thief.deadly-ambition', opportunity.id);
 
   const skill: ThiefSkill | undefined = skillForEvent(context.helpers, event);
 

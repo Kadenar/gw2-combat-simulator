@@ -36,7 +36,7 @@ export const thiefDeadlyArtsTooltips = {
     'Stealing deals an additional strike that cannot critically strike. Healing is outside combat simulation scope.'
   ),
   [TRAIT.DEADLY_AMBITION]: traitTooltip(
-    "Gain condition damage. The first landed player strike of a dual attack poisons the target. Potent Poison replaces the base application with more stacks. Current in-game bug: another player-owned strike landing during Death Blossom before its first hit consumes that cast's poison proc without applying poison.",
+    'Gain condition damage. The first landed player strike of a dual attack poisons the target. Potent Poison replaces the base application with more stacks. Current in-game bug: another player strike can consume the proc before the first hit of Death Blossom or during the first projectile flight of Twilight Combo.',
     [
       ['attributeBonuses.conditionDamage', 'Condition damage'],
       ['playerStacks', 'Poison stacks with Potent Poison']

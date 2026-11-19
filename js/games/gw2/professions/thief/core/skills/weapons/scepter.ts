@@ -231,7 +231,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 640, coefficient: 1 }],
+        ticks: [{ atMs: 440, coefficient: 1 }],
         name: 'Initial Attack',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
@@ -246,7 +246,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      ...impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      ...impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
         {
           type: 'condition',
           condition: CONDITION.CHILLED,

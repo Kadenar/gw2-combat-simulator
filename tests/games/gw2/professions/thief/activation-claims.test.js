@@ -67,7 +67,11 @@ test('Death Blossom suppression checks activation, skill, source and cast start'
     [{}, 1]
   ]) {
     const runtime = observedRuntime(runThief([], { selectedTraitIds: [TRAIT.DEADLY_AMBITION] }));
-    runtime.profession.core.deadlyAmbitionBlossom = { id: 'blossom', start: 1 };
+    runtime.profession.core.deadlyAmbitionOpportunity = {
+      id: 'blossom',
+      skillId: ID.DEATH_BLOSSOM,
+      firstEligibleAt: 1
+    };
     const emitted = [];
     const context = bindTriggerContext({
       config: runtime.config,

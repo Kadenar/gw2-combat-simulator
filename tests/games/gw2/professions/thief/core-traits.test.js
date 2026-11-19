@@ -544,6 +544,33 @@ for (const [name, fields, at, suppressed] of [
   });
 }
 
+// Only an intervening strike during flight can consume Twilight's proc. The next cast gets its own claim.
+test('Twilight Combo exposes Deadly Ambition during the first projectile flight', () => {
+  for (const [at, expectedProcs] of [
+    [1.2, 2],
+    [1.44, 1]
+  ]) {
+    const result = runThief(
+      [wait(1000), 'Twilight Combo', 'Twilight Combo'],
+      {
+        primaryWeapon: 'Scepter',
+        secondaryWeapon: 'Dagger',
+        selectedTraitIds: [TRAIT.DEADLY_AMBITION]
+      },
+      {
+        initialize(runtime) {
+          runtime.effects.emit({ kind: 'packet', event: thiefHit(at, { activationId: 'foreign' }) });
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(
+      result.resolvedEvents.filter((event) => event.sourceId === TRAIT.DEADLY_AMBITION).length,
+      expectedProcs
+    );
+  }
+});
+
 test('Unrelenting Strikes grants party Fury from the accepted critical fact', () => {
   const { context } = traitContext([TRAIT.UNRELENTING_STRIKES]);
   fireCritical(context, { at: 1, skillName: 'Critical Test' }, false);

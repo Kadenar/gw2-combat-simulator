@@ -28,7 +28,7 @@
     {
       "type": "cast",
       "skillId": 56898,
-      "concurrentOffsetMs": 760
+      "concurrentOffsetMs": 720
     },
     {
       "type": "cast",
@@ -87,7 +87,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 80
+      "durationMs": 120
     },
     {
       "type": "cast",
@@ -687,10 +687,6 @@
       "skillId": 63254
     },
     {
-      "type": "wait",
-      "durationMs": 40
-    },
-    {
       "type": "cast",
       "skillId": 63254
     },
@@ -827,6 +823,10 @@
     {
       "type": "cast",
       "skillId": 76633
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
     },
     {
       "type": "cast",
