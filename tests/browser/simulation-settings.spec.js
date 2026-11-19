@@ -122,13 +122,13 @@ test('transition delay preferences persist globally and control imported rotatio
   await page.locator('#simulation-settings > summary').click();
   const settings = page.locator('#simulation-transition-delays');
   await expect(settings.getByRole('spinbutton')).toHaveCount(5);
-  await settings.getByRole('button', { name: 'Apply 100 ms to all' }).click();
-  await expect(page.locator('#simulation-weaponSwapMs')).toHaveValue('100');
+  await settings.getByRole('button', { name: 'Apply 80 ms to all' }).click();
+  await expect(page.locator('#simulation-weaponSwapMs')).toHaveValue('80');
   await page.evaluate(async () => {
     const { previewRotationFile, applyRotationImportPreview } =
       await import('/js/games/gw2/app/import-export/rotation-import-dialog.ts');
     const app = window.professionApp;
-    const rotation = ['Swap Weapons', { name: '__wait', waitMs: 80 }, 'Swap Weapons'];
+    const rotation = ['Swap Weapons', { name: '__wait', waitMs: 40 }, 'Swap Weapons'];
     const file = new File([JSON.stringify(rotation)], 'rotation.json', { type: 'application/json' });
     applyRotationImportPreview(app, await previewRotationFile(file, app));
   });
@@ -145,10 +145,10 @@ test('transition delay preferences persist globally and control imported rotatio
   });
   expect(importedState.warnings).toEqual([]);
   expect(importedState.buildHasSettings).toBe(false);
-  expect(Object.values(importedState.settings)).toEqual([100, 100, 100, 100, 100]);
+  expect(Object.values(importedState.settings)).toEqual([80, 80, 80, 80, 80]);
   const forced = page.locator('#rotation-timeline .rot-forced-delay');
   await expect(forced).toHaveCount(2);
-  await expect(forced.first()).toHaveAttribute('title', /Forced transition delay: 20 ms/);
+  await expect(forced.first()).toHaveAttribute('title', /Forced transition delay: 40 ms/);
   await expect(forced.first()).toBeVisible();
   expect(await forced.first().evaluate((element) => getComputedStyle(element).borderTopStyle)).toBe('solid');
   const revision = await page.evaluate(() => window.professionApp.analysis.state.buildRevision);
@@ -161,14 +161,14 @@ test('transition delay preferences persist globally and control imported rotatio
     const app = window.professionApp;
     addBuildTab(app);
   });
-  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(100);
+  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(80);
   await page.reload();
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(100);
+  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(80);
   expect(await page.locator('html').getAttribute('data-show-transition-delays')).toBe('false');
   await page.goto('/guardian.html');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.forgeEntryMs)).toBe(100);
+  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.forgeEntryMs)).toBe(80);
   await page.locator('#simulation-settings > summary').click();
   await settings.getByRole('button', { name: 'Clear all', exact: true }).click();
   await page.waitForFunction(

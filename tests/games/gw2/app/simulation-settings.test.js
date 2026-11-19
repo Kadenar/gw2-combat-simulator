@@ -247,8 +247,29 @@ function settingsWorkspace(t, initialDelay = 0) {
   };
 
   const click = (label) => controls.find((control) => control.textContent === label).handlers.click();
-  return { app, tab, cached, reference, settle, input, click, remount };
+  return { app, tab, cached, reference, settle, input, click, remount, controls };
 }
+
+// Committed numeric edits use whole ticks in the control, saved preferences, and simulation requests.
+test('transition delay inputs snap to the nearest 40 ms step', (t) => {
+  const { app, input, controls } = settingsWorkspace(t);
+  for (const key of TRANSITION_DELAY_KEYS) {
+    assert.equal(controls.find((control) => control.id === `simulation-${key}`).step, '40');
+    for (const [value, expected] of [
+      [319, 320],
+      [99, 80],
+      [100, 120],
+      [1009, 1000],
+      [-40, 0],
+      ['', 0],
+      ['invalid', 0]
+    ]) {
+      input(key, value);
+      assert.equal(loadSimulationSettings().transitionDelays[key], expected);
+      assert.equal(app.baselineSimulationRunner.queue.pending.request.baseConfig.transitionDelays[key], expected);
+    }
+  }
+});
 
 // Synchronous runner callbacks may update state during activation but paint only the installed destination.
 for (const failed of [false, true]) {
@@ -318,7 +339,7 @@ for (const failed of [false, true]) {
 }
 
 // Every shared field and both bulk actions invalidate Current and Reference without eagerly running inactive tabs.
-for (const action of [...TRANSITION_DELAY_KEYS, 'Apply 100 ms to all', 'Clear all']) {
+for (const action of [...TRANSITION_DELAY_KEYS, 'Apply 80 ms to all', 'Clear all']) {
   test(`shared transition settings refresh inactive Current and Reference: ${action}`, (t) => {
     const { app, tab, cached, reference, settle, input, click } = settingsWorkspace(
       t,
@@ -427,7 +448,7 @@ test('Golem and separate boss scenarios retain independent delays, caches, and s
   input('weaponSwapMs', 250);
   settle();
   const firstResult = app.analysis.state.results;
-  assert.equal(first.simulationSettings.transitionDelays.weaponSwapMs, 250);
+  assert.equal(first.simulationSettings.transitionDelays.weaponSwapMs, 240);
   assert.equal(loadSimulationSettings().transitionDelays.weaponSwapMs, 0);
   assert.equal(tab.analysis.fresh, true);
 
@@ -444,17 +465,17 @@ test('Golem and separate boss scenarios retain independent delays, caches, and s
   assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 100);
   input('weaponSwapMs', 150);
   settle();
-  assert.equal(loadSimulationSettings().transitionDelays.weaponSwapMs, 150);
+  assert.equal(loadSimulationSettings().transitionDelays.weaponSwapMs, 160);
 
   editor.open(first);
   assert.equal(app.analysis.state.results, firstResult);
   assert.equal(app.baselineSimulationRunner.queue.pending, null);
-  assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 250);
-  assert.equal(second.simulationSettings.transitionDelays.weaponSwapMs, 500);
+  assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 240);
+  assert.equal(second.simulationSettings.transitionDelays.weaponSwapMs, 520);
   const restored = parseBossScenario(JSON.parse(JSON.stringify(first)), 'mesmer', app.adapter.toApplicationBuild);
-  assert.equal(restored.simulationSettings.transitionDelays.weaponSwapMs, 250);
+  assert.equal(restored.simulationSettings.transitionDelays.weaponSwapMs, 240);
   restored.simulationSettings.transitionDelays.weaponSwapMs = 999;
-  assert.equal(first.simulationSettings.transitionDelays.weaponSwapMs, 250);
+  assert.equal(first.simulationSettings.transitionDelays.weaponSwapMs, 240);
 });
 
 test('target armor presets use base by default and allow custom values', () => {

@@ -2,6 +2,7 @@
 import { bindHelpPopover, HELP_ICON_HTML } from '#gw2/app/build/panels/help-popover.js';
 import { applyConditionTickOffset, applyTransitionDelays } from '#gw2/app/build/state/workspace.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 import {
   CONDITION_TICK_OFFSET_MAX_MS,
   CONDITION_TICK_OFFSET_STEP_MS,
@@ -112,13 +113,15 @@ export function mountSimulationSettings(app: ProfessionAppState, root: Document 
       input.id = `simulation-${key}`;
       input.type = 'number';
       input.min = '0';
-      input.step = '1';
+      input.step = String(GW2_TICK_MS);
       input.value = String(settings.transitionDelays[key]);
       input.setAttribute('aria-label', `${name}${key === 'weaponSwapMs' ? '' : ` ${direction}`} (ms)`);
       input.title =
         'Additional input delay after the transition. Overlaps existing cast recovery. Applies within this workspace.';
       input.addEventListener('change', () => {
-        update({ ...settings.transitionDelays, [key]: Number(input.value) });
+        // Snap committed edits to the nearest game tick, matching the condition offset control.
+        const delay = Math.round(Number(input.value) / GW2_TICK_MS) * GW2_TICK_MS;
+        update({ ...settings.transitionDelays, [key]: delay });
         input.value = String(settings.transitionDelays[key]);
       });
       cell.append(input);
@@ -131,7 +134,7 @@ export function mountSimulationSettings(app: ProfessionAppState, root: Document 
   const actions = root.createElement('div');
   actions.className = 'transition-delay-actions';
   for (const [label, delay] of [
-    ['Apply 100 ms to all', 100],
+    ['Apply 80 ms to all', 80],
     ['Clear all', 0]
   ] as const) {
     const button = root.createElement('button');
