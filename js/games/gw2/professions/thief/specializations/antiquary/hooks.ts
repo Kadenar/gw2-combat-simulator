@@ -2,6 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumber, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { antiquaryEffectStates } from '#gw2/professions/thief/specializations/antiquary/effect-state.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
 import { antiquaryArtifactLifecycle } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { antiquaryArtifactActions } from '#gw2/professions/thief/specializations/antiquary/skills/artifact-actions.js';
@@ -19,6 +20,7 @@ import { consumeOldestStacks } from '#kernel/resources/timed-stacks.js';
 export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = composeRuntimeHooks([
   antiquaryArtifactLifecycle,
   {
+    observeEffects: antiquaryEffectStates,
     /** Seed non-expiring Combat High stacks for an isolated damage occurrence. */
     prepareDamageState(runtime, _skill, inputs) {
       // Artifact use can buff ordinary attacks independently of Combat High.

@@ -1,4 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { WEAPON } from '#gw2/platform/constants.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -87,6 +89,11 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>,
   // Swapping weapons stands up before swap rewards.
   if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
     setThiefKneeling(runtime, false);
+    // Leaving spear clears the unfinished sequence so the next spear set opens with a lead attack.
+    if (gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1)[0] !== WEAPON.SPEAR) {
+      runtime.profession.core.spearChainStage = 0;
+      runtime.profession.core.spearPreviousSkillId = null;
+    }
     runtime.fireTrigger(thiefWeaponSwapped);
   }
 
