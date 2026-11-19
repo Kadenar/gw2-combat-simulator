@@ -160,14 +160,14 @@ function isElixirSkill(skill: EngineerSkill | undefined): boolean {
   return skill?.skillFamily === 'Elixir';
 }
 
-// HGH's final Acid Bomb pulse uses a fixed delivery offset from the completed cast.
+// HGH extends the field for one pulse after the five ordinary pulses.
 const HGH_ACID_BOMB_DELAY_SECONDS = 6;
 
 /** Schedules Acid Bomb's extended final pulse while HGH is selected. */
 function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
   // HGH adds one admitted field extension with Acid Bomb ownership; the profile owns the damage formula.
   emitTraitProfile(context, TRAIT.HGH, TRAIT.HGH, undefined, {
-    at: cast.fullEnd + HGH_ACID_BOMB_DELAY_SECONDS,
+    at: cast.start + Number(cast.skill.interruptCommitMs) / 1000 + HGH_ACID_BOMB_DELAY_SECONDS,
     effect: { type: 'strike', name: 'HGH' },
     activationId: cast.id,
     skillWeaponFallback: 'Unequipped',

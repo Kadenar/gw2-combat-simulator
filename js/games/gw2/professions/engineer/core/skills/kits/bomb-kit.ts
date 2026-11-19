@@ -172,8 +172,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDef
     cooldown: 20,
     kitId: ID.BOMB_KIT,
     castTimeMs: 600,
-    // Once placement commits at 440 ms, retain the full cast lockout and delayed explosion and pull.
-    interruptCommitMs: 440,
+    interruptCommitMs: 400,
     retainsCastLockoutAfterInterrupt: true,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(

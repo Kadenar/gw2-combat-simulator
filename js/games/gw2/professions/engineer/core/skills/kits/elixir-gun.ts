@@ -6,6 +6,9 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
+// The acid lands at takeoff. Stowing the kit afterward cuts the leap and leaves the field in place.
+const ACID_BOMB_TAKEOFF_MS = 200;
+
 /** Defines the Elixir Gun equip action and packet-level palette mechanics, including fields and finishers. */
 export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<EngineerSkill>>> = {
   [ID.ELIXIR_GUN]: {
@@ -155,13 +158,15 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
     skillFamily: 'Elixir',
     cooldown: 12,
     kitId: ID.ELIXIR_GUN,
-    castTimeMs: 200,
+    castTimeMs: 1240,
+    interruptCommitMs: ACID_BOMB_TAKEOFF_MS,
     comboFields: [
       {
         ownerId: 'engineer',
         fieldType: COMBO_FIELD.LIGHT,
         duration: 5,
-        startAnchor: 'castEnd'
+        startAnchor: 'castStart',
+        startMs: ACID_BOMB_TAKEOFF_MS
       }
     ],
     effects: [
@@ -170,6 +175,10 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
         type: 'strike',
         coefficient: 1.35,
         hits: 1,
+        atMs: ACID_BOMB_TAKEOFF_MS,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         name: 'Acid Bomb - Impact',
         actorType: ACTOR.PLAYER,
         comboFinishers: [
@@ -182,9 +191,13 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
       {
         weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 4.25 / 5 })),
-        timingAnchor: 'castEnd',
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: ACID_BOMB_TAKEOFF_MS + (index + 1) * 1000,
+          coefficient: 4.25 / 5
+        })),
+        timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         name: 'Acid Bomb - Pulses',
         actorType: ACTOR.PLAYER
       }

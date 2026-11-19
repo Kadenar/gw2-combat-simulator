@@ -69,6 +69,8 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
       // Reserve the entire observed channel so autonomous melee attacks cannot run between barrier pulses.
       castTimeMs: 4440,
       quicknessCastTimeMs: 4440,
+      // An early command can end the channel after some barrier pulses have landed.
+      interruptMode: 'per-packet',
       // Barrier and both boons pulse together; recipient resolution grants the mech its separate entitlement.
       effects: (
         [
@@ -114,6 +116,8 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
       mechanicSlot: 1,
       castTimeMs: 2040,
       quicknessCastTimeMs: 1400,
+      // A shortened volley keeps only the impacts delivered before the interruption.
+      interruptMode: 'per-packet',
       effects: [
         {
           type: 'strike',

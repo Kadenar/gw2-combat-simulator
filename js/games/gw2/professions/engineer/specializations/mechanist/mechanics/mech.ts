@@ -12,11 +12,7 @@ import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { effectTicks, type SkillEffect } from '#gw2/platform/effects/types.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import {
-  GW2_QUICKNESS_ACTION_RATE,
-  scaleCastBoundTiming,
-  summonQuicknessCastTimeMs
-} from '#gw2/platform/execution/cast-timing.js';
+import { scaleCastBoundTiming, summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -152,10 +148,6 @@ export function engineerMechHasQuickness(context: MechanicQueriesOf<EngineerRunt
     }) > 0 ||
     (Boolean(context.config.boons?.quickness) && shiftSignetPassive(context, at))
   );
-}
-
-function mechAttackRate(context: EngineerRuntime, at: number): number {
-  return engineerMechHasQuickness(context, at) ? GW2_QUICKNESS_ACTION_RATE : 1;
 }
 
 /** Autonomous impacts have already waited through their windup; emit the canonical payload once at the current instant. */
@@ -365,9 +357,10 @@ function activateOverclockSignet(context: EngineerRuntime, skill: EngineerSkill)
   const state = mechanistState.from(context.profession);
 
   const at = context.time;
-  const rate = mechAttackRate(context, at);
   const cannon = context.helpers.skillsById.get(ID.JADE_BUSTER_CANNON)!;
-  const fullEnd = gw2Time(at + Number(cannon.castTimeMs) / 1000 / rate);
+  // Use the cannon's measured animation in the mech's current boon state.
+  const castMs = engineerMechHasQuickness(context, at) ? summonQuicknessCastTimeMs(cannon) : Number(cannon.castTimeMs);
+  const fullEnd = gw2Time(at + castMs / 1000);
   // The lane reservation survives effect removal; cadence and payload both come from the canonical cannon.
   state.mech.busyUntil = Math.max(state.mech.busyUntil || 0, fullEnd);
   context.effects.emit({

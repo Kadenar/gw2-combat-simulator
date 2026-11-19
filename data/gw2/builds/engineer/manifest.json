@@ -6,15 +6,15 @@
         "label": "Power (Hammer)",
         "build": "data/gw2/builds/engineer/b-power-core-hammer.json",
         "rotation": "data/gw2/rotations/engineer/r-power-core-hammer-evtc.json",
-        "benchmarkDps": 36615,
+        "benchmarkDps": 36623,
         "upToDate": true,
         "benchmarkApm": 99.7,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 39592, "phase": 39592 },
-          "80-60": { "cumulative": 37090, "phase": 34875 },
-          "60-40": { "cumulative": 36493, "phase": 35336 },
-          "40-20": { "cumulative": 35763, "phase": 33767 },
-          "20-0": { "cumulative": 36615, "phase": 40723 }
+          "80-60": { "cumulative": 37097, "phase": 34888 },
+          "60-40": { "cumulative": 36498, "phase": 35336 },
+          "40-20": { "cumulative": 35770, "phase": 33779 },
+          "20-0": { "cumulative": 36623, "phase": 40739 }
         }
       }
     ]
@@ -329,6 +329,38 @@
           "40-20": { "cumulative": 40904, "phase": 41645 },
           "20-0": { "cumulative": 41157, "phase": 42200 }
         }
+      },
+      {
+        "label": "Power Alacrity (Sword / Pistol - 1 Kit)",
+        "build": "data/gw2/builds/engineer/b-power-alac-mechanist-sword-pistol-1kit.json",
+        "rotation": "data/gw2/rotations/engineer/r-power-alac-mechanist-sword-pistol-1kit-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-alacrity-mechanist-sword-pistol",
+        "benchmarkDps": 33988,
+        "upToDate": true,
+        "benchmarkApm": 55.5,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 38139, "phase": 38139 },
+          "80-60": { "cumulative": 34278, "phase": 31026 },
+          "60-40": { "cumulative": 33463, "phase": 31970 },
+          "40-20": { "cumulative": 33991, "phase": 35725 },
+          "20-0": { "cumulative": 33988, "phase": 33988 }
+        }
+      },
+      {
+        "label": "Power Alacrity (Sword / Pistol - 2 Kits)",
+        "build": "data/gw2/builds/engineer/b-power-alac-mechanist-sword-pistol-2kit.json",
+        "rotation": "data/gw2/rotations/engineer/r-power-alac-mechanist-sword-pistol-2kit-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-alacrity-mechanist-two-kits-sword-pistol",
+        "benchmarkDps": 32897,
+        "upToDate": true,
+        "benchmarkApm": 69.2,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 36014, "phase": 36014 },
+          "80-60": { "cumulative": 32748, "phase": 30049 },
+          "60-40": { "cumulative": 32480, "phase": 31948 },
+          "40-20": { "cumulative": 32663, "phase": 33230 },
+          "20-0": { "cumulative": 32897, "phase": 32897 }
+        }
       }
     ]
   },
@@ -356,15 +388,15 @@
         "build": "data/gw2/builds/engineer/b-power-scrapper-hammer.json",
         "rotation": "data/gw2/rotations/engineer/r-power-scrapper-hammer-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-scrapper-hammer",
-        "benchmarkDps": 41002,
+        "benchmarkDps": 41022,
         "upToDate": true,
         "benchmarkApm": 107.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44984, "phase": 44984 },
-          "80-60": { "cumulative": 41980, "phase": 39237 },
-          "60-40": { "cumulative": 41683, "phase": 41100 },
-          "40-20": { "cumulative": 40899, "phase": 38715 },
-          "20-0": { "cumulative": 41002, "phase": 41002 }
+          "100-80": { "cumulative": 45001, "phase": 45001 },
+          "80-60": { "cumulative": 41996, "phase": 39251 },
+          "60-40": { "cumulative": 41703, "phase": 41131 },
+          "40-20": { "cumulative": 40920, "phase": 38736 },
+          "20-0": { "cumulative": 41022, "phase": 41022 }
         }
       },
       {
@@ -372,15 +404,15 @@
         "build": "data/gw2/builds/engineer/b-power-quick-scrapper-hammer.json",
         "rotation": "data/gw2/rotations/engineer/r-power-quick-scrapper-hammer-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-quickness-scrapper-hammer",
-        "benchmarkDps": 32506,
+        "benchmarkDps": 32521,
         "upToDate": true,
         "benchmarkApm": 103.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 32777, "phase": 32777 },
-          "80-60": { "cumulative": 31372, "phase": 30083 },
-          "60-40": { "cumulative": 31724, "phase": 32459 },
-          "40-20": { "cumulative": 32530, "phase": 35191 },
-          "20-0": { "cumulative": 32506, "phase": 32506 }
+          "100-80": { "cumulative": 32789, "phase": 32789 },
+          "80-60": { "cumulative": 31383, "phase": 30094 },
+          "60-40": { "cumulative": 31740, "phase": 32483 },
+          "40-20": { "cumulative": 32546, "phase": 35204 },
+          "20-0": { "cumulative": 32521, "phase": 32521 }
         }
       }
     ]

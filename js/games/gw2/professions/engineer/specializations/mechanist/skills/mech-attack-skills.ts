@@ -164,7 +164,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Skil
     cooldown: 1,
     toolbeltParentId: ID.OVERCLOCK_SIGNET,
     // The cannon owns its burst schedule and the lane duration used by Overclock and replay.
-    castTimeMs: 5040,
+    castTimeMs: 4920,
     quicknessCastTimeMs: 3360,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
