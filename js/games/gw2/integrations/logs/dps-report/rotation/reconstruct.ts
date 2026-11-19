@@ -45,6 +45,7 @@ import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/time
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
+import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
@@ -227,6 +228,10 @@ function observedInterruptMs(action: ResolvedLogAction): number | null {
   const interruptMs = quantizeGw2ActionTimingMs(sourceDurationMs);
   // A completed follow-up must not become a cancellation of its longer main skill.
   const runtimeDurationMs = action.replayDurationMs ?? referenceCastTimeMs(action.skill);
+
+  // A completed animation can end between the final two replay ticks. Rounding it down would discard its hit.
+  if (action.status === 'completed' && sourceDurationMs > runtimeDurationMs - GW2_TICK_MS) return null;
+
   return sourceDurationMs > 0 && interruptMs < runtimeDurationMs ? interruptMs : null;
 }
 
@@ -277,7 +282,7 @@ function applyCastInterrupts(actions: readonly ResolvedLogAction[]): ResolvedLog
 
       if (forgeEntry && normalized(cast.skill?.type) !== 'weapon') break;
 
-      const interruptMs = observedInterruptMs({ ...cast, end: boundary.start });
+      const interruptMs = observedInterruptMs({ ...cast, end: boundary.start, status: 'interrupted' });
 
       if (interruptMs != null) replay[castIndex] = { ...cast, replayInterruptMs: interruptMs };
 

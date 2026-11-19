@@ -191,6 +191,37 @@ test('dps.report weapon stows become waits for Warrior and other professions', (
   }
 });
 
+test('an EI cancellation and a completed cast remain distinct when both end in the final replay tick', () => {
+  const report = parseDpsReport({
+    players: [
+      {
+        name: 'Fixture',
+        profession: 'Chronomancer',
+        rotation: [
+          {
+            id: 1000,
+            skills: [
+              { castTime: 0, duration: 376, timeGained: 0 },
+              { castTime: 1000, duration: 376, timeGained: -24 }
+            ]
+          }
+        ]
+      }
+    ],
+    phases: [{ start: 0, end: 1500, name: 'Full Fight' }],
+    skillMap: { s1000: { name: 'Fixture Skill' } }
+  });
+  const result = reconstructDpsReportRotation(
+    report,
+    rotationCatalog([skill(1000, 'Fixture Skill', { castTimeMs: 400 })])
+  );
+  const casts = result.rotation.filter((command) => command.type === 'cast');
+  assert.deepEqual(
+    casts.map((command) => command.interruptAfterMs != null),
+    [false, true]
+  );
+});
+
 test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', () => {
   const report = parseDpsReport({
     players: [

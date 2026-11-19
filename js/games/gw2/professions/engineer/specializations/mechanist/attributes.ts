@@ -31,10 +31,10 @@ export const mechanistAttributes: Gw2AttributeContributionCalculator = (context)
     byWeaponSet?.set(context.weaponSet, base);
   }
 
-  // Inheritance excludes player boons; copied Might remains live and never mutates the cached base.
-  const might = selectedSignet(context, ID.SHIFT_SIGNET)
-    ? activeBoonStacks(context, BOON.MIGHT) * MIGHT_ATTRIBUTE_BONUS_PER_STACK
-    : 0;
+  // Shift copies the player's configured Might. Direct grants and live Shift copies already target the mech.
+  const configuredMight = selectedSignet(context, ID.SHIFT_SIGNET) ? Number(context.config?.boons?.might || 0) : 0;
+  const mechMight = activeBoonStacks(context, BOON.MIGHT, 25, { actor: 'companion', companionId: 'engineer.mech' });
+  const might = Math.min(25, configuredMight + mechMight) * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
   return [
     {
       transforms: [

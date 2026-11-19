@@ -81,14 +81,13 @@ test('Catalyst selects equipment sources without scaling excluded or already-com
   assert.deepEqual(attributeInputs.weaponSets[0].sources.Power, sources);
 });
 
-test('mech inheritance stays boon-free while copied Might gains, expiry and weapon changes remain live', () => {
+test('mech inheritance tracks its own Might through grants, expiry and weapon changes', () => {
   const context = facts(
     engineerProfession,
     'Mechanist',
     ['No Scope', 'Energy Amplifier', 'Chemical Rounds', 'Mech Frame: Conductive Alloys'],
     {
-      selectedSkillIds: [ENGINEER_SKILL_IDS.SHIFT_SIGNET],
-      boons: { fury: true, regeneration: true }
+      boons: { might: 24, fury: true, regeneration: true }
     }
   );
   context.event = { type: 'damage', actorType: 'summon', metadata: { engineerMech: true } };
@@ -107,8 +106,18 @@ test('mech inheritance stays boon-free while copied Might gains, expiry and weap
     stacks: 3,
     resolvedAudience: { includesSelf: true }
   });
+  assert.equal(sample().power, base.power);
+  grantTestEffect(context.runtime.liveEffects, {
+    kind: 'might',
+    at: 0,
+    expiresAt: 2,
+    stacks: 3,
+    resolvedAudience: { includesSummons: true, companionIds: ['engineer.mech'] }
+  });
   assert.equal(sample().conditionDamage, 1210);
   assert.equal(sample().power, 1590);
+  const shift = { ...context, config: { ...context.config, selectedSkillIds: [ENGINEER_SKILL_IDS.SHIFT_SIGNET] } };
+  assert.equal(sample(shift).power, base.power + 25 * 30);
   context.time = 2.000001;
   assert.equal(sample().conditionDamage, 1120);
   context.weaponSet = context.runtime.activeWeaponSet = 2;

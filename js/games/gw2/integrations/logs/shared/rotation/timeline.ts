@@ -241,10 +241,12 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       // A recorded cast can end on combat entry even when its simulated animation ends earlier.
       const atObservedCastEnd =
         activeCast?.end === at && activeCast.start === previousCastStart && projectedWaitJoinEnd < at;
+
       if (previousCastStart != null && (overlapping || atObservedCastEnd)) {
         // Round combat offsets relative to the skill, retaining exact packet-proven boundaries so opening hits stay observable.
         const offset = quantizeGw2ActionTimingMs(at - previousCastStart);
         rotation.push({ type: 'combat-start', concurrentOffsetMs: offset });
+
         if (atObservedCastEnd) pendingAftercastUntil = null;
 
         if (projectedPreviousCastStart != null) {
@@ -332,10 +334,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       at > projectedBlockingEnd &&
       projectedCompanionEnd > projectedBlockingEnd
     ) {
-      // A player gap inside a companion cast that holds Waits must not become a Wait, which joins both lanes.
-      // Anchor the next input to the player instead, preserving the gap without waiting for the companion.
-      // Gaps beside overlappable companion commands never reach here: they stay ordinary, editable Waits.
-      command.concurrentOffsetMs = quantizeMs(at - projectedPreviousCastStart);
+      // A Wait would join the companion's cast. Use a player offset that also respects the last replayed command.
+      command.concurrentOffsetMs = quantizeMs(Math.max(at, projectedTime) - projectedPreviousCastStart);
       pendingAftercastUntil = null;
       activeCastEnd = at;
     } else {

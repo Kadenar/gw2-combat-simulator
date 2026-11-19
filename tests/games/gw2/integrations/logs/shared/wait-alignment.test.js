@@ -130,6 +130,30 @@ test('player gaps do not join an inferred companion cast with a different boon s
   assert.ok(rotation.some((command) => command.type === 'wait'));
 });
 
+test('tied companion and player inputs stay ordered when an earlier cast delays their anchor', () => {
+  const player = { id: 1, name: 'Player', castTimeMs: 440 };
+  const instant = { id: 2, name: 'Instant', castTimeMs: 0 };
+  const companion = { id: 3, name: 'Companion', castTimeMs: 2000, independentCast: true };
+  const actions = [
+    { start: 0, end: 400, skill: player },
+    { start: 400, end: 400, skill: instant },
+    { start: 1120, end: 3120, skill: companion },
+    { start: 1120, end: 1560, skill: player }
+  ].map((action, eventIndex) => ({ ...action, eventIndex, name: action.skill.name, skillId: action.skill.id }));
+  const rotation = buildReplayTimeline(actions, 0, null, {
+    commandFor: (action) => ({ type: 'cast', skillId: action.skillId })
+  });
+  const cursor = new RotationCursor(rotation);
+  let now = 0;
+  for (const { skill } of actions) {
+    const at = cursor.requestAt(now, skill);
+    assert.ok(at >= now, `${skill.name} requested at ${at} after ${now}`);
+    const end = at + skill.castTimeMs / 1000;
+    cursor.acceptCast(skill, cursor.command, at, end, end);
+    now = at;
+  }
+});
+
 // An overlappable companion command (a Ranger pet's Beast skill) never holds a Wait, so player gaps beside it import
 // as ordinary Waits. Cast-time player skills must not be tagged concurrent just because a pet is animating.
 test('player gaps beside an overlappable companion command stay editable waits', () => {
