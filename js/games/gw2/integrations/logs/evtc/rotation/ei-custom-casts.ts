@@ -1,4 +1,4 @@
-import { isBuffApply, isBuffRemoveAll } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
+import { isBuffApply, isBuffRemoveAll } from '#gw2/integrations/logs/evtc/rotation/buff-events.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction

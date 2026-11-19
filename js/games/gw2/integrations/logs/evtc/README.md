@@ -45,9 +45,9 @@ Core Steal also has a local, non-EI finder, observed in `20260810-102224.zevtc`:
 `A0F99AB672E77E459EBF8185867C4961` must accompany at least two long Poison applications and three long Bleeding
 applications from the selected player to the same target within 10 ms. These corroborate Serpent's Touch and Deadly
 Ambush. Initial snapshots, other actors, other specializations, and uncorroborated visuals do not establish a cast.
-Recorded casts and repeated markers within 50 ms suppress duplicates. This does not detect every Steal
-loadout; logs without the effect or the two condition bursts remain incomplete. Inference notices distinguish this
-empirical rule from EI finders, and dps.report rotations remain unchanged.
+Recorded casts and repeated markers within 50 ms suppress duplicates. This does not detect every Steal loadout; logs
+without the effect or the two condition bursts remain incomplete. Inference notices distinguish this empirical rule from
+EI finders, and dps.report rotations remain unchanged.
 
 The Phase Retreat finder accepts the selected player's `MissileCreate` record for skill `10310` across all Mesmer
 specializations, in addition to EI's teleport-plus-clone evidence. This skill-specific evidence does not require a clone
@@ -75,8 +75,8 @@ its timestamp and accurate skill-origin metadata, and collapse projectiles using
 skill/caster. Launch/remove events and damage do not supply these casts. Unsupported effect fallbacks with secondary
 same-source checks and missile-availability gates remain excluded; ambiguous evidence must not guess a skill.
 
-Coverage is incomplete. Unsupported extension healing/barrier and custom checker families are not replaced
-by generic damage or catalog guesses. Mechanist summon/recall skills are outside simulator scope. See the
+Coverage is incomplete. Unsupported extension healing/barrier and custom checker families are not replaced by generic
+damage or catalog guesses. Mechanist summon/recall skills are outside simulator scope. See the
 [coverage limits](../../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md#implemented-coverage-and-remaining-limits). This
 implementation is not a full EI parity certification; encounter logic and time-aware ownership remain limited.
 
@@ -134,8 +134,9 @@ ZIP archives must:
 - `recording.ts`: timed record boundary and animation encoding selection.
 - `rotation/animations.ts`: EI animation pairing and metadata.
 - `rotation/ei-*.ts`: explicit EI evidence finders.
-- `rotation/professions/index.ts`: EVTC-specific represented variants and shared normalization bridge.
-- `rotation/professions/`: read-only profession proc observations.
+- [Profession dispatch](rotation/professions/index.ts) preserves EVTC source evidence through shared normalization.
+- [Profession modules](rotation/professions/) resolve variants from EVTC evidence and contain read-only proc
+  observations.
 - `rotation/reconstruct.ts`: selection, evidence, encounter filtering, catalog resolution and command conversion.
 
 Use [dps.report import](../dps-report/README.md) for supplied EI rotations. Comparing the adapters requires matching EI

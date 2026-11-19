@@ -1,27 +1,9 @@
-import { isBuffApply } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
+import { isBuffApply } from '#gw2/integrations/logs/evtc/rotation/buff-events.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import type { ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
-import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
-
-/** Owned pet animations locate Ranger commands before delayed player markers; Soulbeast retains merged-player evidence. */
-export function rangerPetActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
-  if (context.profile.professionId !== 'ranger' || context.profile.specializationId === 'soulbeast') return [];
-
-  const { log, playerAddress, catalog } = context;
-  const owners = context.evidence.owners;
-  return log.agents
-    .filter((agent) => agent.elite === 0xffffffff && owners.get(agent.address) === playerAddress)
-    .flatMap((agent) => context.evidence.animationsFor(agent.address))
-    .filter((action) =>
-      rangerPetSkillCommandable(
-        catalog?.skills.find((skill) => skill.id === action.rawSkillId),
-        context.profile.specializationName
-      )
-    );
-}
 
 const CLONES = new Set([
   8108, 8109, 18894, 8110, 8111, 9058, 6479, 25569, 10542, 26153, 8107, 15090, 15114, 15233, 15199, 15181, 8106, 15084,

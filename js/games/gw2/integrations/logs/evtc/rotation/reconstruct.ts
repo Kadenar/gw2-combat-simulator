@@ -7,8 +7,7 @@ import {
   eiChronomancerShatters,
   eiMesmerPhaseRetreat,
   eiMesmerShatters,
-  eiMinionSpawns,
-  rangerPetActions
+  eiMinionSpawns
 } from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
 import { encounterEndTime, encounterStartTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import { prepareEvtcEvidence, type EvtcReconstructionEvidence } from '#gw2/integrations/logs/evtc/rotation/evidence.js';
@@ -23,7 +22,10 @@ import {
   elementalistBlindingFlashActions,
   elementalistFrostAuraActions
 } from '#gw2/integrations/logs/evtc/rotation/professions/elementalist.js';
-import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
+import {
+  reconstructProfessionActions,
+  selectProfessionSourceActions
+} from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
 import {
   antiquaryChakShieldActions,
   deadeyeMarkActions,
@@ -316,8 +318,6 @@ function reconstructWithProfile(
     recordedActions: genericActions,
     professionConfig: options.professionConfig
   };
-  const petActions = rangerPetActions(professionContext);
-  // Prefer owned pet animations per cast, preserving an opening marker when its pet animation was not recorded.
   const playerActions = [
     ...genericActions,
     ...deadeyeMarkActions(professionContext),
@@ -337,16 +337,7 @@ function reconstructWithProfile(
   playerActions.push(...elementalistBlindingFlashActions({ ...professionContext, recordedActions: playerActions }));
   playerActions.push(...elementalistFrostAuraActions({ ...professionContext, recordedActions: playerActions }));
   const sourceActions = [
-    ...playerActions.filter(
-      (action) =>
-        !petActions.some(
-          (pet) =>
-            pet.rawSkillId === action.rawSkillId &&
-            action.start >= pet.start - TIMING_TOLERANCE_MS &&
-            action.start <= pet.end + TIMING_TOLERANCE_MS
-        )
-    ),
-    ...petActions
+    ...selectProfessionSourceActions({ ...professionContext, recordedActions: playerActions })
   ].sort((a, b) => a.start - b.start || a.eventIndex - b.eventIndex);
   const normalized = reconstructProfessionActions({
     ...professionContext,

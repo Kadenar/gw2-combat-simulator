@@ -1,3 +1,5 @@
+import { WEAVER_ATTUNEMENT_RULES } from '#gw2/integrations/logs/evtc/rotation/professions/elementalist/weaver-attunements.js';
+import type { EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   MUSHROOM_KINGS_BLESSING_BUFF_ID,
   MUSHROOM_KINGS_BLESSING_SKILL_ID
@@ -21,6 +23,11 @@ export interface EiInstantRule {
     | 'minion-command';
   readonly rule: string;
   readonly name?: string;
+  /** Resolves synthetic source IDs before catalog lookup; EI's Weaver Fire/Water ID -5 would otherwise become Dodge. */
+  readonly actionIdentity?: Pick<
+    EvtcRecordedRotationAction,
+    'rawName' | 'canonicalSkillId' | 'canonicalName' | 'isSwap'
+  >;
   readonly origin?: 'skill' | 'trait' | 'gear' | 'unconditional';
   readonly notAccurate?: boolean;
   readonly disableWithEffects?: boolean;
@@ -331,135 +338,7 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     rule: 'WeaverHelper.BuffGainCastFinder(UnravelElementsOfRageSkill)',
     minBuild: 203989
   },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: 43470,
-    signal: 43470,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(DualFireAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    // EI's synthetic Fire/Water identity is unrelated to the simulator's Dodge ID.
-    skillId: -5,
-    signal: -5,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(FireWaterAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: -6,
-    signal: -6,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(FireAirAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: -7,
-    signal: -7,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(FireEarthAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: -8,
-    signal: -8,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(WaterFireAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: 41166,
-    signal: 41166,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(DualWaterAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: -9,
-    signal: -9,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(WaterAirAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: -10,
-    signal: -10,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(WaterEarthAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: -11,
-    signal: -11,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(AirFireAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: -12,
-    signal: -12,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(AirWaterAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: 42264,
-    signal: 42264,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(DualAirAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: -13,
-    signal: -13,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(AirEarthAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: -14,
-    signal: -14,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(EarthFireAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: -15,
-    signal: -15,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(EarthWaterAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: -16,
-    signal: -16,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(EarthAirAttunement)'
-  },
-  {
-    profession: 'elementalist',
-    specialization: 'weaver',
-    skillId: 44857,
-    signal: 44857,
-    kind: 'buff-gain',
-    rule: 'WeaverHelper.BuffGainCastFinder(DualEarthAttunement)'
-  },
+  ...WEAVER_ATTUNEMENT_RULES,
   {
     profession: 'elementalist',
     specialization: 'weaver',

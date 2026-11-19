@@ -63,6 +63,52 @@ test('Deadeye Mark reconstruction uses Gaze applications without duplicating rec
   assert.match(result.warnings.join('\n'), /Mark was already active/);
 });
 
+test('Path of Scars selects its range variant using hits owned by the same cast', () => {
+  const cast = (start, eventIndex) => ({
+    start,
+    end: start + 200,
+    eventIndex,
+    rawSkillId: 12638,
+    rawName: 'Path of Scars',
+    status: 'completed',
+    evidence: 'animation'
+  });
+  const hit = (time, source = PLAYER) => event({ time, source, skillId: 12638, value: 10, target: 0x3000n });
+  const ctx = context('ranger', 'core', [hit(100), hit(1200, 0x2000n), hit(1500), hit(2600)]);
+  const actions = reconstructProfessionActions({ ...ctx, recordedActions: [cast(0, 8), cast(1500, 17)] });
+  assert.equal(actions.find((action) => action.eventIndex === 8).canonicalSkillId, undefined);
+  assert.equal(actions.find((action) => action.eventIndex === 17).canonicalSkillId, -1001);
+});
+
+test('Vindicator marks a normalized airborne auto only when the player landed a strike during it', () => {
+  const auto = {
+    start: 600,
+    end: 1000,
+    eventIndex: 8,
+    rawSkillId: 29057,
+    rawName: 'Preparation Thrust',
+    status: 'completed',
+    evidence: 'animation'
+  };
+  const landing = { ...auto, start: 1000, end: 1200, eventIndex: 17, rawSkillId: 62693, rawName: 'Death Drop' };
+  for (const [source, time, landed] of [
+    [PLAYER, 800, true],
+    [0x2000n, 800, false],
+    [PLAYER, 1200, false]
+  ]) {
+    const hit = event({ time, source, target: 0x3000n, skillId: auto.rawSkillId, value: 10 });
+    const ctx = context('revenant', 'vindicator', [hit]);
+    const actions = reconstructProfessionActions({
+      ...ctx,
+      catalog: revenantCatalog,
+      recordedActions: [auto, landing]
+    });
+    const represented = actions.find((action) => action.eventIndex === auto.eventIndex);
+    assert.equal(represented.concurrentTimeline, true);
+    assert.equal(represented.vindicatorDodgeAuto === true, landed);
+  }
+});
+
 test('packet evidence distinguishes empty, partial, and explicitly timed matches', () => {
   const explicit = { type: 'strike', atMs: 100 };
   const implicit = { type: 'strike' };

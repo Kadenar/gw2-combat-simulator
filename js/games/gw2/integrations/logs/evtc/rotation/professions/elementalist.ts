@@ -1,5 +1,5 @@
 /** Recover instant weapon inputs from distinguishing buff applications when EVTC omits their activations. */
-import { isBuffApply } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
+import { isBuffApply } from '#gw2/integrations/logs/evtc/rotation/buff-events.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
