@@ -31,15 +31,11 @@ export interface VirtueActivation {
   readonly virtue: GuardianVirtue;
 }
 
-/** Casting a ready virtue grants Inspiring Virtue before any projectile can hit. */
-export const virtueCast = defineTriggerPoint<VirtueActivation>('guardian.virtue-cast', [
-  GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE
-]);
-
 /** Every committed virtue activation, Core or elite, grants the shared virtue rewards in this order. */
 export const virtueActivated = defineTriggerPoint<VirtueActivation>('guardian.virtue-activated', [
   GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
   GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
+  GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE,
   GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE,
   GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND
 ]);
@@ -188,7 +184,7 @@ const readyVirtueActivations = new WeakSet<RuntimeCast<GuardianSkill>>();
 
 /**
  * Records at acceptance whether a virtue's recharge was ready, before the cast starts its own recharge. Only a ready
- * activation earns cast rewards immediately and completion rewards when it commits.
+ * activation earns the shared rewards when it completes.
  */
 export function admitVirtueActivation(
   runtime: GuardianRuntime,
@@ -198,8 +194,6 @@ export function admitVirtueActivation(
   if (guardianVirtueReadyAt(runtime, virtue) > runtime.time) return false;
 
   readyVirtueActivations.add(cast);
-
-  if (!cast.cancelledBeforeCommit) runtime.fireTrigger(virtueCast, { cast, virtue });
 
   return true;
 }

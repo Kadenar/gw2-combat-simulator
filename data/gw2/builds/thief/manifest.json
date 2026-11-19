@@ -188,15 +188,15 @@
         "build": "data/gw2/builds/thief/b-condi-antiquary-scepter-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-condi-antiquary-scepter-dagger-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-antiquary-scepter-dagger",
-        "benchmarkDps": 37183,
-        "upToDate": false,
-        "benchmarkApm": 63,
+        "benchmarkDps": 39137,
+        "upToDate": true,
+        "benchmarkApm": 64.5,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 38598, "phase": 38598 },
-          "80-60": { "cumulative": 36294, "phase": 34190 },
-          "60-40": { "cumulative": 37412, "phase": 39872 },
-          "40-20": { "cumulative": 35963, "phase": 32254 },
-          "20-0": { "cumulative": 37183, "phase": 37183 }
+          "80-60": { "cumulative": 37930, "phase": 37261 },
+          "60-40": { "cumulative": 38641, "phase": 40136 },
+          "40-20": { "cumulative": 37172, "phase": 33293 },
+          "20-0": { "cumulative": 39137, "phase": 49303 }
         }
       },
       {

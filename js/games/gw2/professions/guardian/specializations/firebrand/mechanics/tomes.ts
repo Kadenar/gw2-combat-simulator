@@ -14,8 +14,7 @@ import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechani
 import {
   grantVirtueActivationRewards,
   justiceActivated,
-  reactToJusticeHitWithOptions,
-  virtueCast
+  reactToJusticeHitWithOptions
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { powerOfTheVirtuousRechargeMultiplier } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -61,8 +60,6 @@ function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, vi
   state.activeTome = virtue;
 
   if (ready) {
-    // Instant tome activation grants cast rewards only when its passive is ready.
-    runtime.fireTrigger(virtueCast, { cast, virtue });
     const multiplier = powerOfTheVirtuousRechargeMultiplier(runtime);
     state.tomeDormantReadyAt[virtue] = gw2Time(
       runtime.time + skillNumber(requireSkill(runtime.helpers, TOMES[virtue]), 'dormantCooldown') * multiplier

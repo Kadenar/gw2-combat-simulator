@@ -19,24 +19,27 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     castTimeMs: 520,
-    // The bolt commits before the aftercast ends; EVTC keeps raw sub-480 ms attempts below this grid boundary.
-    interruptCommitMs: 480,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
-      {
-        type: 'strike',
-        coefficient: 0.33,
-        hits: 1,
-        name: 'Shadow Bolt',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.TORMENT,
-        stacks: 1,
-        duration: 4,
-        actorType: ACTOR.PLAYER
-      }
-    ])
+    // Commitment preserves the bolt's scheduled impact when the cast is interrupted.
+    interruptCommitMs: 440,
+    effects: impactEffects(
+      { atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 0.33,
+          hits: 1,
+          name: 'Shadow Bolt',
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.TORMENT,
+          stacks: 1,
+          duration: 4,
+          actorType: ACTOR.PLAYER
+        }
+      ]
+    )
   },
   [ID.DOUBLE_BOLT]: {
     name: 'Double Bolt',
@@ -224,6 +227,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     castTimeMs: 760,
     // The paired projectiles are committed before the remaining aftercast; the log permits the next input immediately.
     interruptCommitMs: 720,
+    // Report the secondary strike and torment separately while retaining one cast and its trait triggers.
     effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
@@ -237,6 +241,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         ticks: [{ atMs: 800, coefficient: 0.5 }],
         name: 'Secondary Attack',
+        damageBreakdownName: 'Twilight Combo Secondary',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -260,6 +265,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
       {
         type: 'condition',
         ticks: [{ atMs: 800, condition: CONDITION.TORMENT, stacks: 3, duration: 5 }],
+        damageBreakdownName: 'Twilight Combo Secondary',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'

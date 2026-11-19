@@ -16,15 +16,6 @@ const pendingWarnings = new Map([
     new Set([deadeyeStealthWarning])
   ],
   [
-    // The source shortens a chain opener and omits a later trap activation; retain both discrepancies for review.
-    'data/gw2/builds/thief/b-condi-antiquary-scepter-dagger.json',
-    new Set([
-      'Double Bolt: Double Bolt is unavailable - cast Shadow Bolt first.',
-      'Triple Bolt: Triple Bolt is unavailable - cast Shadow Bolt first.',
-      'Prepare Thousand Needles: Prepare Thousand Needles is unavailable - activate Thousand Needles before preparing it again.'
-    ])
-  ],
-  [
     'data/gw2/builds/thief/b-condi-alac-antiquary-scepter-dagger.json',
     new Set([
       'Chak Shield: Chak Shield is unavailable - this artifact is not in an available artifact slot.',

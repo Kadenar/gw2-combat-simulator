@@ -5,14 +5,9 @@
     "benchmarkDurationSeconds": 102.324,
     "benchmarkDamage": 3945841,
     "benchmarkDps": 38562,
-    "note": "The existing preparation, cooldown reset, Caltrops and opening trap activation are retained. The report supplies the opening Swipe. A shortened Shadow Bolt leaves the simulated chain unfinished; the report also omits a trap activation before a later preparation. Utility matches the report. Combat casts follow the supplied report. Unspecified equipment is retained from the existing preset. Simulator metrics are recorded separately in the build manifest.",
-    "simulationWarnings": [
-      "[51.960s] Double Bolt: Double Bolt is unavailable - cast Shadow Bolt first.",
-      "[52.400s] Double Bolt: Double Bolt is unavailable - cast Shadow Bolt first.",
-      "[52.400s] Triple Bolt: Triple Bolt is unavailable - cast Shadow Bolt first.",
-      "[53.160s] Triple Bolt: Triple Bolt is unavailable - cast Shadow Bolt first.",
-      "[54.800s] Prepare Thousand Needles: Prepare Thousand Needles is unavailable - activate Thousand Needles before preparing it again."
-    ]
+    "note": "The saved preparation, cooldown reset and opening setup are retained. Raw EVTC evidence restores the Thousand Needles activations omitted by the report. Shadow Bolt uses the observed shortened commitment. Unspecified equipment is retained from the existing preset. Simulator metrics are recorded separately in the build manifest.",
+    "simulationWarnings": [],
+    "log": "condi antiquary scepter dagger.zevtc"
   },
   "rotation": [
     {
@@ -314,6 +309,11 @@
     {
       "type": "cast",
       "skillId": 63134
+    },
+    {
+      "type": "cast",
+      "skillId": 56898,
+      "concurrentOffsetMs": 400
     },
     {
       "type": "cast",
@@ -772,6 +772,11 @@
     },
     {
       "type": "cast",
+      "skillId": 56898,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
       "skillId": 63066,
       "interruptAfterMs": 80
     },
@@ -863,7 +868,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 80
+      "durationMs": 120
     },
     {
       "type": "cast",

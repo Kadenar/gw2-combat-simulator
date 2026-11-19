@@ -63,9 +63,9 @@ old preview assumptions. See [Acrobatics traits](../js/games/gw2/professions/thi
 - [ ] **Deadeye coverage.** Melee Mark pathing and simultaneous secondary targets are outside the positional and
       single-target model. Malicious Death's Judgment uses full captured-malice damage regardless of mark eligibility;
       the resource-spend path still requires a hit on the marked target.
-- [ ] **Antiquary preset replay.** Shortened casts lose Guitar grants or autoattack-chain progress, and the scepter
-      report omits a trap activation. Affected presets remain flagged for review. Their rotation metadata records the
-      warnings; the [Thief preset tests](../tests/games/gw2/app/benchmarks/thief.test.js) scope the accepted messages.
+- [ ] **Antiquary preset replay.** The alacrity scepter preset still loses artifact availability and autoattack-chain
+      progress. Its rotation metadata records the warnings; the
+      [Thief preset tests](../tests/games/gw2/app/benchmarks/thief.test.js) scope the accepted messages.
 
 ## Unresolved details outside the current combat model
 
