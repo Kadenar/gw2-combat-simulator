@@ -1,6 +1,9 @@
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 import { runInstantRangerPetCommand } from '#gw2/professions/ranger/core/mechanics/pets.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCommandBar } from '#gw2/professions/ranger/data/pet-commands.js';
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { untamedBuffPolicies } from '#gw2/professions/ranger/specializations/untamed/effect-state.js';
@@ -11,7 +14,24 @@ import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/ty
 /** Compose unleash transitions, buff policies, instant pet commands, preview state, and natural F1/F2/F3 routing. */
 export const untamedHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkill>([
   untamedUnleashLifecycle,
-  { buffPolicies: untamedBuffPolicies },
+  {
+    buffPolicies: untamedBuffPolicies,
+    // The player's damage modifier uses stacks earned by the pet.
+    observeEffects(runtime) {
+      const grant = untamedState.from(runtime.profession).ferociousSymbiosisPlayer;
+
+      if (!grant.count) return [];
+
+      return [
+        timedEffectState(
+          'ferocious-symbiosis',
+          [{ stacks: grant.count, expiresAt: grant.expiresAt === Infinity ? null : grant.expiresAt }],
+          balanceNumber(runtime.helpers, TRAIT.FEROCIOUS_SYMBIOSIS, 'maximumStacks'),
+          { name: 'Ferocious Symbiosis' }
+        )
+      ];
+    }
+  },
   {
     /** Unleashed commands act on the accepting pet and recharge as player casts, bypassing the queued pet lane. */
     modifyEffects(runtime, cast, effects) {

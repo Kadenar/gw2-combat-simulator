@@ -50,6 +50,7 @@ function paragonStateSnapshot(
     ? [
         {
           id: 'paragon-active-refrain',
+          icon: context.balanceContext.catalog.skills.find((skill) => skill.name === refrain)?.icon,
           label: 'Active Refrain',
           value: refrain,
           title: 'Refrain currently consuming Motivation on each pulse'

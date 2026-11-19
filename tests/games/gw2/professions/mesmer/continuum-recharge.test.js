@@ -38,6 +38,10 @@ test('Continuum exits restore entry-time recharge once over resets and recasts i
     assert.deepEqual(result.warnings, []);
     const shifts = markers(result, 'Continuum Shift');
     assert.equal(shifts.length, 1);
+    // The graph closes Split at the same manual or automatic Shift that restores recharge.
+    const splitWindow = result.effectReport.tracks.find((track) => track.kind === 'continuum-split').segments[0];
+    assert.equal(splitWindow.start, split.at);
+    assert.equal(splitWindow.end, shifts[0].at);
     // Recharge earned inside Split is discarded, so each recast waits out its entry-time remainder after the exit.
     const elapsed = Math.round((shifts[0].at - split.at) * 1000);
     for (const [id, name] of [

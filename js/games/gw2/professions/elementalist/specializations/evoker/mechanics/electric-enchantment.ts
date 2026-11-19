@@ -15,7 +15,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 import { appendBatch, consumeBatchFromList } from '#kernel/resources/batch-list.js';
 
 // Combat packets, announcements, and the preview share one identity independently of the granting skill or trait.
-const electricEnchantment = Object.freeze({
+export const electricEnchantment = Object.freeze({
   id: 'electric-enchantment',
   sourceId: 'elementalist.electric-enchantment',
   name: 'Electric Enchantment',

@@ -89,11 +89,13 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>,
   // Swapping weapons stands up before swap rewards.
   if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
     setThiefKneeling(runtime, false);
+
     // Leaving spear clears the unfinished sequence so the next spear set opens with a lead attack.
     if (gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1)[0] !== WEAPON.SPEAR) {
       runtime.profession.core.spearChainStage = 0;
       runtime.profession.core.spearPreviousSkillId = null;
     }
+
     runtime.fireTrigger(thiefWeaponSwapped);
   }
 

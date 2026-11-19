@@ -83,6 +83,16 @@ export function effectStateIntervalValue<Source>(
   return windowValue(state, at, (expiresAt, removedAt) => expiresAt > at && !(removedAt != null && removedAt <= at));
 }
 
+/** Project a single active buff. Zero is an absent deadline and Infinity lasts until the owner clears it. */
+export function timedBuffWindow(kind: string, name: string, expiresAt: number): EffectState {
+  return timedEffectState(
+    kind,
+    expiresAt > 0 ? [{ stacks: 1, expiresAt: expiresAt === Infinity ? null : expiresAt }] : [],
+    1,
+    { name }
+  );
+}
+
 /** Reuse the combat query for capped intensity; a window snapshot contains no future applications. */
 function windowValue<Source>(
   state: EffectState<Source>,

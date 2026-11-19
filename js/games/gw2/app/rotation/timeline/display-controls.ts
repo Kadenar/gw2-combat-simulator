@@ -1,9 +1,12 @@
 import { activeSpecialization } from '#gw2/app/rotation/context.js';
+import { renderRotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/view.js';
 import {
+  activeStateIconsEnabled,
   readStoredTimelineOverlayVisibility,
   rotationCancelledSkillsHidden,
   rotationDeadTimeVisibility,
   rotationTransitionDelayVisibility,
+  setActiveStateIcons,
   setRotationCancelledSkillsHidden,
   setRotationDeadTimeVisibility,
   setRotationTransitionDelayVisibility,
@@ -65,6 +68,16 @@ export function mountRotationDisplayControls(app: ProfessionAppState): void {
   const controls = root.createElement('div');
   controls.className = 'perma-group-content';
   controls.append(
+    checkboxControl(root, {
+      id: 'rotation-active-state-icons',
+      label: 'Use icons for Active State',
+      title: 'Show buff icons beside their stack counts and timers.',
+      checked: activeStateIconsEnabled(root),
+      onChange: (checked) => {
+        setActiveStateIcons(root, checked);
+        renderRotationStateSnapshot(app);
+      }
+    }),
     checkboxControl(root, {
       id: 'rotation-hide-cancelled-skills',
       label: 'Hide cancelled skills',

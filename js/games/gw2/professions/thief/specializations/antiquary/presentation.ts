@@ -69,12 +69,18 @@ function antiquaryStateSnapshot(
     });
   }
 
-  const timedEffects: readonly [string, string, number][] = [
+  // Kryptis Turret uses its summoning skill's artwork in the Active State bar.
+  const timedEffects: readonly [string, string, number, string?][] = [
     ['antiquary-exhilarating-ephemera', 'Exhilarating Ephemera', state[STATE.ANTIQUARY_DAMAGE_UNTIL] || 0],
-    ['antiquary-kryptis-turret', 'Kryptis Turret', state[STATE.KRYPTIS_DAMAGE_UNTIL] || 0],
+    [
+      'antiquary-kryptis-turret',
+      'Kryptis Turret',
+      state[STATE.KRYPTIS_DAMAGE_UNTIL] || 0,
+      context.balanceContext.catalog.skillsById.get(ID.SUMMON_KRYPTIS_TURRET)?.icon
+    ],
     ['antiquary-forged-surfer-dash', 'Forged Surfer Dash', state[STATE.FORGED_SURFER_BOMB_DROP_UNTIL] || 0]
   ];
-  for (const [id, label, expiresAt] of timedEffects) {
+  for (const [id, label, expiresAt, icon] of timedEffects) {
     const remaining = expiresAt - at;
 
     if (remaining <= 0) continue;
@@ -82,6 +88,7 @@ function antiquaryStateSnapshot(
     items.push({
       id,
       label,
+      icon,
       value: `${remaining.toFixed(1)}s`,
       title:
         id === 'antiquary-forged-surfer-dash'

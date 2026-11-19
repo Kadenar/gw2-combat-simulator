@@ -40,6 +40,14 @@
   font-weight: 600;
 }
 
+/* Center effect icons on the text line beside their stack counts and timers. */
+.rotation-active-buffs .rot-state-item img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
 /* Empty and authored rotations share a viewport-sized canvas so adding the
    first skill does not collapse the builder around the user. */
 .rotation-timeline {

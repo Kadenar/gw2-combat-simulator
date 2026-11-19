@@ -273,6 +273,8 @@ export interface PaletteOverride {
  */
 export interface RotationStateSnapshotItem {
   readonly id: string;
+  /** Supply artwork when the display label differs from the skill or trait name. */
+  readonly icon?: string;
   readonly label: string;
   readonly value: string;
   /** When `false`, the item is omitted from the bar. Defaults to shown. */

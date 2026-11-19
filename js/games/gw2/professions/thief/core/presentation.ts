@@ -65,6 +65,7 @@ function thiefCoreStateSnapshot(context: Omit<ThiefUiContext, 'catalog'>): Rotat
     items.push({
       id: 'thief-spinning-axes',
       label: 'Spinning Axes',
+      icon: context.balanceContext?.catalog.skillsById.get(ID.SPINNING_AXE)?.icon,
       value: `${axes.length}/6`,
       title: axes.length
         ? `Grounded axes available to recall; next axe expires in ${(Math.min(...axes.map((axe) => axe.expiresAt)) - at).toFixed(1)}s`

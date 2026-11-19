@@ -66,6 +66,7 @@ function untamedStateSnapshot(
     items.push({
       id,
       label: `Ferocious Symbiosis (${beneficiary})`,
+      icon: context.balanceContext.catalog.traits.find((trait) => trait.id === TRAIT.FEROCIOUS_SYMBIOSIS)?.icon,
       value: `${stacks}/${maximumStacks} · ${remaining.toFixed(1)}s`,
       title: `${beneficiary} damage stacks and time remaining`
     });

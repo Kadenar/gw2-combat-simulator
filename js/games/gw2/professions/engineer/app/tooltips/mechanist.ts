@@ -52,6 +52,7 @@ function supportCommandTooltip(_context: ProfessionBalanceContext, skill: Skill)
     );
     sections.set(label, facts);
   }
+
   return {
     description:
       (skill.id === ID.BARRIER_BURST

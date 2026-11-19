@@ -78,6 +78,12 @@ function revenantCoreStateSnapshot(
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
   const upkeeps = state[STATE.ACTIVE_UPKEEPS] || [];
+
+  // Impossible Odds stays active until its upkeep is released.
+  if (upkeeps.some((upkeep) => upkeep.skillId === SKILL.IMPOSSIBLE_ODDS)) {
+    items.push({ id: 'impossible-odds', label: 'Impossible Odds', value: 'Active' });
+  }
+
   const drain = upkeeps.reduce((total, upkeep) => total + Math.max(0, upkeep.upkeepCost || 0), 0);
 
   if (drain > 0) {

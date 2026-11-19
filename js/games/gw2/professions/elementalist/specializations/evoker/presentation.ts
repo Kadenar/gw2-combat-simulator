@@ -18,6 +18,7 @@ import type {
   ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
@@ -25,6 +26,7 @@ import {
   ELEMENTALIST_FAMILIAR_SKILL_IDS,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
+import { electricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import type {
   ElementalistSkill,
   ElementalistUiContext,
@@ -109,16 +111,31 @@ function evokerStateSnapshot(
   context: ProfessionStateSnapshotContext<ElementalistUiContext['professionState']>
 ): RotationStateSnapshotItem[] {
   const remaining = (uiState(context)[STATE.ELEMENTAL_BALANCE_UNTIL] || 0) - Math.max(0, context.atSeconds || 0);
-  return remaining > 0
+  const items =
+    remaining > 0
+      ? [
+          {
+            id: 'evoker-elemental-balance',
+            label: 'Elemental Balance',
+            value: `${remaining.toFixed(1)}s`,
+            title: 'Time remaining in the Elemental Balance window'
+          }
+        ]
+      : [];
+  // Show charges available to the next qualifying hit at the cursor.
+  const grant = planningBuffAt(context.planningState, electricEnchantment.id);
+  return grant
     ? [
+        ...items,
         {
-          id: 'evoker-elemental-balance',
-          label: 'Elemental Balance',
-          value: `${remaining.toFixed(1)}s`,
-          title: 'Time remaining in the Elemental Balance window'
+          id: electricEnchantment.id,
+          label: electricEnchantment.name,
+          icon: electricEnchantment.icon,
+          value: `${grant.count} · ${grant.remaining.toFixed(1)}s`,
+          title: 'Remaining charges and time until the last grant expires'
         }
       ]
-    : [];
+    : items;
 }
 
 /** Projects the active familiar, its availability, resources, and rotation snapshot. */

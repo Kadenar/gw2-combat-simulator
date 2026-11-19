@@ -1,6 +1,12 @@
-import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
+import {
+  timedBuffWindow,
+  timedEffectState,
+  type BuffStatePolicy,
+  type EffectState
+} from '#gw2/platform/combat/effect-state.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/battle-scars.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -24,6 +30,12 @@ export function revenantEffectStates(
 ): EffectState[] {
   const core = runtime.profession.core;
   const effects = [
+    // The upkeep ends on release, legend swap, or energy depletion.
+    timedBuffWindow(
+      'impossible-odds',
+      'Impossible Odds',
+      activeRevenantUpkeep(runtime, ID.IMPOSSIBLE_ODDS) ? Infinity : 0
+    ),
     timedEffectState(
       'battle-scars',
       core.battleScars.map((expiresAt) => ({ expiresAt, stacks: 1 })),

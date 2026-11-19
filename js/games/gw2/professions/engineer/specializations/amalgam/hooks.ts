@@ -1,3 +1,4 @@
+import { timedBuffWindow } from '#gw2/platform/combat/effect-state.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
@@ -16,6 +17,14 @@ export const amalgamHooks = composeRuntimeHooks<EngineerRuntimeState, EngineerSk
       state.evolvedUntil = inputs.evolved ? Infinity : 0;
       state.titanicUntil = inputs.titanic ? Infinity : 0;
       state.plasmaticStateUntil = inputs.plasmaticState ? Infinity : 0;
+    },
+    // Each damage bonus follows its own refresh deadline.
+    observeEffects(runtime) {
+      const state = amalgamState.from(runtime.profession);
+      return [
+        timedBuffWindow('plasmatic-state', 'Plasmatic State', state.plasmaticStateUntil),
+        timedBuffWindow('willing-host', 'Willing Host', state.willingHostUntil)
+      ];
     },
     availability: amalgamCastAvailability,
     reactions: { 'damage.resolved': amalgamResolverEventReactions.damage }

@@ -5,6 +5,18 @@ export const ROTATION_DEAD_TIME_STORAGE_KEY = 'gw2-rotation-dead-time';
 const TRANSITION_DELAY_VISIBILITY_KEY = 'gw2-rotation-transition-delays';
 const TIMING_DISPLAY_STORAGE_KEY = 'gw2-rotation-timing-display';
 const HIDE_CANCELLED_SKILLS_STORAGE_KEY = 'gw2-rotation-hide-cancelled-skills';
+const ACTIVE_STATE_ICONS_KEY = 'gw2-rotation-active-state-icons';
+
+/** Keep the active-state label style across builds and reloads without rerunning combat. */
+export function activeStateIconsEnabled(root: Document): boolean {
+  const current = root.documentElement.dataset.activeStateIcons;
+  return current === undefined ? readStoredTimelineOverlayVisibility(root, ACTIVE_STATE_ICONS_KEY) : current === 'true';
+}
+
+export function setActiveStateIcons(root: Document, enabled: boolean): void {
+  root.documentElement.dataset.activeStateIcons = String(enabled);
+  storeTimelineOverlayVisibility(root, ACTIVE_STATE_ICONS_KEY, enabled);
+}
 
 export const ROTATION_TIMELINE_SIZE_OPTIONS = Object.freeze([
   { value: 'normal', label: '100%' },

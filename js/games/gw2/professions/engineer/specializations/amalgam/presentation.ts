@@ -11,6 +11,7 @@ import type {
   ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import {
@@ -140,6 +141,19 @@ function amalgamStateSnapshot(
   const state = engineerUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
+  // Assumption-backed windows have no deadline, so they read as active instead of an infinite countdown.
+  const remainingLabel = (remaining: number): string =>
+    Number.isFinite(remaining) ? `${remaining.toFixed(1)}s` : 'Active';
+  // Read the same damage windows as the graph at the inspected cursor.
+  for (const [kind, label] of [
+    ['plasmatic-state', 'Plasmatic State'],
+    ['willing-host', 'Willing Host']
+  ] as const) {
+    const buff = planningBuffAt(context.planningState, kind);
+
+    if (buff) items.push({ id: kind, label, value: remainingLabel(buff.remaining) });
+  }
+
   // Evolve is state-backed, so its remaining duration comes directly from the specialization snapshot.
   const evolveRemaining = (state[STATE.EVOLVED_UNTIL] || 0) - at;
 
@@ -167,7 +181,7 @@ function amalgamStateSnapshot(
     items.push({
       id: 'amalgam-active-strains',
       label: 'Active Strains',
-      value: activeStrains.map(([name, remaining]) => `${name} ${remaining.toFixed(1)}s`).join(' · '),
+      value: activeStrains.map(([name, remaining]) => `${name} ${remainingLabel(remaining)}`).join(' · '),
       title: 'Duration-bearing strains currently granted by Evolve or Silver Lining'
     });
   }
