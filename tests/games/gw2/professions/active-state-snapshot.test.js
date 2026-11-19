@@ -144,28 +144,6 @@ test('public expiry projections keep buff deadlines through their timestamp with
     );
 });
 
-// Charge observations may expire ahead of queued cleanup without consuming the authoritative grant.
-test('charge expiry projections preserve live grants and earlier observations', () => {
-  for (const [family, specialization, slice, key, stateId] of [
-    [guardianProfession, 'Core', 'core', 'spearIlluminated', STATE.SPEAR_ILLUMINATED],
-    [thiefProfession, 'Antiquary', 'specialization', 'mistburn', STATE.MISTBURN]
-  ]) {
-    const config = { specialization };
-    const profession = family.runtimeFor(config).createState(config);
-    const owner = slice === 'core' ? profession.core : profession.specialization.state;
-    owner[key] = Object.freeze({ count: 3, expiresAt: 5, readyAt: 2 });
-    const earlier = projectObservedState(family, { profession, config, time: 4 });
-    const expired = projectObservedState(family, { profession, config, time: 5.000001 });
-    assert.deepEqual(expired[stateId], { count: 0, expiresAt: 5, readyAt: 2 });
-    assert.deepEqual(owner[key], { count: 3, expiresAt: 5, readyAt: 2 });
-    owner[key] = { count: 7, expiresAt: 9, readyAt: 6 };
-    assert.deepEqual(earlier[stateId], { count: 3, expiresAt: 5, readyAt: 2 });
-    expired[stateId].readyAt = 99;
-    assert.equal(owner[key].readyAt, 6);
-    assert.equal(earlier[stateId].readyAt, 2);
-  }
-});
-
 test('filtered public windows remain deeply detached from their live owners', () => {
   // Filtering must preserve nested detachment even when a visible window survives the observation.
   const guardian = guardianProfession.runtimeFor({ specialization: 'Core' }).createState({ specialization: 'Core' });

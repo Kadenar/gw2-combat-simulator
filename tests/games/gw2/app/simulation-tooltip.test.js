@@ -229,9 +229,15 @@ test('Ritualist tooltip packet roles survive canonical skill and action removals
           }
         }).resolvePatch({ id: 'spirit-tooltip-removal' }).balanceContext;
         for (const id of [skillId, ID.SUMMON_SPIRITS]) {
+          // Removing Wanderlust's field also removes the conditions delivered by that field.
+          const removesOpeningConditions = effect.name === 'Wanderlust Initial Field';
           assert.deepEqual(
             facts(preview, id),
-            facts(base, id).filter((fact) => !fact.detail.includes(effect.name)),
+            facts(base, id).filter(
+              (fact) =>
+                !fact.detail.includes(effect.name) &&
+                !(removesOpeningConditions && fact.detail.includes('opening conditions'))
+            ),
             `${effect.name} removed from tooltip ${id}`
           );
         }

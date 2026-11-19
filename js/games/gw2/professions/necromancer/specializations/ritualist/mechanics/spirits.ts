@@ -158,7 +158,12 @@ export function spiritDefinition(source: SkillSource, skillId: SkillId): SpiritD
     ),
     lingering,
     active: interpretAttack(active, 'spirit'),
-    activeDuration: active ? effectNumber(profile, active, 'duration') : skillNumber(profile, 'commandBusyMs') / 1000,
+    // Removed strikes have no recovery; Preservation's commanded heal owns its separate busy window.
+    activeDuration: attackNames.active
+      ? active
+        ? effectNumber(command, active, 'duration')
+        : 0
+      : skillNumber(profile, 'commandBusyMs') / 1000,
     // Anguish conditions are independent; Wanderlust conditions require its selected field.
     openingConditions:
       attackNames.key === 'anguish' || lingering
