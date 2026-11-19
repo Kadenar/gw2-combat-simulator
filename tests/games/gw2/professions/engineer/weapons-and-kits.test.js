@@ -598,7 +598,6 @@ test('Shred fires Burning Bolts through Stoke the Flames', () => {
   );
 });
 
-
 test('Engineer spear focus selects its condition branch and consumes Lightning Rod charges', () => {
   const focused = simulate(
     'Amalgam',
