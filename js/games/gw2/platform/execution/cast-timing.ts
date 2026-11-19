@@ -31,17 +31,20 @@ export function castReachedFullDuration(cast: Gw2CastEndTimes): boolean {
   );
 }
 
-/** Use accepted clock instants so an interruption at the release threshold immediately frees the cast lane. */
+/** Compare accepted ticks so a skill can release lockout on one tick or on every tick from its threshold. */
 export function retainsInterruptedCastLockout(
   skill: Skill | null,
   cast: Pick<RuntimeCast, 'start' | 'effectiveEnd' | 'cancelledBeforeCommit'>
 ): boolean {
   if (skill?.retainsCastLockoutAfterInterrupt !== true || cast.cancelledBeforeCommit) return false;
 
-  return (
-    skill.interruptLockoutReleaseMs == null ||
-    gw2Time(cast.effectiveEnd) < gw2Time(cast.start + skill.interruptLockoutReleaseMs / 1000)
-  );
+  const releaseMs = skill.interruptLockoutReleaseExactMs ?? skill.interruptLockoutReleaseMs;
+
+  if (releaseMs == null) return true;
+
+  const interruptAt = gw2Time(cast.effectiveEnd);
+  const releaseAt = gw2Time(cast.start + releaseMs / 1000);
+  return skill.interruptLockoutReleaseExactMs != null ? interruptAt !== releaseAt : interruptAt < releaseAt;
 }
 
 /**

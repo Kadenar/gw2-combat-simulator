@@ -165,7 +165,7 @@ export interface Skill extends CatalogEntity, SharedNumericSkillFields {
   readonly peithaImpactAnchor?: 'castStart' | 'castEnd';
   /** Controls whether interruption preserves committed effects or only packets that have already occurred. */
   readonly interruptMode?: SkillInterruptMode;
-  /** Retain the original cast end after commitment unless interruption reaches interruptLockoutReleaseMs. */
+  /** Keep the cast lane occupied after commitment until the configured release rule is met. */
   readonly retainsCastLockoutAfterInterrupt?: boolean;
   readonly effects?: readonly SkillEffect[];
   readonly comboFields?: readonly OwnedComboDescriptor[];
