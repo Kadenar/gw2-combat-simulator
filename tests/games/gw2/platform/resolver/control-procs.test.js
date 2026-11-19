@@ -66,12 +66,12 @@ test('Reaper stun-break does not proc disables; Chilled to the Bone still trigge
   }
 });
 
-// Staff controls use the normal disable pipeline on both ordinary and defiant targets.
+// Moving targets cross staff control boundaries and trigger disable procs on ordinary and defiant targets.
 for (const [skill, startAttunement, controlKind] of [
   ['Static Field', 'Air', CONTROL.STUN],
   ['Unsteady Ground', 'Earth', CONTROL.KNOCKBACK]
 ]) {
-  test(`${skill} triggers Claw and Lightning Rod only when aimed at the target`, () => {
+  test(`${skill} triggers Claw and Lightning Rod only when aimed at a moving target`, () => {
     for (const [defiant, offTarget] of [
       [true, false],
       [false, false],
@@ -89,7 +89,7 @@ for (const [skill, startAttunement, controlKind] of [
         {
           primaryWeapon: WEAPON.STAFF,
           startAttunement,
-          target: { ...config.target, defiant }
+          target: { ...config.target, defiant, moving: true }
         }
       );
       assert.deepEqual(result.warnings, []);
