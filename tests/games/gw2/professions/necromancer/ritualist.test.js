@@ -109,6 +109,81 @@ test('Ritualist attacks honor authored Power overrides without reclassifying the
   assert.equal(attack(patched, 'anguish', 'initial').damage, attack(baseline, 'anguish', 'initial').damage);
 });
 
+// The player's first swing inherits selected payload overrides without acquiring spirit ownership or fixed strength.
+test('Wanderlust player swing preserves tick payloads and equipped weapon strength', () => {
+  const config = {
+    ...base,
+    primaryWeapon: 'Staff',
+    criticalDamageMode: 'averaged',
+    attributeInputs: baseAttributeInputs({ power: 1000, precision: 0, vitality: 1000 })
+  };
+  const rotation = [cast(ID.RITUALISTS_SHROUD), cast(ID.WANDERLUST), wait(2500)];
+  const swingEffect = requireSkillAction(
+    necromancerProfession.catalog.skillsById.get(ID.WANDERLUST),
+    'opening'
+  ).effects.find((effect) => effect.name === 'Wanderlust Initial Swing');
+  const swingDamage = (result) =>
+    result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillId === ID.WANDERLUST && event.source === 'necromancer'
+    );
+  const baseline = swingDamage(run(rotation, { config }))[0];
+
+  for (const power of [2000, 0]) {
+    const result = run(rotation, {
+      config,
+      skills: {
+        [ID.WANDERLUST]: {
+          sideEffects: {
+            opening: {
+              removeEffects: [{ type: 'strike', name: swingEffect.name }],
+              addEffects: [
+                {
+                  ...swingEffect,
+                  coefficient: undefined,
+                  hits: undefined,
+                  atMs: undefined,
+                  canCrit: true,
+                  forceCrit: true,
+                  weaponStrength: 99999,
+                  weaponStrengthProfileId: 'summon.weapon-type-1',
+                  metadata: { ritualistPowerOverride: 500 },
+                  ticks: [
+                    {
+                      atMs: swingEffect.atMs,
+                      coefficient: 1,
+                      canCrit: false,
+                      forceCrit: false,
+                      metadata: { ritualistPowerOverride: power }
+                    },
+                    { atMs: swingEffect.atMs + 100, coefficient: 99 }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    });
+    assert.deepEqual(result.warnings, []);
+    const swings = swingDamage(result);
+    assert.ok(swings.length > 0);
+    for (const swing of swings) {
+      assert.equal(swing.coefficient, 1);
+      assert.equal(swing.canCrit, false);
+      assert.equal(swing.forceCrit, false);
+      assert.equal(swing.metadata.ritualistPowerOverride, power);
+      assert.equal(swing.actorType, 'player');
+      assert.equal(swing.summonOwner, undefined);
+      assert.equal(swing.skillWeapon, 'Staff');
+      assert.equal(swing.weaponStrengthProfileId, 'weapon.staff');
+      assert.equal(swing.weaponStrength, baseline.weaponStrength);
+
+      if (power === 0) assert.equal(swing.damage, 0);
+      else assertFlooredDamageMultiplier(swing.damage, baseline.damage, 2);
+    }
+  }
+});
+
 // Editing a delayed condition cannot remove a sibling condition or stop the spirit's autonomous lifetime.
 test('Ritualist opening conditions use selected profiles independently of their sibling attacks', () => {
   for (const [skillId, removed, retained] of [

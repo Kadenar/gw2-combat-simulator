@@ -1,3 +1,4 @@
+/** Format selected Ritualist attacks from the same catalog interpretation used by combat execution. */
 import {
   fromModifier,
   fromProfile,
@@ -20,8 +21,8 @@ import { lifeForce, shroudTooltip } from '#gw2/professions/necromancer/app/toolt
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   RITUALIST_SPIRIT_SKILL_IDS,
-  spiritAttackEffects
-} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
+  spiritDefinition
+} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import { painfulBondSkill } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 
@@ -62,7 +63,7 @@ const weaponSpellTooltip: DescribeSimulationTooltip = (balanceContext, entity, _
   };
 };
 
-// Spirit owners select named attack roles; this layer formats their selected summon and command packets.
+// The catalog interpretation supplies only executable attack roles and their resolved payloads.
 const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
 
@@ -80,15 +81,15 @@ const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => 
       description:
         'Command available active spirits to perform their coordinated attacks. Spirits still in their opening attack cannot participate. Wanderlust also dazes; Preservation has no direct damage from this command.',
       facts: RITUALIST_SPIRIT_SKILL_IDS.flatMap((skillId) => {
-        const attack = spiritAttackEffects(balanceContext.catalog, skillId)!.active;
+        const attack = spiritDefinition(balanceContext.catalog, skillId)!.active;
         return attack
-          ? simulationEffectFacts([attack], `requires ${balanceContext.catalog.skillsById.get(skillId)!.name}`).facts
+          ? simulationEffectFacts(attack.effects, `requires ${balanceContext.catalog.skillsById.get(skillId)!.name}`)
+              .facts
           : [];
       })
     };
 
-  const attacks = spiritAttackEffects(balanceContext.catalog, id)!;
-  const { opening } = attacks;
+  const attacks = spiritDefinition(balanceContext.catalog, id)!;
   return {
     description:
       'Summon or replace this spirit, apply its opening effects, and start its autonomous attacks. Busy spirits skip recurring attack opportunities.' +
@@ -100,12 +101,11 @@ const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => 
     facts: [
       ...simulationEffectFacts(selected.effects, 'on summon').facts,
       ...simulationEffectFacts(
-        [attacks.autoattack, attacks.initial, attacks.lingering].flatMap((effect) => (effect ? [effect] : []))
+        [attacks.autoattack, attacks.playerSwing, attacks.summon, attacks.lingering].flatMap(
+          (attack) => attack?.effects ?? []
+        )
       ).facts,
-      ...simulationEffectFacts(
-        opening.effects.filter((effect) => effect.type === 'condition'),
-        'opening conditions'
-      ).facts,
+      ...simulationEffectFacts(attacks.openingConditions, 'opening conditions').facts,
       profileFact(
         balanceContext,
         TRAIT.SPAWNING_POWER,

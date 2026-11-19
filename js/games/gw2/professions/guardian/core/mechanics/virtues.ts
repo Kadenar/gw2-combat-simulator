@@ -198,7 +198,9 @@ export function admitVirtueActivation(
   if (guardianVirtueReadyAt(runtime, virtue) > runtime.time) return false;
 
   readyVirtueActivations.add(cast);
+
   if (!cast.cancelledBeforeCommit) runtime.fireTrigger(virtueCast, { cast, virtue });
+
   return true;
 }
 

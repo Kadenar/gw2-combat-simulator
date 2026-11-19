@@ -2,7 +2,7 @@ import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { attribution } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
+import { attribution } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-packet-context.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Attribute shared boons to their triggering cast and resolve eligible summons when each packet is emitted. */

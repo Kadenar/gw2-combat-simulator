@@ -2,7 +2,6 @@
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { ACTOR, CONTROL } from '#gw2/platform/constants.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -14,15 +13,14 @@ import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanic
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { creatureSummoned } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { ritualistPartyBoonPolicy } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/party-boons.js';
 import {
   attribution,
   spiritFields,
-  spiritImpactAt,
-  spiritStrikeFields
-} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
-import { ritualistPartyBoonPolicy } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/party-boons.js';
-import { RITUALIST_SPIRIT_SKILL_IDS } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
+  spiritImpactAt
+} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-packet-context.js';
 import {
+  RITUALIST_SPIRIT_SKILL_IDS,
   spiritDefinition,
   type SpiritAttack,
   type SpiritDefinition
@@ -69,7 +67,8 @@ function strikePackets(
   return attack.ticks.map((tick, index) =>
     buildResolverStrike({
       ...attribution(cast),
-      ...spiritStrikeFields(spirit.key, attackType, attack.effect, tick),
+      ...tick.payload,
+      ...spiritFields(spirit.key, attackType, tick.payload.metadata),
       at: spiritImpactAt(runtime.time, cast, tick.atMs),
       skillWeapon: 'Unequipped',
       hitIndex: index + 1,
@@ -91,7 +90,7 @@ function emitSpiritField(runtime: NecromancerRuntime, field: SpiritField): void 
   runtime.effects.emit({
     kind: 'profile',
     profile: opening,
-    effects: requireSkillAction(opening, 'opening').effects.filter((effect) => effect.type === 'condition'),
+    effects: spiritDefinition(runtime.helpers, field.skillId)!.openingConditions,
     at: field.at,
     attribution: { ...field.attribution, ...spiritFields('wanderlust', 'initial') },
     transform: (event) => ({ ...event, name: `${opening.name} - ${event.condition}` })
@@ -133,7 +132,7 @@ function emitActionPackets(runtime: NecromancerRuntime, key: string, events: rea
 /** Protect unfinished openings; accepted commands replace one action without moving the creature's recurring clock. */
 function commandRitualistSpirits(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   for (const id of RITUALIST_SPIRIT_SKILL_IDS) {
-    const spirit = spiritDefinition(runtime, id)!;
+    const spirit = spiritDefinition(runtime.helpers, id)!;
     const actor = ritualistState.from(runtime.profession).activeSpirits[spirit.key];
 
     if (!actor || (actor.actionGeneration === 0 && actor.busyUntil > runtime.time)) continue;
@@ -182,7 +181,7 @@ function startSpiritOpening(
   runtime.effects.emit({
     kind: 'profile',
     profile: cast.skill,
-    effects: requireSkillAction(cast.skill, 'opening').effects.filter((effect) => effect.type === 'condition'),
+    effects: spirit.openingConditions,
     attribution: attribution(cast),
     transform: (event) => ({
       ...event,
@@ -205,11 +204,12 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
   )
     return;
 
-  const spirit = spiritDefinition(runtime, work.skillId);
+  const spirit = spiritDefinition(runtime.helpers, work.skillId);
 
   if (!spirit?.autoattack) return;
 
   const skill = runtime.helpers.skillsById.get(work.skillId)!;
+  const payload = spirit.autoattack.ticks[0].payload;
 
   if (!(state.activeSpirits[work.key].busyUntil > runtime.time)) {
     beginAction(runtime, work.key, spirit.autoattackImpactDelayMs / 1000);
@@ -227,8 +227,8 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
         skillWeapon: 'Unequipped',
         canCrit: true,
         summonInheritsCriticalAttributes: true,
-        // The authored autoattack supplies its coefficient, summon strength profile, and metadata.
-        ...spiritStrikeFields(work.key, 'autoattack', spirit.autoattack),
+        ...payload,
+        ...spiritFields(work.key, 'autoattack', payload.metadata),
         activationId: `${work.activationId}:auto:${work.pulse}`
       })
     });
@@ -282,7 +282,7 @@ function grantSpiritSummonEffects(
 
 /** Resolve and commit the summon, then start its opening and independent grants in their accepted reward order. */
 function summonRitualistSpirit(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  const spirit = spiritDefinition(runtime, cast.skill.id)!;
+  const spirit = spiritDefinition(runtime.helpers, cast.skill.id)!;
   const state = ritualistState.from(runtime.profession);
   const key = spirit.key;
   const previous = state.activeSpirits[key];
@@ -320,7 +320,7 @@ function startRitualistSpirits(runtime: NecromancerRuntime): void {
   for (const [key, actor] of Object.entries(state.activeSpirits)) {
     if (actor.started) continue;
 
-    const spirit = spiritDefinition(runtime, actor.skillId);
+    const spirit = spiritDefinition(runtime.helpers, actor.skillId);
 
     if (!spirit) continue;
 

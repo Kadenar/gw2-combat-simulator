@@ -10,7 +10,7 @@ import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/t
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/dark-barrage.js';
-import { spiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -335,6 +335,9 @@ test('Dark Barrage empty selected volley emits no default packet', () => {
 test('Ritualist attack projections reject cross-spirit packets and preserve selected command tuning', () => {
   const profession = preview({
     skills: {
+      ['necromancer.ritualist.wanderlust.autoattack']: {
+        effects: [{ type: 'strike', name: 'Wanderlust Autoattack', coefficient: 0 }]
+      },
       [WANDERLUST]: {
         sideEffects: {
           opening: {
@@ -357,6 +360,10 @@ test('Ritualist attack projections reject cross-spirit packets and preserve sele
     const patched = patchId === 'tooltip-projection';
     const summon = skillFacts(context, ID.WANDERLUST);
     assert.equal(
+      summon.some(({ detail }) => detail.includes('Wanderlust Autoattack')),
+      !patched
+    );
+    assert.equal(
       summon.some(({ detail }) => detail.includes('Anguish Initial Barrage')),
       false
     );
@@ -372,20 +379,22 @@ test('Ritualist attack projections reject cross-spirit packets and preserve sele
       detail.includes('Summon Spirits - Wanderlust')
     );
     assert.ok(command.detail.startsWith(`${patched ? 6 : 1.5} coefficient`));
-    const definition = spiritDefinition({ helpers: context.catalog }, ID.WANDERLUST);
-    assert.equal(definition.summon?.ticks.length ?? 0, patched ? 0 : 1);
-    assert.equal(definition.active.ticks[0].coefficient, patched ? 6 : 1.5);
     const result = simulate(profession, patchId, 'Ritualist', [
       "Ritualist's Shroud",
       'Wanderlust',
       { type: 'wait', durationMs: 2000 },
       'Summon Spirits',
-      { type: 'wait', durationMs: 2000 }
+      { type: 'wait', durationMs: 10000 }
     ]);
     const attacks = result.resolvedEvents.filter(
       (event) => event.type === 'damage' && event.metadata?.spiritAttackType === 'summon-spirits'
     );
     assert.ok(attacks.length > 0);
+    assert.ok(result.planningState.profession[STATE.ACTIVE_SPIRITS].wanderlust);
+    assert.equal(
+      result.resolvedEvents.some((event) => event.metadata?.spiritAttackType === 'autoattack'),
+      !patched
+    );
     // Patch coefficients retain the command's authored weapon profile through projection and emission.
     assert.ok(
       attacks.every(
@@ -394,6 +403,66 @@ test('Ritualist attack projections reject cross-spirit packets and preserve sele
       )
     );
   }
+});
+
+// Display the executable first swing and whole-coefficient auto, including resolved critical flags.
+test('Ritualist tooltips and execution share selected player and autonomous payloads', () => {
+  const profession = preview({
+    skills: {
+      'necromancer.ritualist.wanderlust.autoattack': {
+        removeEffects: [{ type: 'strike', name: 'Wanderlust Autoattack' }],
+        addEffects: [
+          {
+            type: 'strike',
+            name: 'Wanderlust Autoattack',
+            coefficient: 0.9,
+            hits: 3,
+            atMs: 0,
+            weaponStrengthProfileId: 'summon.weapon-type-1'
+          }
+        ]
+      },
+      [ID.WANDERLUST]: {
+        sideEffects: {
+          opening: {
+            removeEffects: [{ type: 'strike', name: 'Wanderlust Initial Swing' }],
+            addEffects: [
+              {
+                type: 'strike',
+                name: 'Wanderlust Initial Swing',
+                canCrit: true,
+                ticks: [
+                  { atMs: 100, coefficient: 2, canCrit: false },
+                  { atMs: 200, coefficient: 99 }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  });
+  const context = profession.resolvePatch({ id: 'tooltip-projection' }).balanceContext;
+  const facts = skillFacts(context, ID.WANDERLUST);
+  const swingFact = facts.find(({ detail }) => detail.includes('Wanderlust Initial Swing'));
+  assert.ok(swingFact.detail.startsWith('2 coefficient'));
+  assert.ok(swingFact.detail.includes('cannot critically strike'));
+  const autoFact = facts.find(({ detail }) => detail.includes('Wanderlust Autoattack'));
+  assert.ok(autoFact.detail.startsWith('0.9 coefficient'));
+  assert.equal(autoFact.detail.includes('3 hits'), false);
+  const result = simulate(profession, 'tooltip-projection', 'Ritualist', [
+    "Ritualist's Shroud",
+    'Wanderlust',
+    { type: 'wait', durationMs: 6000 }
+  ]);
+  const swings = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === ID.WANDERLUST && event.source === 'necromancer'
+  );
+  assert.ok(swings.length > 0);
+  assert.ok(swings.every((event) => event.coefficient === 2 && event.canCrit === false));
+  const autos = result.resolvedEvents.filter((event) => event.metadata?.spiritAttackType === 'autoattack');
+  assert.ok(autos.length > 0);
+  assert.ok(autos.every((event) => event.coefficient === 0.9));
 });
 
 /** Projection contracts use the selected trait's registered strike listener. */

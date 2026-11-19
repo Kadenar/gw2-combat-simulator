@@ -6,8 +6,8 @@ import {
   addTimedStacks,
   consumeNewestStacks,
   consumeOldestStacks,
-  grantTimedStackApplications,
   expireStacks,
+  grantTimedStackApplications,
   grantTimedStacks,
   purgeExpiredStacks
 } from '#kernel/resources/timed-stacks.js';

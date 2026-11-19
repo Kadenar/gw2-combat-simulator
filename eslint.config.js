@@ -75,7 +75,7 @@ export default [
   // ESLint owns source syntax coverage and already skips node_modules and .git; exclude generated artifacts and local
   // analysis/tool state.
   {
-    ignores: ['**/dist/**', '.scratch/**', '**/.claude/**', '**/.lavish/**']
+    ignores: ['**/dist/**', '.scratch/**', '.tmp/**', '**/.claude/**', '**/.lavish/**']
   },
 
   // JavaScript and TypeScript share statement spacing.

@@ -7,12 +7,12 @@ import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { ritualistPartyBoonPolicy } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/party-boons.js';
 import {
   attribution,
   spiritFields,
   spiritImpactAt
-} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
-import { ritualistPartyBoonPolicy } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/party-boons.js';
+} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-packet-context.js';
 import { spiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
@@ -36,7 +36,7 @@ export const ritualistPlayerActionHooks: RuntimeHooks<NecromancerRuntimeState, N
       if (context.kind !== 'cast' || context.cast.cancelledBeforeCommit) return;
 
       const cast = context.cast;
-      const swing = spiritDefinition(runtime, cast.skill.id)?.summon?.ticks[0];
+      const swing = spiritDefinition(runtime.helpers, cast.skill.id)?.playerSwing?.ticks[0];
 
       if (!swing) return;
 
@@ -45,9 +45,9 @@ export const ritualistPlayerActionHooks: RuntimeHooks<NecromancerRuntimeState, N
         kind: 'packet',
         event: buildResolverStrike({
           ...attribution(cast),
+          ...swing.payload,
           source: 'necromancer',
           at: spiritImpactAt(cast.start, cast, swing.atMs),
-          coefficient: swing.coefficient,
           skillWeapon,
           weaponStrengthProfileId: weaponStrengthProfileForName(skillWeapon)?.id
         })
