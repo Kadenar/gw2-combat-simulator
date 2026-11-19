@@ -7,15 +7,15 @@
         "build": "data/gw2/builds/guardian/b-power-willbender-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-willbender-spear-greatsword",
-        "benchmarkDps": 44107,
+        "benchmarkDps": 44092,
         "upToDate": true,
         "benchmarkApm": 76.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 49081, "phase": 49081 },
-          "80-60": { "cumulative": 45683, "phase": 42640 },
-          "60-40": { "cumulative": 44928, "phase": 43475 },
-          "40-20": { "cumulative": 44280, "phase": 42434 },
-          "20-0": { "cumulative": 44107, "phase": 43439 }
+          "100-80": { "cumulative": 48925, "phase": 48925 },
+          "80-60": { "cumulative": 45612, "phase": 42645 },
+          "60-40": { "cumulative": 44886, "phase": 43490 },
+          "40-20": { "cumulative": 44280, "phase": 42560 },
+          "20-0": { "cumulative": 44092, "phase": 43360 }
         }
       },
       {
@@ -23,15 +23,15 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-pistol-torch.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-pistol-torch-pistol",
-        "benchmarkDps": 44064,
+        "benchmarkDps": 44066,
         "upToDate": true,
         "benchmarkApm": 80.7,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 42748, "phase": 42748 },
           "80-60": { "cumulative": 43483, "phase": 44259 },
-          "60-40": { "cumulative": 43134, "phase": 42455 },
-          "40-20": { "cumulative": 43772, "phase": 45872 },
-          "20-0": { "cumulative": 44064, "phase": 44064 }
+          "60-40": { "cumulative": 43134, "phase": 42453 },
+          "40-20": { "cumulative": 43774, "phase": 45882 },
+          "20-0": { "cumulative": 44066, "phase": 44066 }
         }
       },
       {
@@ -39,15 +39,15 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-scepter-pistol.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-scepter-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-scepter-pistol-pistol-torch",
-        "benchmarkDps": 42457,
+        "benchmarkDps": 42454,
         "upToDate": true,
         "benchmarkApm": 84.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39872, "phase": 39872 },
-          "80-60": { "cumulative": 42160, "phase": 44693 },
-          "60-40": { "cumulative": 42683, "phase": 43785 },
-          "40-20": { "cumulative": 42552, "phase": 42166 },
-          "20-0": { "cumulative": 42457, "phase": 42082 }
+          "100-80": { "cumulative": 39859, "phase": 39859 },
+          "80-60": { "cumulative": 42154, "phase": 44693 },
+          "60-40": { "cumulative": 42678, "phase": 43785 },
+          "40-20": { "cumulative": 42549, "phase": 42166 },
+          "20-0": { "cumulative": 42454, "phase": 42082 }
         }
       },
       {
@@ -86,15 +86,15 @@
         "label": "Condition Alacrity (Pistol / Torch + Pistol / Pistol)",
         "build": "data/gw2/builds/guardian/b-condi-alac-willbender-pistol-torch.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-alac-willbender-pistol-torch-bench.json",
-        "benchmarkDps": 39426,
+        "benchmarkDps": 39430,
         "upToDate": true,
         "benchmarkApm": 79.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38828, "phase": 38828 },
-          "80-60": { "cumulative": 39911, "phase": 41108 },
-          "60-40": { "cumulative": 39417, "phase": 38455 },
-          "40-20": { "cumulative": 39483, "phase": 39678 },
-          "20-0": { "cumulative": 39426, "phase": 39192 }
+          "100-80": { "cumulative": 38856, "phase": 38856 },
+          "80-60": { "cumulative": 39930, "phase": 41117 },
+          "60-40": { "cumulative": 39426, "phase": 38445 },
+          "40-20": { "cumulative": 39487, "phase": 39667 },
+          "20-0": { "cumulative": 39430, "phase": 39199 }
         }
       }
     ]
@@ -160,15 +160,15 @@
         "build": "data/gw2/builds/guardian/b-power-dragonhunter-virtues-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-virtues-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-dragonhunter-virtues-spear-greatsword",
-        "benchmarkDps": 41170,
+        "benchmarkDps": 41201,
         "upToDate": true,
         "benchmarkApm": 65.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 49450, "phase": 49450 },
-          "80-60": { "cumulative": 45436, "phase": 41983 },
-          "60-40": { "cumulative": 42825, "phase": 38434 },
-          "40-20": { "cumulative": 41897, "phase": 39294 },
-          "20-0": { "cumulative": 41170, "phase": 41170 }
+          "100-80": { "cumulative": 49352, "phase": 49352 },
+          "80-60": { "cumulative": 45426, "phase": 42048 },
+          "60-40": { "cumulative": 42844, "phase": 38503 },
+          "40-20": { "cumulative": 41896, "phase": 39236 },
+          "20-0": { "cumulative": 41201, "phase": 41201 }
         }
       },
       {
