@@ -41,7 +41,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     rechargeReduction: 1,
     // The spear lifecycle reduces Abyssal Raze recharge after the qualifying hit.
     castTimeMs: 520,
-    interruptCommitMs: 396,
+    interruptCommitMs: 400,
     // After the hit commits, an interrupt before 480 ms keeps the cast lane occupied until 520 ms.
     retainsCastLockoutAfterInterrupt: true,
     interruptLockoutReleaseMs: 480,
