@@ -57,6 +57,9 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = compo
     reactions: {
       'damage.resolved'(runtime, event) {
         antiquaryResolverEventReactions.damage(runtime, event);
+      },
+      'condition.applied'(runtime, event) {
+        antiquaryResolverEventReactions.condition(runtime, event);
       }
     },
     tasks: {

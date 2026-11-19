@@ -37,7 +37,6 @@ export const THIEF_ANTIQUARY_PROFILE_FIELDS = defineFields({
 
   // Durations, extensions, and recurring effects.
   mortarBurningDurationMultiplier: numberField({ patch: 'primary', unit: 'factor' }),
-  sunCrystalBurningDurationMultiplier: numberField({ patch: 'primary', unit: 'factor' }),
   kryptisTormentDurationMultiplier: numberField({ patch: 'primary', unit: 'factor' }),
   kryptisDuration: numberField({ patch: 'primary', unit: 'seconds' })
 });

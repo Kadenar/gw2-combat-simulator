@@ -107,7 +107,8 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
         { label: 'Base mortar attacks', facts: attacks() },
         {
           label: 'Charged strikes',
-          description: 'Each later eligible player strike consumes a charge. Reusing replaces the remaining charges.',
+          description:
+            'Player strikes and new damaging condition applications consume charges, sharing a cooldown. Reusing adds charges with separate expiries.',
           facts: [
             charges('maximumStacks', 'Charges per use'),
             ...simulationEffectFacts(requireSkillAction(selected, 'charged').effects).facts.map((fact) => ({
@@ -134,17 +135,8 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
         { label: 'Base attack', facts: crystalEffects(false) },
         {
           label: 'With Meticulous Custodian',
-          description: "Extends this skill's base burning and adds burning when its strike hits.",
-          facts: [
-            profileFact(
-              balanceContext,
-              TRAIT.METICULOUS_CUSTODIAN,
-              'sunCrystalBurningDurationMultiplier',
-              'Base burning duration',
-              tooltipFactorChange
-            ),
-            ...crystalEffects(true).map((fact) => ({ ...fact, name: `Additional ${fact.name.toLowerCase()}` }))
-          ]
+          description: 'Adds a second burning stack when the strike hits.',
+          facts: crystalEffects(true).map((fact) => ({ ...fact, name: `Additional ${fact.name.toLowerCase()}` }))
         }
       ]
     };
@@ -441,13 +433,7 @@ export const antiquaryTooltips = {
         fromProfile(
           TRAIT.METICULOUS_CUSTODIAN,
           'mortarBurningDurationMultiplier',
-          'Mortar burning duration',
-          tooltipFactorChange
-        ),
-        fromProfile(
-          TRAIT.METICULOUS_CUSTODIAN,
-          'sunCrystalBurningDurationMultiplier',
-          'Sun Crystal burning duration',
+          'Mortar base burning duration',
           tooltipFactorChange
         )
       ],

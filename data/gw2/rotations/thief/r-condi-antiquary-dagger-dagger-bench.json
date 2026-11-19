@@ -5,7 +5,7 @@
     "benchmarkDurationSeconds": 102.009,
     "benchmarkDamage": 3958945,
     "benchmarkDps": 38810,
-    "note": "The existing preparation and 30-second precombat wait are retained. Caltrops, the opening trap activation and Skritt Swipe are inferred before combat because the report begins with a second preparation and an available artifact pool. Combat casts follow the supplied report. Unspecified equipment is retained from the existing preset. Simulator metrics are recorded separately in the build manifest."
+    "note": "The EVTC supplies combat casts and the opening Caltrops, Skritt Swipe and Thousand Needles activation. The unrecorded preparation and 30-second precombat wait are retained. Combat starts at Skritt Swipe commitment so its conditions accrue before the first damage tick. Unspecified equipment is retained from the existing preset. Simulator metrics are recorded separately in the build manifest."
   },
   "rotation": [
     {
@@ -22,15 +22,18 @@
     },
     {
       "type": "cast",
-      "skillId": 56898,
-      "concurrentOffsetMs": 760
-    },
-    {
-      "type": "cast",
       "skillId": 77397
     },
     {
       "type": "combat-start"
+    },
+    {
+      "type": "wait",
+      "durationMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 56898
     },
     {
       "type": "wait",
@@ -209,7 +212,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 160
+      "durationMs": 200
     },
     {
       "type": "cast",
@@ -445,7 +448,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 40
+      "durationMs": 80
     },
     {
       "type": "cast",
@@ -582,6 +585,10 @@
     {
       "type": "cast",
       "skillId": 13108
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
     },
     {
       "type": "cast",

@@ -21,6 +21,7 @@ import {
 } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { appendBatch } from '#kernel/resources/batch-list.js';
+import { createBatch } from '#kernel/resources/batch.js';
 
 /** Artifact skills own their effects; the inventory lifecycle owns spending and reward ordering. */
 export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> =
@@ -68,7 +69,13 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       if (!requireEffect(context.skill, 'condition', CONDITION.BURNING, requireSkillAction(context.skill, 'charged')))
         return;
 
-      state.mistburn = createChargeGrant(skillNumber(context.skill, 'maximumStacks'), at + duration);
+      // Recasts add charges with their own expiry and preserve the shared proc cooldown.
+      state.mistburn.grants = appendBatch(
+        state.mistburn.grants,
+        createBatch(skillNumber(context.skill, 'maximumStacks'), gw2Time(at + duration)),
+        at,
+        { order: 'insertion' }
+      );
     },
     'thief.kryptis'(runtime) {
       const state = antiquaryState.from(runtime.profession);

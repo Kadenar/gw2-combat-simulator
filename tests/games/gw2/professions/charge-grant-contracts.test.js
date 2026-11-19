@@ -355,13 +355,16 @@ test('Solar Focusing Lens keeps not-before eligibility and live spending', () =>
   assert.equal(state.solarFocusingLens.count, 1);
 });
 
-test('Mistburn replaces grants, spends on eligible strikes, and excludes its granting hit', () => {
-  // Swipe and Mortar complete at 0.8 s; a second pair completes the replacement at 3.8 s.
+test('Mistburn retains independent grants, spends newest first, and excludes its granting hit', () => {
+  // Recasts retain old charges without extending their expiry or consuming them before newer charges.
   const observed = {};
   const hit = { type: 'damage', actorType: 'player', coefficient: 0 };
   const react = (runtime, event) =>
     antiquaryResolverEventReactions.damage(runtime, { ...hit, at: runtime.time, ...event });
-  const charges = (runtime) => runtime.profession.specialization.state.mistburn.count;
+  const charges = (runtime) =>
+    activeBatches(runtime.profession.specialization.state.mistburn.grants, runtime.time, {
+      order: 'insertion'
+    }).reduce((sum, grant) => sum + grant.count, 0);
   const result = runThief(
     [
       'Skritt Swipe',
@@ -391,7 +394,15 @@ test('Mistburn replaces grants, spends on eligible strikes, and excludes its gra
             observed.spent = charges(runtime);
           }
         ],
-        [3.9, (runtime) => (observed.replaced = charges(runtime))],
+        [3.9, (runtime) => (observed.regranted = charges(runtime))],
+        [
+          4.08,
+          (runtime) => {
+            react(runtime, {});
+            observed.grants = runtime.profession.specialization.state.mistburn.grants.map((grant) => grant.count);
+          }
+        ],
+        [11.2, (runtime) => (observed.afterOldExpiry = charges(runtime))],
         [
           13.84,
           (runtime) => {
@@ -416,19 +427,27 @@ test('Mistburn replaces grants, spends on eligible strikes, and excludes its gra
       (event) => event.name === 'Mistburn Mortar - Charged Strike' && event.condition === 'Burning' && event.at === 2
     )
   );
-  assert.equal(observed.replaced, observed.initial);
+  assert.equal(observed.regranted, observed.initial * 2 - 1);
+  assert.deepEqual(observed.grants, [observed.initial - 1, observed.initial - 1]);
+  assert.equal(observed.afterOldExpiry, observed.initial - 1);
   // After its deadline the grant has expired: a strike spends nothing and the projection is empty.
-  assert.equal(observed.atExpiry, observed.initial);
+  assert.equal(observed.atExpiry, 0);
   assert.equal(observed.projected.count, 0);
 });
 
 test('Mistburn projects its grant without aliases or mutations to runtime state', () => {
   const context = contextFor(thiefProfession, 'Antiquary');
   const state = context.profession.specialization.state;
-  state.mistburn = { count: 3, expiresAt: 5 };
+  state.mistburn = {
+    grants: [
+      { count: 3, expiresAt: 5 },
+      { count: 2, expiresAt: 8 }
+    ],
+    readyAt: 0
+  };
   context.state.time = 2;
   const projected = projectObservedState(thiefProfession, { ...context.state });
-  assert.equal(projected[STATE.MISTBURN].count, 3);
+  assert.equal(projected[STATE.MISTBURN].count, 5);
   assert.equal(projected[STATE.MISTBURN].expiresAt, 5);
   for (const internal of [state, snapshotProfessionState(context.profession), projected]) {
     assert.equal(Object.hasOwn(internal, 'mistburnCharges'), false);
@@ -443,13 +462,13 @@ test('Mistburn projects its grant without aliases or mutations to runtime state'
       professionState,
       atSeconds: 2
     });
-    assert.equal(items.find((item) => item.id === 'antiquary-mistburn-mortar')?.value, '3 charges · 3.0s');
+    assert.equal(items.find((item) => item.id === 'antiquary-mistburn-mortar')?.value, '5 charges · 3.0s');
   }
 
   context.state.time = 5.000001;
-  assert.equal(projectObservedState(thiefProfession, { ...context.state })[STATE.MISTBURN].count, 0);
-  assert.equal(state.mistburn.count, 3, 'projection must not expire the live runtime grant');
-  state.mistburn.count = 0;
+  assert.equal(projectObservedState(thiefProfession, { ...context.state })[STATE.MISTBURN].count, 2);
+  assert.equal(state.mistburn.grants[0].count, 3, 'projection must not expire the live runtime grant');
+  for (const grant of state.mistburn.grants) grant.count = 0;
   context.state.time = 2;
   assert.equal(projectObservedState(thiefProfession, { ...context.state })[STATE.MISTBURN].count, 0);
   const core = contextFor(thiefProfession, 'Core');

@@ -1,4 +1,4 @@
-import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
@@ -8,7 +8,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import type { ThiefArtifactKind } from '#gw2/professions/thief/types.js';
 import { activeBatches } from '#kernel/resources/batch-list.js';
-import { activeBatchCount } from '#kernel/resources/batch.js';
+import type { Batch } from '#kernel/resources/batch.js';
 import { purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 export interface ThiefArtifactSlot {
@@ -27,7 +27,7 @@ export interface AntiquaryState {
   nextSkrittScufflePilferAt: number;
   antiquaryDamageUntil: number;
   combatHighExpirations: number[];
-  mistburn: ChargeGrant;
+  mistburn: { grants: Batch[]; readyAt: number };
   kryptisDamageUntil: number;
   antiquaryKryptisTargetUntil: number;
   chakInitiativeRefunds: ChargeGrant[];
@@ -48,7 +48,7 @@ export function createAntiquaryState(): AntiquaryState {
     antiquaryDamageUntil: 0,
     combatHighExpirations: [],
     antiquaryGuitarCharges: [],
-    mistburn: createChargeGrant(0, 0),
+    mistburn: { grants: [], readyAt: 0 },
     kryptisDamageUntil: 0,
     antiquaryKryptisTargetUntil: 0,
     chakInitiativeRefunds: [],
@@ -63,6 +63,7 @@ export const antiquaryState = defineProfessionSpecializationState('Antiquary', c
 /** Derive active public grants and stacks without consuming live entitlements; the observer detaches the result. */
 export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
   const state = antiquaryState.from(input.profession);
+  const mistburnGrants = activeBatches(state.mistburn.grants, input.time, { order: 'insertion' });
   return {
     [STATE.ANTIQUARY_GUITAR_CHARGES]: activeBatches(state.antiquaryGuitarCharges, input.time, {
       order: 'insertion'
@@ -75,8 +76,10 @@ export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput<Speci
     [STATE.ANTIQUARY_DAMAGE_UNTIL]: state.antiquaryDamageUntil,
     [STATE.COMBAT_HIGH_EXPIRATIONS]: purgeExpiredStacks(state.combatHighExpirations, input.time),
     [STATE.MISTBURN]: {
-      ...state.mistburn,
-      count: activeBatchCount(state.mistburn, input.time)
+      // Show the combined balance and next expiry without changing any live grant.
+      count: mistburnGrants.reduce((sum, grant) => sum + grant.count, 0),
+      expiresAt: mistburnGrants.length ? Math.min(...mistburnGrants.map((grant) => grant.expiresAt)) : 0,
+      readyAt: state.mistburn.readyAt
     },
     [STATE.KRYPTIS_DAMAGE_UNTIL]: state.kryptisDamageUntil,
     [STATE.CHAK_INITIATIVE_REFUNDS]: activeBatches(state.chakInitiativeRefunds, input.time, {

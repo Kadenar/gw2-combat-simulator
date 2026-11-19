@@ -228,7 +228,7 @@ test('Thief activation declarations are the sole owners of their state transitio
       id: ID.MISTBURN_MORTAR,
       before: [ID.SKRITT_SWIPE],
       config: { specialization: 'Antiquary' },
-      active: (runtime) => runtime.profession.specialization.state.mistburn.count > 0
+      active: (runtime) => runtime.profession.specialization.state.mistburn.grants.some((grant) => grant.count > 0)
     },
     {
       id: ID.FORGED_SURFER_DASH,

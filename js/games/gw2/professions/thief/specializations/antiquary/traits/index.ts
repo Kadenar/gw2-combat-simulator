@@ -140,7 +140,6 @@ const meticulousCustodian = defineTrait({
     duration: 12,
     kryptisDuration: 10,
     mortarBurningDurationMultiplier: 2 / 1.5,
-    sunCrystalBurningDurationMultiplier: 5 / 4,
     // Preserve Custodian's 20% increase on the observed base Smash coefficient.
     guitarFinalFactor: 3.6 / 3,
     // Custodian raises each Guitar pulse from 0.8 to 0.96; the final strike has its own factor.
@@ -179,7 +178,8 @@ const meticulousCustodian = defineTrait({
     {
       order: 405,
       id: 'thief.meticulous-custodian-mortar-burning',
-      target: MODIFIER_TARGET.CONDITION_DURATION,
+      // Custodian changes the native burn, so expertise must scale the enhanced duration before its cap.
+      target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
       operation: 'multiply',
       factor: (context) =>
         balanceNumber(context.catalog, TRAIT.METICULOUS_CUSTODIAN, 'mortarBurningDurationMultiplier'),
@@ -187,18 +187,6 @@ const meticulousCustodian = defineTrait({
         context.event?.skillId === ID.MISTBURN_MORTAR &&
         context.event.condition === CONDITION.BURNING &&
         context.event.triggeredBy == null // the Charged Strike bonus burn (applied by the landed strike) must not have its duration doubled a second time
-    },
-    {
-      order: 406,
-      id: 'thief.meticulous-custodian-sun-crystal-burning',
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: 'multiply',
-      factor: (context) =>
-        balanceNumber(context.catalog, TRAIT.METICULOUS_CUSTODIAN, 'sunCrystalBurningDurationMultiplier'),
-      when: (context) =>
-        context.event?.skillId === ID.ZEPHYRITE_SUN_CRYSTAL &&
-        context.event.condition === CONDITION.BURNING &&
-        context.event.triggeredBy == null // only the base skill packet needs enhancement
     },
     {
       order: 407,

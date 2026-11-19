@@ -18,6 +18,7 @@ import {
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
+import { antiquaryArtifactActions } from '#gw2/professions/thief/specializations/antiquary/skills/artifact-actions.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -1114,20 +1115,104 @@ test('Chak Shield whirls use Light until the field expires, then select overlapp
   }
 });
 
-test('Mistburn charges are spent once by later player strikes, never by the Mortar itself', () => {
-  // Five charges survive the Mortar's own packets and are consumed one per later player strike until exhausted.
-  const result = simulate(
-    'Antiquary',
-    ['Skritt Swipe', 'Mistburn Mortar', 'Double Strike', 'Wild Strike', 'Lotus Strike', 'Double Strike', 'Wild Strike'],
-    {}
+test('Mistburn preserves charges through its 520 ms internal cooldown', () => {
+  // Probe before, on, and after the exclusive ICD boundary, independently of native attack schedules.
+  const result = runThief(
+    ['Skritt Swipe', 'Mistburn Mortar', { type: 'wait', durationMs: 4000 }],
+    { specialization: 'Antiquary' },
+    {
+      initialize(runtime) {
+        for (const at of [2, 2.08, 2.48, 2.52, 2.56, 2.56, 3.12, 3.68, 4.24, 4.8])
+          runtime.effects.emit({ kind: 'packet', event: thiefHit(at) });
+      }
+    }
   );
   assert.deepEqual(result.warnings, []);
   const procs = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.name === 'Mistburn Mortar - Charged Strike'
   );
-  assert.equal(procs.length, 5);
+  assert.deepEqual(
+    procs.map((event) => event.at),
+    [2, 2.56, 3.12, 3.68, 4.24]
+  );
   assert.ok(procs.every((event) => event.triggeredBy !== 'Mistburn Mortar'));
   assert.equal(result.planningState.profession[STATE.MISTBURN].count, 0);
+});
+
+test('Mistburn shares its charge cooldown across strikes and new player conditions', () => {
+  // Condition-only attacks can spend charges, but their later ticks and non-player owners cannot.
+  const condition = (at, skillId, skillName, fields = {}) => ({
+    type: 'condition',
+    at,
+    source: 'thief',
+    sourceId: skillId,
+    skillId,
+    skillName,
+    actorType: 'player',
+    condition: 'Bleeding',
+    stacks: 2,
+    duration: 10,
+    ...fields
+  });
+  const result = runThief(
+    ['Skritt Swipe', 'Mistburn Mortar', { type: 'wait', durationMs: 7000 }],
+    { specialization: 'Antiquary' },
+    {
+      initialize(runtime) {
+        for (const event of [
+          condition(1.8, ID.CALTROPS, 'Other actor', { actorType: 'summon' }),
+          condition(1.92, ID.MISTBURN_MORTAR, 'Mistburn Mortar', { condition: 'Burning' }),
+          condition(2, ID.CALTROPS, 'Caltrops'),
+          thiefHit(2.08),
+          condition(2.56, ID.DEATH_BLOSSOM, 'Burning Bolts', { condition: 'Burning', finisherType: 'Whirl' }),
+          condition(2.64, ID.CALTROPS, 'Caltrops'),
+          thiefHit(3.12)
+        ])
+          runtime.effects.emit({ kind: 'packet', event });
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const procs = result.resolvedEvents.filter((event) => event.name === 'Mistburn Mortar - Charged Strike');
+  assert.deepEqual(
+    procs.map((event) => [event.at, event.triggeredBy]),
+    [
+      [2, 'Caltrops'],
+      [2.56, 'Burning Bolts'],
+      [3.12, 'Double Strike']
+    ]
+  );
+  assert.equal(result.planningState.profession[STATE.MISTBURN].count, 2);
+});
+
+test('adding Mistburn charges preserves the remaining balance and active internal cooldown', () => {
+  // A fresh grant retains older charges while hits still obey the previous proc deadline.
+  const result = runThief(
+    ['Skritt Swipe', 'Mistburn Mortar', { type: 'wait', durationMs: 3000 }],
+    { specialization: 'Antiquary' },
+    {
+      initialize(runtime) {
+        for (const at of [2, 2.32, 2.56]) runtime.effects.emit({ kind: 'packet', event: thiefHit(at) });
+      },
+      timeline: [
+        {
+          at: 2.24,
+          run(runtime) {
+            antiquaryArtifactActions['thief.mortar'](runtime.mechanics, {
+              skill: thiefCatalog.skillsById.get(ID.MISTBURN_MORTAR)
+            });
+          }
+        }
+      ]
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const procs = result.resolvedEvents.filter((event) => event.name === 'Mistburn Mortar - Charged Strike');
+  assert.deepEqual(
+    procs.map((event) => event.at),
+    [2, 2.56]
+  );
+  assert.equal(result.planningState.profession[STATE.MISTBURN].count, 8);
 });
 
 test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic', () => {
@@ -1566,6 +1651,47 @@ test('Meticulous Kryptis Torment scales its base duration before the condition-d
     };
 
     assert.equal(duration([TRAIT.METICULOUS_CUSTODIAN]), duration([]) * 1.25);
+  }
+});
+
+// Custodian strengthens the Mortar's native burn without consuming the player's duration bonus or changing charges.
+test('Meticulous Mortar enhances base burning before expertise and leaves charged burns unchanged', () => {
+  for (const expertise of [0, 1050, 1500, 3000]) {
+    const multiplier = 1 + Math.min(expertise / 1500, 1);
+    for (const meticulous of [false, true]) {
+      const result = runThief(['Skritt Swipe', 'Mistburn Mortar', 'Double Strike'], {
+        specialization: 'Antiquary',
+        selectedTraitIds: meticulous ? [TRAIT.METICULOUS_CUSTODIAN] : [],
+        attributeInputs: baseAttributeInputs({ expertise })
+      });
+      assert.deepEqual(result.warnings, []);
+      const burn = result.resolvedEvents.find((event) => event.name === 'Mistburn Mortar - Burning');
+      const charge = result.resolvedEvents.find((event) => event.name === 'Mistburn Mortar - Charged Strike');
+      assert.ok(Math.abs(burn.effectiveDuration - (meticulous ? 2 : 1.5) * multiplier) < 1e-9);
+      assert.ok(Math.abs(charge.effectiveDuration - multiplier) < 1e-9);
+    }
+  }
+});
+
+// Sun Crystal's enhancement adds a stack; both stacks use the same base duration and expertise cap.
+test('Meticulous Sun Crystal adds burning without lengthening either stack', () => {
+  for (const expertise of [0, 1050, 1500, 3000]) {
+    for (const meticulous of [false, true]) {
+      const result = runThief(['Skritt Swipe', 'Zephyrite Sun Crystal'], {
+        specialization: 'Antiquary',
+        selectedTraitIds: meticulous ? [TRAIT.METICULOUS_CUSTODIAN] : [],
+        attributeInputs: baseAttributeInputs({ expertise })
+      });
+      assert.deepEqual(result.warnings, []);
+      const burns = result.resolvedEvents.filter((event) => event.condition === 'Burning');
+      assert.equal(
+        burns.reduce((total, event) => total + event.stacks, 0),
+        meticulous ? 2 : 1
+      );
+      assert.ok(
+        burns.every((event) => Math.abs(event.effectiveDuration - 4 * (1 + Math.min(expertise / 1500, 1))) < 1e-9)
+      );
+    }
   }
 });
 

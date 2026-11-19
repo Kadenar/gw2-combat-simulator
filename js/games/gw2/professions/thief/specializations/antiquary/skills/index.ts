@@ -389,9 +389,10 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
         {
           type: 'condition' as const,
           name: CONDITION.BURNING,
-          ticks: [{ atMs: 400, condition: CONDITION.BURNING, stacks: 1, duration: 4 }],
+          // The dash applies its burn on impact; Custodian adds a second burn with the same base duration.
+          ticks: [{ atMs: 0, condition: CONDITION.BURNING, stacks: 1, duration: 4 }],
           actorType: ACTOR.PLAYER,
-          timingAnchor: 'castStart' as const,
+          timingAnchor: 'castEnd' as const,
           timingScale: 'fixed' as const
         },
         {
@@ -408,7 +409,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
         name: 'Meticulous Burning',
         condition: CONDITION.BURNING,
         stacks: 1,
-        duration: 5,
+        duration: 4,
         packetLabel: 'meticulous'
       }
     ],
@@ -561,6 +562,8 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     duration: 10,
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     maximumStacks: 5,
+    // Rapid hits retain their charges until the charged-burning cooldown has elapsed.
+    internalCooldown: 0.52,
     cooldown: 0,
     artifactKind: 'offensive',
     castTimeMs: 600,

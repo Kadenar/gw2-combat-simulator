@@ -124,14 +124,14 @@
         "build": "data/gw2/builds/thief/b-power-antiquary-rifle.json",
         "rotation": "data/gw2/rotations/thief/r-power-antiquary-rifle-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-antiquary-rifle-only",
-        "benchmarkDps": 42659,
+        "benchmarkDps": 42658,
         "benchmarkApm": 72.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44348, "phase": 44348 },
-          "80-60": { "cumulative": 42096, "phase": 39974 },
-          "60-40": { "cumulative": 42303, "phase": 42720 },
-          "40-20": { "cumulative": 43469, "phase": 47449 },
-          "20-0": { "cumulative": 42659, "phase": 39728 }
+          "100-80": { "cumulative": 44346, "phase": 44346 },
+          "80-60": { "cumulative": 42095, "phase": 39974 },
+          "60-40": { "cumulative": 42301, "phase": 42713 },
+          "40-20": { "cumulative": 43468, "phase": 47455 },
+          "20-0": { "cumulative": 42658, "phase": 39727 }
         },
         "upToDate": true
       },
@@ -145,10 +145,10 @@
         "benchmarkApm": 65.7,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 46877, "phase": 46877 },
-          "80-60": { "cumulative": 41170, "phase": 36640 },
+          "80-60": { "cumulative": 41169, "phase": 36639 },
           "60-40": { "cumulative": 42681, "phase": 46049 },
-          "40-20": { "cumulative": 44026, "phase": 48514 },
-          "20-0": { "cumulative": 42887, "phase": 38750 }
+          "40-20": { "cumulative": 44025, "phase": 48512 },
+          "20-0": { "cumulative": 42887, "phase": 38749 }
         }
       },
       {
@@ -156,15 +156,15 @@
         "build": "data/gw2/builds/thief/b-condi-antiquary-spear.json",
         "rotation": "data/gw2/rotations/thief/r-condi-antiquary-spear-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-antiquary-spear-only",
-        "benchmarkDps": 38934,
+        "benchmarkDps": 38993,
         "upToDate": true,
         "benchmarkApm": 119.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 37919, "phase": 37919 },
-          "80-60": { "cumulative": 39311, "phase": 40774 },
-          "60-40": { "cumulative": 38886, "phase": 38030 },
-          "40-20": { "cumulative": 38850, "phase": 38743 },
-          "20-0": { "cumulative": 38934, "phase": 38934 }
+          "100-80": { "cumulative": 38073, "phase": 38073 },
+          "80-60": { "cumulative": 39356, "phase": 40703 },
+          "60-40": { "cumulative": 39079, "phase": 38513 },
+          "40-20": { "cumulative": 38953, "phase": 38585 },
+          "20-0": { "cumulative": 38993, "phase": 38993 }
         }
       },
       {
@@ -172,15 +172,15 @@
         "build": "data/gw2/builds/thief/b-condi-antiquary-dagger-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-condi-antiquary-dagger-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-antiquary-dagger-only",
-        "benchmarkDps": 39106,
-        "upToDate": false,
-        "benchmarkApm": 61.5,
+        "benchmarkDps": 39043,
+        "upToDate": true,
+        "benchmarkApm": 61.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 37834, "phase": 37834 },
-          "80-60": { "cumulative": 39828, "phase": 42031 },
-          "60-40": { "cumulative": 39119, "phase": 37771 },
-          "40-20": { "cumulative": 39018, "phase": 38724 },
-          "20-0": { "cumulative": 39106, "phase": 39463 }
+          "100-80": { "cumulative": 38258, "phase": 38258 },
+          "80-60": { "cumulative": 39042, "phase": 39879 },
+          "60-40": { "cumulative": 39090, "phase": 39180 },
+          "40-20": { "cumulative": 39010, "phase": 38765 },
+          "20-0": { "cumulative": 39043, "phase": 39177 }
         }
       },
       {
@@ -188,15 +188,15 @@
         "build": "data/gw2/builds/thief/b-condi-antiquary-scepter-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-condi-antiquary-scepter-dagger-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-antiquary-scepter-dagger",
-        "benchmarkDps": 37184,
+        "benchmarkDps": 37183,
         "upToDate": false,
         "benchmarkApm": 63,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38718, "phase": 38718 },
-          "80-60": { "cumulative": 36271, "phase": 34037 },
-          "60-40": { "cumulative": 37390, "phase": 39850 },
-          "40-20": { "cumulative": 35945, "phase": 32247 },
-          "20-0": { "cumulative": 37184, "phase": 37184 }
+          "100-80": { "cumulative": 38598, "phase": 38598 },
+          "80-60": { "cumulative": 36294, "phase": 34190 },
+          "60-40": { "cumulative": 37412, "phase": 39872 },
+          "40-20": { "cumulative": 35963, "phase": 32254 },
+          "20-0": { "cumulative": 37183, "phase": 37183 }
         }
       },
       {
@@ -204,15 +204,15 @@
         "build": "data/gw2/builds/thief/b-condi-alac-antiquary-scepter-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-condi-alac-antiquary-scepter-dagger-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-alacrity-antiquary-scepter-dagger-only",
-        "benchmarkDps": 23863,
+        "benchmarkDps": 23856,
         "upToDate": false,
         "benchmarkApm": 46.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 32401, "phase": 32401 },
-          "80-60": { "cumulative": 19562, "phase": 13830 },
-          "60-40": { "cumulative": 22960, "phase": 34926 },
-          "40-20": { "cumulative": 23731, "phase": 26403 },
-          "20-0": { "cumulative": 23863, "phase": 23863 }
+          "100-80": { "cumulative": 32491, "phase": 32491 },
+          "80-60": { "cumulative": 19573, "phase": 13806 },
+          "60-40": { "cumulative": 22970, "phase": 34935 },
+          "40-20": { "cumulative": 23739, "phase": 26403 },
+          "20-0": { "cumulative": 23856, "phase": 23856 }
         }
       }
     ]
