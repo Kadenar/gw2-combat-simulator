@@ -1,3 +1,4 @@
+import type { ComboFieldSelectionAnchor } from '#gw2/platform/combos/types.js';
 import { ACTOR, type BoonId, type ComboFinisherType, type SimulationActorType } from '#gw2/platform/constants.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -17,6 +18,8 @@ interface QueueDamageOptions {
   readonly comboFinisher?: {
     readonly ownerId: string;
     readonly finisherType: ComboFinisherType;
+    /** Moving finishers can retain a field encountered before impact. */
+    readonly fieldSelectionAnchor?: ComboFieldSelectionAnchor;
     readonly chance?: number;
     readonly applications?: number;
     readonly successfulCombos?: number;
@@ -84,6 +87,7 @@ export function buildEngineerStrike(
             {
               ownerId: comboFinisher.ownerId,
               finisherType: comboFinisher.finisherType,
+              fieldSelectionAnchor: comboFinisher.fieldSelectionAnchor,
               chance: comboFinisher.chance ?? 1,
               applications: comboFinisher.applications ?? 1,
               successfulCombos: comboFinisher.successfulCombos ?? 1

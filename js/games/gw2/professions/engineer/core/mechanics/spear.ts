@@ -236,10 +236,11 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
         skillWeapon: WEAPON.SPEAR,
         name: 'Conduit Surge',
         coefficient: Number(strike.coefficient),
-        // Attempt the leap only when the strike reaches impact.
+        // Resolve at impact while retaining fields crossed during the leap, even if they have expired.
         comboFinisher: {
           ownerId: 'engineer',
-          finisherType: COMBO_FINISHER.LEAP
+          finisherType: COMBO_FINISHER.LEAP,
+          fieldSelectionAnchor: 'castStart'
         }
       })
     });
