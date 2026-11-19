@@ -55,14 +55,18 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         coefficient: 1,
         hits: 1,
         name: 'Poison Gas Shell',
+        // Only the shell impact can trigger missile and explosion traits.
+        projectile: true,
+        damageKind: 'explosion',
         persistsAfterInterrupt: true,
         actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
         persistsAfterInterrupt: true,
-        ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 0 + index * 1000,
+        // Poison applies on impact and once each second through the field's five-second expiry.
+        ticks: Array.from({ length: 6 }, (_, index) => ({
+          atMs: index * 1000,
           condition: CONDITION.POISONED,
           stacks: 1,
           duration: 3

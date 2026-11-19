@@ -484,13 +484,14 @@ test('the shared timeline rounds combat offsets relative to the skill, including
     [355, 360],
     [365, 360],
     [360, 360],
-    [380, 400]
+    [380, 400],
+    [564, 560]
   ]) {
     const rotation = buildReplayTimeline(
       [
         {
           start,
-          end: start + 400,
+          end: start + Math.max(400, elapsed),
           eventIndex: 0,
           skill: fixtureSkill,
           name: fixtureSkill.name,
@@ -499,12 +500,16 @@ test('the shared timeline rounds combat offsets relative to the skill, including
       ],
       start,
       start + elapsed,
-      { commandFor: ({ skillId }) => ({ type: 'cast', skillId }) }
+      {
+        replayEnd: (action) => action.start + fixtureSkill.castTimeMs,
+        commandFor: ({ skillId }) => ({ type: 'cast', skillId })
+      }
     );
     assert.deepEqual(
       rotation.find((command) => command.type === 'combat-start'),
       { type: 'combat-start', concurrentOffsetMs: expected }
     );
+    assert.ok(!rotation.some((command) => command.type === 'wait'));
   }
 });
 

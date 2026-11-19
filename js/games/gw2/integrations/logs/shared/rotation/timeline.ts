@@ -238,10 +238,14 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const overlapping = at < blockingEnd - (entry.type === 'combat-start' || dodge ? 0 : timingToleranceMs);
 
     if (entry.type === 'combat-start') {
-      if (previousCastStart != null && overlapping) {
+      // A recorded cast can end on combat entry even when its simulated animation ends earlier.
+      const atObservedCastEnd =
+        activeCast?.end === at && activeCast.start === previousCastStart && projectedWaitJoinEnd < at;
+      if (previousCastStart != null && (overlapping || atObservedCastEnd)) {
         // Round combat offsets relative to the skill, retaining exact packet-proven boundaries so opening hits stay observable.
         const offset = quantizeGw2ActionTimingMs(at - previousCastStart);
         rotation.push({ type: 'combat-start', concurrentOffsetMs: offset });
+        if (atObservedCastEnd) pendingAftercastUntil = null;
 
         if (projectedPreviousCastStart != null) {
           projectedTime = Math.max(projectedTime, projectedPreviousCastStart + offset);

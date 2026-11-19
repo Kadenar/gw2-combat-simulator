@@ -124,7 +124,7 @@ test('off-target spear casts grant no Focused window, charges, damage, or condit
 // Charge expiry is half-open, and a stale pulse cannot extend another activation's resource window.
 test('Lightning Rod replacement retires old pulses and each charge expires after twelve seconds', () => {
   const result = runEngineer(
-    [{ type: 'wait', durationMs: 700 }],
+    [{ type: 'wait', durationMs: 1500 }],
     {},
     {
       initialize(runtime) {
@@ -137,7 +137,8 @@ test('Lightning Rod replacement retires old pulses and each charge expires after
           effectiveEnd: 0
         };
         applySkillSideEffects(runtime, cast, 'castCommit', engineerSpearLifecycle.sideEffectHandlers);
-        runtime.schedule('test.replace-rod', 0.2, cast);
+        // Replace after the first rod earns a charge and before its next pulse.
+        runtime.schedule('test.replace-rod', 0.8, cast);
       },
       extend(native) {
         return {

@@ -178,6 +178,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
         name: 'Grenade Barrage',
         weapon: 'Profession mechanic',
         actorType: ACTOR.PLAYER,
+        projectile: true,
         damageKind: 'explosion'
       }
     ]

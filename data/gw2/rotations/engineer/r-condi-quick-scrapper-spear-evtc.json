@@ -15,9 +15,6 @@
     "parser": "engineer:scrapper",
     "timingSource": "EVTC animation activations and kit state changes",
     "combatStartTimestampMs": 564,
-    "notes": [
-      "Prepended Reconstruction Field to complete the confirmed opener before the recorded Lightning Rod and Conduit Surge."
-    ],
     "warnings": [
       "The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating."
     ],
@@ -30,14 +27,23 @@
     },
     {
       "type": "cast",
+      "skillId": 5812
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 6111
+    },
+    {
+      "type": "cast",
       "skillId": 73002
     },
     {
-      "type": "wait",
-      "durationMs": 160
-    },
-    {
-      "type": "combat-start"
+      "type": "combat-start",
+      "concurrentOffsetMs": 560
     },
     {
       "type": "cast",

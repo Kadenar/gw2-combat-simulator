@@ -33,15 +33,16 @@ const engineerSpearSideEffectHandlers: RuntimeHooks<EngineerRuntimeState, Engine
 
     const { cast } = context;
     const state = runtime.profession.core;
-    const at = runtime.time;
     // Replace the rod's entire lifetime so old pulses cannot grant charges to the new Artillery window.
     runtime.cancelOwner({ id: 'engineer.lightning-rod', generation: state.lightningRodGeneration });
     const owner = { id: 'engineer.lightning-rod', generation: ++state.lightningRodGeneration };
     state.lightningRodChargeExpiries = [];
     const readyAt = gw2Time(cast.start + 4.2);
     runtime.armFlip(ID.ELECTRIC_ARTILLERY, { availableAt: readyAt, expiresAt: gw2Time(readyAt + 8) });
+    // Start the pulse train from cast start. A longer windup must still commit before the rod can hit.
+    const firstPulseAt = Math.max(cast.start + 0.56, runtime.time);
     for (let index = 0; index < 8; index++)
-      runtime.scheduleForCast('engineer.rod-pulse', at + 0.16 + index * 0.5, cast, { index }, owner);
+      runtime.scheduleForCast('engineer.rod-pulse', firstPulseAt + index * 0.52, cast, { index }, owner);
     runtime.schedule('engineer.rod-expire', readyAt + 8, undefined, owner);
   },
   'engineer.conduit-surge'(runtime, context) {
