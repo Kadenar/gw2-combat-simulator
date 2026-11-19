@@ -310,21 +310,28 @@ test('steal traits and the assumed Specter tether share their boon grants', () =
   }
 });
 
-test('mech support grants five players and the mech distinct entitlements', () => {
-  const result = run('engineer', ['Crisis Zone', 'Barrier Burst'], {
-    specialization: 'Mechanist',
-    sharePlayerBoonsWithSummons: false,
-    selectedTraitIds: [ET.MECH_ARMS_HIGH_IMPACT_DRIVERS, ET.MECH_FRAME_CHANNELING_CONDUITS, ET.MECH_CORE_BARRIER_ENGINE]
-  });
-  assert.deepEqual(result.warnings, []);
-  for (const name of ['Crisis Zone', 'Barrier Burst', 'Mech Arms: High-Impact Drivers']) {
-    const events = grants(result, name);
-    assert.ok(events.length, name);
-    for (const event of events) {
-      assert.equal(event.resolvedAudience.alliedPlayerCount, 4);
-      assert.equal(event.resolvedAudience.includesSelf, true);
-      assert.deepEqual(event.resolvedAudience.companionIds, ['engineer.mech']);
-      assert.equal(event.resolvedAudience.recipientCount, 6);
+test('mech support grants fill spare slots after selecting the players', () => {
+  for (const count of [0, 1, 3, 4]) {
+    const result = run('engineer', ['Crisis Zone', 'Barrier Burst'], {
+      specialization: 'Mechanist',
+      allies: { count },
+      sharePlayerBoonsWithSummons: false,
+      selectedTraitIds: [
+        ET.MECH_ARMS_HIGH_IMPACT_DRIVERS,
+        ET.MECH_FRAME_CHANNELING_CONDUITS,
+        ET.MECH_CORE_BARRIER_ENGINE
+      ]
+    });
+    assert.deepEqual(result.warnings, []);
+    for (const name of ['Crisis Zone', 'Barrier Burst', 'Mech Arms: High-Impact Drivers']) {
+      const events = grants(result, name);
+      assert.ok(events.length, name);
+      for (const event of events) {
+        assert.equal(event.resolvedAudience.alliedPlayerCount, count);
+        assert.equal(event.resolvedAudience.includesSelf, true);
+        assert.deepEqual(event.resolvedAudience.companionIds, count < 4 ? ['engineer.mech'] : []);
+        assert.equal(event.resolvedAudience.recipientCount, Math.min(5, count + 2));
+      }
     }
   }
 });

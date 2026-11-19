@@ -632,6 +632,10 @@
       "interruptAfterMs": 480
     },
     {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
       "type": "cast",
       "skillId": 6115
     },
@@ -647,7 +651,8 @@
     },
     {
       "type": "cast",
-      "skillId": 71121
+      "skillId": 71121,
+      "concurrentOffsetMs": 840
     },
     {
       "type": "cast",
@@ -660,6 +665,10 @@
     {
       "type": "cast",
       "skillId": 70771
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
     },
     {
       "type": "cast",

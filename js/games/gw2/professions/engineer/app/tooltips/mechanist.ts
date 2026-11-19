@@ -6,6 +6,7 @@ import {
   skillFact,
   skillTooltip,
   tooltipFactorChange,
+  tooltipNumber,
   tooltipPercent,
   tooltipSeconds,
   traitTooltip,
@@ -13,7 +14,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
 /** Both improved-inheritance traits read the same live mech caps and ratio. */
@@ -34,9 +35,39 @@ const overclockSignetTooltip: DescribeSimulationTooltip = skillTooltip(
   ]
 );
 
+// Group effects by their shared target cap and pulse timing.
+function supportCommandTooltip(_context: ProfessionBalanceContext, skill: Skill) {
+  const sections = new Map<string, TooltipFact[]>();
+  for (const effect of skill.effects ?? []) {
+    const cap = tooltipNumber(effect.audience, 'maximumRecipients');
+    const recipients = `Up to ${cap} ${cap === 1 ? 'target' : 'targets'}`;
+    const pulses = effect.applications ?? 1;
+    const label =
+      pulses > 1
+        ? `${pulses} pulses, ${tooltipSeconds(tooltipNumber(effect, 'intervalMs') / 1000)} apart · ${recipients}`
+        : recipients;
+    const facts = sections.get(label) ?? [];
+    facts.push(
+      ...simulationEffectFacts([{ ...effect, actorType: undefined, audience: undefined, applications: 1 }]).facts
+    );
+    sections.set(label, facts);
+  }
+  return {
+    description:
+      (skill.id === ID.BARRIER_BURST
+        ? 'Your mech grants barrier, might and fury with each pulse.'
+        : 'Your mech grants aegis, stability, protection and alacrity.') +
+      ' Party members take priority. The mech can fill a spare target slot.',
+    facts: [],
+    factSections: [...sections].map(([label, facts]) => ({ label, facts }))
+  };
+}
+
 /** Describe mechanist tooltips from the selected balance data. */
 export const mechanistTooltips = {
   skills: {
+    [ID.BARRIER_BURST]: supportCommandTooltip,
+    [ID.CRISIS_ZONE]: supportCommandTooltip,
     [ID.OVERCLOCK_SIGNET]: overclockSignetTooltip,
     // Passive facts follow the signet owner; J-Drive's optional replacement remains a separate trait fact.
     [ID.FORCE_SIGNET]: skillTooltip(

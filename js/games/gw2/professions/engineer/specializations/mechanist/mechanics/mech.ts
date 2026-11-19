@@ -213,23 +213,18 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
 
 /** Capture the concrete mech owner before queued packets can outlive their originating activation. */
 function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
-  // Mechanist always owns a present mech, and these grants exempt it from the allied target cap.
+  // These grants carry player or trait attribution but originate from the mech. Use the same cap as a summon cast.
   if (
     event.type === 'buff' &&
     event.audience?.recipients === RECIPIENT.PARTY &&
-    (event.skillId === ID.BARRIER_BURST ||
-      event.skillId === ID.CRISIS_ZONE ||
-      event.sourceId === TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS)
+    (event.skillId === ID.CRISIS_ZONE || event.sourceId === TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS)
   ) {
-    const party = gw2AlliedEffectRecipients(context.config, { ...event.audience, eligibleCompanionIds: [] });
     event = {
       ...event,
-      resolvedAudience: {
-        ...party,
-        includesSummons: true,
-        companionIds: ['engineer.mech'],
-        recipientCount: party.recipientCount + 1
-      }
+      resolvedAudience: gw2AlliedEffectRecipients(
+        { ...context.config, sharePlayerBoonsWithSummons: true },
+        event.audience
+      )
     };
   }
 
@@ -255,18 +250,6 @@ function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEve
     summonInheritsAttributes: true,
     metadata: { ...event.metadata, engineerMech: true }
   };
-
-  // Support grants use player-first party selection; the mech receives them only when a target slot remains.
-  if (
-    event.type === 'buff' &&
-    event.audience?.recipients === RECIPIENT.PARTY &&
-    event.sourceId === TRAIT.MECH_CORE_BARRIER_ENGINE
-  ) {
-    updates.resolvedAudience = gw2AlliedEffectRecipients(
-      { ...context.config, sharePlayerBoonsWithSummons: true },
-      { ...event.audience, eligibleCompanionIds: ['engineer.mech'] }
-    );
-  }
 
   // Positive damage packets also need the native scaling metadata
   // consumed by summon damage resolution; other mech events need ownership only.

@@ -72,9 +72,10 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     castTimeMs: 720,
-    // Commit the strike and recharge at 600 ms while retaining the full cast lockout.
+    // The strike commits at 600 ms. Only a 640 ms cut frees the next cast before the animation ends.
     interruptCommitMs: 600,
     retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseExactMs: 640,
     effects: [
       {
         type: 'strike',
@@ -96,19 +97,22 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     slot: 'Weapon_2',
     cooldown: 6,
     castTimeMs: 520,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    // The sword hits during the swing. The two blades follow before the 520 ms animation ends.
     effects: [
       {
         type: 'strike',
         coefficient: 1.4,
         hits: 1,
+        atMs: 320,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         name: 'Refraction Cutter (non-holosmith) - Packet 1',
         actorType: ACTOR.PLAYER
       },
-      ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'strike',
-          ticks: [40, 80].map((atMs) => ({ atMs, coefficient: 0.8 / 2 })),
+          ticks: [360, 400].map((atMs) => ({ atMs, coefficient: 0.8 / 2 })),
           name: 'Refraction Cutter Blade',
           // Report projectile damage separately while retaining the parent sword cast.
           damageBreakdownName: 'Refraction Cutter Blade',
@@ -124,7 +128,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         },
         {
           type: 'condition',
-          ticks: [40, 80].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 4 })),
+          ticks: [360, 400].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 4 })),
           actorType: ACTOR.PLAYER
         }
       ])

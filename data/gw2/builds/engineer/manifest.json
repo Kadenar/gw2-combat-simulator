@@ -303,15 +303,15 @@
         "build": "data/gw2/builds/engineer/b-power-mechanist-sword-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-mechanist-sword-pistol",
-        "benchmarkDps": 40829,
+        "benchmarkDps": 40850,
         "upToDate": true,
-        "benchmarkApm": 58.9,
+        "benchmarkApm": 59.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42514, "phase": 42514 },
-          "80-60": { "cumulative": 41498, "phase": 40525 },
-          "60-40": { "cumulative": 40472, "phase": 38570 },
-          "40-20": { "cumulative": 40520, "phase": 40665 },
-          "20-0": { "cumulative": 40829, "phase": 40829 }
+          "100-80": { "cumulative": 42849, "phase": 42849 },
+          "80-60": { "cumulative": 41640, "phase": 40492 },
+          "60-40": { "cumulative": 40793, "phase": 39208 },
+          "40-20": { "cumulative": 40479, "phase": 39571 },
+          "20-0": { "cumulative": 40850, "phase": 40850 }
         }
       },
       {
@@ -335,15 +335,15 @@
         "build": "data/gw2/builds/engineer/b-power-alac-mechanist-sword-pistol-1kit.json",
         "rotation": "data/gw2/rotations/engineer/r-power-alac-mechanist-sword-pistol-1kit-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-alacrity-mechanist-sword-pistol",
-        "benchmarkDps": 33988,
+        "benchmarkDps": 34024,
         "upToDate": true,
         "benchmarkApm": 55.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38139, "phase": 38139 },
-          "80-60": { "cumulative": 34278, "phase": 31026 },
-          "60-40": { "cumulative": 33463, "phase": 31970 },
-          "40-20": { "cumulative": 33991, "phase": 35725 },
-          "20-0": { "cumulative": 33988, "phase": 33988 }
+          "100-80": { "cumulative": 38594, "phase": 38594 },
+          "80-60": { "cumulative": 34518, "phase": 31074 },
+          "60-40": { "cumulative": 33503, "phase": 31654 },
+          "40-20": { "cumulative": 33922, "phase": 35259 },
+          "20-0": { "cumulative": 34024, "phase": 34024 }
         }
       },
       {
@@ -351,15 +351,15 @@
         "build": "data/gw2/builds/engineer/b-power-alac-mechanist-sword-pistol-2kit.json",
         "rotation": "data/gw2/rotations/engineer/r-power-alac-mechanist-sword-pistol-2kit-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-alacrity-mechanist-two-kits-sword-pistol",
-        "benchmarkDps": 34029,
+        "benchmarkDps": 34119,
         "upToDate": true,
         "benchmarkApm": 69.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 37294, "phase": 37294 },
-          "80-60": { "cumulative": 34404, "phase": 31900 },
-          "60-40": { "cumulative": 33343, "phase": 31421 },
-          "40-20": { "cumulative": 33831, "phase": 35418 },
-          "20-0": { "cumulative": 34029, "phase": 34029 }
+          "100-80": { "cumulative": 37838, "phase": 37838 },
+          "80-60": { "cumulative": 34456, "phase": 31609 },
+          "60-40": { "cumulative": 33122, "phase": 30753 },
+          "40-20": { "cumulative": 33793, "phase": 35982 },
+          "20-0": { "cumulative": 34119, "phase": 34119 }
         }
       }
     ]

@@ -71,7 +71,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
       quicknessCastTimeMs: 4440,
       // An early command can end the channel after some barrier pulses have landed.
       interruptMode: 'per-packet',
-      // Barrier and both boons pulse together; recipient resolution grants the mech its separate entitlement.
+      // Barrier and both boons pulse together and use the same player-first target selection.
       effects: (
         [
           {

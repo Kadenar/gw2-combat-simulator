@@ -72,17 +72,16 @@ test('Barrier Burst grants its barrier and boons to the party and retains a 30-s
   }
 });
 
-// Burst exempts its mech from the barrier cap; trait alacrity uses ordinary party priority and spare slots.
-test('Barrier Burst exempts its mech while passive barrier retains ordinary player priority', () => {
+// Both sources of barrier and the resulting trait alacrity give players priority.
+test('active and passive barrier grants count the mech within the party cap', () => {
   for (const count of [0, 2, 4]) {
     const result = simulate('Mechanist', ['Barrier Burst', { type: 'wait', durationMs: 4000 }], { allies: { count } });
     const grants = result.events.filter((event) => event.kind === 'barrier');
     assert.ok(grants.length > 0);
     assert.ok(grants.every((event) => event.resolvedAudience.alliedPlayerCount === count));
     for (const grant of grants) {
-      const exempt = grant.skillName === 'Barrier Burst';
-      assert.equal(grant.resolvedAudience.includesSummons, exempt || count < 4);
-      assert.equal(grant.resolvedAudience.recipientCount, 1 + count + Number(exempt || count < 4));
+      assert.equal(grant.resolvedAudience.includesSummons, count < 4);
+      assert.equal(grant.resolvedAudience.recipientCount, 1 + count + Number(count < 4));
     }
 
     const alacrity = result.events.filter((event) => event.kind === 'alacrity');

@@ -146,6 +146,10 @@ function recordedActions(
       : [];
   const petSkillIds = new Set(petGroups.filter((group) => group.skills.length > 0).map((group) => group.id));
 
+  // EI records the mech animation separately from the instant player command that started it.
+  const mechAnimations =
+    profile.specializationId === 'mechanist' ? player.minions?.flatMap((m) => m.rotation ?? []) : [];
+
   let eventIndex = 0;
   for (const group of [...player.rotation.filter((group) => !petSkillIds.has(group.id)), ...petGroups]) {
     const metadata = skillMetadata(report, group.id);
@@ -154,10 +158,18 @@ function recordedActions(
       continue;
     }
 
+    const animations = mechAnimations?.filter((animation) => animation.id === group.id).flatMap((g) => g.skills) ?? [];
+    const skill = animations.length ? catalog?.skills.find((candidate) => candidate.id === group.id) : null;
     for (const cast of group.skills) {
       if (!castIntersectsPhase(cast, phase)) continue;
 
       const duration = Math.max(0, cast.duration);
+      // Matching timestamps identify the same activation. A channel shorter than its fastest full cast ended early.
+      const animation =
+        duration === 0 && skill?.independentCast && skill.interruptMode === 'per-packet'
+          ? animations.find((candidate) => candidate.castTime === cast.castTime)
+          : undefined;
+      const mechCutoff = quantizeGw2ActionTimingMs(animation?.duration ?? 0);
       actions.push({
         start: cast.castTime,
         end: cast.castTime + duration,
@@ -168,6 +180,7 @@ function recordedActions(
         isSwap: metadata?.isSwap === true,
         metadataAccurate: metadata?.isNotAccurate !== true,
         expectedDurationMs: duration + Math.max(0, Number(cast.timeGained || 0)),
+        ...(mechCutoff > 0 && mechCutoff < referenceCastTimeMs(skill ?? null) ? { replayInterruptMs: mechCutoff } : {}),
         // EI's shared signet visual is a trait proc when the equipped signet's passive never switches off.
         ...(profile.professionId === 'warrior' &&
         group.id === WARRIOR_SKILL_IDS.SIGNET_OF_MIGHT &&
