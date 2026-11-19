@@ -228,15 +228,15 @@
         "build": "data/gw2/builds/guardian/b-power-luminary-greatsword-longbow.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-greatsword-longbow-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-longbow-greatsword",
-        "benchmarkDps": 42204,
+        "benchmarkDps": 42100,
         "upToDate": true,
-        "benchmarkApm": 97.7,
+        "benchmarkApm": 96.6,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 44666, "phase": 44666 },
           "80-60": { "cumulative": 42492, "phase": 40550 },
           "60-40": { "cumulative": 41888, "phase": 40705 },
           "40-20": { "cumulative": 42442, "phase": 44192 },
-          "20-0": { "cumulative": 42204, "phase": 42204 }
+          "20-0": { "cumulative": 42100, "phase": 40782 }
         }
       },
       {
@@ -253,6 +253,22 @@
           "60-40": { "cumulative": 37786, "phase": 38571 },
           "40-20": { "cumulative": 36512, "phase": 33185 },
           "20-0": { "cumulative": 37200, "phase": 40263 }
+        }
+      },
+      {
+        "label": "Power Alacrity (Greatsword / Longbow)",
+        "build": "data/gw2/builds/guardian/b-power-alac-luminary-greatsword-longbow.json",
+        "rotation": "data/gw2/rotations/guardian/r-power-alac-luminary-greatsword-longbow-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-luminary-longbow-greatsword",
+        "benchmarkDps": 36365,
+        "upToDate": true,
+        "benchmarkApm": 98.7,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 40069, "phase": 40069 },
+          "80-60": { "cumulative": 36507, "phase": 33517 },
+          "60-40": { "cumulative": 37053, "phase": 38188 },
+          "40-20": { "cumulative": 35666, "phase": 32025 },
+          "20-0": { "cumulative": 36365, "phase": 36365 }
         }
       }
     ]

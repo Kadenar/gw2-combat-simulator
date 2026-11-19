@@ -4,9 +4,9 @@
     "benchmarkDurationSeconds": 97.356,
     "benchmarkDamage": 3969032,
     "benchmarkDps": 40768.23205554871,
-    "simulatedDps": 41420.3973402303,
+    "simulatedDps": 42099.91543340381,
     "timingSource": "Manual reconstruction from Elite Insights and in-game audit",
-    "note": "Manually reconstructed rotation supplied on 2026-08-21; preliminary and awaiting another audit."
+    "note": "Manual reconstruction supplied on 2026-08-21. The report records five Deflecting Shot hits and one cast. The first four cast windows are inferred from the gaps between True Shot and Enter Radiant Forge."
   },
   "rotation": [
     {
@@ -169,15 +169,18 @@
     },
     {
       "type": "cast",
-      "skillId": 29630
+      "skillId": 29630,
+      "interruptAfterMs": 600
     },
     {
       "type": "cast",
-      "skillId": 76813
+      "skillId": 76813,
+      "concurrentOffsetMs": 440
     },
     {
       "type": "cast",
-      "skillId": 78837
+      "skillId": 78837,
+      "concurrentOffsetMs": 40
     },
     {
       "type": "cast",
@@ -361,7 +364,8 @@
     },
     {
       "type": "cast",
-      "skillId": 29630
+      "skillId": 29630,
+      "interruptAfterMs": 600
     },
     {
       "type": "cast",
@@ -538,7 +542,8 @@
     },
     {
       "type": "cast",
-      "skillId": 29630
+      "skillId": 29630,
+      "interruptAfterMs": 560
     },
     {
       "type": "cast",
@@ -717,7 +722,8 @@
     },
     {
       "type": "cast",
-      "skillId": 29630
+      "skillId": 29630,
+      "interruptAfterMs": 600
     },
     {
       "type": "cast",
@@ -808,7 +814,8 @@
     },
     {
       "type": "cast",
-      "skillId": 29630
+      "skillId": 29630,
+      "interruptAfterMs": 640
     },
     {
       "type": "cast",
@@ -837,6 +844,14 @@
     {
       "type": "cast",
       "skillId": 77078
+    },
+    {
+      "type": "cast",
+      "skillId": 9137
+    },
+    {
+      "type": "cast",
+      "skillId": 9138
     }
   ]
 }

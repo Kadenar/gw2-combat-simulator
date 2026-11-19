@@ -25,8 +25,8 @@ import { withoutTraitSkillVariants } from '#tests/helpers/patch-selection.js';
 import { professionUiFixture } from '#tests/helpers/presentation.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
-// Interrupted packet casts turn red only without damage; committed non-damaging effects keep normal styling.
-test('timeline marks failed zero-damage casts without marking committed buffs as cancelled', () => {
+// A channel that granted Aegis keeps its normal border when the player interrupts it.
+test('timeline marks failed interrupts and accepts channels that granted a boon', () => {
   const skill = { id: 1, name: 'Example Skill' };
   const packetSkill = { id: 2, name: 'Packet Skill', interruptMode: 'per-packet' };
   const buffSkill = { id: 3, name: 'Committed Buff', interruptCommitMs: 1 };
@@ -53,7 +53,8 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
     { interrupted: true, skillId: buffSkill.id },
     { interrupted: true, skillId: buffSkill.id, cancelledBeforeCommit: true },
     { interrupted: true, skillId: packetSkill.id },
-    { interrupted: false, skillId: packetSkill.id }
+    { interrupted: false, skillId: packetSkill.id },
+    { interrupted: true, skillId: packetSkill.id }
   ].map((state, rotationCommandIndex) => ({
     ...state,
     rotationCommandIndex,
@@ -78,7 +79,9 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
       { activationId: 'cast:0', damage: 0 },
       { activationId: 'cast:1', damage: 10, at: 0.8 },
       { activationId: 'cast:4', damage: 0 },
-      { activationId: 'cast:7', damage: 10, at: 0.8 }
+      { activationId: 'cast:6', type: 'buff', kind: 'fury' },
+      { activationId: 'cast:7', damage: 10, at: 0.8 },
+      { activationId: 'cast:9', type: 'buff', kind: 'aegis' }
     ]
   };
   for (const readOnly of [false, true]) {
@@ -95,9 +98,9 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
       .join('');
     assert.match(
       html,
-      /class="rot-skill rot-cancelled"[^>]*data-idx="0"[^>]*Cancelled without dealing damage[^>]*--att-border:#ff3b45/
+      /class="rot-skill rot-cancelled"[^>]*data-idx="0"[^>]*Cancelled before the skill took effect[^>]*--att-border:#ff3b45/
     );
-    for (const index of [1, 2, 3, 5, 7, 8]) {
+    for (const index of [1, 2, 3, 5, 7, 8, 9]) {
       assert.match(html, new RegExp(`data-idx="${index}"[^>]*--att-border:#9d7bd0`));
     }
 
@@ -151,7 +154,7 @@ test('both Harp variants keep normal timeline styling after starting to play, in
         )
           .rows.map((row) => row.html)
           .join('');
-        assert.doesNotMatch(html, /rot-cancelled|Cancelled without dealing damage|--att-border:#ff3b45/);
+        assert.doesNotMatch(html, /rot-cancelled|Cancelled before the skill took effect|--att-border:#ff3b45/);
         assert.match(html, /rot-interrupt-badge/);
         assert.match(html, new RegExp(`${initialResource}N`));
       }

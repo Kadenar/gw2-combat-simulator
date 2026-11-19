@@ -52,18 +52,22 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Longbow',
     slot: 'Weapon_3',
     cooldown: 10,
-    castTimeMs: 600,
-    // Keep the shot's strike and control on one impact.
-    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 1.8
-      },
-      {
-        type: 'control',
-        controlKind: CONTROL.KNOCKBACK
-      }
-    ])
+    castTimeMs: 680,
+    interruptCommitMs: 560,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects(
+      { atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 1.8
+        },
+        {
+          type: 'control',
+          controlKind: CONTROL.KNOCKBACK
+        }
+      ]
+    )
   },
   [ID.SYMBOL_OF_ENERGY]: {
     name: 'Symbol of Energy',

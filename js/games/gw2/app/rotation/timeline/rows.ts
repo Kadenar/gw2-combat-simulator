@@ -54,7 +54,11 @@ import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecyc
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import { combatActivityEndMs, combatActivityStartMs } from '#gw2/platform/results/cast-activity.js';
+import {
+  combatActivityEndMs,
+  combatActivityStartMs,
+  usefulActivationIds
+} from '#gw2/platform/results/cast-activity.js';
 import type { Gw2ProcStep, SimulationStep } from '#gw2/platform/results/types.js';
 import { rotationInsertionGapHtml, rotationTimelineEntryHtml } from '#ui/rotation/insertion-cursor.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
@@ -103,10 +107,7 @@ export function timelineRowsView(
   const hotkeyActionForCast = timelineHotkeyActions(app, build, results);
   let procHtml = '';
   const resultSteps = results?.steps || [];
-  // Only flag interrupted casts with no resolved damage, including delayed hits and condition ticks.
-  const damagingActivations = new Set(
-    (results?.resolvedEvents || []).filter((event) => Number(event.damage) > 0).map((event) => event.activationId)
-  );
+  const usefulActivations = usefulActivationIds(results?.resolvedEvents ?? []);
   // Action details carry runtime-selected variants and other cast facts into the generic timeline tooltip.
   const actionDetails = new Map(
     (results?.events || [])
@@ -491,16 +492,15 @@ export function timelineRowsView(
         spend: resourceSpends.get(index),
         formattedTime: time
       });
-      // A recorded support outcome is useful even without damage; only empty interrupted casts get failure styling.
-      const cancelledWithoutDamage =
+      // An interrupted channel can still grant boons. Use its resolved effects to decide whether it failed.
+      const failedInterrupt =
         !invalid &&
         annotation?.completedEffect !== true &&
         step?.interrupted === true &&
-        (skill?.interruptMode === 'per-packet' ||
-          step.cancelledBeforeCommit === true ||
-          skill?.interruptCommitMs == null) &&
         !!step.activationId &&
-        !damagingActivations.has(step.activationId);
+        ((step.cancelledBeforeCommit === true && !step.missingInterruptCommit) ||
+          ((skill?.interruptMode === 'per-packet' || skill?.interruptCommitMs == null) &&
+            !usefulActivations.has(step.activationId)));
       const resourceLabel = annotation?.resourceLabel || '';
       const resourceShortLabel = annotation?.resourceShortLabel || '';
       const outcomeMismatch = annotation?.outcomeMismatch === true;
@@ -519,7 +519,7 @@ export function timelineRowsView(
                 ...(step.activationId && transitionDetails.has(step.activationId)
                   ? [transitionDetails.get(step.activationId)!]
                   : []),
-                ...(cancelledWithoutDamage ? ['Cancelled without dealing damage'] : []),
+                ...(failedInterrupt ? ['Cancelled before the skill took effect'] : []),
                 ...outcomeDetails
               ]
             )
@@ -570,9 +570,9 @@ export function timelineRowsView(
       const combatTimeAttribute = step && !invalid ? ` data-combat-time-ms="${step.start - combatReferenceMs}"` : '';
       // Escape the complete title once so imported diagnostic and resource text cannot become HTML attributes.
       // Named native removal controls also support keyboard activation on editable entries.
-      const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${outcomeMismatch ? ' rot-charge-mismatch' : ''}${cancelledWithoutDamage ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}${hotkeyAttribute}
+      const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${outcomeMismatch ? ' rot-charge-mismatch' : ''}${failedInterrupt ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}${hotkeyAttribute}
                     role="group" aria-label="${esc(time ? `${display}, ${time}` : display)}" tabindex="0"
-                    data-idx="${index}"${combatTimeAttribute}${encounterAttribute} data-skill-highlight-key="${esc(highlightKey)}" ${skill ? `${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patch, app.build), { details: (skillTooltip === display ? '' : skillTooltip) + titleSuffix + resourceTitle + encounterTitle, detailsTitle: 'Rotation details' })} data-wiki-delay="700"` : `title="${esc(skillTooltip + titleSuffix + resourceTitle + encounterTitle)}"`} style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
+                    data-idx="${index}"${combatTimeAttribute}${encounterAttribute} data-skill-highlight-key="${esc(highlightKey)}" ${skill ? `${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patch, app.build), { details: (skillTooltip === display ? '' : skillTooltip) + titleSuffix + resourceTitle + encounterTitle, detailsTitle: 'Rotation details' })} data-wiki-delay="700"` : `title="${esc(skillTooltip + titleSuffix + resourceTitle + encounterTitle)}"`} style="--att-border:${failedInterrupt ? '#ff3b45' : '#9d7bd0'}">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
                     ${
