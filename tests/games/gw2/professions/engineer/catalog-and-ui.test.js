@@ -805,7 +805,15 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
   // Gadgeteer's added mine shares the input but produces its own strike and combo attempt.
   const gadgeteer = simulate(
     'Core',
-    ['Bomb Kit', 'Fire Bomb', 'Stow Bomb Kit', { type: 'cast', skillId: 6161 }, 'Detonate'],
+    [
+      'Bomb Kit',
+      'Fire Bomb',
+      // Let the explosion open the field before checking both mine finishers.
+      { type: 'wait', durationMs: 1000 },
+      'Stow Bomb Kit',
+      { type: 'cast', skillId: 6161 },
+      'Detonate'
+    ],
     {
       selectedSkillIds: [...baseConfig.selectedSkillIds, 5812],
       selectedTraitIds: [TRAIT.GADGETEER]

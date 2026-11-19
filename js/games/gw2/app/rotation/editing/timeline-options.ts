@@ -154,9 +154,9 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   // Targeting only moves or suppresses hostile packets, so it is offered only for precasts that schedule some;
   // reading the simulated activation also covers damage emitted by skill handlers rather than declared effects.
   const allowTargeting = isPrecast && Boolean(impactOffsetsMs?.length);
-  // Hits before the authored marker are discarded, so precasts also show where they land relative to it.
+  // Every skill shows its landing relative to combat entry, including casts after the marker.
   const combatStartAfterCastMs =
-    isPrecast && step && results?.hasExplicitCombatStart && Number.isFinite(Number(results.combatStartTime))
+    item.type === 'cast' && step && results?.combatStartTime != null && Number.isFinite(results.combatStartTime)
       ? Math.round(Number(results.combatStartTime) * 1000 - Number(step.start))
       : null;
   const catalogCastMs = Math.round(Number(skill?.castTimeMs) || 0);
@@ -190,14 +190,14 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     impactOffsetsMs,
     combatStartAfterCastMs,
     previewCombatStartAfterCastMs:
-      isPrecast && behavior === 'concurrent'
+      item.type === 'cast' && behavior === 'concurrent'
         ? (timingMs) => {
             if (app.build.rotation[index] !== entry || !cursorPreviewReady(app.analysis.state)) return null;
 
             if (timingMs === (item.concurrentOffsetMs ?? null)) return combatStartAfterCastMs;
 
-            // Reuse the scheduler through Combat Start: changing a precast can move both the cast and marker.
-            const preview = cursorPreview(app).editThrough(index, combatStartIndex, (captured) =>
+            // Replay through the cast and marker so overlap edits show the landing that Apply will produce.
+            const preview = cursorPreview(app).editThrough(index, Math.max(index, combatStartIndex), (captured) =>
               updateRotationEntry(captured, { concurrentOffsetMs: timingMs ?? undefined })
             );
 

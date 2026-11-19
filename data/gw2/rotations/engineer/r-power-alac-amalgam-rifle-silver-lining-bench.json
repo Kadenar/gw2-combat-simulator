@@ -1,0 +1,1157 @@
+{
+  "metadata": {
+    "log": "20261119-133922.zevtc",
+    "timingSource": "EVTC animation activations, state changes, and direct instant-skill effects",
+    "note": "Equips Bomb Kit before the first recorded bomb. Adds Thorns at combat entry as requested. Uses the hammer Silver Lining build with Rifle substituted.",
+    "benchmarkDurationSeconds": 109.766,
+    "benchmarkDamage": 3970255,
+    "benchmarkDps": 36170.17109123043
+  },
+  "rotation": [
+    {
+      "type": "cast",
+      "skillId": 5812
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 0
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 76642
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 76993
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 6004,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 800
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 0
+    },
+    {
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 6005
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 6162
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 6004,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 6154
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "wait",
+      "durationMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 6004,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 6005
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 6004,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 6154
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 76642
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 6004,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 76993
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 6005
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 6162
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 6004,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 6154
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 6004,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 6005
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 6004,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 6154
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 76642
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 6004,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 81385
+    },
+    {
+      "type": "wait",
+      "durationMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 6005
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 6162
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 6004,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 6154
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 76993
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "wait",
+      "durationMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 6004,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 5882,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 6005
+    },
+    {
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 6004,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 6154
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 81385,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 76642
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    }
+  ]
+}

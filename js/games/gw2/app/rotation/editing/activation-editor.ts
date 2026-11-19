@@ -1,6 +1,6 @@
-import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 /** Validates activation timing and mounts the rotation activation editor. */
-
+import { formatTimelineTime } from '#gw2/app/shared/result-clock.js';
+import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { DurationValidation } from '#ui/rotation/editing/duration-editor.js';
 import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/editing/floating-editor.js';
@@ -29,7 +29,7 @@ export interface ActivationEditorOptions {
   readonly targetImpactDetails?: string;
   /** Scheduled cast-relative impact times, including any saved delay, so targeting edits can preview new landings. */
   readonly impactOffsetsMs?: readonly number[] | null;
-  /** Milliseconds from this cast's start to Combat Start, for showing whether a precast lands after the marker. */
+  /** Signed milliseconds from this cast's start to combat entry, used to show the combat-relative landing. */
   readonly combatStartAfterCastMs?: number | null;
   /** Resolves the combat boundary for an unsaved concurrent timing change. */
   readonly previewCombatStartAfterCastMs?: (timingMs: number | null) => number | null;
@@ -173,7 +173,7 @@ export function validateActivationConcurrentOffsetMs(
 }
 
 /**
- * Describes where a precast's hits land relative to Combat Start. Only hits before the marker are discarded, so the
+ * Describes where a skill's hits land relative to Combat Start. Only hits before the marker are discarded, so the
  * text counts them instead of implying the whole cast is lost when later pulses still land.
  */
 export function activationCombatStartRelation(
@@ -185,7 +185,8 @@ export function activationCombatStartRelation(
   const missedHits = impactOffsetsMs.filter((offset) => offset < combatStartAfterCastMs).length;
 
   if (missedHits === 0) {
-    return { text: `Lands ${firstHitMs - combatStartAfterCastMs} ms after Combat Start`, missedHits };
+    const reference = combatStartAfterCastMs > 0 ? ' after Combat Start' : '';
+    return { text: `Lands at: ${formatTimelineTime(firstHitMs, combatStartAfterCastMs)}${reference}`, missedHits };
   }
 
   const earlyMs = combatStartAfterCastMs - firstHitMs;
@@ -397,8 +398,8 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
     } else {
       const delayMs = previewImpactDelayMs();
       const impactOffsetsMs = baseImpactOffsetsMs.map((offset) => offset + delayMs);
-      targetImpact.textContent = `First hit: ${impactOffsetsMs[0]} ms`;
-      // Hits before Combat Start are discarded, so precasts show which side of the marker they land on.
+      targetImpact.textContent = `First hit: ${impactOffsetsMs[0]} ms after cast start`;
+      // Show combat-relative landings for all skills and missed-hit guidance for precasts.
       let combatStartAfterCastMs = options.combatStartAfterCastMs;
 
       if (isConcurrentBehavior && options.previewCombatStartAfterCastMs) {

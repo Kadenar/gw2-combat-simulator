@@ -93,8 +93,8 @@ test('target impact details preserve precombat applications and distinguish sepa
       { activationId: 'invalid', type: 'damage', at: 5.2 }
     ]
   );
-  assert.equal(details.get('first'), 'First hit: 300 ms');
-  assert.equal(details.get('second'), 'First hit: 600 ms');
+  assert.equal(details.get('first'), 'First hit: 300 ms after cast start');
+  assert.equal(details.get('second'), 'First hit: 600 ms after cast start');
   assert.equal(details.has('buff-only'), false);
   assert.equal(details.has('invalid'), false);
 });
@@ -116,7 +116,7 @@ test('activation hit counts exclude non-damaging debuffs and control application
   ).get(activationId);
   assert.deepEqual(offsets, [1000, 2000]);
   assert.deepEqual(activationCombatStartRelation(offsets, 800), {
-    text: 'Lands 200 ms after Combat Start',
+    text: 'Lands at: 0.200s after Combat Start',
     missedHits: 0
   });
 });

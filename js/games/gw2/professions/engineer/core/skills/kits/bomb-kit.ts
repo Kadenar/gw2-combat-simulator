@@ -60,15 +60,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDef
     kitId: ID.BOMB_KIT,
     castTimeMs: 600,
     interruptCommitMs: 400,
-    comboFields: [
-      {
-        ownerId: 'engineer',
-        fieldType: COMBO_FIELD.FIRE,
-        duration: 3,
-        startAnchor: 'castEnd',
-        inclusiveExpiry: true
-      }
-    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
@@ -79,6 +70,15 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDef
         coefficient: 1 / 4,
         applications: 4,
         intervalMs: 1000,
+        // The first explosion opens the field after the fuse; later pulses do not renew it.
+        comboFields: [
+          {
+            ownerId: 'engineer',
+            fieldType: COMBO_FIELD.FIRE,
+            duration: 3,
+            inclusiveExpiry: true
+          }
+        ],
         name: 'Fire Bomb',
         actorType: ACTOR.PLAYER,
         damageKind: 'explosion'

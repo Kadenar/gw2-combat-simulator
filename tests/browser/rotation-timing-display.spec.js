@@ -141,7 +141,7 @@ test('skill and Combat Start editors expose the scheduled target impact', async 
     const impact = result.events.find(
       (event) => event.activationId === step.activationId && event.type === 'condition'
     );
-    return `First hit: ${Math.round(impact.at * 1000) - step.start} ms`;
+    return `First hit: ${Math.round(impact.at * 1000) - step.start} ms after cast start`;
   });
   const skill = page.locator('#rotation-timeline .rot-skill[data-idx="0"]');
   await expect(skill).toHaveAttribute('data-wiki-details', new RegExp(impactLabel));

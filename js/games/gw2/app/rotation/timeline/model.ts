@@ -83,7 +83,7 @@ export function timelineTargetImpactDetails(
     const firstOffsetMs = offsetsMs[0] ?? 0;
     const startMs = startsMs.get(activationId);
     // The editor only needs the cast-relative offset to position Combat Start.
-    const offsetDetail = `First hit: ${firstOffsetMs} ms`;
+    const offsetDetail = `First hit: ${firstOffsetMs} ms after cast start`;
     details.set(
       activationId,
       formatTime && startMs != null

@@ -101,6 +101,21 @@
         }
       },
       {
+        "label": "Power Alacrity (Rifle - Silver Lining)",
+        "build": "data/gw2/builds/engineer/b-power-alac-amalgam-rifle-silver-lining.json",
+        "rotation": "data/gw2/rotations/engineer/r-power-alac-amalgam-rifle-silver-lining-bench.json",
+        "benchmarkDps": 35940,
+        "upToDate": true,
+        "benchmarkApm": 120.8,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 36691, "phase": 36691 },
+          "80-60": { "cumulative": 36234, "phase": 35790 },
+          "60-40": { "cumulative": 36108, "phase": 35861 },
+          "40-20": { "cumulative": 34870, "phase": 31520 },
+          "20-0": { "cumulative": 35940, "phase": 35940 }
+        }
+      },
+      {
         "label": "Condition Alacrity (Spear - 2 Kits)",
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
@@ -325,15 +340,15 @@
         "build": "data/gw2/builds/engineer/b-condi-quick-scrapper-spear.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-quick-scrapper-spear-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-quickness-scrapper-spear",
-        "benchmarkDps": 33814,
+        "benchmarkDps": 33425,
         "upToDate": true,
         "benchmarkApm": 134.9,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 31422, "phase": 31422 },
-          "80-60": { "cumulative": 32522, "phase": 33779 },
-          "60-40": { "cumulative": 32916, "phase": 33710 },
-          "40-20": { "cumulative": 33616, "phase": 35939 },
-          "20-0": { "cumulative": 33814, "phase": 34632 }
+          "80-60": { "cumulative": 32814, "phase": 34387 },
+          "60-40": { "cumulative": 32665, "phase": 32362 },
+          "40-20": { "cumulative": 33223, "phase": 34995 },
+          "20-0": { "cumulative": 33425, "phase": 34265 }
         }
       },
       {

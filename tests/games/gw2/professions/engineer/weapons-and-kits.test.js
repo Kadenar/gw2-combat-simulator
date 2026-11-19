@@ -485,7 +485,6 @@ test('Bomb Kit effects retain explosion ownership, cancellation behavior, and co
   });
   const bombHit = bomb.events.find((event) => event.type === 'damage' && event.name === 'Bomb');
   assert.equal(bombHit.damageKind, 'explosion');
-  assert.equal(engineerCatalog.skillsById.get(5823).comboFields[0].fieldType, 'Fire');
 
   const galvanic = simulate('Core', ['Bomb Kit', 'Galvanic Bomb', waitForBombPackets()], { selectedSkillIds });
 
