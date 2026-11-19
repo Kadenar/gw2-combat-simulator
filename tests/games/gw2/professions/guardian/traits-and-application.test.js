@@ -240,7 +240,7 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
   );
   assert.equal(
     observedRuntime(zealotsResolution).cooldownController.readyAt(GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION),
-    resolution[0].at + 24
+    resolution[0].at + 30
   );
 });
 
@@ -268,7 +268,7 @@ test("Zealot's Resolution requires the enemy to be below its threshold before th
   assert.equal(pulses(followup)[0].at, secondHit.at);
   assert.equal(
     observedRuntime(followup).cooldownController.readyAt(GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION),
-    secondHit.at + 24
+    secondHit.at + 30
   );
 });
 

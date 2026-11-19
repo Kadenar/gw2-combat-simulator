@@ -261,7 +261,7 @@ function placeZealotsResolutionSymbol(
 
   if (!(lostFraction > balanceNumber(runtime.helpers, TRAIT.ZEALOTS_RESOLUTION, 'threshold'))) return;
 
-  // The profile owns this symbol's Alacrity-aware recharge; removed symbols do not consume it.
+  // The profile owns this symbol's fixed recharge; removed symbols do not consume it.
   emitTraitSymbol(runtime, TRAIT.ZEALOTS_RESOLUTION, ID.LESSER_SYMBOL_OF_RESOLUTION, event);
 }
 

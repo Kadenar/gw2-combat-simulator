@@ -80,6 +80,8 @@ export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = [
     rotationInputExcluded: true,
     slotSelectable: false,
     cooldown: 30,
+    // Zealot's Resolution retains its 30-second trigger interval under Alacrity.
+    rechargeIgnoresAlacrity: true,
     castTimeMs: 0,
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {

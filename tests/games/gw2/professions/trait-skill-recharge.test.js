@@ -87,7 +87,9 @@ const cases = [
         cause: hit(r),
         damage: 1,
         targetHealthFractionBefore: r.config.target.fixedHealthFraction
-      })
+      }),
+    'Core',
+    1
   ],
   [
     guardianProfession,
@@ -234,14 +236,14 @@ for (const [family, trait, id, , , specialization = 'Core'] of [
 }
 
 // Native skill recharge is reserved before emission and reads the selected patch's cooldown.
-for (const [family, trait, key, base, invoke, specialization] of cases) {
+for (const [family, trait, key, base, invoke, specialization, rechargeRate = 1.25] of cases) {
   for (const cooldown of [base, 2])
     test(`${family.id} ${key} uses ${cooldown}s recharge at the live trigger`, () => {
       const runtime = fixture(family, trait, specialization, { id: key, cooldown });
       const readyAt = () => runtime.cooldownController.readyAt(key);
       runtime.time = 1;
       invoke(runtime);
-      const deadline = canonicalTime(1 + cooldown / 1.25);
+      const deadline = canonicalTime(1 + cooldown / rechargeRate);
       assert.equal(readyAt(), deadline);
       for (const at of [1, deadline - 0.04]) {
         runtime.time = at;
@@ -251,7 +253,7 @@ for (const [family, trait, key, base, invoke, specialization] of cases) {
 
       runtime.time = deadline;
       invoke(runtime);
-      assert.equal(readyAt(), canonicalTime(runtime.time + cooldown / 1.25));
+      assert.equal(readyAt(), canonicalTime(runtime.time + cooldown / rechargeRate));
     });
 }
 
