@@ -13,8 +13,31 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
-// Variant selection snapshots the chain before completion, but transforms the live, independently editable packets.
-test('Falling Spider empowers only the accepted predecessor and preserves effect and tick edits', () => {
+// A primed Distracting Throw can replace the lead attack in either spear sequence.
+test('Falling Spider accepts both follow-ups after a lead attack or a primed Distracting Throw', () => {
+  const primedThrow = [ID.MANTIS_STING, ID.VAMPIRIC_SLASH, ID.FALLING_SPIDER, ID.DISTRACTING_THROW];
+  for (const lead of [[ID.MANTIS_STING], [ID.UNSUSPECTING_STRIKE], primedThrow]) {
+    for (const follow of [ID.ENTANGLING_ASP, ID.VAMPIRIC_SLASH]) {
+      const result = runThief([...lead, follow, ID.FALLING_SPIDER], {
+        primaryWeapon: 'Spear',
+        secondaryWeapon: '',
+        target: { conditions: { Immobilized: true } }
+      });
+      assert.deepEqual(result.warnings, []);
+      const finisher = result.steps.at(-1);
+      assert.equal(finisher.skillId, ID.FALLING_SPIDER);
+      for (const condition of ['Bleeding', 'Poisoned']) {
+        const stacks = result.resolvedEvents
+          .filter((event) => event.activationId === finisher.activationId && event.condition === condition)
+          .reduce((sum, event) => sum + event.stacks, 0);
+        assert.equal(stacks, 2);
+      }
+    }
+  }
+});
+
+// Control can start or expire during a cast. Each impact reads the target before applying its bonuses.
+test('Falling Spider samples target control at impact and preserves effect and tick edits', () => {
   for (const ticks of [false, true]) {
     let baselineDamage;
     for (const empowered of [false, true]) {
@@ -24,16 +47,21 @@ test('Falling Spider empowers only the accepted predecessor and preserves effect
         {
           initialize(runtime) {
             runtime.profession.core.spearChainStage = 2;
-            runtime.profession.core.spearPreviousSkillId = empowered ? ID.ENTANGLING_ASP : ID.VAMPIRIC_SLASH;
-          },
-          probes: [
-            [
-              0.1,
-              (runtime) => {
-                runtime.profession.core.spearPreviousSkillId = ID.MANTIS_STING;
+            runtime.profession.core.spearPreviousSkillId = empowered ? ID.VAMPIRIC_SLASH : ID.ENTANGLING_ASP;
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'condition',
+                at: empowered ? 0.1 : 0,
+                source: 'fixture',
+                sourceId: 'control',
+                condition: ticks ? 'Fear' : 'Taunt',
+                stacks: 1,
+                duration: empowered ? 3 : 0.1,
+                actorType: 'player'
               }
-            ]
-          ],
+            });
+          },
           catalog(catalog) {
             const patched = withSkill(catalog, ID.FALLING_SPIDER, {
               empoweredDamageMultiplier: 1.5,
@@ -61,7 +89,6 @@ test('Falling Spider empowers only the accepted predecessor and preserves effect
       if (!empowered) baselineDamage = strike.damage;
 
       assertFlooredDamageMultiplier(strike.damage, baselineDamage, empowered ? 1.5 : 1);
-      assert.equal(strike.metadata?.thiefFallingSpiderDamageFactor, empowered ? 1.5 : undefined);
       assert.equal(
         packets.filter((event) => event.condition === 'Bleeding').reduce((sum, event) => sum + event.stacks, 0),
         empowered ? 5 : 3

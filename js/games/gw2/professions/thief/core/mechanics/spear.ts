@@ -56,11 +56,34 @@ export function grantDistractingThrowWindow(runtime: ThiefRuntime): void {
   );
 }
 
-/**
- * Unsuspecting Strike's Bleeding adds a fresh bonus application while the target is above ninety percent health. The
- * bonus keeps the original skill identity and cannot trigger itself.
- */
-export function unsuspectingStrikeBonus(runtime: ThiefRuntime, application: Gw2ResolverEvent): void {
+/** Immobilize, Fear and Taunt are the target conditions that qualify Falling Spider at impact. */
+export function fallingSpiderTargetControlled(hasCondition: (condition: string) => boolean): boolean {
+  return [CONDITION.IMMOBILIZED, CONDITION.FEAR, CONDITION.TAUNT].some(hasCondition);
+}
+
+/** Add the finisher bonus once per qualifying condition packet, including independently timed ticks. */
+export function applyFallingSpiderBonus(runtime: ThiefRuntime, event: Gw2ResolverEvent, stackIndex: number): void {
+  if (
+    stackIndex !== 1 ||
+    event.triggeredBy === 'Falling Spider' ||
+    (event.condition !== CONDITION.BLEEDING && event.condition !== CONDITION.POISONED) ||
+    !fallingSpiderTargetControlled((condition) => runtime.combat.targetHasCondition(condition, event.at))
+  )
+    return;
+
+  const skill = requireSkill(runtime.helpers, ID.FALLING_SPIDER);
+  emitSpearBonusCondition(runtime, event, skillNumber(skill, 'empoweredConditionStacks'), 'Falling Spider');
+}
+
+/** Bonus stacks inherit the base packet's duration and attribution when its target requirement is met. */
+export function emitSpearBonusCondition(
+  runtime: ThiefRuntime,
+  application: Gw2ResolverEvent,
+  stacks: number,
+  triggeredBy = application.triggeredBy
+): void {
+  if (!application.condition) return;
+
   runtime.effects.emit({
     kind: 'packet',
     cause: application,
@@ -73,12 +96,12 @@ export function unsuspectingStrikeBonus(runtime: ThiefRuntime, application: Gw2R
       skillId: application.skillId,
       skillName: application.skillName,
       activationId: application.activationId,
-      triggeredBy: application.triggeredBy,
+      triggeredBy,
       fixedDuration: application.fixedDuration,
-      name: 'Unsuspecting Strike - Bonus Bleeding',
-      condition: CONDITION.BLEEDING,
+      name: `${application.skillName} - Bonus ${application.condition}`,
+      condition: application.condition,
       duration: application.duration || 0,
-      stacks: 3
+      stacks
     })
   });
 }

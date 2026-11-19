@@ -137,21 +137,17 @@ const spearChainTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
   const facts = [...simulationEffectFacts(selected.effects).facts];
 
   if (entity.id === ID.FALLING_SPIDER) {
-    description += ' Following Entangling Asp empowers its strike and adds bleeding and poison stacks.';
+    description +=
+      ' Deals more strike damage and applies extra bleeding and poison if the target is immobilized, feared, or taunted when hit.';
     facts.push(
       skillFact(
         balanceContext,
         ID.FALLING_SPIDER,
         'empoweredDamageMultiplier',
-        'Strike damage after Entangling Asp',
+        'Strike damage against a controlled target',
         tooltipFactorChange
       ),
-      skillFact(
-        balanceContext,
-        ID.FALLING_SPIDER,
-        'empoweredConditionStacks',
-        'Additional bleeding and poison stacks after Entangling Asp'
-      )
+      skillFact(balanceContext, ID.FALLING_SPIDER, 'empoweredConditionStacks', 'Additional bleeding and poison stacks')
     );
   } else if (entity.id === ID.UNSUSPECTING_STRIKE)
     description += ' Applies additional bleeding against a target above the supported high-health threshold.';

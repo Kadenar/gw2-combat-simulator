@@ -4,9 +4,7 @@ import type { MetadataFields, MetadataFromFields } from '#gw2/platform/events/me
 export const THIEF_METADATA_FIELDS = Object.freeze({
   venomProcEffectIndex: 'number',
   /** Recall owns malice and dual-wield procs while each axe keeps its projectile attribution. */
-  recallSkillId: 'skillId',
-  /** Falling Spider retains the factor earned by its predecessor at cast acceptance. */
-  thiefFallingSpiderDamageFactor: 'number'
+  recallSkillId: 'skillId'
 } as const satisfies MetadataFields);
 
 type ThiefEffectMetadata = MetadataFromFields<typeof THIEF_METADATA_FIELDS>;

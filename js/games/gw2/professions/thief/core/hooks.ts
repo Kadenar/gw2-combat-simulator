@@ -31,8 +31,9 @@ import {
 } from '#gw2/professions/thief/core/mechanics/scepter.js';
 import { activateAssassinsSignet } from '#gw2/professions/thief/core/mechanics/signets.js';
 import {
+  applyFallingSpiderBonus,
+  emitSpearBonusCondition,
   grantDistractingThrowWindow,
-  unsuspectingStrikeBonus,
   updateSpearChain
 } from '#gw2/professions/thief/core/mechanics/spear.js';
 import {
@@ -178,7 +179,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     },
 
     'thief.unsuspecting-bleeding'(runtime, context) {
-      if (context.kind === 'effect') unsuspectingStrikeBonus(runtime, context.trigger.event);
+      if (context.kind === 'effect') emitSpearBonusCondition(runtime, context.trigger.event, 3);
     }
   },
   resources: { initiative: thiefInitiative },
@@ -213,7 +214,9 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       reactThiefStealthBreakingStrike(runtime, event);
       reactThiefCoreDamage(runtime, event, details);
     },
-    'condition.applied'(runtime, event) {
+    'condition.applied'(runtime, event, { conditionStackIndex }) {
+      if (event.sourceId === ID.FALLING_SPIDER) applyFallingSpiderBonus(runtime, event, conditionStackIndex);
+
       runtime.fireTrigger(thiefConditionApplied, { cause: event });
     }
   },

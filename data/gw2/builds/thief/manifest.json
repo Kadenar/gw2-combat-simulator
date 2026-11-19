@@ -104,6 +104,22 @@
     "section": "Antiquary",
     "presets": [
       {
+        "label": "Power (Spear + Axe / Pistol)",
+        "build": "data/gw2/builds/thief/b-power-antiquary-spear-axe-pistol.json",
+        "rotation": "data/gw2/rotations/thief/r-power-antiquary-spear-axe-pistol-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-antiquary-spear-axe-pistol",
+        "upToDate": true,
+        "benchmarkDps": 43485,
+        "benchmarkApm": 111.9,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 48434, "phase": 48434 },
+          "80-60": { "cumulative": 44588, "phase": 41203 },
+          "60-40": { "cumulative": 43058, "phase": 40346 },
+          "40-20": { "cumulative": 44804, "phase": 51224 },
+          "20-0": { "cumulative": 43485, "phase": 43485 }
+        }
+      },
+      {
         "label": "Power (Staff + Dagger / Pistol)",
         "build": "data/gw2/builds/thief/b-power-antiquary-staff-dagger-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-antiquary-staff-dagger-pistol-bench.json",
