@@ -49,7 +49,7 @@
     },
     {
       "name": "Invocation",
-      "traits": "2-3-2"
+      "traits": "2-1-2"
     },
     {
       "name": "Renegade",
@@ -76,7 +76,12 @@
       "Burning": true,
       "Torment": 1,
       "Vulnerability": 25,
-      "Weakness": true
+      "Weakness": true,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Slow": true,
+      "Chilled": true,
+      "Crippled": true
     },
     "targetSkillActivationsPerSecond": 0
   },

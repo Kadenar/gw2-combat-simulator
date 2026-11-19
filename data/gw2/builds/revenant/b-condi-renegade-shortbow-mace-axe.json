@@ -21,11 +21,11 @@
   "alternateWeapons": ["Mace", "Axe"],
   "rune": "Trapper",
   "weaponSigils": [
-    ["Geomancy", "Doom"],
-    ["Torment", "Earth"]
+    ["Earth", "Doom"],
+    ["Torment", "Geomancy"]
   ],
   "relic": "Fractal",
-  "food": "Cilantro and Cured Meat Flatbread",
+  "food": "Meaty Asparagus Skewer",
   "utility": "Toxic Tuning Crystal",
   "jadeBotCore": true,
   "infusions": [
@@ -79,7 +79,6 @@
       "Weakness": true,
       "Confusion": 1,
       "Poisoned": true,
-      "Blindness": true,
       "Slow": true,
       "Chilled": true,
       "Crippled": true

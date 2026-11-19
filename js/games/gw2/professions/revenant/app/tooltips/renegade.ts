@@ -12,7 +12,9 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { BOON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { upkeepReleaseTooltip } from '#gw2/professions/revenant/app/tooltips/shared.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
@@ -20,6 +22,7 @@ import {
   RAZORCLAW_PROC_ID,
   SOULCLEAVE_PROC_ID
 } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 
 const bandTogetherTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id)!;
@@ -63,47 +66,78 @@ const bandTogetherTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
   };
 };
 
-const heroicCommandTooltip: DescribeSimulationTooltip = (balanceContext, entity) => ({
-  description:
-    "Refresh your active Kalla's Fervor stacks and grant might for each stack. Lasting Legacy replaces the base might amount. With no active Fervor, this grants no might.",
-  facts: [
-    ...simulationEffectFacts(
-      balanceContext.catalog.skillsById
-        .get(entity.id)!
-        .effects?.filter((effect) => effect.name !== 'lasting-legacy-might'),
-      'per Fervor stack'
-    ).facts,
-    ...simulationEffectFacts(
-      balanceContext.catalog.skillsById
-        .get(ID.HEROIC_COMMAND)!
-        .effects?.filter((effect) => effect.name === 'lasting-legacy-might'),
-      'per Fervor stack with Lasting Legacy instead'
-    ).facts
-  ]
-});
+// Show the Might granted by one active Fervor stack using the build's selected trait.
+const heroicCommandTooltip: DescribeSimulationTooltip = (context, entity, _spec, build) => {
+  const effects = context.catalog.skillsById.get(entity.id)!.effects ?? [];
+  const mightFacts = (legacy: boolean) =>
+    simulationEffectFacts(
+      effects
+        .filter((effect) => effect.name === (legacy ? 'lasting-legacy-might' : BOON.MIGHT))
+        .map((effect) => ({ ...effect, name: undefined }))
+    ).facts.map((fact) => ({
+      ...fact,
+      name: 'Might per Fervor stack',
+      detail: `${fact.stacks} ${fact.stacks === 1 ? 'stack' : 'stacks'} for ${fact.detail}`,
+      stacks: undefined
+    }));
+  const description = "Refresh your active stacks of Kalla's Fervor. Each stack grants Might to your party.";
 
-const ordersFromAboveTooltip: DescribeSimulationTooltip = (balanceContext, entity) => ({
-  description:
-    'Pulse alacrity. Righteous Rebel replaces the base pulse package; together with Bold Reversal it also adds protection.',
-  facts: [
-    ...simulationEffectFacts(
-      balanceContext.catalog.skillsById
-        .get(entity.id)!
-        .effects?.filter((effect) => effect.name !== 'righteous-rebel-alacrity'),
-      'base pulses'
-    ).facts,
-    ...simulationEffectFacts(
-      balanceContext.catalog.skillsById
-        .get(ID.ORDERS_FROM_ABOVE)!
-        .effects?.filter((effect) => effect.name === 'righteous-rebel-alacrity'),
-      'with Righteous Rebel instead'
-    ).facts,
-    ...simulationEffectFacts(
-      tooltipProfile(balanceContext, TRAIT.BOLD_REVERSAL).effects,
-      'additional pulses with both Righteous Rebel and Bold Reversal'
-    ).facts
-  ]
-});
+  if (!build)
+    return {
+      description,
+      facts: [],
+      factTabs: [
+        { label: 'Base', facts: mightFacts(false) },
+        { label: 'Lasting Legacy', facts: mightFacts(true) }
+      ]
+    };
+
+  const legacy = selectedTraits(context.catalog, build.specializations).some(
+    (trait) => trait.id === TRAIT.LASTING_LEGACY
+  );
+  return { description, facts: mightFacts(legacy) };
+};
+
+// Express each boon as a pulse count and duration, keeping the selected patch's recipient limit.
+function orderPulseFacts(effects: readonly SkillEffect[]) {
+  return simulationEffectFacts(effects.map((effect) => ({ ...effect, name: undefined }))).facts.map((fact) => ({
+    ...fact,
+    detail: `${fact.applications} ${fact.applications === 1 ? 'pulse' : 'pulses'} of ${fact.detail}`,
+    applications: undefined
+  }));
+}
+
+const ordersFromAboveTooltip: DescribeSimulationTooltip = (context, entity, _spec, build) => {
+  const effects = context.catalog.skillsById.get(entity.id)!.effects ?? [];
+  const alacrity = (rebel: boolean) =>
+    orderPulseFacts(effects.filter((effect) => (effect.name === 'righteous-rebel-alacrity') === rebel));
+  const protection = () => orderPulseFacts(tooltipProfile(context, TRAIT.BOLD_REVERSAL).effects ?? []);
+  const description = 'Pulse Alacrity to your party.';
+
+  if (!build)
+    return {
+      description,
+      facts: [],
+      factTabs: [
+        { label: 'Base', facts: alacrity(false) },
+        {
+          label: 'Righteous Rebel',
+          facts: [
+            ...alacrity(true),
+            ...protection().map((fact) => ({ ...fact, name: `${fact.name} with Bold Reversal` }))
+          ]
+        }
+      ]
+    };
+
+  const traits = new Set(selectedTraits(context.catalog, build.specializations).map((trait) => trait.id));
+  const rebel = traits.has(TRAIT.RIGHTEOUS_REBEL);
+  const withProtection = rebel && traits.has(TRAIT.BOLD_REVERSAL);
+  return {
+    description: withProtection ? 'Pulse Alacrity and Protection to your party.' : description,
+    facts: [...alacrity(rebel), ...(withProtection ? protection() : [])]
+  };
+};
 
 /** Describe renegade tooltips from the selected balance data. */
 export const renegadeTooltips = {
@@ -202,13 +236,13 @@ export const renegadeTooltips = {
       ]
     ),
     [TRAIT.RIGHTEOUS_REBEL]: traitTooltip(
-      'Orders from Above uses its extended alacrity pulse sequence.',
-      (balanceContext) =>
-        simulationEffectFacts(
-          balanceContext.catalog.skillsById
+      'Orders from Above pulses Alacrity more times. With Bold Reversal, it also pulses Protection.',
+      (context) =>
+        orderPulseFacts(
+          context.catalog.skillsById
             .get(ID.ORDERS_FROM_ABOVE)!
-            .effects?.filter((effect) => effect.name === 'righteous-rebel-alacrity')
-        ).facts
+            .effects?.filter((effect) => effect.name === 'righteous-rebel-alacrity') ?? []
+        )
     )
   }
 } satisfies ProfessionTooltips;

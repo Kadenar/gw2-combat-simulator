@@ -71,15 +71,15 @@
         "build": "data/gw2/builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-shortbow-mace-axe",
-        "benchmarkDps": 40855,
+        "benchmarkDps": 41247,
         "upToDate": true,
-        "benchmarkApm": 69.5,
+        "benchmarkApm": 67.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38845, "phase": 38845 },
-          "80-60": { "cumulative": 40002, "phase": 41280 },
-          "60-40": { "cumulative": 40742, "phase": 42300 },
-          "40-20": { "cumulative": 40984, "phase": 41735 },
-          "20-0": { "cumulative": 40855, "phase": 40855 }
+          "100-80": { "cumulative": 40095, "phase": 40095 },
+          "80-60": { "cumulative": 41376, "phase": 42724 },
+          "60-40": { "cumulative": 41282, "phase": 41089 },
+          "40-20": { "cumulative": 40802, "phase": 39401 },
+          "20-0": { "cumulative": 41247, "phase": 41247 }
         }
       },
       {
@@ -87,15 +87,31 @@
         "build": "data/gw2/builds/revenant/b-condi-renegade-spear-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-spear-mace-axe",
-        "benchmarkDps": 41209,
+        "benchmarkDps": 41281,
         "upToDate": true,
-        "benchmarkApm": 68.6,
+        "benchmarkApm": 67.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40115, "phase": 40115 },
-          "80-60": { "cumulative": 41382, "phase": 42716 },
-          "60-40": { "cumulative": 41241, "phase": 40951 },
-          "40-20": { "cumulative": 41347, "phase": 41671 },
-          "20-0": { "cumulative": 41209, "phase": 41209 }
+          "100-80": { "cumulative": 40905, "phase": 40905 },
+          "80-60": { "cumulative": 41903, "phase": 43012 },
+          "60-40": { "cumulative": 41637, "phase": 41132 },
+          "40-20": { "cumulative": 41267, "phase": 40141 },
+          "20-0": { "cumulative": 41281, "phase": 41281 }
+        }
+      },
+      {
+        "label": "Condition (Spear - Shortbow)",
+        "build": "data/gw2/builds/revenant/b-condi-renegade-spear-shortbow.json",
+        "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-shortbow-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-spear-shortbow",
+        "benchmarkDps": 40949,
+        "upToDate": true,
+        "benchmarkApm": 67.3,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 40663, "phase": 40663 },
+          "80-60": { "cumulative": 40313, "phase": 39963 },
+          "60-40": { "cumulative": 41159, "phase": 43040 },
+          "40-20": { "cumulative": 41179, "phase": 41236 },
+          "20-0": { "cumulative": 40949, "phase": 40949 }
         }
       }
     ]

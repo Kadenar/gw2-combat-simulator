@@ -93,8 +93,8 @@ export function defineProfessionApp({
       tooltip(() => {
         const context = patch.balanceContext;
         const selectedTooltips = resolveTooltips(context, tooltips);
-        // Trait changes invalidate cached payloads even when the selected balance patch stays the same.
-        const selection = JSON.stringify(build?.specializations ?? []);
+        // Reference cards can compare traits even when an empty build would show only the base skill.
+        const selection = JSON.stringify(build?.specializations ?? null);
         let cached = skillTooltips.get(context);
 
         if (cached?.selection !== selection) {

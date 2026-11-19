@@ -1178,17 +1178,20 @@ test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
   assert.equal(observedRuntime(result).cooldownController.readAmmo(SKILL.ABYSSAL_RAZE).nextRechargeAt, 11.8);
   assert.deepEqual(result.planningState.cooldownsBySkillId[SKILL.ABYSSAL_RAZE], {
     readyAtMs: 11800,
-    remainingMs: 760
+    remainingMs: 11800 - Math.round(result.rotationEndTime * 1000)
   });
 });
 
 test('Abyssal Raze recharge reduction carries only excess work into the next queued charge', () => {
-  const rotation = ['Abyssal Raze', 'Abyssal Raze', 'Abyssal Raze', { type: 'wait', durationMs: 8100 }];
+  const rotation = ['Abyssal Raze', 'Abyssal Raze', 'Abyssal Raze'];
   const config = { primaryWeapon: 'Spear', secondaryWeapon: '', initialEnergy: 100 };
-  // Observe the pending queue before the refund so the expectation does not reconstruct action history.
-  const beforeReduction = observedRuntime(simulate('Core', rotation, config)).cooldownController;
-  const pendingRecharge = beforeReduction.readAmmo(SKILL.ABYSSAL_RAZE).recharges[0];
-  const result = simulate('Core', [...rotation, 'Abyssal Strike'], config);
+  // Start Strike just before the first charge returns so its refund reaches the second charge.
+  const spent = simulate('Core', rotation, config);
+  const beforeReduction = observedRuntime(spent).cooldownController;
+  const pool = beforeReduction.readAmmo(SKILL.ABYSSAL_RAZE);
+  const pendingRecharge = pool.recharges[0];
+  const durationMs = Math.round((pool.nextRechargeAt - spent.rotationEndTime) * 1000) - 800;
+  const result = simulate('Core', [...rotation, { type: 'wait', durationMs }, 'Abyssal Strike'], config);
 
   const rechargeProc = result.procSteps.find((proc) => proc.skill.endsWith('Abyssal Raze recharge'));
 

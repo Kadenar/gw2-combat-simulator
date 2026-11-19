@@ -10,6 +10,43 @@ import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 
+// Switching between the reference and a build must discard cached trait alternatives.
+test('Renegade order tooltips follow the selected traits and distinguish an empty build from the reference', () => {
+  const patch = revenantAppAdapter.profession.resolvePatch({ id: 'current' });
+  const build = { specializations: [] };
+  const card = (id, selection) =>
+    revenantAppAdapter.skillTooltip(patch.balanceContext.catalog.skillsById.get(id), patch, selection);
+  for (const id of [ID.ORDERS_FROM_ABOVE, ID.HEROIC_COMMAND]) {
+    assert.ok(card(id).factTabs.length > 1);
+    assert.equal(card(id, build).factTabs, undefined);
+  }
+
+  const renegade = { name: 'Renegade', traits: '1-1-1' };
+  build.specializations.push(renegade);
+  for (const [traits, pulses, protection, might] of [
+    ['1-1-1', 4, false, 2],
+    ['1-2-2', 4, false, 3],
+    ['1-2-3', 6, false, 2],
+    ['1-1-3', 6, true, 2]
+  ]) {
+    renegade.traits = traits;
+    const orders = card(ID.ORDERS_FROM_ABOVE, build).facts;
+    assert.deepEqual(
+      orders.filter((fact) => fact.name === 'Alacrity').map((fact) => fact.detail.split(' pulses')[0]),
+      [String(pulses)]
+    );
+    assert.equal(
+      orders.some((fact) => fact.name === 'Protection'),
+      protection
+    );
+    assert.ok(
+      card(ID.HEROIC_COMMAND, build)
+        .facts.find((fact) => fact.name === 'Might per Fervor stack')
+        .detail.startsWith(`${might} stacks`)
+    );
+  }
+});
+
 // Reuse and mutate one build to catch stale cached landings after a trait selection changes.
 test('Vindicator dodge tooltips show only the selected landing and trait descriptions', () => {
   const build = { specializations: [{ name: 'Vindicator', traits: '1-1-1' }] };

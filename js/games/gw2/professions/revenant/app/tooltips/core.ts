@@ -80,33 +80,73 @@ const enchantedDaggersTooltip: DescribeSimulationTooltip = (balanceContext, enti
   )
 });
 
-const spearRechargeTooltip: DescribeSimulationTooltip = skillTooltip(
-  "Attack and reduce Abyssal Raze's ammunition recharge when this skill first deals damage.",
-  (_c, entity) => [
-    { name: 'Abyssal Raze recharge reduction', detail: tooltipSeconds(tooltipNumber(entity, 'rechargeReduction')) }
-  ]
-);
+// Use each spear attack's damage source as its row label and show the recharge reward once per cast.
+function spearAttackTooltip(
+  description: string,
+  damageLabel = 'Strike damage'
+): DescribeSimulationTooltip<RevenantSkill, RevenantSkill> {
+  return (_context, skill) => {
+    const effects = simulationEffectFacts(
+      skill.effects?.map((effect) => (effect.type === 'strike' ? { ...effect, name: undefined } : effect))
+    );
+    const reduction = skill.rechargeReduction;
+    return {
+      ...effects,
+      description,
+      facts: [
+        ...effects.facts.map((fact) => (fact.name === 'Strike damage' ? { ...fact, name: damageLabel } : fact)),
+        ...(reduction ? [{ name: 'Abyssal Raze recharge', detail: `−${tooltipSeconds(reduction)}` }] : [])
+      ]
+    };
+  };
+}
+
+// Label the impact and field separately while reading their damage from the selected patch.
+const spiritcrushTooltip: DescribeSimulationTooltip = (context, entity) => {
+  const effects = context.catalog.skillsById.get(entity.id)!.effects ?? [];
+  const strikeLabels: Readonly<Record<string, string>> = {
+    'Initial Damage': 'Initial strike',
+    'Spiritcrush - Fire Field': 'Field pulses'
+  };
+  return {
+    description: 'Create a pulsing fire field. The initial strike and each pulse inflict Burning and Slow.',
+    facts: effects.flatMap((effect) => {
+      const label = effect.type === 'strike' && effect.name && strikeLabels[effect.name];
+
+      if (!label) return simulationEffectFacts([effect]).facts;
+
+      return simulationEffectFacts([{ ...effect, name: undefined }]).facts.map((fact) => ({ ...fact, name: label }));
+    })
+  };
+};
 
 const abyssalRazeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id)!;
   const strike = selected.effects!.find((effect) => effect.type === 'strike')!;
+  const cap = tooltipDecimal(tooltipNumber(selected, 'maximumStacks'));
+  // A manual cast scales both effects. A full-stack swap keeps only the Torment bonus.
   return {
-    description:
-      'Strike and inflict torment, increasing damage and adding torment for each Crushing Abyss stack already active at impact. Then gain a stack if below the cap. At the cap, swapping to a different weapon loadout consumes the stacks for an additional Raze with base strike damage.',
-    facts: [
-      ...simulationEffectFacts(
-        selected.effects!.filter((effect) => !effect.metadata?.trigger),
-        'base cast'
-      ).facts,
-      ...simulationEffectFacts(
-        selected.effects!.filter((effect) => effect.metadata?.trigger === 'crushing-abyss'),
-        'additional torment per Crushing Abyss stack'
-      ).facts,
+    description: `Strike and inflict Torment, then gain a stack of Crushing Abyss (maximum ${cap}).`,
+    facts: simulationEffectFacts(
+      selected
+        .effects!.filter((effect) => !effect.metadata?.trigger)
+        .map((effect) => (effect === strike ? { ...effect, name: undefined } : effect))
+    ).facts.map((fact) => (fact.name === 'Crushing abyss' ? { ...fact, name: 'Crushing Abyss' } : fact)),
+    factSections: [
       {
-        name: 'Strike damage per Crushing Abyss stack',
-        detail: tooltipPercent(tooltipNumber(strike, 'damageIncreasePerStack'))
+        label: 'Per Crushing Abyss stack at impact',
+        facts: [
+          { name: 'Strike damage', detail: tooltipPercent(tooltipNumber(strike, 'damageIncreasePerStack')) },
+          ...simulationEffectFacts(selected.effects!.filter((effect) => effect.metadata?.trigger === 'crushing-abyss'))
+            .facts
+        ]
       },
-      { name: 'Maximum Crushing Abyss stacks', detail: tooltipDecimal(tooltipNumber(selected, 'maximumStacks')) }
+      {
+        label: `Weapon swap at ${cap} stacks`,
+        description:
+          'Swapping to different weapon types consumes all stacks and triggers another Raze with base strike damage and full bonus Torment.',
+        facts: []
+      }
     ]
   };
 };
@@ -161,6 +201,7 @@ export const revenantCoreTooltips = {
       : [{ name: 'Energy exhaustion cooldown', detail: tooltipSeconds(tooltipNumber(entity, 'starvationCooldown')) }])
   ],
   skills: {
+    [ID.SPIRITCRUSH]: spiritcrushTooltip,
     [ID.FRIGID_BLITZ]: skillTooltip('Teleport and strike, applying Chilled and Torment together.'),
     [ID.FORCED_ENGAGEMENT]: skillTooltip(
       'Strike and cripple one target. In game, targets beyond 600 range are pulled immediately; nearer targets are tethered for 5 seconds, revealed for 6 seconds, and pulled if they cross that threshold. The skill has 900 range and deals 200 bonus defiance damage to defiant foes. Target distance, tether movement, Revealed, and defiance-bar damage are not simulated.'
@@ -194,8 +235,16 @@ export const revenantCoreTooltips = {
       ])
     ),
     [ID.ENCHANTED_DAGGERS]: enchantedDaggersTooltip,
-    ...Object.fromEntries(
-      [ID.ABYSSAL_BLITZ, ID.ABYSSAL_BLOT, ID.ABYSSAL_FORCE, ID.ABYSSAL_STRIKE].map((id) => [id, spearRechargeTooltip])
+    [ID.ABYSSAL_STRIKE]: spearAttackTooltip('Strike your target and inflict Torment and Vulnerability.'),
+    [ID.ABYSSAL_FORCE]: spearAttackTooltip('Strike your target, burning and chilling it.'),
+    [ID.ABYSSAL_BLITZ]: spearAttackTooltip(
+      'Drop mines. Each explosion slows, chills, and weakens your target.',
+      'Mine damage'
+    ),
+    [ID.BLITZ_MINES]: spearAttackTooltip('The mine explodes, slowing and weakening your target.', 'Mine damage'),
+    [ID.ABYSSAL_BLOT]: spearAttackTooltip(
+      'Pull and chill your target with the first pulse of a dark field. Each pulse inflicts Poison.',
+      'Field damage'
     ),
     [ID.ABYSSAL_RAZE]: abyssalRazeTooltip,
     [ID.BLOSSOMING_AURA]: blossomingAuraTooltip,

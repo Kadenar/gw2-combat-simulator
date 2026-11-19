@@ -42,6 +42,9 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     // The spear lifecycle reduces Abyssal Raze recharge after the qualifying hit.
     castTimeMs: 520,
     interruptCommitMs: 396,
+    // After the hit commits, an interrupt before 480 ms keeps the cast lane occupied until 520 ms.
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 480,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
@@ -270,7 +273,8 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     weapon: 'Spear',
     slot: 'Weapon_5',
     cooldown: 15,
-    ammoCastLockout: 1,
+    // Raze can start again after 760 ms. Alacrity applies to charge recharge only.
+    lockouts: [{ group: 'revenant-abyssal-raze', durationMs: 760 }],
     ammo: 3,
 
     energyCost: 8,
