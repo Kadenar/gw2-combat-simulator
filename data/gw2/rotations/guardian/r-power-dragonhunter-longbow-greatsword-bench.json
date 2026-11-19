@@ -171,10 +171,6 @@
       "skillId": 29630
     },
     {
-      "type": "wait",
-      "durationMs": 80
-    },
-    {
       "type": "cast",
       "skillId": 30471
     },
@@ -361,10 +357,6 @@
       "skillId": 29630
     },
     {
-      "type": "wait",
-      "durationMs": 80
-    },
-    {
       "type": "cast",
       "skillId": 9168
     },
@@ -491,10 +483,6 @@
     {
       "type": "cast",
       "skillId": 29630
-    },
-    {
-      "type": "wait",
-      "durationMs": 80
     },
     {
       "type": "cast",
@@ -679,10 +667,6 @@
     {
       "type": "cast",
       "skillId": 29630
-    },
-    {
-      "type": "wait",
-      "durationMs": 80
     },
     {
       "type": "cast",
