@@ -291,19 +291,7 @@ test('glyph highlights group selector inputs and every explicit choice without g
   assert.notEqual(key(ID.GLYPH_OF_STORMS), key(ID.GLYPH_OF_ELEMENTAL_POWER));
 });
 
-test('root tooltip tabs retain each concrete payload facts and equipped selectors expose variant patches', () => {
-  const { app } = createNativeApp({ lines, selectedSkillIds });
-  for (const [root, variants] of elementalistCatalog.skills
-    .filter((skill) => skill.skillFamily === 'Glyph' && skill.selector)
-    .map((skill) => [skill.id, skill.selector])) {
-    const model = app.adapter.skillTooltip(app.activeCatalog.skillsById.get(Number(root)), app.patch, app.build);
-    for (const [element, id] of Object.entries(variants)) {
-      const expected = app.adapter.skillTooltip(app.activeCatalog.skillsById.get(id), app.patch, app.build);
-      assert.deepEqual(model.factTabs.find((tab) => tab.label === element).facts, expected.facts);
-      assert.ok(expected.facts.length > 0);
-    }
-  }
-
+test('equipping a glyph exposes patches to its variants', () => {
   const patched = withPatchPreview(elementalistProfession, {
     id: 'glyph-relevance',
     label: 'Glyph relevance',

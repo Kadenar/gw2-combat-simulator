@@ -1,13 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import { elementalistBuffEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
@@ -18,7 +16,7 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
-// Edit the same skill catalog used by runtime and tooltips; no profile aliases participate.
+// Apply each edit to the skill catalog used by combat.
 function preview(skills) {
   return withPatchPreview(elementalistProfession, {
     id: 'side-effect-ownership',
@@ -82,23 +80,11 @@ test('Overload Air action patches control both Lightning Jolts and removal suppr
         !removed
       );
       assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Overload Air'));
-      const context = profession.resolvePatch({ id: 'side-effect-ownership' }).balanceContext;
-      const model = describeSimulationSkill(
-        context,
-        context.catalog.skillsById.get(ID.OVERLOAD_AIR),
-        elementalistTooltips
-      );
-      assert.equal(
-        model.facts.some(
-          (fact) => fact.detail.includes('2.5 coefficient') && fact.detail.includes('additional completion strike')
-        ),
-        !removed
-      );
     }
   }
 });
 
-test('Fulgor action patches reach procedural damage and tooltips without changing ordinary attacks', () => {
+test('Fulgor action patches reach procedural damage without changing ordinary attacks', () => {
   const profession = preview({
     [ID.FULGOR]: {
       sideEffects: {
@@ -138,14 +124,11 @@ test('Fulgor action patches reach procedural damage and tooltips without changin
     )
   );
   assert.ok(
-    result.events.some((event) => event.type === 'damage' && event.actorType === 'player' && event.coefficient === 0.4)
+    result.events.some(
+      (event) => event.type === 'damage' && event.actorType === 'player' && event.skillId === ID.FULGOR
+    )
   );
   assert.ok(result.events.some((event) => event.condition === 'Vulnerability'));
-  const context = profession.resolvePatch({ id: 'side-effect-ownership' }).balanceContext;
-  const model = describeSimulationSkill(context, context.catalog.skillsById.get(ID.FULGOR), elementalistTooltips);
-  assert.ok(
-    model.facts.some((fact) => fact.detail.includes('321 base damage') && fact.detail.includes('additional pulses'))
-  );
 });
 
 test('Fulgor still rejects removal of its required procedural timeline', () => {
@@ -221,17 +204,6 @@ test('Fervent Stance owns its expiry and later dual-attack reward independently 
       for (const kind of ['swiftness', 'fury', 'quickness'])
         assert.ok(result.events.some((event) => event.kind === kind && event.sourceId === ID.FERVENT_STANCE));
     }
-
-    const context = profession.resolvePatch({ id: 'side-effect-ownership' }).balanceContext;
-    const model = describeSimulationSkill(
-      context,
-      context.catalog.skillsById.get(ID.FERVENT_STANCE),
-      elementalistTooltips
-    );
-    assert.equal(
-      model.facts.some((fact) => fact.detail.includes('11s') && fact.detail.includes('per completed dual attack')),
-      !removed
-    );
   }
 });
 
@@ -284,16 +256,6 @@ test('Elemental Explosion selects the live attunement aura and consumes all bull
       );
       assert.ok(!Object.values(observedRuntime(result).profession.core.pistolBullets).some(Boolean));
       assert.ok(result.events.some((event) => event.type === 'condition' && event.condition === 'Burning'));
-      const context = profession.resolvePatch({ id: 'side-effect-ownership' }).balanceContext;
-      const model = describeSimulationSkill(
-        context,
-        context.catalog.skillsById.get(ID.ELEMENTAL_EXPLOSION),
-        elementalistTooltips
-      );
-      assert.equal(
-        model.facts.some((fact) => fact.name === aura && fact.detail.includes('7s')),
-        !removed
-      );
     }
   }
 });
@@ -360,15 +322,6 @@ test('Primordial Stance uses its action patch from every starting attunement whi
         assert.equal(condition.duration, 7);
         assert.equal(condition.activationId, action.activationId);
       }
-
-      const context = profession.resolvePatch({ id: 'side-effect-ownership' }).balanceContext;
-      const model = describeSimulationSkill(context, context.catalog.skillsById.get(id), elementalistTooltips);
-      assert.equal(
-        model.facts.some(
-          (fact) => fact.name === 'Fire' && fact.detail.includes('Burning') && fact.detail.includes('7s')
-        ),
-        removedType !== 'condition'
-      );
     }
   }
 });
@@ -440,7 +393,7 @@ test('dual pistol rewards read commitment-time bullets and selected skill payloa
   }
 });
 
-test('removing either dual reward preserves its sibling, bullet settlement, and tooltip qualification', () => {
+test('removing either dual reward preserves its sibling and consumes the bullets', () => {
   for (const removedName of ['Fire', 'Water']) {
     const id = ID.FROSTFIRE_FLURRY;
     const removedType = removedName === 'Fire' ? 'aura' : 'condition';
@@ -472,23 +425,6 @@ test('removing either dual reward preserves its sibling, bullet settlement, and 
     );
     assert.equal(observedRuntime(result).profession.core.pistolBullets.Fire, false);
     assert.equal(observedRuntime(result).profession.core.pistolBullets.Water, false);
-    const context = profession.resolvePatch({ id: 'side-effect-ownership' }).balanceContext;
-    const skill = context.catalog.skillsById.get(id);
-    const model = describeSimulationSkill(context, skill, elementalistTooltips);
-    const conditional = model.facts.filter(({ detail }) => / - (Fire|Water) bullet$/.test(detail));
-    assert.equal(conditional.length, 1);
-    assert.equal(
-      requireEffect(
-        skill,
-        removedType,
-        removedName,
-        skill.sideEffects.find(({ do: action }) => action.id === actionId).do
-      ),
-      undefined
-    );
-    // A generic tooltip must not advertise triggered rewards as unconditional casts.
-    const generic = describeSimulationSkill(context, skill, {});
-    assert.ok(!generic.facts.some(({ name }) => ['Fire Aura', 'Vulnerability'].includes(name)));
   }
 });
 

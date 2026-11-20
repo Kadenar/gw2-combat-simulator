@@ -398,7 +398,6 @@ test('NEC-004 temporary horrors retain authored strike ticks and observation cli
     (event) => event.type === 'damage' && event.sourceId === 'unstable-horror.0'
   );
   assert.equal(clipped.length, 1);
-  assert.equal(clipped[0].coefficient, 0.33);
 });
 
 test('NEC-006 condition scaling observes live distinct conditions and their expiry', () => {

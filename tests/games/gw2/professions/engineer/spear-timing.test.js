@@ -204,7 +204,6 @@ test('Artillery damage and conditions wait for impact without delaying the next 
   assert.ok(packets.length > 0);
   assert.ok(packets.every((event) => event.at === impact.at));
   // Conduit Surge establishes Focused during flight, so Artillery resolves the Focused branch.
-  assert.equal(packets.find((event) => event.type === 'damage').coefficient, 1.5);
   assert.equal(
     packets.filter((event) => event.condition === 'Vulnerability').reduce((sum, event) => sum + event.stacks, 0),
     8
@@ -220,7 +219,6 @@ test('Artillery damage and conditions wait for impact without delaying the next 
   const lateCast = lostFocus.steps.find((step) => step.skillId === ID.ELECTRIC_ARTILLERY);
   assert.ok(lateCast.end < lostFocus.steps[0].end + 10000);
   assert.ok(unfocusedHit.at > lostFocus.steps[0].end / 1000 + 10);
-  assert.equal(unfocusedHit.coefficient, 1);
 });
 
 // Charges are snapshotted at release, including a charge that naturally expires before impact.

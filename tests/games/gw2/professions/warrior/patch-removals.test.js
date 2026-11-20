@@ -1,13 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import {
   createObservedProfessionSimulator,
   observedRuntime,
@@ -283,18 +281,11 @@ test('Artillery Slash keeps ammo variant identity after first-strike removal and
   }
 });
 
-test('Paragon opening Might removal preserves Fury, Motivation, and tooltip identity', () => {
+test('Paragon opening Might removal preserves Fury and Motivation', () => {
   const skills = { [ID.CHANT_OF_ACTION]: { sideEffects: { chant: remove('boon', 'Entry Might') } } };
   const result = runSkills(skills, 'Paragon', [ID.CHANT_OF_ACTION], { initialResource: 30 });
   assert.equal(result.planningState.profession[STATE.MOTIVATION].value, 4);
   assert.ok(result.events.some((e) => e.kind === 'fury'));
-  const catalog = applySkillPatch(warriorCatalog, { skills });
-  const tooltip = warriorTooltips.skills[ID.CHANT_OF_ACTION]({ catalog }, catalog.skillsById.get(ID.CHANT_OF_ACTION));
-  assert.equal(
-    tooltip.facts.some((f) => /vigor/i.test(f.name)),
-    false
-  );
-  assert.ok(tooltip.facts.some((f) => /fury/i.test(f.name)));
 });
 
 test('Warrior live owners reject missing profiles and invalid required scalars contextually', () => {

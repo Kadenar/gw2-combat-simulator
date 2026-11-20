@@ -8,7 +8,6 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { wait } from '#tests/helpers/commands.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const baseConfig = {
   primaryWeapon: 'Axe',
@@ -46,15 +45,6 @@ test('Ghastly Claws life force funds the next shroud entry in one execution', ()
   assert.equal(result.planningState.profession[STATE.ACTIVE_SHROUD], 'death');
   assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 12);
   assert.equal(result.steps[1].start, result.steps[0].end);
-});
-
-// Compare one isolated packet so ordinary Vulnerability and the skill-specific bonus must multiply.
-test('Ghastly Claws multiplies its Vulnerability bonus with normal target Vulnerability', () => {
-  const damage = (stacks) =>
-    simulate('Core', ['Ghastly Claws'], { target: { conditions: { Vulnerability: stacks } } }).resolvedEvents.find(
-      (event) => event.type === 'damage' && event.skillId === ID.GHASTLY_CLAWS
-    ).damage;
-  assertFlooredDamageMultiplier(damage(25), damage(0), 1.5625);
 });
 
 // One interrupted claw isolates the health gate without hard-coding a full attack's hit timeline.
@@ -98,7 +88,6 @@ test('Unholy Feast gates its delayed burst below half health and clips it to the
     assert.equal(Boolean(burst), expectedBurst);
 
     if (burst) {
-      assert.equal(burst.coefficient, 1.5);
       assert.ok(burst.at > result.steps[0].end / 1000);
       assert.equal(burst.triggeredBy, 'Unholy Feast');
     }

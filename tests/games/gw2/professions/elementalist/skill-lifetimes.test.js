@@ -1,12 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
-import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -23,7 +21,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 
-// The creating skill refreshes existing orbs as well as its own elements, and presentation reads that same duration.
+// The creating skill refreshes existing orbs as well as its own elements.
 test('Core and Weaver orb skills own refresh duration and expiry', () => {
   for (const [id, specialization, elements] of [
     [ID.FLAME_WHEEL, 'Core', ['Fire']],
@@ -65,8 +63,6 @@ test('Core and Weaver orb skills own refresh duration and expiry', () => {
       }
     );
     assert.deepEqual(result.warnings, []);
-    const { tooltip: model } = fixture(id, { fields: { orbDuration: 2.5 } }, specialization, {});
-    assert.equal(model.facts.find(({ name }) => name === 'Refreshed orb duration').detail, '2.5s');
   }
 
   for (const id of ['elementalist.core.resources', 'elementalist.core.hammer-orbs'])
@@ -88,22 +84,15 @@ function fixture(id, edit, specialization, state) {
     config: {}
   };
   context.procs = createProcRegistry(() => context);
-  const profession = withPatchPreview(elementalistProfession, {
-    id: 'proc-ownership',
-    label: 'Proc ownership',
-    professions: { elementalist: {} }
-  });
-  const balance = { ...profession.resolvePatch({ id: 'proc-ownership' }).balanceContext, catalog };
   return {
     context,
-    events: capture.events,
-    tooltip: describeSimulationSkill(balance, catalog.skillsById.get(id), elementalistTooltips)
+    events: capture.events
   };
 }
 
 test('Shattering Ice action rewards share the selected interval and independent removal without changing rearm', () => {
   for (const removed of [[], ['strike'], ['condition'], ['strike', 'condition']]) {
-    const { context, events, tooltip } = fixture(
+    const { context, events } = fixture(
       ID.SHATTERING_ICE,
       {
         fields: { internalCooldown: 2 },
@@ -145,24 +134,11 @@ test('Shattering Ice action rewards share the selected interval and independent 
     for (const event of events) {
       assert.equal(event.sourceId, 42);
       assert.equal(event.triggeredBy, 'Trigger');
-
-      if (event.type === 'damage') assert.equal(event.coefficient, 1.4);
-
-      if (event.type === 'condition') assert.equal(event.duration, 3);
     }
 
     arm(4);
     hit(4);
     assert.equal(context.procs.deadline('elementalist.catalyst.shatteringIce'), 6);
-    assert.equal(tooltip.facts.find((fact) => fact.name === 'Trigger interval').detail, '2s');
-    assert.equal(
-      tooltip.facts.some((fact) => fact.name === 'Chilled'),
-      !removed.includes('condition')
-    );
-    assert.equal(
-      tooltip.facts.some((fact) => fact.detail.includes('1.4 coefficient') && fact.detail.includes('per trigger')),
-      !removed.includes('strike')
-    );
   }
 });
 
@@ -170,7 +146,7 @@ test('Calcify owns its passive Protection without requiring a cast, and removal 
   for (const removed of [false, true]) {
     const state = evokerState.create();
     state.element = 'Earth';
-    const { context, events, tooltip } = fixture(
+    const { context, events } = fixture(
       ID.CALCIFY,
       {
         fields: { internalCooldown: 2 },
@@ -190,13 +166,6 @@ test('Calcify owns its passive Protection without requiring a cast, and removal 
     state.element = 'Air';
     applyCalcifyProtection(context, { type: 'control', at: 10, actorType: 'player' });
     assert.equal(events.length, removed ? 0 : 2);
-    assert.equal(
-      tooltip.facts.some(
-        (fact) =>
-          fact.name === 'Protection' && fact.detail.includes('7s') && fact.detail.includes('on disabling an enemy')
-      ),
-      !removed
-    );
   }
 });
 
@@ -244,12 +213,4 @@ test('Evocation patches its Fire-familiar Might interval independently of its en
     grants.map((event) => event.at),
     [1, 3.04]
   );
-  const context = profession.resolvePatch({ id: 'evocation-interval' }).balanceContext;
-  const model = describeSimulationTrait(
-    context,
-    context.catalog.traits.find((trait) => trait.id === TRAIT.EVOCATION),
-    elementalistTooltips
-  );
-  assert.equal(model.facts.find((fact) => fact.name.startsWith('Attunement-entry trait cooldown')).detail, '5s');
-  assert.equal(model.facts.find((fact) => fact.name === 'Fire-familiar might cooldown').detail, '2s');
 });

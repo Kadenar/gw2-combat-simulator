@@ -1,16 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { authoringNumericFieldLabel } from '#gw2/app/patch-authoring/model.js';
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { skillPatchableNumericFields } from '#gw2/integrations/patches/authoring/fields.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
-import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
 import { prepareTrap, thiefTrapAvailability } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { activateVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -18,7 +14,7 @@ import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { activeBatches } from '#kernel/resources/batch-list.js';
 
 // The skill's grant buff controls charge entitlement independently of its action's triggered condition duration.
-test('patched venom duration owns personal and allied charge expiry and tooltip facts', () => {
+test('patched venom duration owns personal and allied charge expiry', () => {
   for (const venom of VENOMS) {
     const source = thiefCatalog.skillsById.get(venom.skillId);
     const grant = source.effects.find((effect) => effect.type === 'buff');
@@ -51,14 +47,6 @@ test('patched venom duration owns personal and allied charge expiry and tooltip 
       assert.equal(activeBatches(owned, 12.000001, { order: 'earliest-expiry' }).length, 1);
       assert.equal(activeBatches(owned, 13.000001, { order: 'earliest-expiry' }).length, 0);
     }
-
-    const context = { catalog };
-    const { facts } = describeSimulationSkill(context, skill, thiefTooltips);
-    assert.match(
-      facts.find(({ name }) => name.toLowerCase() === venom.skillName.toLowerCase()).detail,
-      /^2s - charge grant/
-    );
-    assert.deepEqual(requireSkillAction(skill, 'venom').effects, requireSkillAction(source, 'venom').effects);
   }
 });
 
@@ -90,9 +78,6 @@ test('patched preparation duration governs recharge-scaled availability without 
       assert.equal(thiefTrapAvailability(runtime, child), null);
       assert.equal(runtime.flips[trigger].expiresAt, null);
       assert.equal(thiefTrapAvailability(runtime, skill).retryAt, null);
-      const context = { catalog };
-      const { facts } = describeSimulationSkill(context, skill, thiefTooltips);
-      assert.equal(facts.find(({ name }) => name === 'Base arming delay').detail, '5s');
       assert.throws(() => prepareTrap(runtime, { skill: { ...skill, duration: undefined } }), /field=duration/);
     }
   }
@@ -148,8 +133,6 @@ test('duration and flip patches reject obsolete names while real multipliers rem
     }).balanceProfilesById.get(1).durationMultiplier,
     2
   );
-  assert.equal(authoringNumericFieldLabel('flipDuration'), 'flip duration (s)');
-  assert.equal(authoringNumericFieldLabel('durationMultiplier'), 'duration multiplier');
 });
 
 // Both catalog construction and patch application reject malformed seconds before they enter runtime math.

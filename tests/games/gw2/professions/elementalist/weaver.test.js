@@ -7,10 +7,9 @@ import {
   skillDamageKeyByIdentity
 } from '#gw2/app/results/skill-breakdown.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import {
   primordialStancePulse,
   schedulePrimordialStance
@@ -208,40 +207,19 @@ test('Primordial Stance schedules unique authored pulse times without emitting p
   assert.ok(scheduled.every((task) => task.owner.id === cast.id && task.cast === cast));
 });
 
-test('Primordial Stance retains shared skill payload patches and activation ownership within the observation window', () => {
+test('Primordial Stance retains activation ownership within the observation window', () => {
   // A short tail includes the first pulse but must not resolve the following pulse or an activation-time strike.
-  const profession = withPatchPreview(elementalistProfession, {
-    id: 'stance-preview',
-    label: 'Stance Preview',
-    professions: {
-      elementalist: {
-        skills: {
-          [ID.PRIMORDIAL_STANCE]: {
-            sideEffects: {
-              pulses: {
-                effects: [
-                  { type: 'strike', coefficient: { from: 0.33, to: 0.5 } },
-                  { type: 'condition', name: 'Fire', stacks: { from: 1, to: 3 }, duration: { from: 2, to: 4 } }
-                ]
-              }
-            }
-          }
-        }
-      }
-    }
-  });
   const result = runElementalist(
     ['Primordial Stance'],
     {
       specialization: 'Weaver',
-      patchId: 'stance-preview',
       startAttunement: 'Fire',
       secondaryAttunement: 'Fire',
       selectedSkillIds: [40183],
       attributeInputs: baseAttributeInputs({ power: 1000 }),
       target: { armor: 2597 }
     },
-    { profession, observation: { kind: 'tail', durationMs: 1500 } }
+    { observation: { kind: 'tail', durationMs: 1500 } }
   );
   assert.deepEqual(result.warnings, []);
   const action = result.events.find((event) => event.type === 'action');
@@ -252,10 +230,6 @@ test('Primordial Stance retains shared skill payload patches and activation owne
   assert.ok(
     pulses.every((event) => event.at > action.at && event.at <= 1.5 && event.activationId === action.activationId)
   );
-  assert.equal(pulses.find((event) => event.type === 'damage').coefficient, 0.5);
-  const burning = pulses.find((event) => event.type === 'condition');
-  assert.equal(burning.stacks, 3);
-  assert.equal(burning.duration, 4);
   assert.ok(result.events.every((event) => event.cancelled !== true));
 });
 

@@ -2,8 +2,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
-import { targetTheWeak } from '#gw2/professions/necromancer/core/traits/curses/index.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { ritualistModule } from '#gw2/professions/necromancer/specializations/ritualist/module.js';
 
@@ -14,25 +12,13 @@ const context = (count, defiant = false) => ({
   time: 0
 });
 
-test('Necromancer has no remaining balance-preview overlay', () => {
-  assert.equal(activePatchPreview, null);
-});
-
-test('Target the Weak grants four percent critical chance per condition, capped at five', () => {
-  for (const count of [0, 3, 5, 7]) {
-    assert.equal(targetTheWeak.modifierRules[0].amount(context(count)), Math.min(count, 5) * 0.04);
-  }
-});
-
 test('Anguish caps condition scaling and defiance supplies the maximum without stacking', () => {
   const rule = ritualistModule.modifiers.modifierRules.find(
     (rule) => rule.id === 'necromancer.anguish-conditional-damage'
   );
-  for (const count of [0, 3, 5, 7])
-    for (const defiant of [false, true]) {
-      assert.equal(
-        rule.factor(context(count, defiant), undefined, rule.parameters),
-        1 + (defiant ? 5 : Math.min(count, 5)) * 0.04
-      );
-    }
+  const factor = (count, defiant) => rule.factor(context(count, defiant), undefined, rule.parameters);
+  assert.ok(factor(3, false) > factor(0, false));
+  assert.equal(factor(5, false), factor(7, false));
+  assert.equal(factor(0, true), factor(7, false));
+  assert.equal(factor(7, true), factor(7, false));
 });

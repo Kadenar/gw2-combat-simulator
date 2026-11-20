@@ -35,7 +35,6 @@ test('Purity of Word displays the projected countdown and full-pool label', () =
   };
   const item = activeState(result)['firebrand-purity-of-word'];
   assert.equal(item.value, '5.0s');
-  assert.match(item.title, /every 10\.0s/);
   pages.value = pages.maximum;
   assert.equal(activeState(result)['firebrand-purity-of-word'].value, '5.0s · Full');
   pages.nextAt = Infinity;

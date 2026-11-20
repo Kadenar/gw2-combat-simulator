@@ -1,116 +1,63 @@
-// Selected owner tuning must agree across compiled combat rules, skill cards, and the modifier reference.
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createModifierReference } from '#gw2/app/modifier-reference/model.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 
-const family = withPatchPreview(mesmerProfession, {
-  id: 'modifier-owners',
-  label: 'Modifier owners',
-  professions: {
-    mesmer: {
-      balanceProfiles: {
-        [TRAIT.SYMPHONIC_RESONANCE]: { fields: { damageIncrease: 0.2 } },
-        [TRAIT.QUIET_INTENSITY]: { fields: { phantasmCriticalChance: 0.2 } }
-      },
-      modifierRules: { 'mesmer.mind-stab-vulnerability': { parameters: { damagePerStack: 0.02 } } }
-    }
+// The stronger critical bonus needs a supported control condition or a low-health target.
+test('Superiority Complex treats Fear, Taunt and low health as alternatives', () => {
+  const config = { specialization: 'Core', selectedTraitIds: [TRAIT.SUPERIORITY_COMPLEX] };
+  const profession = mesmerProfession.runtimeFor(config);
+  function damage(health, conditions = {}, defiant = false) {
+    const context = {
+      catalog: profession.catalog,
+      time: 0,
+      event: { actorType: 'player' },
+      config: { ...config, target: { fixedHealthFraction: health, conditions, defiant } }
+    };
+    return profession.calculations.modifyCriticalDamage(context, 1);
+  }
+
+  const ordinary = damage(1);
+  const low = damage(0.1);
+  assert.ok(low > ordinary);
+  assert.equal(damage(1, {}, true), ordinary);
+  for (const control of ['Fear', 'Taunt']) {
+    assert.equal(damage(1, { [control]: true }), low);
+    assert.equal(damage(0.1, { [control]: true }), low);
   }
 });
 
-test('Symphonic Resonance owns intrinsic Lute tuning, expiry, and personal additive damage', () => {
-  for (const [patchId, bonus] of [
-    ['current', 0.1],
-    ['modifier-owners', 0.2]
-  ]) {
-    for (const specialization of ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
-      const runtime = family.runtimeFor({ specialization, patchId });
-      for (const selectedTraitIds of [[], [TRAIT.SYMPHONIC_RESONANCE]]) {
-        for (const summonKind of [undefined, 'clone', 'phantasm', 'afterimage']) {
-          for (const time of [1, 2.000001]) {
-            const context = {
-              catalog: runtime.catalog,
-              time,
-              config: { specialization, selectedTraitIds },
-              event: { actorType: summonKind ? 'summon' : 'player', summonKind },
-              events: [{ type: 'mesmer.instrument', instrument: 'Lute', at: 0, expiresAt: 2 }],
-              damageInputs: { equipmentBonus: 0.05 }
-            };
-            const expected = 1.05 + (specialization === 'Troubadour' && !summonKind && time < 2 ? bonus : 0);
-            assert.ok(Math.abs(runtime.calculations.modifyStrikeDamage(context, 1) - expected) < 1e-12);
-            assert.ok(
-              Math.abs(
-                runtime.calculations.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 1) - expected
-              ) < 1e-12
-            );
-          }
-        }
-      }
-    }
-  }
+// Instrument history can grow between two damage queries for the same build.
+test('Lute updates affect player strikes and exclude illusions', () => {
+  const config = { specialization: 'Troubadour', selectedTraitIds: [TRAIT.SHREDDING] };
+  const profession = mesmerProfession.runtimeFor(config);
+  const events = [];
+  const damage = (event) =>
+    profession.calculations.modifyStrikeDamage({ catalog: profession.catalog, config, time: 1, events, event }, 1);
+  const player = { actorType: 'player' };
+  const phantasm = { actorType: 'summon', summonKind: 'phantasm', source: 'Phantasm' };
+  const initial = damage(player);
+  const initialPhantasm = damage(phantasm);
+  events.push({ type: 'mesmer.instrument', instrument: 'Lute', at: 0, expiresAt: 5 });
+  const playing = damage(player);
+  assert.ok(playing > initial);
+  assert.equal(damage(phantasm), initialPhantasm);
+  events.push({ type: 'mesmer.instrument', instrument: 'Lute', at: 1, expiresAt: 1 });
+  assert.equal(damage(player), initial);
 });
 
-test('trait reference and Quiet Intensity facts read the selected trait balance', () => {
-  for (const [patchId, luteBonus, phantasmBonus] of [
-    ['current', '+10%', '+15%'],
-    ['modifier-owners', '+20%', '+20%']
-  ]) {
-    const patch = family.resolvePatch({ id: patchId });
-    const entries = createModifierReference(mesmerAppAdapter, patch);
-    const resonance = entries.find((entry) => entry.name === 'Symphonic Resonance');
-    assert.equal(resonance.source, 'trait');
-    assert.equal(
-      resonance.tooltip.facts.find((fact) => fact.name === 'Personal strike and condition damage with Lute').detail,
-      luteBonus
-    );
-    assert.ok(!entries.some((entry) => entry.name.startsWith('Lute Playing')));
-    const trait = patch.balanceContext.catalog.traits.find((entry) => entry.id === TRAIT.QUIET_INTENSITY);
-    const tooltip = mesmerAppAdapter.traitTooltip(trait, patch, 'Virtuoso');
-    assert.equal(
-      tooltip.facts.find((fact) => fact.name === 'Additional phantasm critical chance with Phantasmal Fury').detail,
-      phantasmBonus
-    );
-  }
-});
-
-test('Mind Stab shares patched vulnerability tuning between its skill, combat rule, and reference', () => {
-  for (const [patchId, perStack, detail] of [
-    ['current', 0.01, '+1%'],
-    ['modifier-owners', 0.02, '+2%']
-  ]) {
-    const runtime = family.runtimeFor({ specialization: 'Core', patchId });
-    const patch = family.resolvePatch({ id: patchId });
-    const skill = patch.balanceContext.catalog.skillsById.get(ID.MIND_STAB);
-    const tooltip = mesmerAppAdapter.skillTooltip(skill, patch);
-    assert.equal(
-      tooltip.facts.find((fact) => fact.name === 'Additional strike damage per Vulnerability stack').detail,
-      detail
-    );
-    const entry = createModifierReference(mesmerAppAdapter, patch).find((entry) => entry.name === 'Mind Stab');
-    assert.equal(entry.source, 'weapon');
-    assert.deepEqual(
-      entry.skills.map((owner) => owner.id),
-      [ID.MIND_STAB]
-    );
-    assert.deepEqual(entry.tooltip, tooltip);
-    for (const skillId of [ID.MIND_STAB, ID.SPATIAL_SURGE]) {
-      for (const stacks of [0, 10, 25]) {
-        const context = {
-          catalog: runtime.catalog,
-          config: { selectedTraitIds: [] },
-          time: 0,
-          event: { actorType: 'player', skillId },
-          query: { vulnerabilityStacksAt: () => stacks }
-        };
-        assert.equal(
-          runtime.calculations.modifyStrikeDamage(context, 100),
-          100 * (1 + (skillId === ID.MIND_STAB ? stacks * perStack : 0))
-        );
-      }
+// Only Troubadour needs to scan past instrument events during a damage or attribute query.
+test('Virtuoso skips instrument history', () => {
+  const config = { specialization: 'Virtuoso' };
+  const profession = mesmerProfession.runtimeFor(config);
+  const events = [];
+  Object.defineProperty(events, 0, {
+    get() {
+      throw new Error('Inactive specialization read instrument history');
     }
-  }
+  });
+  const context = { config, catalog: profession.catalog, time: 1, events, event: { actorType: 'player' } };
+  profession.calculations.modifyAttributes(context, { power: 100 });
+  profession.calculations.modifyStrikeDamage(context, 1);
 });

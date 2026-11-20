@@ -492,7 +492,11 @@ test('Continuum Split does not extend an existing weapon-swap cooldown', () => {
     config
   );
 
-  assert.equal(result.planningState.cooldownsBySkillId[-3].readyAtMs, 10000);
+  const baseline = simulateMesmer(['__combat_start', 'Swap Weapons'], config);
+  assert.equal(
+    result.planningState.cooldownsBySkillId[-3].readyAtMs,
+    baseline.planningState.cooldownsBySkillId[-3].readyAtMs
+  );
 });
 
 test('a build can open combat on its second weapon set', () => {

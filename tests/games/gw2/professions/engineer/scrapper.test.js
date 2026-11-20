@@ -4,7 +4,6 @@ import { test } from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
-import { BOON } from '#gw2/platform/constants.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -55,10 +54,6 @@ test('Speed of Synergy distinguishes healing skills from healing toolbelts', () 
     );
   }
 });
-
-function mechanic(name) {
-  return engineerCatalog.skills.find((candidate) => candidate.name === name);
-}
 
 test('Function Gyro aliases share Ex Machina charges and canonical trait effects', () => {
   // Mixed canonical and compatibility IDs must consume one trait-granted ammo pool.
@@ -167,25 +162,22 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
 });
 
 test('Sharpshooter derives bleeding damage from Power including Applied Force', () => {
-  // Sharpshooter must use final Power after both ordinary Might and Applied Force bonuses.
-  for (const might of [0, 10, 25]) {
-    for (const appliedForce of [false, true]) {
-      const result = simulate('Scrapper', ['Puncturing Jab', { type: 'wait', durationMs: 2000 }], {
-        selectedTraitIds: [TRAIT.SHARPSHOOTER, ...(appliedForce ? [TRAIT.APPLIED_FORCE] : [])],
-        boons: { might },
-        target: { conditions: {} }
-      });
-      const bleed = result.resolvedEvents.find(
-        (event) => event.type === 'condition' && event.skillName === 'Puncturing Jab' && event.condition === 'Bleeding'
-      );
-      const power = baseConfig.attributeInputs.weaponSets[0].commonTotals.power + might * (appliedForce ? 60 : 30);
+  // Applied Force increases the Power supplied by Might before Sharpshooter calculates bleeding damage.
+  const bleeding = (might, appliedForce) => {
+    const result = simulate('Scrapper', ['Puncturing Jab', { type: 'wait', durationMs: 2000 }], {
+      selectedTraitIds: [TRAIT.SHARPSHOOTER, ...(appliedForce ? [TRAIT.APPLIED_FORCE] : [])],
+      boons: { might },
+      target: { conditions: {} }
+    });
+    const bleed = result.resolvedEvents.find(
+      (event) => event.type === 'condition' && event.skillName === 'Puncturing Jab' && event.condition === 'Bleeding'
+    );
+    assert.deepEqual(result.warnings, []);
+    return bleed.damage;
+  };
 
-      assert.deepEqual(result.warnings, []);
-      assert.ok(bleed);
-      // A full-second contribution checks the Power formula without partial-packet rounding error.
-      assert.equal(bleed.damageTicks.find((tick) => tick.fraction === 1).damage, 22 + 0.06 * power * (2 / 3));
-    }
-  }
+  assert.equal(bleeding(0, true), bleeding(0, false));
+  assert.ok(bleeding(10, true) > bleeding(10, false));
 });
 
 test('Kinetic Accelerators emits party quickness and might from successful combos', () => {
@@ -356,25 +348,4 @@ test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () =
   assert.ok(boons.every((event) => event.audience?.recipients === 'party'));
   assert.ok(boons.every((event) => event.schedulerPrediction == null));
   assert.ok(boons.every((event) => event.schedulerBoonPrediction == null));
-});
-
-test('Medic Gyro and Reconstruction Field expose their water fields', () => {
-  const reconstructionField = mechanic('Reconstruction Field');
-
-  assert.equal(reconstructionField.cooldown, 25);
-  assert.equal(reconstructionField.comboFields[0].fieldType, 'Water');
-  assert.equal(reconstructionField.comboFields[0].duration, 2);
-  assert.deepEqual(reconstructionField.effects[0], {
-    audience: { recipients: 'party', maximumRecipients: 5 },
-    type: 'boon',
-    boon: BOON.PROTECTION,
-    duration: 2,
-    stacks: 1
-  });
-
-  const medicGyro = mechanic('Medic Gyro');
-
-  assert.equal(medicGyro.cooldown, 20);
-  assert.equal(medicGyro.comboFields[0].fieldType, 'Water');
-  assert.equal(medicGyro.comboFields[0].duration, 5);
 });

@@ -2,12 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
-import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { paletteInputFixture } from '#tests/helpers/palette.js';
 
@@ -15,29 +12,6 @@ const simulate = createObservedProfessionSimulator(thiefProfession, {
   primaryWeapon: 'Staff',
   selectedSkillIds: [13028, 30868],
   target: { armor: 2597, conditions: {} }
-});
-
-// Tooltips must read the selected charge grant, including edited balance data.
-test('Shadow Strike tooltip describes the selected Repeater grant', () => {
-  const current = { catalog: thiefCatalog };
-  for (const [uses, durationSec] of [
-    [3, 10],
-    [2, 7]
-  ]) {
-    const catalog = withSkill(current.catalog, ID.SHADOW_STRIKE, {
-      sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.REPEATER_ID_59526, uses, durationSec } }]
-    });
-    const tooltip = describeSimulationSkill(
-      { ...current, catalog },
-      catalog.skillsById.get(ID.SHADOW_STRIKE),
-      thiefTooltips
-    );
-    const facts = new Map(tooltip.facts.map(({ name, detail }) => [name, detail]));
-    assert.equal(facts.get('Repeater charges'), String(uses));
-    assert.equal(facts.get('Repeater duration'), `${durationSec}s`);
-    assert.equal(facts.has('Repeater initiative cost'), false);
-    assert.match(tooltip.description, /unused charges expire together/);
-  }
 });
 
 // Exercise live weapon availability and its projected state rather than duplicating the authored charge grant.

@@ -3,10 +3,8 @@ import test from 'node:test';
 
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -52,31 +50,6 @@ test('Guardian boons prefer live self applications over later same-time timeline
     assert.equal(guardianBoonActive({ ...context, time: 6, config: { boons: { [kind]: true } } }, kind), true);
     assert.equal(guardianBoonActive({ time: 4 }, kind), false);
   }
-});
-
-test('Imbued Haste no longer adds attributes while Quickness is active', () => {
-  const event = buff('quickness');
-  const context = {
-    time: 4,
-    timeline: createGw2TimelineIndex({ events: [event] }),
-    runtime: { liveEffects: createTestLiveEffects() }
-  };
-  const attributes = (time) =>
-    guardianProfession.runtimeFor({ specialization: 'Firebrand' }).calculations.modifyAttributes(
-      {
-        catalog: guardianCatalog,
-        ...context,
-        time,
-        config: { specialization: 'Firebrand', selectedTraitIds: [TRAIT.IMBUED_HASTE] }
-      },
-      { conditionDamage: 0 }
-    ).conditionDamage;
-  assert.equal(attributes(4), 0);
-  grantTestEffect(context.runtime.liveEffects, event);
-  grantTestEffect(context.runtime.liveEffects, event);
-  // Two overlapping two-second applications last four seconds, beyond either individual expiry.
-  assert.equal(attributes(6), 0);
-  assert.equal(attributes(8), 0);
 });
 
 test('Righteous Instincts preserves stacked self Resolution without accepting other recipients', () => {

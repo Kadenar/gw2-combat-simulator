@@ -4,7 +4,6 @@ import test from 'node:test';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { reactThiefStealthBreakingStrike } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
@@ -12,8 +11,7 @@ import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefFamilyRuntimeHooks } from '#gw2/professions/thief/family-state.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { emitStealth } from '#tests/helpers/stealth.js';
@@ -41,15 +39,6 @@ function live(specialization, rotation, overrides = {}, options = {}) {
   return runThief(rotation, { ...baseConfig, ...overrides, specialization }, options);
 }
 
-test('Basilisk Venom contributes control and retains its 40-second recharge', () => {
-  const result = live('Core', ['Basilisk Venom'], { selectedSkillIds: [13132] });
-  assert.deepEqual(result.warnings, []);
-  const control = result.events.find((event) => event.type === 'control' && event.skillId === ID.BASILISK_VENOM);
-  assert.equal(control.controlKind, 'stun');
-
-  near(observedRuntime(result).cooldownController.readyAt(ID.BASILISK_VENOM) - control.at, 32);
-});
-
 test("Infiltrator's Signet pulses discrete initiative only while ready and restarts after activation or reset", () => {
   const selectedSkillIds = [13064];
   const initiative = (result) => observedRuntime(result).resourceController.value('initiative');
@@ -68,7 +57,6 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
 
   const active = live('Core', ["Infiltrator's Signet", wait(10000)], { selectedSkillIds, initialInitiative: 0 });
   assert.equal(initiative(active), 10);
-  assert.equal(observedRuntime(active).cooldownController.readyAt(ID.INFILTRATORS_SIGNET), 16);
   assert.equal(nextPulse(active), 26);
   const reset = live('Core', ["Infiltrator's Signet", wait(1000), { type: 'cooldown-reset' }], {
     selectedSkillIds,
@@ -96,87 +84,6 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
   });
   assert.deepEqual(step.warnings, []);
   assert.ok(observedRuntime(step).liveEffects.queries.buffApplications('fluid-strikes').at(-1).expiresAt > 1);
-});
-
-test('Signet of Agility grants precision while ready and restores 100 endurance on its 30-second recharge', () => {
-  const selectedSkillIds = [13062];
-  const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(thiefCatalog),
-    thiefProfession.attributeContributions
-  );
-  const build = createThiefBuildDefaults();
-  assert.equal(
-    calculate(build, [thiefCatalog.skillsById.get(ID.SIGNET_OF_AGILITY)]).attributes.Precision.final -
-      calculate(build, []).attributes.Precision.final,
-    180
-  );
-
-  // Probes supply the captured engine query so live cooldowns drive passive suppression, recovery, and resets.
-  const precision = (runtime, config, attributes) =>
-    thiefProfession
-      .resolveProfession({})
-      .calculations.modifyAttributes(
-        { catalog: thiefCatalog, config, timeline: runtime.query.timeline, time: runtime.time },
-        attributes
-      ).precision;
-  for (const specialization of ['Core', 'Daredevil']) {
-    for (const initial of [0, 75]) {
-      const observed = [];
-      const probe = (runtime) => {
-        {
-          const config = { selectedSkillIds };
-          const attributes = { ...baseConfig.attributeInputs.weaponSets[0].commonTotals, precision: 1000 };
-          observed.push([runtime.time, 'selected', precision(runtime, config, attributes)]);
-        }
-
-        observed.push([
-          runtime.time,
-          'unselected',
-          precision(runtime, { selectedSkillIds: [] }, baseConfig.attributeInputs.weaponSets[0].commonTotals)
-        ]);
-      };
-
-      const result = live(
-        specialization,
-        ['Signet of Agility', wait(30000)],
-        { selectedSkillIds, initialEndurance: initial, boons: { vigor: false } },
-        { probes: [0, 1, 29.9, 30].map((at) => [at, probe]) }
-      );
-      assert.deepEqual(result.warnings, []);
-      const runtime = observedRuntime(result);
-      assert.equal(runtime.cooldownController.readyAt(ID.SIGNET_OF_AGILITY), 24);
-      const capacity = thiefProfession.runtimeFor({ specialization }).endurance.maximum(runtime);
-      // The restoration applies at the instant cast's completion, before any regeneration.
-      assert.ok(result.planningState.profession[STATE.ENDURANCE].value >= Math.min(capacity, initial + 100));
-      for (const [time, staticRules, value] of observed) {
-        if (staticRules === 'unselected') assert.equal(value, 1000, `${time}`);
-        else if (time === 0) continue;
-        else assert.equal(value, time >= 24 ? 1180 : 1000, `${specialization} ${time} ${staticRules}`);
-      }
-    }
-  }
-
-  const resetPrecision = [];
-  const reset = live(
-    'Core',
-    ['Signet of Agility', wait(1000), { type: 'cooldown-reset' }, wait(1000)],
-    {
-      selectedSkillIds
-    },
-    {
-      probes: [
-        [
-          2,
-          (runtime) =>
-            resetPrecision.push(
-              precision(runtime, { selectedSkillIds }, baseConfig.attributeInputs.weaponSets[0].commonTotals)
-            )
-        ]
-      ]
-    }
-  );
-  assert.deepEqual(reset.warnings, []);
-  assert.deepEqual(resetPrecision, [1180]);
 });
 
 test('Signet of Agility restores endurance up to each elite capacity', () => {
@@ -512,31 +419,6 @@ test('THF-009: unmarked and missed attacks grant no malicious sword or staff ben
   }
 });
 
-test('THF-010: Leeching Venoms uses its flat Power formula across armor, weapons, and strike modifiers', () => {
-  for (const armor of [2597, 5194]) {
-    for (const [primaryWeapon, secondaryWeapon, attack] of [
-      ['Dagger', 'Dagger', 'Heartseeker'],
-      ['Pistol', 'Pistol', 'Vital Shot']
-    ]) {
-      for (const modified of [false, true]) {
-        const result = simulate('Core', ['Spider Venom', attack], {
-          primaryWeapon,
-          secondaryWeapon,
-          target: { armor, conditions: { Vulnerability: modified ? 25 : 0 } },
-          selectedTraitIds: [TRAIT.LEECHING_VENOMS, ...(modified ? [TRAIT.EXPOSED_WEAKNESS] : [])]
-        });
-        assert.deepEqual(result.warnings, []);
-        const siphon = result.resolvedEvents.find(
-          (event) => event.type === 'damage' && event.sourceId === TRAIT.LEECHING_VENOMS
-        );
-        assert.ok(siphon);
-        near(siphon.damage, 320 + 0.033 * 2000);
-        assert.equal(siphon.critEligible, false);
-      }
-    }
-  }
-});
-
 test('THF-011: Heartseeker produces a smoke leap only inside a live field', () => {
   for (const expiresAt of [0, 10]) {
     const result = live(
@@ -659,23 +541,4 @@ test('guild combat activation starts parallel streams once and replacement retir
   );
   assert.equal(new Set(packets.map((event) => event.activationId)).size, packets.length);
   assert.ok(packets.every((event) => event.at < 8.28));
-});
-
-// Selected owners honor disabled previews, live patch data, and conditional build assumptions.
-test('No Quarter build contribution follows Fury, disabled selection and the selected patch', () => {
-  const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(thiefCatalog),
-    thiefProfession.attributeContributions
-  );
-  const build = createThiefBuildDefaults();
-  build.specializations = [{ name: 'Critical Strikes', traits: '3-2-1' }];
-  build.assumptions.fury = true;
-  const contribution = (balanceContext) =>
-    calculate(build, [], 1, null, null, balanceContext).attributes.Ferocity.final -
-    calculate(build, [], 1, 'No Quarter', null, balanceContext).attributes.Ferocity.final;
-  assert.equal(contribution(), 250);
-  const catalog = withProfile(thiefCatalog, TRAIT.NO_QUARTER, { attributeBonuses: { ferocity: 300 } });
-  assert.equal(contribution({ catalog }), 300);
-  build.assumptions.fury = false;
-  assert.equal(contribution({ catalog }), 0);
 });

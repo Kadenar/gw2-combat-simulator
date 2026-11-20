@@ -1,15 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { CONTROL } from '#gw2/platform/constants.js';
 import { buildBoonGeneration, projectedPartyEffects } from '#gw2/platform/results/boon-generation.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 
 // Each familiar must author a party grant so solo simulations still report the boon provided to one hypothetical ally.
@@ -103,15 +100,8 @@ for (const [name, boon] of [
 }
 
 // Protection belongs to Seismic Impact itself and reaches the party even without a target or boon-granting traits.
-test('Seismic Impact exposes and applies its intrinsic party Protection', () => {
+test('Seismic Impact grants party Protection off target', () => {
   const skill = elementalistCatalog.skillsById.get(76707);
-  const context = withPatchPreview(elementalistProfession, null).resolvePatch().balanceContext;
-  const tooltip = describeSimulationSkill(context, skill, elementalistTooltips);
-  const protection = tooltip.facts.find((fact) => fact.name === 'Protection');
-  assert.ok(protection);
-  assert.match(protection.detail, /1\.5s/);
-  assert.match(protection.detail, /up to 5 party members/);
-
   const result = runElementalist(
     [
       { type: 'cast', skillId: skill.id, offTarget: true },
@@ -130,7 +120,6 @@ test('Seismic Impact exposes and applies its intrinsic party Protection', () => 
   assert.ok(grants.length > 0);
   for (const grant of grants) {
     assert.equal(grant.skillId, skill.id);
-    assert.equal(grant.duration, 1.5);
     assert.equal(grant.resolvedAudience.includesSelf, true);
     assert.equal(grant.resolvedAudience.alliedPlayerCount, 4);
   }

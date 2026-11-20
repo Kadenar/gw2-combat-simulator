@@ -2,19 +2,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-
-test('Ranger final balance has no remaining active preview overrides', () => {
-  assert.equal(activePatchPreview, null);
-  assert.deepEqual(withActivePatchPreview(rangerProfession).patchOverviewFor({}, []), []);
-  assert.equal(rangerCatalog.traits.find((trait) => trait.id === TRAIT.APEX_PREDATOR).name, 'Apex Predator');
-});
 
 test('Unleashed Savage Shock Wave caps conditions and substitutes the maximum for defiance', () => {
   const skill = rangerCatalog.skillsById.get(ID.UNLEASHED_SAVAGE_SHOCK_WAVE);

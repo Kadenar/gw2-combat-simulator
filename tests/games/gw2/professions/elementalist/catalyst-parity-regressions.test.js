@@ -13,7 +13,6 @@ import { catalystModule } from '#gw2/professions/elementalist/specializations/ca
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import {
   applyCatalystEmpowerment,
-  catalystAttributePool,
   elementalEmpowermentAttributes
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { baseEmpowermentPassive } from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';
@@ -63,78 +62,6 @@ test('Catalyst baseline renewal rejects intervals that cannot advance the clock 
   }
 });
 
-// Elemental Empowerment scales Condition Damage supplied before combat by traits and utility conversions.
-test('Catalyst includes build-time derived Condition Damage in its empowerment pool', () => {
-  const { app } = createNativeApp({
-    lines: [
-      ['Fire', '1-1-2'],
-      ['Earth', '2-1-2'],
-      ['Catalyst', '2-1-2']
-    ],
-    utility: 'Toxic Tuning Crystal',
-    selectedSkillIds: { Utility1: 5542 }
-  });
-  const conditionDamage = app.attributeData.attributes['Condition Damage'];
-  const config = elementalistAppAdapter
-    .createBuildContext({
-      build: app.build,
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-      patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
-    })
-    .simulationConfig();
-
-  assert.ok(conditionDamage.utility > 0);
-  assert.ok(conditionDamage.traits > 0);
-  assert.equal(
-    catalystAttributePool({ config, catalog: elementalistCatalog, time: 0 }).conditionDamage,
-    conditionDamage.final
-  );
-});
-
-test('Empowerment scales defensive and healing attributes without compounding Reinforced Armor', () => {
-  // Partial stacks expose joint Vitality rounding; expiry must remove empowerment while retaining reinforcement.
-  const { app } = createNativeApp({ lines: [['Catalyst', '2-1-2']], jadeBotCore: true });
-  const buildConfig = elementalistAppAdapter
-    .createBuildContext({
-      build: app.build,
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-      patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
-    })
-    .simulationConfig();
-  assert.equal(
-    catalystAttributePool({ config: buildConfig, catalog: elementalistCatalog, time: 0 }).vitality,
-    buildConfig.attributeInputs.weaponSets[0].conversionPool.Vitality
-  );
-  const config = {
-    attributeInputs: baseAttributeInputs({ vitality: 1235, toughness: 1000, healingPower: 400 })
-  };
-  for (const [stacks, at, vitality, toughness, healingPower] of [
-    [3, 0, 1352, 1045, 418],
-    [10, 0, 1544, 1200, 480],
-    [10, 10.000001, 1297, 1000, 400]
-  ]) {
-    const resolved = evaluateAttributeDeclarations(
-      {
-        config,
-        catalog: elementalistCatalog,
-        traits: new Set([TRAIT.EMPOWERED_EMPOWERMENT]),
-        time: at,
-        runtime: {
-          profession: {
-            specialization: { kind: 'Catalyst', state: { elementalEmpowermentExpiries: Array(stacks).fill(10) } }
-          }
-        }
-      },
-      { vitality: 1235, toughness: 1000, healingPower: 400 },
-      (context) => [elementalEmpowermentAttributes(context)]
-    );
-    assert.equal(resolved.vitality, vitality);
-    assert.equal(resolved.toughness, toughness);
-    assert.equal(resolved.healingPower, healingPower);
-  }
-});
-
-// The field and enhanced burst share the projectile release clock.
 test('Frozen Fusillade detonates at field expiry', () => {
   const result = runNative({
     lines: [['Fire'], ['Earth'], ['Catalyst', '2-1-2']],

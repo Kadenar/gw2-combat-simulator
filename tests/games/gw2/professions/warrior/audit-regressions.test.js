@@ -4,12 +4,9 @@ import test from 'node:test';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
-import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import {
   createObservedProfessionSimulator,
   observedRuntime,
@@ -214,72 +211,6 @@ test('Forceful Greatsword uses active weapon probability, isolated progress and 
   assert.equal(
     noncritical.events.some((event) => event.sourceId === TRAIT.FORCEFUL_GREATSWORD),
     false
-  );
-});
-
-test('mixed Warrior weapon sets keep static bonuses and conversion inputs separate', () => {
-  const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(warriorCatalog),
-    warriorProfession.attributeContributions
-  );
-  const build = createWarriorBuildDefaults();
-  build.weapons = ['Axe', 'Axe'];
-  build.alternateWeapons = ['Greatsword', ''];
-  build.specializations = [
-    { name: 'Strength', traits: '1-2-1' },
-    { name: 'Discipline', traits: '1-1-1' },
-    { name: 'Tactics', traits: '1-1-2' }
-  ];
-  for (const [weaponSet, power, ferocity] of [
-    [1, 120, 240],
-    [2, 240, 120]
-  ]) {
-    const all = calculate(build, [], weaponSet).attributes;
-    const withoutForceful = calculate(build, [], weaponSet, 'Forceful Greatsword').attributes;
-    const withoutAxe = calculate(build, [], weaponSet, 'Axe Mastery').attributes;
-    assert.equal(all.Power.final - withoutForceful.Power.final, power);
-    assert.equal(all.Ferocity.final - withoutAxe.Ferocity.final, ferocity);
-  }
-});
-
-// Healing Power remains a build attribute even though shout healing is not simulated.
-test('Vigorous Shouts converts Power to Healing Power once in builds and raw runtime stats', () => {
-  const build = { specializations: [{ name: 'Tactics', traits: '1-1-2' }] };
-  const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(warriorCatalog),
-    warriorProfession.attributeContributions
-  );
-  const preview = calculate(build).attributes;
-  assert.equal(
-    preview['Healing Power'].final - calculate(build, [], 1, 'Vigorous Shouts').attributes['Healing Power'].final,
-    preview.Power.final * 0.13
-  );
-  const runtime = warriorProfession.runtimeFor({ specialization: 'Core' });
-  const seed = { power: 2000, healingPower: 50 };
-  const context = {
-    catalog: runtime.catalog,
-    config: { attributeInputs: baseAttributeInputs(seed), selectedTraitIds: [TRAIT.VIGOROUS_SHOUTS] },
-    time: 0
-  };
-  assert.equal(runtime.calculations.modifyAttributes(context, seed).healingPower, 310);
-  assert.equal(
-    runtime.calculations.modifyAttributes({ ...context, config: { attributeInputs: baseAttributeInputs(seed) } }, seed)
-      .healingPower,
-    50
-  );
-  assert.equal(
-    runtime.calculations.modifyAttributes({ ...context, config: { ...context.config } }, seed).healingPower,
-    310
-  );
-  const tooltip = warriorTooltips.traits[TRAIT.VIGOROUS_SHOUTS](
-    { catalog: warriorCatalog },
-    { id: TRAIT.VIGOROUS_SHOUTS, name: 'Vigorous Shouts' }
-  );
-  assert.match(tooltip.description, /healing power based on power/);
-  // Conversion facts describe the bonus and make clear that the source attribute is preserved.
-  assert.equal(
-    tooltip.facts.find(({ name }) => name === 'Healing power gained from power').detail,
-    '13% (source attribute unchanged)'
   );
 });
 

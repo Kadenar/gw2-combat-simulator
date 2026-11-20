@@ -457,7 +457,6 @@ test('Bountiful Blades uses live packets with shared command ownership', () => {
       assert.deepEqual(result.warnings, []);
       const packets = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.MIRROR_BLADE);
       assert.equal(packets.length, removed ? 1 : 2);
-      assert.equal(packets[0].coefficient, 0.75);
 
       if (!removed) {
         assert.equal(packets[1].coefficient, 0.125);

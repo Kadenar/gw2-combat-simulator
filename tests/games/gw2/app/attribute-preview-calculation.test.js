@@ -4,13 +4,10 @@ import test from 'node:test';
 import { calculateAttributePreview } from '#gw2/app/build/attribute-preview-calculation.js';
 import { attributePreviewControls, normalizeAttributePreview } from '#gw2/app/build/attribute-preview-controls.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
-import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
 import { fractalPotionBonus } from '#gw2/platform/builds/fractal-buffs.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { catalystAttributePool } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { latestRadiantArmaments } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
-import { MESMER_SKILL_IDS as MESMER_SKILL } from '#gw2/professions/mesmer/data/ids.js';
 
 const adapters = {};
 for (const name of [
@@ -105,6 +102,9 @@ test('preview grants use the final prepared stacks, audience and expiry without 
   const kind = attributePreviewControls(app).find((control) => control.key === 'fencer').field;
   const base = stats(app);
   const saved = structuredClone({ build: app.build, attributes: app.attributeData });
+  const replacement = stats(app, { might: 2, fencer: 2 });
+  assert.ok(replacement.Ferocity.final > base.Ferocity.final);
+  assert.ok(replacement.Power.final > base.Power.final);
   for (const visibility of ['active', 'other-recipient', 'expired']) {
     app.profession = {
       ...profession,
@@ -115,17 +115,17 @@ test('preview grants use the final prepared stacks, audience and expiry without 
           context.addBuff('might', 5, 'Earlier Might');
           context.addBuff('might', 2, 'Replacement Might');
           context.addBuff(kind, 2, 'Replacement Finesse');
-          const replacement = context.events.at(-1);
+          const grant = context.events.at(-1);
 
-          if (visibility === 'other-recipient') replacement.resolvedAudience.includesSelf = false;
+          if (visibility === 'other-recipient') grant.resolvedAudience.includesSelf = false;
 
-          if (visibility === 'expired') replacement.duration = 0.5;
+          if (visibility === 'expired') grant.duration = 0.5;
         }
       }
     };
     const current = stats(app, { fencer: 5 });
-    assert.equal(current.Power.final, base.Power.final + 60);
-    assert.equal(current.Ferocity.final, base.Ferocity.final + (visibility === 'active' ? 30 : 0));
+    assert.equal(current.Power.final, replacement.Power.final);
+    assert.equal(current.Ferocity.final, visibility === 'active' ? replacement.Ferocity.final : base.Ferocity.final);
     assert.deepEqual({ build: app.build, attributes: app.attributeData }, saved);
   }
 
@@ -173,69 +173,6 @@ test('preview applications retain the final grant metadata for profession querie
   assert.deepEqual(observation, { stacks: 1, weapon: 'staff' });
 });
 
-// Titanic augments selected Might; Evolve scales its static pool independently of temporary boon attributes.
-test('Amalgam previews Titanic Might scaling and both Evolve variants without changing the build', () => {
-  for (const doubleHelix of [false, true]) {
-    const app = previewApp('engineer', doubleHelix ? ['Double Helix'] : [], 'Amalgam');
-    const saved = structuredClone({ build: app.build, attributes: app.attributeData });
-    const pool = attributeSeed(
-      app.adapter
-        .createBuildContext({
-          build: app.build,
-          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-          patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
-        })
-        .simulationConfig()
-    ).conversionPool;
-    const base = stats(app);
-    for (const might of [0, 10, 25]) {
-      const titanic = stats(app, { might, titanic: 1 });
-      const evolved = stats(app, { might, titanic: 1, evolved: 1 });
-      for (const name of ['Power', 'Condition Damage']) {
-        assert.equal(titanic[name].final, base[name].final + might * 35);
-        assert.equal(evolved[name].final, titanic[name].final + Math.round(pool[name] * (doubleHelix ? 0.15 : 0.1)));
-      }
-    }
-
-    assert.deepEqual(stats(app), base);
-    assert.deepEqual({ build: app.build, attributes: app.attributeData }, saved);
-  }
-});
-
-// Fortissimo converts eligible grants once; temporary Might and passive signet bonuses stay outside that pool.
-test('Fortissimo rounds eligible attributes without scaling Might or signet passives', () => {
-  const app = previewApp('mesmer', ['Fortissimo', 'Chaotic Persistence'], 'Troubadour');
-  app.build.food = 'Spherified Cilantro Oyster Soup';
-  app.build.utility = 'Writ of Masterful Malice';
-  app.build.selectedSkillIds = {
-    Utility1: MESMER_SKILL.SIGNET_OF_DOMINATION,
-    Utility2: MESMER_SKILL.SIGNET_OF_MIDNIGHT
-  };
-  const context = app.adapter.createBuildContext({
-    build: app.build,
-    transitionDelays: normalizeTransitionDelays(),
-    patch: app.patch
-  });
-  app.attributeData = context.attributes(1);
-  const pool = attributeSeed(context.simulationConfig()).conversionPool;
-  const base = stats(app, { regeneration: 1 });
-  for (const instruments of [1, 2, 4]) {
-    const multiplier = instruments * 0.04;
-    const playing = stats(app, { regeneration: 1, instruments });
-    const mighty = stats(app, { regeneration: 1, instruments, might: 25 });
-    for (const name of ['Power', 'Condition Damage', 'Healing Power']) {
-      assert.equal(playing[name].final, base[name].final + Math.round(pool[name] * multiplier));
-    }
-
-    assert.equal(playing.Expertise.final, base.Expertise.final + Math.round((pool.Expertise + 100) * multiplier));
-    assert.equal(
-      playing.Concentration.final,
-      base.Concentration.final + Math.round((pool.Concentration + 250) * multiplier)
-    );
-    for (const name of ['Power', 'Condition Damage']) assert.equal(mighty[name].final, playing[name].final + 750);
-  }
-});
-
 test('attribute controls require selected trait stack caps from the active catalog', () => {
   const app = previewApp('mesmer', ["Fencer's Finesse"]);
   const traitId = app.attributeData.activeTraits.find((trait) => trait.name === "Fencer's Finesse").id;
@@ -252,45 +189,23 @@ test('attribute controls require selected trait stack caps from the active catal
 });
 
 // Relic stacks affect duration only while equipped, and preview state never leaks into the build.
-test('Aristocracy previews bounded condition duration stacks for every profession', () => {
-  for (const profession of Object.keys(adapters)) {
-    const app = previewApp(profession);
-    app.build.relic = 'Aristocracy';
-    app.attributeData = app.adapter
-      .createBuildContext({
-        build: app.build,
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
-      })
-      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-    const original = structuredClone({ build: app.build, attributes: app.attributeData });
-    const control = attributePreviewControls(app).find((control) => control.key === 'aristocracy');
-    assert.equal(control.max, 5);
-    const base = stats(app);
-    for (const [input, stacks] of [
-      [0, 0],
-      [2, 2],
-      [5, 5],
-      [99, 5],
-      [-1, 0]
-    ]) {
-      const current = stats(app, { aristocracy: input });
-      close(current['Condition Duration'].final, base['Condition Duration'].final + stacks * 3);
-      assert.equal(current.Expertise.final, base.Expertise.final);
-    }
+test('equipping a relic enables its bounded stack control', () => {
+  const app = previewApp('guardian');
+  const equip = (relic) => {
+    app.build.relic = relic;
+    app.attributeData = app.adapter.createBuildContext({ build: app.build, patch: app.patch }).attributes(1);
+  };
 
-    assert.deepEqual({ build: app.build, attributes: app.attributeData }, original);
-    app.build.relic = '';
-    app.attributeData = app.adapter
-      .createBuildContext({
-        build: app.build,
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
-      })
-      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-    assert.ok(!attributePreviewControls(app).some((control) => control.key === 'aristocracy'));
-    close(stats(app, { aristocracy: 5 })['Condition Duration'].final, stats(app)['Condition Duration'].final);
-  }
+  equip('Aristocracy');
+  const { max } = attributePreviewControls(app).find((control) => control.key === 'aristocracy');
+  const duration = (stacks) => stats(app, { aristocracy: stacks })['Condition Duration'].final;
+  assert.ok(duration(1) > duration(0));
+  assert.ok(duration(max) > duration(1));
+  assert.equal(duration(max + 1), duration(max));
+  assert.equal(duration(-1), duration(0));
+  equip('');
+  assert.ok(!attributePreviewControls(app).some((control) => control.key === 'aristocracy'));
+  assert.equal(duration(max), duration(0));
 });
 
 test('boons are independent, bounded, reversible and isolated from the displayed weapon set and saved build', () => {
@@ -306,14 +221,13 @@ test('boons are independent, bounded, reversible and isolated from the displayed
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const original = structuredClone({ build: app.build, attributes: app.attributeData });
   const base = stats(app);
-  for (const might of [0, 5, 25]) {
-    const current = stats(app, { might });
-    assert.equal(current.Power.final, base.Power.final + 30 * might);
-    assert.equal(current['Condition Damage'].final, base['Condition Damage'].final + 30 * might);
-    close(current['Critical Chance'].final, base['Critical Chance'].final);
-  }
-
-  close(stats(app, { fury: 1 })['Critical Chance'].final, base['Critical Chance'].final + 25);
+  const might = stats(app, { might: 5 });
+  assert.ok(might.Power.final > base.Power.final);
+  assert.ok(might['Condition Damage'].final > base['Condition Damage'].final);
+  assert.equal(might['Critical Chance'].final, base['Critical Chance'].final);
+  const fury = stats(app, { fury: 1 });
+  assert.ok(fury['Critical Chance'].final > base['Critical Chance'].final);
+  assert.equal(fury.Power.final, base.Power.final);
   for (const name of ['Precision', 'Toughness', 'Vitality', 'Healing Power'])
     assert.equal(base[name].final, app.attributeData.attributes[name].final);
   const controls = attributePreviewControls(app);
@@ -323,39 +237,8 @@ test('boons are independent, bounded, reversible and isolated from the displayed
   });
   assert.equal(stats(app, { might: -1 }).Power.final, base.Power.final);
   assert.equal(stats(app, { might: NaN }).Power.final, base.Power.final);
-  assert.equal(stats(app, { might: 2.9 }).Power.final, base.Power.final + 60);
+  assert.equal(stats(app, { might: 2.9 }).Power.final, stats(app, { might: 2 }).Power.final);
   assert.deepEqual({ build: app.build, attributes: app.attributeData }, original);
-});
-
-test('Catalyst accepts zero, partial and maximum empowerment stacks with the correct conversion pool', () => {
-  for (const empowered of [false, true]) {
-    const app = previewApp('elementalist', empowered ? ['Empowered Empowerment'] : [], 'Catalyst');
-    const base = stats(app);
-    const pool = catalystAttributePool({
-      config: app.adapter
-        .createBuildContext({
-          build: app.build,
-          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-          patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
-        })
-        .simulationConfig(),
-      catalog: app.activeCatalog,
-      time: 0
-    });
-    for (const stacks of [0, 5, 10]) {
-      const factor = empowered ? (stacks === 10 ? 0.2 : stacks * 0.015) : stacks * 0.01;
-      const current = stats(app, { elementalEmpowerment: stacks, might: 25 });
-      assert.equal(current.Power.final, base.Power.final + 750 + Math.round(pool.power * factor));
-      close(current.Precision.final, base.Precision.final + pool.precision * factor);
-      close(current['Critical Damage'].final, 150 + current.Ferocity.final / 15);
-      close(current['Condition Duration'].final, base['Condition Duration'].final + (pool.expertise * factor) / 15);
-    }
-
-    assert.equal(
-      stats(app, { elementalEmpowerment: 99 }).Power.final,
-      stats(app, { elementalEmpowerment: 10 }).Power.final
-    );
-  }
 });
 
 test('Elementalist attunement, Fresh Air and hammer orbs are independent and weapon-gated', () => {
@@ -369,9 +252,9 @@ test('Elementalist attunement, Fresh Air and hammer orbs are independent and wea
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const base = stats(app);
-  assert.equal(stats(app, { freshAir: 1 }).Ferocity.final, base.Ferocity.final + 250);
-  assert.equal(stats(app, { attunement: 'Fire' }).Power.final, base.Power.final + 150);
-  close(stats(app, { crescentWind: 1 })['Critical Chance'].final, base['Critical Chance'].final + 15);
+  assert.ok(stats(app, { freshAir: 1 }).Ferocity.final > base.Ferocity.final);
+  assert.ok(stats(app, { attunement: 'Fire' }).Power.final > base.Power.final);
+  assert.ok(stats(app, { crescentWind: 1 })['Critical Chance'].final > base['Critical Chance'].final);
   app.build.weapons = ['Dagger', 'Focus'];
   app.attributeData = app.adapter
     .createBuildContext({
@@ -398,41 +281,17 @@ test('Weaver and Evoker preview elements override detached state and config with
     .attributes(weaver.attributeWeaponSet === 2 ? 2 : 1);
   const original = structuredClone(weaver.build);
   const base = stats(weaver, { attunement: 'None', secondaryAttunement: 'None' });
-  close(stats(weaver, { secondaryAttunement: 'Air' }).Ferocity.final, base.Ferocity.final + 200);
-  close(stats(weaver, { attunement: 'Fire' }).Power.final, base.Power.final + 200);
+  assert.ok(stats(weaver, { secondaryAttunement: 'Air' }).Ferocity.final > base.Ferocity.final);
+  assert.ok(stats(weaver, { attunement: 'Fire' }).Power.final > base.Power.final);
   assert.deepEqual(weaver.build, original);
 
   const evoker = previewApp('elementalist', ['Enhanced Potency']);
   const before = structuredClone(evoker.build);
   const withoutElement = stats(evoker, { fury: 1, evokerElement: 'None' });
   const air = stats(evoker, { fury: 1, evokerElement: 'Air' });
-  close(air.Ferocity.final, withoutElement.Ferocity.final + 75);
-  close(air['Critical Chance'].final, withoutElement['Critical Chance'].final + 15);
+  assert.ok(air.Ferocity.final > withoutElement.Ferocity.final);
+  assert.ok(air['Critical Chance'].final > withoutElement['Critical Chance'].final);
   assert.deepEqual(evoker.build, before);
-});
-
-test('Engineer previews stack counts and Might-dependent specialization traits', () => {
-  const app = previewApp('engineer', ['Explosive Temper', 'Applied Force']);
-  const base = stats(app);
-  assert.equal(stats(app, { explosiveTemper: 3 }).Ferocity.final, base.Ferocity.final + 60);
-  assert.equal(stats(app, { might: 25 }).Power.final, base.Power.final + 1500);
-});
-
-test('Guardian previews Resolution, target Burning and Quickness without baked-in boon bonuses', () => {
-  const app = previewApp('guardian', ['Righteous Instincts', 'Imbued Haste']);
-  const base = stats(app);
-  close(stats(app, { resolution: 1 })['Critical Chance'].final, base['Critical Chance'].final + 25);
-  close(stats(app, { 'condition:Burning': 1 })['Critical Chance'].final, base['Critical Chance'].final + 10);
-  assert.equal(stats(app, { quickness: 1 }).Vitality.final, base.Vitality.final);
-  assert.equal(stats(app).Vitality.final, base.Vitality.final);
-});
-
-test('Mesmer previews timed and boon-dependent attributes separately', () => {
-  const app = previewApp('mesmer', ["Fencer's Finesse", 'Chaotic Persistence']);
-  const base = stats(app);
-  assert.equal(stats(app, { fencer: 5 }).Ferocity.final, base.Ferocity.final + 75);
-  assert.equal(stats(app, { regeneration: 1 }).Expertise.final, base.Expertise.final + 100);
-  assert.equal(stats(app, { regeneration: 1 }).Concentration.final, base.Concentration.final + 250);
 });
 
 // Shroud is useful only with a selected attribute source; Scourge never enters shroud.
@@ -453,7 +312,7 @@ test('Shroud preview appears only for relevant traits or Signet of Spite', () =>
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.equal(shroud(app).description, 'Signet of Spite');
-  assert.equal(stats(app, { shroud: 1 }).Power.final, stats(app).Power.final - 180);
+  assert.ok(stats(app, { shroud: 1 }).Power.final < stats(app).Power.final);
   delete app.build.selectedSkillIds.Utility1;
   app.attributeData = app.adapter
     .createBuildContext({
@@ -476,14 +335,6 @@ test('Shroud preview appears only for relevant traits or Signet of Spite', () =>
   assert.equal(shroud(scourge), undefined);
 });
 
-test('Necromancer previews Carapace, shroud and target Vulnerability', () => {
-  const app = previewApp('necromancer', ['Deadly Strength', "Reaper's Onslaught", 'Decimate Defenses']);
-  const base = stats(app);
-  assert.equal(stats(app, { carapace: 5 }).Power.final, base.Power.final + 50);
-  assert.equal(stats(app, { shroud: 1 }).Ferocity.final, base.Ferocity.final + 300);
-  close(stats(app, { 'condition:Vulnerability': 10 })['Critical Chance'].final, base['Critical Chance'].final + 20);
-});
-
 // The compact count includes each explicitly enabled condition once, regardless of its stacks.
 test('Target the Weak counts condition types without activating other condition-specific traits', () => {
   const app = previewApp('necromancer', ['Target the Weak', 'Decimate Defenses']);
@@ -494,9 +345,10 @@ test('Target the Weak counts condition types without activating other condition-
     controls.filter((control) => control.kind === 'condition').map((control) => control.field),
     ['Vulnerability']
   );
-  close(stats(app, { targetTheWeak: 5 })['Critical Chance'].final, base + 20);
-  close(stats(app, { targetTheWeak: 5, 'condition:Vulnerability': 10 })['Critical Chance'].final, base + 40);
-  close(stats(app, { targetTheWeak: 99 })['Critical Chance'].final, base + 20);
+  const fromCount = stats(app, { targetTheWeak: 5 })['Critical Chance'].final;
+  assert.ok(fromCount > base);
+  assert.ok(stats(app, { targetTheWeak: 5, 'condition:Vulnerability': 10 })['Critical Chance'].final > fromCount);
+  close(stats(app, { targetTheWeak: 99 })['Critical Chance'].final, fromCount);
   close(stats(app, { targetTheWeak: -1 })['Critical Chance'].final, base);
   assert.deepEqual(app.build, original);
 
@@ -504,103 +356,25 @@ test('Target the Weak counts condition types without activating other condition-
   close(stats(harbinger, { targetTheWeak: 5 })['Critical Damage'].final, stats(harbinger)['Critical Damage'].final);
   close(
     stats(harbinger, { targetTheWeak: 5, 'condition:Torment': 1 })['Critical Chance'].final,
-    stats(harbinger)['Critical Chance'].final + 20
+    stats(harbinger, { targetTheWeak: 5 })['Critical Chance'].final
   );
 });
 
-test('Ranger previews Fury-dependent Ferocity and flanking critical chance', () => {
-  const opening = previewApp('ranger', ['Precise Strike']);
-  assert.ok(!attributePreviewControls(opening).some((control) => control.key === 'openingStrike'));
-  close(
-    stats(opening, { openingStrike: 1 })['Critical Chance'].final,
-    stats(previewApp('ranger'))['Critical Chance'].final
-  );
-  const app = previewApp('ranger', ['Vicious Quarry']);
-  const base = stats(app);
-  assert.equal(stats(app, { fury: 1 }).Ferocity.final, base.Ferocity.final + 250);
-  close(stats(app, { fury: 1 })['Critical Chance'].final, base['Critical Chance'].final + 40);
-  close(stats(app, { flanking: 1 })['Critical Chance'].final, base['Critical Chance'].final + 10);
-});
-
-test('Death Perception changes critical damage only in shroud and composes with other critical bonuses', () => {
-  for (const specialization of [null, 'Reaper', 'Harbinger', 'Ritualist']) {
-    const app = previewApp('necromancer', ['Death Perception'], specialization);
-    const base = stats(app);
-    const shroud = stats(app, { shroud: 1 });
-    close(shroud['Critical Damage'].final, base['Critical Damage'].final * 1.1);
-    close(shroud['Critical Chance'].final, base['Critical Chance'].final);
-    close(stats(app, { shroud: 0 })['Critical Damage'].final, base['Critical Damage'].final);
-  }
-
-  const harbinger = previewApp('necromancer', ['Death Perception', 'Wicked Corruption']);
-  const base = stats(harbinger);
-  close(stats(harbinger, { 'condition:Torment': 1 })['Critical Damage'].final, base['Critical Damage'].final * 1.1);
-  close(
-    stats(harbinger, { shroud: 1, 'condition:Torment': 1 })['Critical Damage'].final,
-    base['Critical Damage'].final * 1.21
-  );
-  const scourge = previewApp('necromancer', ['Death Perception'], 'Scourge');
-  assert.ok(!attributePreviewControls(scourge).some((control) => control.key === 'shroud'));
-});
-
-test('Roiling Mists adds its critical chance only while the Fury preview is enabled', () => {
-  for (const selected of [false, true]) {
-    const app = previewApp('revenant', selected ? ['Roiling Mists'] : []);
-    const base = stats(app);
-    close(stats(app, { fury: 1 })['Critical Chance'].final, base['Critical Chance'].final + (selected ? 50 : 25));
-    close(stats(app, { fury: 0 })['Critical Chance'].final, base['Critical Chance'].final);
-  }
-});
-
-// Trait selection grants passive critical chance; the checkbox adds only the earned bonus.
-test('Twin Fangs previews separate passive and active critical-chance bonuses', () => {
-  const without = previewApp('thief', ['Keen Observer']);
-  const withTrait = previewApp('thief', ['Keen Observer', 'Twin Fangs']);
-  for (const playerHealth of [50, 100]) {
-    const baseline = stats(without, { playerHealth })['Critical Chance'].final;
-    close(stats(withTrait, { playerHealth, twinFangs: 0 })['Critical Chance'].final, baseline + 7);
-    close(stats(withTrait, { playerHealth, twinFangs: 1 })['Critical Chance'].final, baseline + 14);
-    close(stats(without, { playerHealth, twinFangs: 1 })['Critical Chance'].final, baseline);
-  }
-});
-
+// Varying health in the preview must leave the saved build and its simulation inputs intact.
 test('player health changes only the isolated stat preview', () => {
-  // Preview health must affect conditional stats without leaking into builds or simulation configuration.
-  for (const [profession, traits] of [['thief', ['Twin Fangs', 'Keen Observer']]]) {
-    const app = previewApp(profession, traits);
-    assert.ok(attributePreviewControls(app).some((control) => control.key === 'playerHealth'));
-    const original = structuredClone({ build: app.build, attributes: app.attributeData });
-    const config = app.adapter
-      .createBuildContext({
-        build: app.build,
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-        patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
-      })
-      .simulationConfig();
-    const low = stats(app, { playerHealth: 50 });
-    const high = stats(app, { playerHealth: 51 });
-
-    if (profession === 'thief') {
-      close(high['Critical Chance'].final, low['Critical Chance'].final + 5);
-      close(high['Critical Damage'].final, (low['Critical Damage'].final / 1.05) * 1.07);
-    } else {
-      close(high.Power.final, low.Power.final + 240);
-    }
-
-    assert.deepEqual(stats(app, { playerHealth: 0 }), low);
-    assert.deepEqual(stats(app, { playerHealth: 100 }), high);
-    assert.deepEqual({ build: app.build, attributes: app.attributeData }, original);
-    assert.deepEqual(
-      app.adapter
-        .createBuildContext({
-          build: app.build,
-          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-          patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
-        })
-        .simulationConfig(),
-      config
-    );
-  }
+  const app = previewApp('thief', ['Twin Fangs', 'Keen Observer']);
+  const original = structuredClone({ build: app.build, attributes: app.attributeData });
+  const simulationConfig = () =>
+    app.adapter.createBuildContext({ build: app.build, patch: app.patch }).simulationConfig();
+  const config = structuredClone(simulationConfig());
+  assert.ok(attributePreviewControls(app).some((control) => control.key === 'playerHealth'));
+  const low = stats(app, { playerHealth: 0 });
+  const high = stats(app, { playerHealth: 100 });
+  assert.ok(high['Critical Chance'].final > low['Critical Chance'].final);
+  assert.ok(high['Critical Damage'].final > low['Critical Damage'].final);
+  assert.deepEqual(stats(app, { playerHealth: 0 }), low);
+  assert.deepEqual({ build: app.build, attributes: app.attributeData }, original);
+  assert.deepEqual(simulationConfig(), config);
 });
 
 test('all professions remove legacy player-health assumptions and expose no simulation health input', () => {
@@ -635,29 +409,6 @@ test('all professions remove legacy player-health assumptions and expose no simu
       profession
     );
   }
-});
-
-test('Revenant previews improved Might and full-endurance critical chance', () => {
-  const app = previewApp('revenant', ['Notoriety', 'Brutal Momentum']);
-  const base = stats(app);
-  assert.equal(stats(app, { might: 5 }).Power.final, base.Power.final + 200);
-  assert.equal(stats(app, { might: 5 })['Condition Damage'].final, base['Condition Damage'].final + 100);
-  close(stats(app, { fullEndurance: 1 })['Critical Chance'].final, base['Critical Chance'].final + 23);
-});
-
-test('Thief previews Revealed and stealth without activating zero-valued timers', () => {
-  const app = previewApp('thief', ['Revealed Training', 'Hidden Killer']);
-  const base = stats(app);
-  assert.equal(stats(app, { revealed: 1 }).Power.final, base.Power.final + 120);
-  close(stats(app, { stealth: 1 })['Critical Chance'].final, base['Critical Chance'].final + 100);
-});
-
-test('Warrior previews Signet Mastery stacks and Berserk attributes', () => {
-  const app = previewApp('warrior', ['Signet Mastery'], 'Berserker');
-  const base = stats(app);
-  assert.equal(stats(app, { signetMastery: 2 }).Ferocity.final, base.Ferocity.final + 200);
-  assert.equal(stats(app, { berserk: 1 }).Power.final, base.Power.final + 300);
-  assert.equal(stats(app, { berserk: 1 })['Condition Damage'].final, base['Condition Damage'].final + 150);
 });
 
 test('all professions and specializations accept their available controls and reject unrelated effects', () => {

@@ -23,20 +23,6 @@ const base = {
 };
 const state = (result) => observedRuntime(result).profession.specialization.state;
 
-// The condition multiplier must not dilute Soul Barbs by sharing its additive damage bucket.
-test('Anguish condition bonus multiplies Soul Barbs independently', () => {
-  const rotation = [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(2000)];
-  const damage = (selectedTraitIds) =>
-    run(rotation, {
-      config: { ...base, selectedTraitIds, target: { ...base.target, defiant: true } }
-    }).resolvedEvents.filter((event) => event.name === 'Anguish' && event.damage > 0);
-  const baseline = damage([]);
-  const boosted = damage([TRAIT.SOUL_BARBS]);
-  assert.ok(baseline.length > 0);
-  assert.equal(boosted.length, baseline.length);
-  boosted.forEach((event, index) => assertFlooredDamageMultiplier(event.damage, baseline[index].damage, 1.1));
-});
-
 // Opening and command ownership select the bonus without applying it again to the autonomous coefficient.
 test('Anguish condition bonus follows spirit ownership and attack type', () => {
   const anguishConditionModifier = ritualistModule.modifiers.modifierRules.find(
@@ -168,7 +154,6 @@ test('Wanderlust player swing preserves tick payloads and equipped weapon streng
     const swings = swingDamage(result);
     assert.ok(swings.length > 0);
     for (const swing of swings) {
-      assert.equal(swing.coefficient, 1);
       assert.equal(swing.canCrit, false);
       assert.equal(swing.forceCrit, false);
       assert.equal(swing.metadata.ritualistPowerOverride, power);

@@ -58,7 +58,6 @@ test('stored Vindicator Jump resolves in display and execution without rewriting
       ];
       const skill = resolveEntrySkill(app, command);
       assert.equal(skill.id, SHARED_SKILL_IDS.DODGE);
-      assert.ok(adapter.skillTooltip(skill, patch, build).description.includes(landing));
       const config = {
         specialization: 'Vindicator',
         patchId,

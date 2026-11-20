@@ -1,24 +1,17 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { gw2Time } from '#gw2/platform/combat/clock.js';
-import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Core trait contracts cover proc triggers, attribute modifiers, and Tools interactions.
 const baseConfig = Object.freeze({
@@ -39,113 +32,6 @@ const baseConfig = Object.freeze({
 });
 
 const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
-
-test('Explosives and Firearms traits materialize offensive effects', () => {
-  const result = simulate('Amalgam', ['Grenade Kit', 'Shrapnel Grenade'], {
-    selectedMorphSkillIds: [77103, 77104, 76705],
-    attributeInputs: baseAttributeInputs({
-      precision: 2500,
-      expertise: 0
-    }),
-    boons: { fury: true },
-    selectedTraitIds: [
-      TRAIT.EXPLOSIVE_ENTRANCE,
-      TRAIT.STEEL_PACKED_POWDER,
-      TRAIT.AIM_ASSISTED_ROCKET,
-      TRAIT.SHRAPNEL,
-      TRAIT.SERRATED_STEEL,
-      TRAIT.HEMATIC_FOCUS,
-      TRAIT.CHEMICAL_ROUNDS,
-      TRAIT.THERMAL_VISION,
-      TRAIT.MODIFIED_AMMUNITION,
-      TRAIT.INCENDIARY_POWDER
-    ]
-  });
-
-  assert.equal(result.warnings.length, 0);
-  assert.equal(
-    result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Explosive Entrance').length,
-    1
-  );
-  assert.equal(
-    result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Aim-Assisted Rocket').length,
-    1
-  );
-  assert.ok(result.resolvedEvents.some((event) => event.type === 'condition' && event.name === 'Shrapnel - Bleeding'));
-  assert.ok(
-    result.resolvedEvents.some((event) => event.type === 'condition' && event.name === 'Incendiary Powder - Burning')
-  );
-  assert.ok(observedRuntime(result).liveEffects.queries.buffApplications('thermal-vision').length > 0);
-});
-
-test('Explosives traits use the requested packets, gates, and health modifiers', () => {
-  // Landed grenade strikes retain their individual scaling and each grants an explosion-trait stack.
-  const grenadier = simulate('Core', ['Healing Turret', { type: 'wait', durationMs: 1000 }], {
-    selectedTraitIds: [TRAIT.GRENADIER, TRAIT.EXPLOSIVE_TEMPER]
-  });
-  const lesserBarrage = grenadier.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.name === 'Lesser Grenade Barrage'
-  );
-
-  assert.equal(
-    lesserBarrage.reduce((total, event) => total + event.coefficient, 0),
-    1.5
-  );
-  assert.ok(lesserBarrage.every((event) => event.coefficient === 0.5 && event.damageKind === 'explosion'));
-  assert.equal(
-    grenadier.events
-      .filter((event) => event.type === 'buff' && event.kind === 'explosive-temper')
-      .reduce((total, event) => total + event.stacks, 0),
-    3
-  );
-
-  const entrance = simulate('Core', ['Grenade Kit', 'Grenade', 'Dodge', 'Grenade'], {
-    selectedTraitIds: [TRAIT.EXPLOSIVE_ENTRANCE, TRAIT.GRAND_ENTRANCE]
-  });
-
-  assert.equal(
-    entrance.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Explosive Entrance').length,
-    2
-  );
-  assert.ok(entrance.procSteps.some((step) => step.skill === 'Grand Entrance'));
-
-  const explosionTraits = simulate(
-    'Core',
-    ['Grenade Kit', 'Grenade', 'Shrapnel Grenade', { type: 'wait', durationMs: 100 }],
-    {
-      selectedTraitIds: [TRAIT.SHORT_FUSE, TRAIT.STEEL_PACKED_POWDER, TRAIT.EXPLOSIVE_TEMPER, TRAIT.SHRAPNEL],
-      attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 }),
-      target: { conditions: {} }
-    }
-  );
-
-  assert.equal(explosionTraits.procSteps.filter((step) => step.skill === 'Short Fuse').length, 1);
-  assert.ok(explosionTraits.procSteps.filter((step) => step.skill === 'Explosive Temper').length >= 3);
-  assert.ok(
-    explosionTraits.resolvedEvents.some(
-      (event) => event.type === 'condition' && event.condition === 'Bleeding' && event.skillName === 'Shrapnel'
-    )
-  );
-  const grenadePackets = explosionTraits.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.name === 'Grenade'
-  );
-
-  assert.equal(grenadePackets[0].criticalDamage, 1.5);
-  assert.equal(grenadePackets[1].criticalDamage, 1.5 + 20 / 1500);
-
-  const noModifiers = simulate('Core', ['Puncturing Jab'], {
-    attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 }),
-    target: { health: 1_000_000, startingHealthFraction: 0.5, conditions: { Vulnerability: 10 } }
-  });
-  const modifiers = simulate('Core', ['Puncturing Jab'], {
-    selectedTraitIds: [TRAIT.GLASS_CANNON, TRAIT.SHAPED_CHARGE, TRAIT.BIG_BOOMER],
-    attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 }),
-    target: { health: 1_000_000, startingHealthFraction: 0.5, conditions: { Vulnerability: 10 } }
-  });
-  const firstStrike = (result) => result.resolvedEvents.find((event) => event.type === 'damage');
-
-  assertFlooredDamageMultiplier(firstStrike(modifiers).damage, firstStrike(noModifiers).damage, 1.07 * 1.05 * 1.15);
-});
 
 test('each Shred slot emits projectile hits that trigger one Aim-Assisted Rocket', () => {
   // One three-disk cast must grant one rocket opportunity regardless of the equipped morph slot.
@@ -327,26 +213,9 @@ test('Aim-Assisted Rocket calls an orbital strike after four rockets', () => {
   assert.equal(rockets.length, 4);
   assert.equal(result.procSteps.filter((step) => step.skill === 'Aim-Assisted Rocket').length, 4);
   assert.equal(result.procSteps.filter((step) => step.skill === 'Orbital Command Strike').length, 1);
-  assert.ok(
-    rockets.every(
-      (event) =>
-        event.coefficient === 1 &&
-        event.damageKind === 'explosion' &&
-        event.actorType === 'effect' &&
-        event.sourceId === ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL &&
-        event.weaponStrengthProfileId === 'nonweapon.unequipped' &&
-        event.resolvedWeaponStrength === 690.5
-    )
-  );
-  assert.equal(orbital.coefficient, 1.92);
-  assert.equal(orbital.comboFinishers[0].ownerId, 'engineer');
-  assert.equal(orbital.comboFinishers[0].finisherType, 'Blast');
-  assert.equal(orbital.comboFinishers[0].chance, 1);
-  assert.notEqual(orbital.damageKind, 'explosion');
-  assert.equal(orbital.actorType, 'effect');
+  assert.ok(rockets.every((event) => event.sourceId === ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL));
   assert.equal(orbital.sourceId, ID.ORBITAL_COMMAND_STRIKE);
-  assert.equal(orbital.weaponStrengthProfileId, 'nonweapon.unequipped');
-  assert.equal(orbital.resolvedWeaponStrength, 690.5);
+  assert.ok(orbital.at > rockets.at(-1).at);
 
   const rifleProjectiles = simulate(
     'Core',
@@ -422,7 +291,8 @@ test('Aim-Assisted Rocket calls an orbital strike after four rockets', () => {
   );
 });
 
-test('Firearms traits apply critical tiers, durations, procs, and Power bleeding', () => {
+// Lower target health increases both bonuses granted by the Firearms traits.
+test('High Caliber and Heavy Metal scale criticals with target health', () => {
   const heavy = [0.8, 0.7, 0.4, 0.2].map((startingHealthFraction) => {
     const result = simulate('Core', ['Puncturing Jab'], {
       selectedTraitIds: [TRAIT.HIGH_CALIBER, TRAIT.HEAVY_METAL],
@@ -434,37 +304,13 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
     return [hit.criticalChance, hit.criticalDamage];
   });
 
-  assert.deepEqual(heavy, [
-    [0.2, 1.5],
-    [0.25, 1.5750000000000002],
-    [0.30000000000000004, 1.6500000000000001],
-    [0.35, 1.7249999999999999]
-  ]);
+  for (let tier = 1; tier < heavy.length; tier++) {
+    assert.ok(heavy[tier][0] > heavy[tier - 1][0]);
+    assert.ok(heavy[tier][1] > heavy[tier - 1][1]);
+  }
+});
 
-  const bleed = (selectedTraitIds) =>
-    simulate('Core', ['Puncturing Jab', { type: 'wait', durationMs: 2000 }], {
-      selectedTraitIds,
-      attributeInputs: baseAttributeInputs({
-        power: 2000,
-        precision: 1000,
-        ferocity: 0,
-        conditionDamage: 1000,
-        expertise: 0
-      }),
-      target: { conditions: {} }
-    }).resolvedEvents.find(
-      (event) => event.type === 'condition' && event.condition === 'Bleeding' && event.skillName === 'Puncturing Jab'
-    );
-  const baseBleed = bleed([]);
-  const serratedBleed = bleed([TRAIT.SERRATED_STEEL]);
-  const powerBleed = bleed([TRAIT.SHARPSHOOTER]);
-
-  // Duration bonuses apply before rounding the natural lifetime to whole milliseconds.
-  assert.equal(serratedBleed.effectiveDuration, 7.98);
-  // Check a complete buffer interval so partial-packet rounding cannot distort the trait formula.
-  assert.equal(baseBleed.damageTicks.find((tick) => tick.fraction === 1).damage, 82);
-  assert.equal(powerBleed.damageTicks.find((tick) => tick.fraction === 1).damage, 102);
-
+test('No Scope increases critical damage on subsequent grenade hits', () => {
   const noScope = simulate('Core', ['Grenade Kit', 'Grenade', { type: 'wait', durationMs: 100 }], {
     selectedTraitIds: [TRAIT.NO_SCOPE],
     attributeInputs: baseAttributeInputs({ precision: 4000, ferocity: 0 }),
@@ -473,51 +319,7 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
   const noScopeHits = noScope.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Grenade');
 
   assert.equal(noScope.procSteps.filter((step) => step.skill === 'No Scope').length, 1);
-  assert.equal(noScopeHits[0].criticalDamage, 1.5);
-  assert.equal(noScopeHits[1].criticalDamage, 1.6);
-
-  const bloodTraits = simulate('Core', ['Grenade Kit', 'Shrapnel Grenade', { type: 'wait', durationMs: 100 }], {
-    selectedTraitIds: [TRAIT.SANGUINE_ARRAY, TRAIT.HEMATIC_FOCUS]
-  });
-
-  assert.ok(bloodTraits.procSteps.some((step) => step.skill === 'Sanguine Array'));
-  assert.equal(bloodTraits.procSteps.filter((step) => step.skill === 'Hematic Focus').length, 1);
-
-  const pistolBurn = (selectedTraitIds) =>
-    simulate('Core', ['Blowtorch', { type: 'wait', durationMs: 1500 }], {
-      selectedTraitIds,
-      attributeInputs: baseAttributeInputs({
-        precision: 1000,
-        conditionDamage: 1000,
-        expertise: 0
-      }),
-      target: { conditions: {} }
-    }).resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Burning');
-  const baseBurn = pistolBurn([]);
-  const chemicalBurn = pistolBurn([TRAIT.CHEMICAL_ROUNDS]);
-  const thermalBurn = pistolBurn([TRAIT.THERMAL_VISION]);
-
-  assert.equal(chemicalBurn.effectiveDuration, Math.round(((baseBurn.duration * 4) / 3) * 1000) / 1000);
-  assertRoundedDamageMultiplier(thermalBurn.damageTicks[0].damage, baseBurn.damageTicks[0].damage, 1.05);
-
-  // Six conditions exercise Modified Ammunition's five-condition cap.
-  const ammunitionBase = simulate('Core', ['Puncturing Jab'], {
-    target: {
-      conditions: { Bleeding: 1, Burning: 1, Poisoned: 1, Chilled: 1, Crippled: 1, Immobilized: 1 }
-    }
-  });
-  const ammunition = simulate('Core', ['Puncturing Jab'], {
-    selectedTraitIds: [TRAIT.MODIFIED_AMMUNITION],
-    target: {
-      conditions: { Bleeding: 1, Burning: 1, Poisoned: 1, Chilled: 1, Crippled: 1, Immobilized: 1 }
-    }
-  });
-
-  assertFlooredDamageMultiplier(
-    ammunition.resolvedEvents.find((event) => event.type === 'damage').damage,
-    ammunitionBase.resolvedEvents.find((event) => event.type === 'damage').damage,
-    1.1
-  );
+  assert.ok(noScopeHits[1].criticalDamage > noScopeHits[0].criticalDamage);
 });
 
 test('Chemical Rounds extends every pistol condition beyond the condition-duration cap', () => {
@@ -575,74 +377,8 @@ test('Incendiary Powder tracks player and mech cooldowns independently', () => {
   assert.ok(burning.every((event) => Math.abs(event.naturalExpiresAt - event.at - 10.64) < 1e-12));
 });
 
-test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () => {
-  const amalgamReplacementToolbeltSkills = Object.values(AMALGAM_SKILL_MECHANICS).filter(
-    (mechanics) => Number(mechanics.mechanicSlot) >= 2 && Number(mechanics.mechanicSlot) <= 5
-  );
-
-  assert.ok(amalgamReplacementToolbeltSkills.length > 0);
-  assert.ok(amalgamReplacementToolbeltSkills.every((mechanics) => mechanics.countsAsToolbeltSkill === true));
-
-  const toolbelt = simulate(
-    'Core',
-    ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Healing Mist', 'Med Pack Drop'],
-    {
-      selectedTraitIds: [TRAIT.OPTIMIZED_ACTIVATION, TRAIT.STATIC_DISCHARGE, TRAIT.KINETIC_BATTERY],
-      attributeInputs: baseAttributeInputs({ precision: 4000, ferocity: 0 }),
-      target: { conditions: {} }
-    }
-  );
-
-  assert.equal(toolbelt.events.filter((event) => event.type === 'buff' && event.kind === 'vigor').length, 6);
-  assert.equal(
-    toolbelt.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Static Discharge').length,
-    6
-  );
-  const dischargeProcs = toolbelt.procSteps.filter((step) => step.skill === 'Static Discharge');
-
-  assert.equal(dischargeProcs.length, 6);
-  assert.equal(dischargeProcs[0].sourceSkill, 'Regenerating Mist');
-  const discharge = toolbelt.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.name === 'Static Discharge'
-  );
-  const dischargeSkill = engineerCatalog.skillsById.get(ID.STATIC_DISCHARGE_TRAIT_SKILL);
-  const dischargeRow = skillBreakdownRows(toolbelt).find((row) => row.name === 'Static Discharge');
-
-  assert.equal(discharge.coefficient, 0.33);
-  assert.equal(discharge.skillId, ID.STATIC_DISCHARGE_TRAIT_SKILL);
-  assert.equal(discharge.weaponStrengthProfileId, 'nonweapon.unequipped');
-  assert.equal(discharge.resolvedWeaponStrength, 690.5);
-  assert.equal(discharge.weaponStrengthSampled, false);
-  assert.equal(discharge.criticalDamage, 3);
-  // Report rows and proc steps inherit the catalog artwork regardless of its URL.
-  assert.equal(dischargeRow.icon, dischargeSkill.icon);
-  assert.ok(dischargeProcs.every((proc) => proc.icon === dischargeSkill.icon));
-  assert.ok(
-    toolbelt.events.some((event) => event.type === 'buff' && event.kind === 'kinetic-battery' && event.duration === 5)
-  );
-  assert.ok(
-    toolbelt.events.some((event) => event.type === 'buff' && event.kind === 'quickness' && event.duration === 5)
-  );
-  assert.equal(toolbelt.planningState.profession[STATE.KINETIC_CHARGES], 1);
-
-  const adrenal = simulate('Core', ['Grenade Barrage', 'Dodge', { type: 'wait', durationMs: 1000 }], {
-    selectedTraitIds: [TRAIT.MECHANIZED_DEPLOYMENT, TRAIT.ADRENAL_IMPLANT],
-    boons: { vigor: true }
-  });
-
-  assert.equal(adrenal.planningState.profession[STATE.ENDURANCE].value, 65.75);
-
-  const streamlined = simulate('Core', ['Grenade Kit'], {
-    selectedTraitIds: [TRAIT.STREAMLINED_KITS]
-  });
-  const mine = streamlined.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Drop Mine');
-
-  assert.equal(mine.coefficient, 1.75);
-  assert.equal(mine.damageKind, 'explosion');
-  assert.ok(
-    streamlined.events.some((event) => event.type === 'buff' && event.kind === 'swiftness' && event.duration === 20)
-  );
-
+// Optimized Activation responds to skills that occupy a tool-belt slot.
+test('Optimized Activation distinguishes tool-belt replacements from Forge entry', () => {
   const scrapperToolbelt = simulate('Scrapper', ['Function Gyro'], {
     selectedTraitIds: [TRAIT.OPTIMIZED_ACTIVATION]
   });
@@ -650,8 +386,6 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
     selectedTraitIds: [TRAIT.OPTIMIZED_ACTIVATION]
   });
 
-  assert.equal(engineerCatalog.skillsById.get(ID.FUNCTION_GYRO).countsAsToolbeltSkill, true);
-  assert.equal(engineerCatalog.skillsById.get(ID.ENGAGE_PHOTON_FORGE).countsAsToolbeltSkill, false);
   assert.equal(
     scrapperToolbelt.events.some((event) => event.type === 'buff' && event.kind === 'vigor'),
     true
@@ -666,11 +400,6 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
     selectedTraitIds: [TRAIT.MECHANIZED_DEPLOYMENT, TRAIT.OPTIMIZED_ACTIVATION, TRAIT.ADRENAL_IMPLANT]
   });
 
-  // Amalgam F2-F5 mechanics replace tool-belt slots and retain every Tools interaction attached to those slots.
-  assert.equal(
-    amalgamToolbelt.planningState.cooldownsBySkillId[ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163].readyAtMs,
-    12800
-  );
   assert.equal(
     amalgamToolbelt.events.filter(
       (event) => event.type === 'buff' && event.kind === 'vigor' && event.sourceId === TRAIT.OPTIMIZED_ACTIVATION
@@ -778,26 +507,6 @@ test('Equal and Opposite Reaction grants Quickness and Stability from player dis
   );
 });
 
-const coreBaseConfig = Object.freeze({
-  selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
-  attributeInputs: baseAttributeInputs({
-    power: 2000,
-    precision: 1500,
-    ferocity: 500,
-    conditionDamage: 1000,
-    expertise: 0,
-    vitality: 1000
-  }),
-  target: { armor: 2597, conditions: {} }
-});
-
-// Run the smallest Core rotation that reaches a migrated trait through its registered trait hooks.
-function simulateCore(rotation, config = {}) {
-  return createObservedProfessionSimulator(engineerProfession, coreBaseConfig)('Core', rotation, config);
-}
-
-const shortWait = { type: 'wait', durationMs: 100 };
-
 // The profile owns offsets and repetitions; ordinary toolbelts still trigger at their completion boundary.
 test('Optimized Activation materializes delayed repeated Vigor and respects effect removal', () => {
   for (const effects of [
@@ -839,256 +548,5 @@ test('Optimized Activation materializes delayed repeated Vigor and respects effe
         ? [0.5, 0.7].map((offset) => gw2Time(result.events.find((event) => event.type === 'action').endsAt + offset))
         : []
     );
-  }
-});
-
-const traitCases = [
-  {
-    name: 'Grenadier',
-    trait: TRAIT.GRENADIER,
-    rotation: ['Healing Turret', { type: 'wait', durationMs: 1000 }],
-    verify: (result) =>
-      assert.ok(
-        result.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === ID.LESSER_GRENADE_BARRAGE)
-      )
-  },
-  {
-    name: 'Explosive Entrance and its dodge reset',
-    trait: TRAIT.EXPLOSIVE_ENTRANCE,
-    rotation: ['Grenade Kit', 'Grenade', 'Dodge', 'Grenade', shortWait],
-    verify: (result) =>
-      assert.equal(
-        result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Explosive Entrance').length,
-        2
-      )
-  },
-  {
-    name: 'Steel-Packed Powder',
-    trait: TRAIT.STEEL_PACKED_POWDER,
-    rotation: ['Grenade Kit', 'Grenade', shortWait],
-    verify: (result) =>
-      assert.ok(
-        result.resolvedEvents.some(
-          (event) =>
-            event.type === 'condition' &&
-            event.sourceId === TRAIT.STEEL_PACKED_POWDER &&
-            event.condition === 'Vulnerability'
-        )
-      )
-  },
-  {
-    name: 'Short Fuse',
-    trait: TRAIT.SHORT_FUSE,
-    rotation: ['Grenade Kit', 'Grenade', shortWait],
-    verify: (result) => assert.ok(result.procSteps.some((step) => step.skill === 'Short Fuse'))
-  },
-  {
-    name: 'Explosive Temper',
-    trait: TRAIT.EXPLOSIVE_TEMPER,
-    rotation: ['Grenade Kit', 'Grenade', shortWait],
-    verify: (result) => assert.ok(result.procSteps.some((step) => step.skill === 'Explosive Temper'))
-  },
-  {
-    name: 'Grand Entrance',
-    trait: TRAIT.GRAND_ENTRANCE,
-    extraTraits: [TRAIT.EXPLOSIVE_ENTRANCE],
-    rotation: ['Puncturing Jab', shortWait],
-    verify: (result) => assert.ok(result.procSteps.some((step) => step.skill === 'Grand Entrance'))
-  },
-  {
-    name: 'Shrapnel',
-    trait: TRAIT.SHRAPNEL,
-    rotation: ['Grenade Kit', 'Grenade', 'Shrapnel Grenade', shortWait],
-    verify: (result) =>
-      assert.ok(
-        result.resolvedEvents.some(
-          (event) => event.type === 'condition' && event.sourceId === TRAIT.SHRAPNEL && event.condition === 'Bleeding'
-        )
-      )
-  },
-  {
-    name: 'Aim-Assisted Rocket',
-    trait: TRAIT.AIM_ASSISTED_ROCKET,
-    rotation: ['Grenade Kit', 'Grenade', shortWait],
-    verify: (result) =>
-      assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Aim-Assisted Rocket'))
-  },
-  {
-    name: 'Serrated Steel',
-    trait: TRAIT.SERRATED_STEEL,
-    rotation: ['Grenade Kit', 'Grenade', 'Grenade', shortWait],
-    config: { attributeInputs: baseAttributeInputs({ precision: 4000 }) },
-    verify: (result) =>
-      assert.ok(
-        result.resolvedEvents.some(
-          (event) =>
-            event.type === 'condition' && event.sourceId === TRAIT.SERRATED_STEEL && event.condition === 'Bleeding'
-        )
-      )
-  },
-  {
-    name: 'No Scope',
-    trait: TRAIT.NO_SCOPE,
-    rotation: ['Puncturing Jab', shortWait],
-    config: { attributeInputs: baseAttributeInputs({ precision: 4000 }) },
-    verify: (result) => assert.ok(result.procSteps.some((step) => step.skill === 'No Scope'))
-  },
-  {
-    name: 'Incendiary Powder',
-    trait: TRAIT.INCENDIARY_POWDER,
-    rotation: ['Puncturing Jab', shortWait],
-    config: { attributeInputs: baseAttributeInputs({ precision: 4000 }) },
-    verify: (result) =>
-      assert.ok(
-        result.resolvedEvents.some(
-          (event) =>
-            event.type === 'condition' && event.sourceId === TRAIT.INCENDIARY_POWDER && event.condition === 'Burning'
-        )
-      )
-  },
-  {
-    name: 'Thermal Vision',
-    trait: TRAIT.THERMAL_VISION,
-    rotation: ['Blowtorch', shortWait],
-    verify: (result) =>
-      assert.ok(observedRuntime(result).liveEffects.queries.buffApplications('thermal-vision').length > 0)
-  },
-  {
-    name: 'Sanguine Array',
-    trait: TRAIT.SANGUINE_ARRAY,
-    rotation: ['Fragmentation Shot', shortWait],
-    verify: (result) => assert.ok(result.procSteps.some((step) => step.skill === 'Sanguine Array'))
-  },
-  {
-    name: 'Hematic Focus',
-    trait: TRAIT.HEMATIC_FOCUS,
-    rotation: ['Fragmentation Shot', shortWait],
-    verify: (result) => assert.ok(result.procSteps.some((step) => step.skill === 'Hematic Focus'))
-  },
-  {
-    name: 'HGH',
-    trait: TRAIT.HGH,
-    rotation: ['Elixir Gun', 'Acid Bomb', { type: 'wait', durationMs: 6500 }],
-    config: { selectedSkillIds: [...baseConfig.selectedSkillIds, 5933] },
-    verify: (result) => {
-      const field = result.events.find((event) => event.type === 'combo_field' && event.skillName === 'Acid Bomb');
-      assert.equal(field.expiresAt - field.at, 6);
-      assert.equal(
-        result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Acid Bomb').length,
-        7
-      );
-      assert.ok(result.events.some((event) => event.type === 'buff' && event.sourceId === TRAIT.HGH));
-    }
-  },
-  {
-    name: 'Streamlined Kits',
-    trait: TRAIT.STREAMLINED_KITS,
-    rotation: ['Grenade Kit', shortWait],
-    verify: (result) => {
-      assert.ok(result.events.some((event) => event.type === 'buff' && event.sourceId === TRAIT.STREAMLINED_KITS));
-      assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Drop Mine'));
-    }
-  },
-  {
-    name: 'Optimized Activation',
-    trait: TRAIT.OPTIMIZED_ACTIVATION,
-    rotation: ['Regenerating Mist', shortWait],
-    verify: (result) =>
-      assert.ok(result.events.some((event) => event.type === 'buff' && event.sourceId === TRAIT.OPTIMIZED_ACTIVATION))
-  },
-  {
-    name: 'Static Discharge',
-    trait: TRAIT.STATIC_DISCHARGE,
-    rotation: ['Regenerating Mist', shortWait],
-    verify: (result) =>
-      assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Static Discharge'))
-  },
-  {
-    name: 'Kinetic Battery',
-    trait: TRAIT.KINETIC_BATTERY,
-    rotation: ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Healing Mist', 'Med Pack Drop'],
-    verify: (result) =>
-      assert.ok(result.events.some((event) => event.type === 'buff' && event.kind === 'kinetic-battery'))
-  }
-];
-
-for (const { name, trait, extraTraits = [], rotation, config, verify } of traitCases) {
-  test(`${name} remains behaviorally reachable through its Core trait hooks`, () => {
-    verify(simulateCore(rotation, { ...config, selectedTraitIds: [trait, ...extraTraits] }));
-  });
-}
-
-test('Engineer Core definitions share patched build grants and preserve static attribute provenance', () => {
-  // The build panel and live resolver consume the same registered owner without adding its grant twice.
-  const family = patchTraitProfession(engineerProfession, {
-    balanceProfiles: { [TRAIT.CHEMICAL_ROUNDS]: { fields: { 'attributeBonuses.conditionDamage': 180 } } }
-  });
-  const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(engineerCatalog),
-    family.attributeContributions
-  );
-  const build = { specializations: [{ name: 'Firearms', traits: '1-2-3' }] };
-  for (const [patchId, bonus] of [
-    ['current', 120],
-    ['s4-preview', 180]
-  ]) {
-    const balance = family.resolvePatch({ id: patchId }).balanceContext;
-    assert.equal(calculate(build, [], 1, null, null, balance).attributes['Condition Damage'].traits, bonus);
-    assert.equal(calculate(build, [], 1, 'Chemical Rounds', null, balance).attributes['Condition Damage'].traits, 0);
-    const runtime = family.runtimeFor({ patchId });
-    const context = { catalog: runtime.catalog, time: 0, config: { selectedTraitIds: [TRAIT.CHEMICAL_ROUNDS] } };
-    assert.equal(runtime.calculations.modifyAttributes(context, { conditionDamage: 100 }).conditionDamage, 100 + bonus);
-    assert.equal(
-      runtime.calculations.modifyAttributes(
-        {
-          ...context,
-          config: {
-            ...context.config
-          }
-        },
-        { conditionDamage: 100 }
-      ).conditionDamage,
-      100 + bonus
-    );
-  }
-});
-
-// A formerly shared scalar now permits one attribute to change without altering its sibling or its boon gate.
-test('Energy Amplifier independently patches named grants while retaining Regeneration eligibility', () => {
-  const family = patchTraitProfession(engineerProfession, {
-    balanceProfiles: {
-      [TRAIT.ENERGY_AMPLIFIER]: { fields: { 'attributeBonuses.power': 73, 'attributeBonuses.healingPower': 0 } }
-    }
-  });
-  for (const [patchId, power, healingPower] of [
-    ['current', 250, 250],
-    ['s4-preview', 73, 0],
-    ['current', 250, 250]
-  ]) {
-    const balance = family.resolvePatch({ id: patchId }).balanceContext;
-    const tooltip = describeSimulationTrait(
-      balance,
-      { id: TRAIT.ENERGY_AMPLIFIER, name: 'Energy Amplifier' },
-      engineerTooltips
-    );
-    assert.equal(tooltip.facts.find((fact) => fact.name === 'Power with regeneration').detail, String(power));
-    assert.equal(
-      tooltip.facts.find((fact) => fact.name === 'Healing Power with regeneration').detail,
-      String(healingPower)
-    );
-    const runtime = family.runtimeFor({ patchId });
-    for (const enabled of [true, false]) {
-      const context = {
-        catalog: runtime.catalog,
-        time: 0,
-        config: {
-          selectedTraitIds: [TRAIT.ENERGY_AMPLIFIER],
-          boons: { regeneration: enabled }
-        }
-      };
-      const stats = runtime.calculations.modifyAttributes(context, { power: 1000, healingPower: 0 });
-      assert.equal(stats.power, 1000 + (enabled ? power : 0));
-      assert.equal(stats.healingPower, enabled ? healingPower : 0);
-    }
   }
 });

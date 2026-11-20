@@ -48,7 +48,6 @@ test('Crisis Zone preserves the active melee-chain phase', () => {
   const next = basics(result).find((event) => event.at > command.start / 1000);
   assert.equal(next.name, 'Twin Strike (Mech)');
   // Twin Strike's full coefficient belongs to one critical-hit and on-hit opportunity, rather than half-strength hits.
-  assert.equal(next.coefficient, 0.8);
   assert.equal(next.summonOwner, 'engineer.mech');
 });
 

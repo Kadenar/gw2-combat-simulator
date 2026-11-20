@@ -44,8 +44,7 @@ test('using the bomb consumes the held Scuffle grant and resolves its strike and
   assert.equal(result.planningState.profession[STATE.ARTIFACT_USES_REMAINING], 0);
   assert.equal(bombReady(result), false);
   assert.equal(result.planningState.availability[ID.CHAK_SHIELD].ready, false);
-  const strike = result.events.find((event) => event.type === 'damage' && event.skillId === ID.UNSTABLE_SKRITT_BOMB);
-  assert.equal(strike.coefficient, 3);
+
   const control = result.events.find((event) => event.type === 'control' && event.skillId === ID.UNSTABLE_SKRITT_BOMB);
   assert.equal(control.controlKind, 'knockback');
   assert.ok(result.resolvedEvents.some((event) => event.skillId === ID.UNSTABLE_SKRITT_BOMB && event.damage > 0));

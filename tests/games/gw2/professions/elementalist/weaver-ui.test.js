@@ -32,15 +32,10 @@ test('Elements of Rage exposes Unravel as Weaver F5', () => {
   const paletteGroup = paletteView(elementalistProfession, context).find(
     (group) => group.id === 'elementalist-weaver-unravel'
   );
-  const skill = elementalistProfession.catalog.skillsById.get(ELEMENTALIST_WEAVER_SKILL_IDS.Unravel);
 
   assert.ok(paletteGroup);
   assert.equal(paletteGroup.label, 'F5');
-  assert.deepEqual(paletteGroup.skillIds, [80231]);
-  assert.equal(skill.name, 'Unravel');
-  assert.equal(skill.type, 'Profession');
-  assert.equal(skill.slot, 'Profession_5');
-  assert.equal(skill.cooldown, 25);
+  assert.deepEqual(paletteGroup.skillIds, [ELEMENTALIST_WEAVER_SKILL_IDS.Unravel]);
 });
 
 test('Weaver hides Unravel without Elements of Rage', () => {

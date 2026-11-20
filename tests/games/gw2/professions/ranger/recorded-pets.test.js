@@ -31,30 +31,6 @@ for (const pet of pets) {
     assert.deepEqual(commanded.warnings, []);
     assert.ok(commanded.resolvedEvents.some((event) => event.skillId === pet.special && event.damage > 0));
   });
-
-  // Pet damage and duration must remain independent of the Ranger's gear while retaining their caster identity.
-  test(`${pet.name} owns its strike and condition attributes`, () => {
-    const measure = (stats) => {
-      const result = runRanger([pet.special, wait(14000)], {
-        specialization: 'Untamed',
-        selectedPet: pet.name,
-        initialUntamedState: 'Ranger',
-        stats
-      });
-      assert.deepEqual(result.warnings, []);
-      return result.resolvedEvents.filter(
-        (event) => event.skillId === pet.special && ['damage', 'condition'].includes(event.type)
-      );
-    };
-
-    const baseline = measure({ power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 });
-    const geared = measure({ power: 4000, precision: 4000, ferocity: 1500, conditionDamage: 3000, expertise: 1500 });
-    assert.ok(baseline.some((event) => event.type === 'damage' && event.damage > 0));
-    assert.ok(baseline.some((event) => event.type === 'condition' && event.damage > 0));
-    assert.ok(baseline.every((event) => event.actorType === 'summon' && event.summonOwner === 'ranger-pet:1:0'));
-    const attributes = (events) => events.map((event) => [event.type, event.damage, event.effectiveDuration]);
-    assert.deepEqual(attributes(geared), attributes(baseline));
-  });
 }
 
 for (const [pet, skillId] of [

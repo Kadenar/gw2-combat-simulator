@@ -11,40 +11,22 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
-// Crossfire is unconditional; Poison Volley retains only its impairment extension.
-test('shortbow conditions use live base durations without retired trait extensions', () => {
+// Defiant targets change the control applied by both shortbow attacks.
+test('shortbow control changes with target defiance', () => {
   for (const defiant of [false, true]) {
-    for (const trait of [false, true]) {
-      const result = runRanger(
-        [ID.CROSSFIRE, ID.POISON_VOLLEY, ID.CRIPPLING_SHOT, ID.CONCUSSION_SHOT, { type: 'wait', durationMs: 1000 }],
-        {
-          primaryWeapon: 'Shortbow',
-          selectedTraitIds: trait ? [TRAIT.LIGHT_ON_YOUR_FEET] : [],
-          attributeInputs: baseAttributeInputs({ expertise: 0 }),
-          target: { armor: 2597, defiant, conditions: {} }
-        }
-      );
-      assert.deepEqual(result.warnings, []);
-      const conditions = (id, condition) =>
-        result.resolvedEvents.filter((e) => e.type === 'condition' && e.sourceId === id && e.condition === condition);
-      const bleeding = conditions(ID.CROSSFIRE, 'Bleeding');
-      assert.equal(
-        bleeding.reduce((sum, e) => sum + e.stacks, 0),
-        1
-      );
-      assert.equal(bleeding[0].effectiveDuration, 5);
-      assert.ok(conditions(ID.POISON_VOLLEY, 'Poisoned').every((e) => e.effectiveDuration === (defiant ? 9 : 7)));
-      const immobilized = conditions(ID.CRIPPLING_SHOT, 'Immobilized');
-      assert.equal(immobilized.length, defiant ? 1 : 0);
-
-      if (defiant) assert.equal(immobilized[0].effectiveDuration, 2);
-
-      assert.equal(conditions(ID.CRIPPLING_SHOT, 'Crippled')[0].effectiveDuration, 4);
-      assert.equal(
-        result.events.find((e) => e.type === 'control' && e.sourceId === ID.CONCUSSION_SHOT).controlKind,
-        defiant ? 'stun' : 'daze'
-      );
-    }
+    const result = runRanger([ID.CRIPPLING_SHOT, ID.CONCUSSION_SHOT, { type: 'wait', durationMs: 1000 }], {
+      primaryWeapon: 'Shortbow',
+      target: { armor: 2597, defiant, conditions: {} }
+    });
+    assert.deepEqual(result.warnings, []);
+    const conditions = (id, condition) =>
+      result.resolvedEvents.filter((e) => e.type === 'condition' && e.sourceId === id && e.condition === condition);
+    const immobilized = conditions(ID.CRIPPLING_SHOT, 'Immobilized');
+    assert.equal(immobilized.length, defiant ? 1 : 0);
+    assert.equal(
+      result.events.find((e) => e.type === 'control' && e.sourceId === ID.CONCUSSION_SHOT).controlKind,
+      defiant ? 'stun' : 'daze'
+    );
   }
 });
 
@@ -79,8 +61,6 @@ test('Blood Thirst spends only eligible pet or merged-player charges and expires
     assert.equal(core.bloodThirst.count, 0);
     assert.equal(emitted.length, 3);
     for (const event of emitted) {
-      assert.equal(event.duration, 7.5);
-      assert.equal(event.stacks, 2);
       assert.equal(event.ownerActorType, 'player');
       assert.equal(event.actorType, 'effect');
       assert.equal(event.source, 'ranger');

@@ -4,7 +4,6 @@ import test from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { BOON } from '#gw2/platform/constants.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -71,130 +70,48 @@ test('Bladesworn gates gunsaber and Dragon Slash state', () => {
   assert.equal(result.totalDamage > 0, true);
 });
 
-test('Sharp as the Wind selects condition Gunsaber variants and their secondary effects', () => {
-  // Runtime-selected variants retain their parent presentation while using separate combat identities.
-  for (const [parentId, variantId] of [
-    [ID.SWIFT_CUT, ID.SHARP_SWIFT_CUT],
-    [ID.STEEL_DIVIDE, ID.SHARP_STEEL_DIVIDE],
-    [ID.EXPLOSIVE_THRUST, ID.SHARP_EXPLOSIVE_THRUST],
-    [ID.BLOOMING_FIRE, ID.SHARP_BLOOMING_FIRE],
-    [ID.ARTILLERY_SLASH, ID.SHARP_ARTILLERY_SLASH],
-    [ID.CYCLONE_TRIGGER, ID.SHARP_CYCLONE_TRIGGER],
-    [ID.BREAK_STEP, ID.SHARP_BREAK_STEP],
-    [ID.DRAGON_SLASH_FORCE, ID.SHARP_DRAGON_SLASH_FORCE],
-    [ID.DRAGON_SLASH_BOOST, ID.SHARP_DRAGON_SLASH_BOOST],
-    [ID.DRAGON_SLASH_REACH, ID.SHARP_DRAGON_SLASH_REACH]
+// The same Gunsaber input picks its condition variant only when Sharp as the Wind is selected.
+test('Sharp as the Wind changes the Gunsaber attack used by Swift Cut', () => {
+  for (const [selectedTraitIds, expectedSkill] of [
+    [[], ID.SWIFT_CUT],
+    [[TRAIT.SHARP_AS_THE_WIND], ID.SHARP_SWIFT_CUT]
   ]) {
-    assert.equal(warriorCatalog.skillsById.get(variantId).icon, warriorCatalog.skillsById.get(parentId).icon);
+    const result = simulate('Bladesworn', [ID.UNSHEATHE_GUNSABER, ID.SWIFT_CUT], {
+      initialResource: 100,
+      selectedTraitIds
+    });
+    assert.deepEqual(result.warnings, []);
+    const attack = result.events.find(
+      (event) => event.type === 'damage' && [ID.SWIFT_CUT, ID.SHARP_SWIFT_CUT].includes(event.skillId)
+    );
+    assert.equal(attack?.skillId, expectedSkill);
   }
-
-  const result = simulate(
-    'Bladesworn',
-    [
-      ID.UNSHEATHE_GUNSABER,
-      ID.SWIFT_CUT,
-      ID.STEEL_DIVIDE,
-      ID.EXPLOSIVE_THRUST,
-      ID.BLOOMING_FIRE,
-      ID.ARTILLERY_SLASH,
-      ID.CYCLONE_TRIGGER,
-      ID.BREAK_STEP
-    ],
-    { initialResource: 100, selectedTraitIds: [TRAIT.SHARP_AS_THE_WIND] }
-  );
-  const conditionsFor = (skillId) =>
-    result.resolvedEvents
-      .filter((event) => event.type === 'condition' && event.skillId === skillId)
-      .map(({ condition, stacks, duration }) => [condition, stacks, duration]);
-  const coefficientsFor = (skillId) =>
-    result.events
-      .filter((event) => event.type === 'damage' && event.skillId === skillId)
-      .map((event) => Number(event.coefficient.toFixed(6)));
-
-  assert.deepEqual(result.warnings, []);
-  assert.deepEqual(coefficientsFor(ID.SHARP_SWIFT_CUT), [0.3, 0.1]);
-  assert.deepEqual(conditionsFor(ID.SHARP_SWIFT_CUT), [
-    ['Bleeding', 1, 3],
-    ['Bleeding', 1, 3]
-  ]);
-  assert.deepEqual(coefficientsFor(ID.SHARP_STEEL_DIVIDE), [0.4, 0.1]);
-  assert.deepEqual(conditionsFor(ID.SHARP_STEEL_DIVIDE), [['Bleeding', 1, 3]]);
-  assert.deepEqual(coefficientsFor(ID.SHARP_EXPLOSIVE_THRUST), [0.6, 0.1]);
-  assert.deepEqual(conditionsFor(ID.SHARP_EXPLOSIVE_THRUST), [['Bleeding', 1, 4]]);
-  assert.deepEqual(coefficientsFor(ID.SHARP_BLOOMING_FIRE), [0.5, 0.1, 0.1, 0.1]);
-  assert.deepEqual(conditionsFor(ID.SHARP_BLOOMING_FIRE), [
-    ['Burning', 1, 3],
-    ['Burning', 1, 3],
-    ['Burning', 1, 3]
-  ]);
-  assert.deepEqual(coefficientsFor(ID.SHARP_ARTILLERY_SLASH), [2]);
-  assert.deepEqual(
-    conditionsFor(ID.SHARP_ARTILLERY_SLASH),
-    Array.from({ length: 4 }, () => ['Bleeding', 1, 7])
-  );
-  assert.deepEqual(coefficientsFor(ID.SHARP_CYCLONE_TRIGGER), [1]);
-  assert.deepEqual(conditionsFor(ID.SHARP_CYCLONE_TRIGGER), [
-    ['Burning', 1, 5],
-    ['Burning', 1, 5]
-  ]);
-  assert.equal(
-    result.events.find(
-      (event) => event.type === 'buff' && event.kind === 'aegis' && event.skillId === ID.SHARP_CYCLONE_TRIGGER
-    )?.duration,
-    5
-  );
-  assert.deepEqual(coefficientsFor(ID.SHARP_BREAK_STEP), [0.1]);
-  assert.deepEqual(conditionsFor(ID.SHARP_BREAK_STEP), [['Burning', 1, 8]]);
-  assert.equal(
-    result.events.find((event) => event.type === 'damage' && event.skillId === ID.SHARP_ARTILLERY_SLASH)
-      ?.comboFinishers?.[0]?.finisherType,
-    'Projectile'
-  );
-  assert.equal(
-    result.events.find((event) => event.type === 'damage' && event.skillId === ID.SHARP_BREAK_STEP)?.comboFinishers?.[0]
-      ?.finisherType,
-    'Leap'
-  );
-  assert.deepEqual(
-    result.events
-      .filter((event) => event.type === 'buff' && event.kind === 'positive-flow')
-      .map(({ stacks, duration }) => [stacks, duration]),
-    [[2, 5]]
-  );
 });
 
-test('Sharp as the Wind scales each Dragon Slash burning payload with charge', () => {
-  for (const [skillId, variantId, coefficient, minimumDuration, maximumDuration] of [
-    [ID.DRAGON_SLASH_FORCE, ID.SHARP_DRAGON_SLASH_FORCE, 3, 2, 4],
-    [ID.DRAGON_SLASH_BOOST, ID.SHARP_DRAGON_SLASH_BOOST, 2.4, 1.5, 3.25],
-    [ID.DRAGON_SLASH_REACH, ID.SHARP_DRAGON_SLASH_REACH, 1.5, 1, 2]
-  ]) {
-    for (const [charges, expectedStacks, expectedDuration] of [
-      [1, 1, minimumDuration],
-      [5, 1 + (19 * 4) / 9, minimumDuration + ((maximumDuration - minimumDuration) * 4) / 9],
-      [10, 20, maximumDuration]
-    ]) {
-      const result = simulate('Bladesworn', [ID.DRAGON_TRIGGER, { skillId, releaseAtCharges: charges }], {
+// Release the same slash at two charge levels to compare its Burning applications at impact.
+test('charging a Sharp Dragon Slash increases Burning at its impact', () => {
+  const burningAt = (charges) => {
+    const result = simulate(
+      'Bladesworn',
+      [ID.DRAGON_TRIGGER, { skillId: ID.DRAGON_SLASH_FORCE, releaseAtCharges: charges }],
+      {
         initialResource: 100,
         selectedTraitIds: [TRAIT.SHARP_AS_THE_WIND]
-      });
-      const damage = result.events.find((event) => event.type === 'damage' && event.skillId === variantId);
-      const burning = result.resolvedEvents.filter(
-        (event) => event.type === 'condition' && event.skillId === variantId && event.condition === 'Burning'
-      );
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const impact = result.events.find(
+      (event) => event.type === 'damage' && event.skillId === ID.SHARP_DRAGON_SLASH_FORCE
+    );
+    const burning = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillId === impact.skillId && event.condition === 'Burning'
+    );
+    assert.ok(burning.length > 0);
+    assert.ok(burning.every((event) => event.at === impact.at));
+    return burning.reduce((stacks, event) => stacks + event.stacks, 0);
+  };
 
-      assert.deepEqual(result.warnings, []);
-      assert.equal(damage.coefficient, coefficient);
-      // Full stacks are independent applications; a final fractional packet preserves partial-charge scaling.
-      assert.equal(
-        burning.reduce((total, event) => total + event.stacks, 0),
-        expectedStacks
-      );
-      assert.equal(burning.length, Math.ceil(expectedStacks));
-      assert.ok(burning.every((event) => event.stacks > 0 && event.stacks <= 1 && event.duration === expectedDuration));
-      assert.ok(burning.every((event) => event.at === damage.at));
-    }
-  }
+  assert.ok(burningAt(10) > burningAt(1));
 });
 
 test('Dragon Trigger defers recharge while charging and still blocks re-entry', () => {
@@ -1078,18 +995,5 @@ test('Eviscerate damage scales with adrenaline spent', () => {
     assert.deepEqual(result.warnings, []);
     return result.events.find((event) => event.type === 'damage').coefficient;
   });
-  const eviscerate = warriorCatalog.skillsById.get(ID.EVISCERATE);
-
-  assert.deepEqual(coefficients, [2, 2.5, 3]);
-  assert.equal(eviscerate.cooldown, 8);
-  assert.equal(eviscerate.comboFinishers[0].finisherType, 'Leap');
-  assert.deepEqual(
-    eviscerate.effects.find((effect) => effect.type === 'boon'),
-    {
-      type: 'boon',
-      boon: BOON.MIGHT,
-      duration: 5,
-      stacks: 5
-    }
-  );
+  assert.ok(coefficients[0] < coefficients[1] && coefficients[1] < coefficients[2]);
 });

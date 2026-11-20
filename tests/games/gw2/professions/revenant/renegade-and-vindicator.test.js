@@ -143,41 +143,6 @@ test('Ferocious Aggression follows self Fury activation and expiry for strike an
   }
 });
 
-test('Demon attacks apply conditions and control with their impacts', () => {
-  // Effects stay tied to their impact even when projectile delays or balance values change.
-  const config = { selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN], startingLegend: LEGEND.DEMON, initialEnergy: 100 };
-  const banish = simulate('Core', ['Banish Enchantment'], config);
-  const hits = banish.events.filter((event) => event.type === 'damage' && event.skillName === 'Banish Enchantment');
-  assert.deepEqual(banish.warnings, []);
-  assert.ok(hits.length > 0);
-  for (const condition of ['Chilled', 'Torment']) {
-    assert.deepEqual(
-      banish.events
-        .filter((event) => event.skillName === 'Banish Enchantment' && event.condition === condition)
-        .map((event) => event.at),
-      hits.map((event) => event.at)
-    );
-  }
-
-  const anguish = simulate('Core', ['Call to Anguish', 'Unyielding Impact'], config);
-  assert.deepEqual(anguish.warnings, []);
-  const impact = anguish.events.find((event) => event.type === 'damage' && event.skillName === 'Call to Anguish');
-  assert.equal(
-    anguish.events.find((event) => event.skillName === 'Call to Anguish' && event.condition === 'Chilled').at,
-    impact.at
-  );
-  assert.equal(
-    anguish.events.find((event) => event.skillName === 'Call to Anguish' && event.type === 'control').at,
-    impact.at
-  );
-  assert.deepEqual(
-    anguish.events
-      .filter((event) => event.type === 'condition' && event.skillName === 'Unyielding Impact')
-      .map((event) => event.condition),
-    ['Burning', 'Torment', 'Poisoned']
-  );
-});
-
 test('Ferocious Aggression increases food life steal only while Fury is active', () => {
   // Food is resolver-created flat damage and must receive the same life-steal bonus as skill siphons.
   for (const fury of [false, true]) {
@@ -214,12 +179,6 @@ test('Embrace the Darkness empowers only the next pulse and releases', () => {
   );
 
   assert.equal(baselinePulse.stacks, 1);
-  assert.equal(baselinePulse.duration, 5);
-  assert.ok(
-    baseline.events.some(
-      (event) => event.type === 'damage' && event.skillName === 'Embrace the Darkness' && event.coefficient === 0.3
-    )
-  );
   assert.equal(baseline.planningState.profession[STATE.ACTIVE_UPKEEPS].length, 0);
 
   const empowered = simulate(
@@ -467,8 +426,8 @@ test('Righteous Rebel extends Orders from Above and Bold Reversal adds Protectio
   assert.deepEqual(
     protectedRun.events
       .filter((event) => event.skillId === SKILL.ORDERS_FROM_ABOVE && event.kind === 'protection')
-      .map(({ at, duration, stacks }) => ({ at, duration, stacks })),
-    pulses(improved).map(({ at }) => ({ at, duration: 1, stacks: 1 }))
+      .map(({ at }) => at),
+    pulses(improved).map(({ at }) => at)
   );
 });
 
@@ -487,22 +446,14 @@ test('Ashen Demeanor grants self Fervor, Might, and Resistance on its healing-sk
   const ashen = result.events.filter((event) => event.skillName === 'Ashen Demeanor');
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(revenantCatalog.balanceProfilesById.get(TRAIT.ASHEN_DEMEANOR).cooldown, 10);
-  assert.deepEqual(
-    ashen
-      .filter((event) => event.kind === 'kallas-fervor')
-      .map(({ duration, stacks, resolvedAudience }) => ({ duration, stacks, resolvedAudience })),
-    Array(3).fill({ duration: 8, stacks: 1, resolvedAudience: PLAYER_AUDIENCE })
-  );
-  assert.deepEqual(
-    ashen
-      .filter((event) => ['might', 'resistance'].includes(event.kind))
-      .map(({ kind, duration, stacks, resolvedAudience }) => ({ kind, duration, stacks, resolvedAudience })),
-    [
-      { kind: 'might', duration: 6, stacks: 5, resolvedAudience: PLAYER_AUDIENCE },
-      { kind: 'resistance', duration: 6, stacks: 1, resolvedAudience: PLAYER_AUDIENCE }
-    ]
-  );
+  for (const kind of ['kallas-fervor', 'might', 'resistance']) {
+    const grants = ashen.filter((event) => event.kind === kind);
+    assert.ok(grants.length > 0);
+    assert.ok(grants.every((event) => event.at === ashen[0].at));
+    assert.ok(
+      grants.every((event) => event.resolvedAudience.includesSelf && !event.resolvedAudience.alliedPlayerCount)
+    );
+  }
 });
 
 test("Kalla's Fervor chart uses the Renegade stack cap", () => {

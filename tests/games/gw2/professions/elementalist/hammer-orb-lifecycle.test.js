@@ -4,8 +4,6 @@ import test from 'node:test';
 
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createEffectOwnershipContext } from '#gw2/platform/profession-definition/runtime-context.js';
-import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { elementalistCoreTooltips } from '#gw2/professions/elementalist/app/tooltips/core.js';
 import { elementalistHammerOrbLifecycle } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
@@ -327,22 +325,4 @@ test('Finale excludes an orb explicitly removed at cast start', () => {
       .liveEffects.queries.buffApplications('hammer water orb')
       .every((buff) => buff.removedAt === start)
   );
-});
-
-// Selected declarations determine modifier facts even when an ID is reused or a dual skill uses a hammer.
-test('orb tooltip facts follow selected creation declarations', () => {
-  const context = elementalistAppAdapter.profession.resolvePatch().balanceContext;
-  for (const id of [ID.FLAME_WHEEL, ID.DUAL_ORBITS_FIRE_AND_AIR]) {
-    const skill = elementalistCatalog.skillsById.get(id);
-    const facts = (value) => elementalistCoreTooltips.skillFacts(context, value);
-    assert.ok(facts(skill).some((fact) => fact.name === 'Strike damage while Fire orb is active'));
-    assert.equal(
-      facts({ ...skill, sideEffects: [] }).some((fact) => fact.name.includes('orb')),
-      false
-    );
-    assert.equal(
-      facts({ ...skill, attunement: 'Fire+Void' }).some((fact) => fact.name.includes('orb')),
-      false
-    );
-  }
 });

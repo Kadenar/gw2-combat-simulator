@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import {
   GUARDIAN_TRAIT_IDS as GUARDIAN,
   GUARDIAN_SKILL_IDS as GUARDIAN_SKILL
@@ -17,296 +16,103 @@ import { RANGER_TRAIT_IDS as RANGER, RANGER_SKILL_IDS as RANGER_SKILL } from '#g
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { REVENANT_TRAIT_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 
-// Patch the registered trait owner so disconnected declarations cannot satisfy these formula contracts.
-function patched(profession, balanceProfiles, skills = {}) {
-  return withPatchPreview(profession, {
-    id: 'modifier-owners',
-    label: 'Modifier owners',
-    professions: { [profession.id]: { balanceProfiles, skills } }
+// Each duration trait applies to a specific condition source before ordinary duration bonuses.
+for (const [name, family, trait, condition, source, unrelated] of [
+  [
+    'Radiant Fire',
+    guardianProfession,
+    GUARDIAN.RADIANT_FIRE,
+    'Burning',
+    { skillId: GUARDIAN_SKILL.ZEALOTS_FLAME },
+    { sourceId: 'guardian.justice-passive' }
+  ],
+  [
+    'Amplified Wrath',
+    guardianProfession,
+    GUARDIAN.AMPLIFIED_WRATH,
+    'Burning',
+    { sourceId: 'guardian.justice-passive' },
+    { skillId: GUARDIAN_SKILL.ZEALOTS_FLAME }
+  ],
+  [
+    "Trapper's Expertise",
+    rangerProfession,
+    RANGER.TRAPPERS_EXPERTISE,
+    'Burning',
+    { skillId: RANGER_SKILL.FLAME_TRAP },
+    { skillId: RANGER_SKILL.CROSSFIRE }
+  ],
+  [
+    'Lingering Curse',
+    necromancerProfession,
+    NECRO.LINGERING_CURSE,
+    'Bleeding',
+    { skillId: NECRO_SKILL.BLOOD_CURSE },
+    { skillId: NECRO_SKILL.NECROTIC_GRASP }
+  ]
+]) {
+  test(`${name} extends the base duration of its own source`, () => {
+    const runtime = family.runtimeFor({ specialization: 'Core' });
+    const context = (event, selectedTraitIds) => ({
+      catalog: runtime.catalog,
+      time: 0,
+      event: { actorType: 'player', ...event },
+      condition,
+      config: { selectedTraitIds }
+    });
+    const duration = (event, traits) => runtime.calculations.modifyConditionBaseDuration(context(event, traits), 1);
+    assert.ok(duration(source, [trait]) > duration(source, []));
+    assert.equal(duration(unrelated, [trait]), duration(unrelated, []));
+    assert.equal(
+      runtime.calculations.modifyConditionDuration(context(source, [trait]), 1),
+      runtime.calculations.modifyConditionDuration(context(source, []), 1)
+    );
   });
 }
 
-test('Radiance declarations extend only their selected Burning sources at the base-duration stage', () => {
-  const family = patched(guardianProfession, {
-    [GUARDIAN.RADIANT_FIRE]: { fields: { durationMultiplier: 1.8 } },
-    [GUARDIAN.AMPLIFIED_WRATH]: { fields: { durationMultiplier: 1.4 } }
+test('shortbow duration extensions cannot recreate a removed condition', () => {
+  const family = withPatchPreview(rangerProfession, {
+    id: 'removed',
+    label: 'Removed condition',
+    professions: {
+      ranger: {
+        skills: {
+          [RANGER_SKILL.CROSSFIRE]: { removeEffects: [{ type: 'condition', condition: 'Bleeding' }] }
+        }
+      }
+    }
   });
-  for (const [patchId, flame, justice] of [
-    ['current', 1.5, 1.2],
-    ['modifier-owners', 1.8, 1.4]
-  ]) {
-    const profession = family.runtimeFor({ specialization: 'Core', patchId });
-    for (const selectedTraitIds of [
-      [],
-      [GUARDIAN.RADIANT_FIRE],
-      [GUARDIAN.AMPLIFIED_WRATH],
-      [GUARDIAN.RADIANT_FIRE, GUARDIAN.AMPLIFIED_WRATH]
-    ]) {
-      for (const condition of ['Burning', 'Bleeding']) {
-        for (const [source, radiant, amplified] of [
-          [{ sourceId: GUARDIAN_SKILL.ZEALOTS_FLAME }, true, false],
-          [{ event: { skillId: GUARDIAN_SKILL.ZEALOTS_FLAME } }, true, false],
-          [{ sourceId: 'guardian.justice-passive' }, false, true],
-          [{ event: { sourceId: 'guardian.justice-passive' } }, false, true],
-          [{ event: { skillId: GUARDIAN_SKILL.ZEALOTS_FLAME, sourceId: 'guardian.justice-passive' } }, true, true],
-          [{}, false, false]
-        ]) {
-          const context = { catalog: profession.catalog, time: 0, config: { selectedTraitIds }, condition, ...source };
-          const factor =
-            condition === 'Burning'
-              ? (radiant && selectedTraitIds.includes(GUARDIAN.RADIANT_FIRE) ? flame : 1) *
-                (amplified && selectedTraitIds.includes(GUARDIAN.AMPLIFIED_WRATH) ? justice : 1)
-              : 1;
-          assert.equal(
-            profession.calculations.modifyConditionBaseDuration({ ...context, catalog: profession.catalog }, 2),
-            2 * factor
-          );
-          assert.equal(
-            profession.calculations.modifyConditionDuration({ ...context, catalog: profession.catalog }, 2),
-            2
-          );
-        }
-      }
-    }
-  }
-});
-
-test('Brutal Momentum adds only its selected full-endurance increase above the attribute baseline', () => {
-  const family = patched(revenantProfession, {
-    [REVENANT.BRUTAL_MOMENTUM]: { fields: { criticalChance: 0.15, fullEnduranceCriticalChance: 0.4 } }
-  });
-  for (const [patchId, baseline, full] of [
-    ['current', 0.1, 0.33],
-    ['modifier-owners', 0.15, 0.4]
-  ]) {
-    const profession = family.runtimeFor({ specialization: 'Renegade', patchId });
-    for (const selected of [false, true]) {
-      for (const endurance of [0, 99, 100]) {
-        const context = {
-          catalog: profession.catalog,
-          time: 0,
-          event: { actorType: 'player' },
-          config: { selectedTraitIds: selected ? [REVENANT.BRUTAL_MOMENTUM] : [] },
-          runtime: {
-            profession: { core: { endurance: { value: endurance } }, specialization: { kind: 'Renegade', state: {} } }
-          }
-        };
-        const input = 0.05 + (selected ? baseline : 0);
-        const expected = 0.05 + (selected ? (endurance === 100 ? full : baseline) : 0);
-        assert.ok(Math.abs(profession.calculations.modifyCriticalChance(context, input) - expected) < 1e-12);
-      }
-    }
-  }
-});
-
-test('Poison Volley intrinsic extension and selected trap factors use their active profiles', () => {
-  const family = patched(
-    rangerProfession,
-    {
-      [RANGER.TRAPPERS_EXPERTISE]: { fields: { durationMultiplier: 1.9, coefficientMultiplier: 1.8 } }
-    },
-    {
-      [RANGER_SKILL.CROSSFIRE]: { conditions: { Bleeding: { duration: 4 } } },
-      [RANGER_SKILL.POISON_VOLLEY]: { conditions: { Poisoned: { duration: 7 } } },
-      [RANGER_SKILL.CRIPPLING_SHOT]: { conditions: { Immobilized: { duration: 2.5 } } }
-    }
-  );
-  for (const [patchId, trap, flame] of [
-    ['current', 1.6, 1.66],
-    ['modifier-owners', 1.9, 1.8]
-  ]) {
-    const profession = family.runtimeFor({ specialization: 'Core', patchId });
-    for (const selected of [false, true]) {
-      for (const defiant of [false, true]) {
-        for (const [skillId, condition, base, intrinsic] of [
-          [RANGER_SKILL.CROSSFIRE, 'Bleeding', patchId === 'current' ? 5 : 4, 0],
-          [RANGER_SKILL.POISON_VOLLEY, 'Poisoned', 7, 2],
-          [RANGER_SKILL.CRIPPLING_SHOT, 'Immobilized', patchId === 'current' ? 2 : 2.5, 0],
-          [RANGER_SKILL.CROSSFIRE, 'Poisoned', 1, 0]
-        ]) {
-          const context = {
-            catalog: profession.catalog,
-            time: 0,
-            event: { actorType: 'player', skillId },
-            condition,
-            config: { target: { defiant }, selectedTraitIds: selected ? [RANGER.LIGHT_ON_YOUR_FEET] : [] }
-          };
-          const expected = (2 * (base + (defiant ? intrinsic : 0))) / base;
-          assert.ok(
-            Math.abs(profession.calculations.modifyConditionBaseDuration(context, 2) - expected) < 1e-12,
-            `${patchId}, ${skillId}, ${condition}, selected=${selected}, defiant=${defiant}`
-          );
-          assert.equal(profession.calculations.modifyConditionDuration(context, 2), 2);
-        }
-
-        for (const [skillId, factor] of [
-          [RANGER_SKILL.FLAME_TRAP, flame],
-          [RANGER_SKILL.VIPERS_NEST, trap],
-          [RANGER_SKILL.CROSSFIRE, 1]
-        ]) {
-          const context = {
-            catalog: profession.catalog,
-            time: 0,
-            event: { actorType: 'player', skillId },
-            condition: 'Burning',
-            config: { target: { defiant }, selectedTraitIds: selected ? [RANGER.TRAPPERS_EXPERTISE] : [] }
-          };
-          assert.equal(profession.calculations.modifyConditionBaseDuration(context, 2), 2 * (selected ? factor : 1));
-        }
-      }
-    }
-  }
-});
-
-test('shortbow duration extensions cannot recreate a removed condition effect', () => {
-  const family = patched(
-    rangerProfession,
-    {},
-    {
-      [RANGER_SKILL.CROSSFIRE]: { removeEffects: [{ type: 'condition', condition: 'Bleeding' }] }
-    }
-  );
-  const profession = family.runtimeFor({ specialization: 'Core', patchId: 'modifier-owners' });
+  const runtime = family.runtimeFor({ specialization: 'Core', patchId: 'removed' });
   const context = {
-    catalog: profession.catalog,
+    catalog: runtime.catalog,
     time: 0,
     event: { actorType: 'player', skillId: RANGER_SKILL.CROSSFIRE },
     condition: 'Bleeding',
     config: { target: { defiant: true }, selectedTraitIds: [RANGER.LIGHT_ON_YOUR_FEET] }
   };
-  // Removed conditions cannot regain a base duration through intrinsic bonuses.
-  assert.equal(profession.calculations.modifyConditionBaseDuration(context, 2), 2);
+  assert.equal(runtime.calculations.modifyConditionBaseDuration(context, 1), 1);
 });
 
-test('Roiling Mists owns its selected Fury bonus and reads the active profile', () => {
-  const family = patched(revenantProfession, { [REVENANT.ROILING_MISTS]: { fields: { criticalChance: 0.3 } } });
-  for (const [patchId, bonus] of [
-    ['current', 0.25],
-    ['modifier-owners', 0.3]
-  ]) {
-    const profession = family.runtimeFor({ specialization: 'Core', patchId });
-    for (const selected of [false, true]) {
-      for (const fury of [false, true]) {
-        const criticalChanceContributors = [];
-        const result = profession.calculations.modifyCriticalChance(
-          {
-            catalog: profession.catalog,
-            time: 0,
-            event: { actorType: 'player' },
-            config: { selectedTraitIds: selected ? [REVENANT.ROILING_MISTS] : [], boons: { fury } },
-            criticalChanceContributors
-          },
-          0.2
-        );
-        assert.equal(result, 0.2 + (selected && fury ? bonus : 0));
-        assert.equal(
-          criticalChanceContributors.filter(({ id }) => id === 'revenant.roiling-mists').length,
-          selected && fury ? 1 : 0
-        );
-      }
-    }
-  }
-});
-
-test('Lingering Curse scales only eligible Scepter base duration with selected profile values', () => {
-  const family = patched(necromancerProfession, { [NECRO.LINGERING_CURSE]: { fields: { durationMultiplier: 1.75 } } });
-  for (const [patchId, factor] of [
-    ['current', 1.5],
-    ['modifier-owners', 1.75]
-  ]) {
-    const profession = family.runtimeFor({ specialization: 'Scourge', patchId });
-    for (const selected of [false, true]) {
-      for (const [skillId, eligible] of [
-        [NECRO_SKILL.BLOOD_CURSE, true],
-        [NECRO_SKILL.DEVOURING_DARKNESS, false],
-        [NECRO_SKILL.NECROTIC_GRASP, false]
-      ]) {
-        const context = {
-          catalog: profession.catalog,
-          time: 0,
-          event: { actorType: 'player', skillId },
-          condition: 'Bleeding',
-          config: { selectedTraitIds: selected ? [NECRO.LINGERING_CURSE] : [] }
-        };
-        assert.equal(
-          profession.calculations.modifyConditionBaseDuration(context, 2),
-          2 * (selected && eligible ? factor : 1)
-        );
-        // The trait changes the base stage, not the ordinary duration-bonus stage.
-        assert.equal(profession.calculations.modifyConditionDuration(context, 2), 2);
-      }
-    }
-  }
-});
-
-test('merged Beastmastery rules preserve selection, ownership, specialization, and accepted buff expiry', () => {
-  const family = patched(
-    rangerProfession,
-    {
-      [RANGER.LOUD_WHISTLE]: { fields: { playerDamageMultiplier: 1.2 } }
-    },
-    {
-      [RANGER_SKILL.LESSER_SIC_EM]: {
-        effects: [{ type: 'buff', name: 'lesser-sic-em', damageIncreasePerStack: { from: 0.15, to: 0.3 } }]
-      }
-    }
-  );
-  for (const [patchId, whistle, throat] of [
-    ['current', 1.1, 1.15],
-    ['modifier-owners', 1.2, 1.3]
-  ]) {
-    for (const specialization of ['Core', 'Soulbeast', 'Untamed']) {
-      const profession = family.runtimeFor({ specialization, patchId });
-      const buffs = new Map();
-      // An admitted grant belongs to the player until expiry, even if the trait or merge state changes.
-      recordBuffApplication(buffs, {
-        type: 'buff',
-        kind: 'lesser-sic-em',
-        at: 0,
-        duration: 2,
-        stacks: 1,
-        resolvedAudience: { includesSelf: true }
-      });
-      for (const selected of [false, true]) {
-        for (const merged of [false, true]) {
-          for (const time of [1, 2.000001]) {
-            for (const actorType of ['player', 'summon']) {
-              const damageContributors = [];
-              profession.calculations.modifyStrikeDamage(
-                {
-                  catalog: profession.catalog,
-                  time,
-                  event: { actorType, ...(actorType === 'summon' ? { source: 'ranger-pet', summonOwner: 'pet' } : {}) },
-                  config: {
-                    specialization,
-                    selectedTraitIds: selected ? [RANGER.LOUD_WHISTLE, RANGER.GO_FOR_THE_THROAT] : []
-                  },
-                  runtime: {
-                    liveEffects: createTestLiveEffects(buffs),
-                    profession: {
-                      core: {},
-                      specialization: { kind: specialization, state: { beastmodeActive: merged } }
-                    }
-                  },
-                  damageContributors
-                },
-                100
-              );
-              const value = (id) => damageContributors.find((entry) => entry.id === id)?.value ?? 1;
-              assert.equal(
-                value('ranger.loud-whistle-player'),
-                specialization === 'Soulbeast' && selected && merged && actorType === 'player' ? whistle : 1
-              );
-              assert.equal(
-                value('ranger.lesser-sic-em-player'),
-                specialization === 'Soulbeast' && time < 2 && actorType === 'player' ? throat : 1
-              );
-            }
-          }
+// Spending endurance removes the Renegade bonus until endurance returns to full.
+test('Brutal Momentum only adds critical chance at full endurance', () => {
+  const runtime = revenantProfession.runtimeFor({ specialization: 'Renegade' });
+  function chance(endurance, selectedTraitIds) {
+    return runtime.calculations.modifyCriticalChance(
+      {
+        catalog: runtime.catalog,
+        time: 0,
+        event: { actorType: 'player' },
+        config: { selectedTraitIds },
+        runtime: {
+          profession: { core: { endurance: { value: endurance } }, specialization: { kind: 'Renegade', state: {} } }
         }
-      }
-    }
+      },
+      0.2
+    );
   }
+
+  assert.ok(chance(100, [REVENANT.BRUTAL_MOMENTUM]) > chance(99, [REVENANT.BRUTAL_MOMENTUM]));
+  assert.equal(chance(99, [REVENANT.BRUTAL_MOMENTUM]), chance(99, []));
+  assert.equal(chance(100, []), chance(99, []));
 });

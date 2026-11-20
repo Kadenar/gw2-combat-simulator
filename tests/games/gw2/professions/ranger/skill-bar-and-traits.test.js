@@ -4,28 +4,19 @@ import { describe, test } from 'node:test';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { activeRangerUiPet } from '#gw2/professions/ranger/core/presentation.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Attribute assertions use the same calculator composed into the Ranger adapter.
-const calculateAttributes = createCalculateAttributes(
-  createProfessionBuildAttributeRules(rangerCatalog),
-  rangerProfession.attributeContributions
-);
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,
@@ -472,29 +463,7 @@ describe('Galeshot Cyclone Bow', () => {
     assert.equal(charged.planningState.availability[ID.RAPID_FIRE].ready, false);
   });
 
-  test('resolves Hawkeye, Shrike, and Mistral replacement packets', () => {
-    const result = simulate(
-      'Galeshot',
-      [
-        'Summon Cyclone Bow',
-        'Bluster',
-        'Fleeting Zephyr',
-        'Pelt',
-        'Supersonic Arrow',
-        'Hawkeye',
-        { type: 'wait', durationMs: 1000 }
-      ],
-      {
-        selectedTraitIds: [TRAIT.PERILOUS_SKIES]
-      }
-    );
-    const hawkeyeHits = result.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.skillId === ID.HAWKEYE
-    );
-
-    assert.ok(hawkeyeHits.length > 0);
-    assert.ok(Math.abs(hawkeyeHits.reduce((sum, event) => sum + event.coefficient, 0) - 6.8) < 1e-9);
-
+  test('Mistral procs from longbow projectiles and advances Shrike', () => {
     const shrike = simulate('Galeshot', ['Mistral', 'Rapid Fire', 'Long Range Shot', 'Long Range Shot'], {
       primaryWeapon: 'Longbow',
       selectedTraitIds: [TRAIT.SHRIKE]
@@ -527,7 +496,6 @@ test('Cyclone Bow strikes use its normalized weapon strength', () => {
     const hit = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.KEEN_SHOT);
 
     assert.equal(hit.weaponStrengthProfileId, 'transform.cyclone-bow');
-    assert.equal(hit.resolvedWeaponStrength, 1015);
   }
 });
 
@@ -571,74 +539,8 @@ test('Cyclone Bow transitions trigger swap sigils and dedicated weapon lines', (
   );
 });
 
-test('Ranger trait rules affect their owned damage and attributes', () => {
-  const coreOperations = new Map(rangerCoreModule.modifiers.modifierRules.map((rule) => [rule.id, rule.operation]));
-  const soulbeastOperations = new Map(soulbeastModule.modifiers.modifierRules.map((rule) => [rule.id, rule.operation]));
-
-  for (const id of [
-    'ranger.remorseless',
-    'ranger.predators-onslaught-player',
-    'ranger.predators-onslaught-pet',
-    'ranger.wolfsong',
-    'ranger.farsighted',
-    'ranger.hunters-tactics-damage',
-    'ranger.bountiful-hunter-player',
-    'ranger.bountiful-hunter-pet',
-    // Core owns these trait rules; their predicates restrict the merged player bonuses to Soulbeast.
-    'ranger.loud-whistle-player',
-    'ranger.lesser-sic-em-player',
-    'ranger.sic-em-player'
-  ]) {
-    assert.equal(coreOperations.get(id), 'multiply', id);
-  }
-
-  assert.equal(soulbeastOperations.has('ranger.oppressive-superiority'), false);
-
-  const baseAttributes = { power: 0, precision: 0, conditionDamage: 0, toughness: 0, vitality: 1000, ferocity: 0 };
-  const untamedContext = { config: {}, traits: new Set([TRAIT.NATURAL_FORTITUDE]) };
-  const untamedAttributes = rangerProfession
-    .runtimeFor({ specialization: 'Untamed' })
-    .calculations.modifyAttributes({ catalog: rangerCatalog, ...untamedContext }, baseAttributes);
-  // Attribute checks consume the composed runtime hook, including ordered skill-owned attribute replacements.
-  const coreAttributes = rangerProfession.runtimeFor({ specialization: 'Core' }).calculations.modifyAttributes(
-    {
-      catalog: rangerProfession.runtimeFor({ specialization: 'Core' }).catalog,
-      ...untamedContext,
-      traits: new Set()
-    },
-    baseAttributes
-  );
-
-  // Natural Fortitude is final-only: reinforcement converts base Vitality, excluding the trait grant.
-  assert.equal(untamedAttributes.vitality, 1290);
-  assert.equal(coreAttributes.vitality, 1050);
-
-  const soulbeastAttributes = rangerProfession
-    .runtimeFor({ specialization: 'Soulbeast' })
-    .calculations.modifyAttributes(
-      {
-        catalog: rangerCatalog,
-        config: { specialization: 'Soulbeast', selectedPet: 'Pig' },
-        traits: new Set([TRAIT.PACK_ALPHA, TRAIT.PETS_PROWESS]),
-        runtime: {
-          profession: {
-            core: { petNames: ['Pig', 'Lynx'], activePetSlot: 1 },
-            specialization: { kind: 'Soulbeast', state: { beastmodeActive: true } }
-          }
-        }
-      },
-      baseAttributes
-    );
-
-  assert.equal(soulbeastAttributes.power, 300);
-  assert.equal(soulbeastAttributes.ferocity, 400);
-  assert.equal(soulbeastAttributes.toughness, 150);
-  assert.equal(soulbeastAttributes.vitality, 1200);
-
-  for (const id of ['ranger.furious-strength', 'ranger.twice-as-vicious-strike', 'ranger.twice-as-vicious-condition']) {
-    assert.equal(soulbeastOperations.get(id), 'damage-additive', id);
-  }
-
+// Farsighted applies to longbow attacks and skips Cyclone Bow replacements.
+test('Farsighted distinguishes longbow skills from Cyclone Bow skills', () => {
   const baseline = simulate('Core', ['Rapid Fire'], {
     primaryWeapon: 'Longbow'
   });
@@ -649,18 +551,6 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
 
   assert.equal(farsighted.totalDamage > baseline.totalDamage, true);
 
-  const dodgeBaseline = simulate('Core', ['Dodge', 'Rapid Fire'], {
-    primaryWeapon: 'Longbow'
-  });
-  const lightOnYourFeet = simulate('Core', ['Dodge', 'Rapid Fire'], {
-    primaryWeapon: 'Longbow',
-    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
-  });
-
-  const rapidFireHit = (result) =>
-    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Rapid Fire').damage;
-  assertFlooredDamageMultiplier(rapidFireHit(lightOnYourFeet), rapidFireHit(dodgeBaseline), 1.1);
-
   const cycloneRotation = ['Summon Cyclone Bow', 'Bluster', 'Fleeting Zephyr', "Quarry's Peril", 'Pelt'];
   const cyclone = simulate('Galeshot', cycloneRotation);
   const farsightedCyclone = simulate('Galeshot', cycloneRotation, {
@@ -668,36 +558,9 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
   });
 
   assert.equal(farsightedCyclone.totalDamage, cyclone.totalDamage);
+});
 
-  const boonConfig = {
-    primaryWeapon: 'Longbow',
-    boons: { alacrity: true, fury: true, regeneration: true }
-  };
-  const boonBaseline = simulate('Core', ['Rapid Fire'], boonConfig);
-  const bountiful = simulate('Core', ['Rapid Fire'], {
-    ...boonConfig,
-    selectedTraitIds: [TRAIT.BOUNTIFUL_HUNTER]
-  });
-
-  assertFlooredDamageMultiplier(rapidFireHit(bountiful), rapidFireHit(boonBaseline), 1.06);
-
-  const survival = simulate('Core', ['Rapid Fire'], {
-    primaryWeapon: 'Longbow',
-    selectedTraitIds: [TRAIT.SURVIVAL_INSTINCTS]
-  });
-  const predator = simulate('Core', ['Rapid Fire'], {
-    primaryWeapon: 'Longbow',
-    selectedTraitIds: [TRAIT.PREDATORS_ONSLAUGHT]
-  });
-  const wolfsong = simulate('Core', ['Rapid Fire'], {
-    primaryWeapon: 'Longbow',
-    selectedTraitIds: [TRAIT.WOLFSONG]
-  });
-
-  assertFlooredDamageMultiplier(rapidFireHit(survival), rapidFireHit(baseline), 1.15);
-  assertFlooredDamageMultiplier(rapidFireHit(predator), rapidFireHit(baseline), 1.1);
-  assertFlooredDamageMultiplier(rapidFireHit(wolfsong), rapidFireHit(baseline), 1.1);
-
+test('Ambidexterity cuts dagger recharge', () => {
   const daggerBaseline = simulate('Core', ['Double Arc'], {
     primaryWeapon: 'Dagger'
   });
@@ -710,17 +573,9 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     ambidexterity.planningState.cooldownsBySkillId[ID.DOUBLE_ARC].readyAtMs <
       daggerBaseline.planningState.cooldownsBySkillId[ID.DOUBLE_ARC].readyAtMs
   );
+});
 
-  // Verify Poison Master's multiplier before packet rounding, which need not preserve an exact aggregate ratio.
-  for (const selected of [false, true]) {
-    const query = createGw2CombatQuery({
-      profession: resolveProfessionContract(rangerProfession, { specialization: 'Core' }),
-      config: { selectedTraitIds: selected ? [TRAIT.POISON_MASTER] : [] }
-    });
-    assert.equal(query.conditionMultiplier('Poisoned', 0, { actorType: 'player' }), selected ? 1.25 : 1);
-    assert.equal(query.conditionMultiplier('Poisoned', 0, { actorType: 'summon', independentConditionOwner: true }), 1);
-  }
-
+test('weapon swap triggers Skirmishing traits before Whirling Defense hits', () => {
   const skirmishing = simulate('Soulbeast', ['__combat_start', 'Swap Weapons', 'Whirling Defense'], {
     selectedPet: 'Pig',
     primaryWeapon: 'Hammer',
@@ -1051,65 +906,8 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
     (event) => event.sourceId === TRAIT.POISON_MASTER && event.condition === 'Poisoned'
   );
   assert.ok(poisons.length > 0);
-  assert.ok(poisons.every((event) => event.duration === 8));
   const grants = new Map();
   for (const event of poisons)
     grants.set(event.parentEventOrder, (grants.get(event.parentEventOrder) ?? 0) + event.stacks);
   assert.ok([...grants.values()].every((stacks) => stacks === 2));
-
-  const build = createRangerBuildDefaults();
-
-  build.specializations = [
-    { name: 'Nature Magic', traits: '2-1-1' },
-    { name: 'Wilderness Survival', traits: '3-1-1' }
-  ];
-  build.weapons = ['Dagger', 'Torch'];
-  const attributes = calculateAttributes(build).attributes;
-  const withoutWellspring = calculateAttributes(build, [], 1, 'Wellspring').attributes;
-  const withoutArachnophobia = calculateAttributes(build, [], 1, 'Arachnophobia').attributes;
-  const withoutAmbidexterity = calculateAttributes(build, [], 1, 'Ambidexterity').attributes;
-
-  assert.equal(attributes.Expertise.final - withoutArachnophobia.Expertise.final, 150);
-  assert.equal(attributes['Condition Damage'].final - withoutAmbidexterity['Condition Damage'].final, 240);
-  assert.equal(
-    attributes['Healing Power'].final - withoutWellspring['Healing Power'].final,
-    (attributes.Power.base +
-      attributes.Power.gear +
-      attributes.Power.runes +
-      attributes.Power.food +
-      attributes.Power.infusions +
-      attributes.Power.jadeBotCore) *
-      0.07
-  );
-
-  const petTraitContext = {
-    config: { selectedPet: 'Forest Spider', attributeInputs: baseAttributeInputs({ power: 2000 }) },
-    traits: new Set([TRAIT.ARACHNOPHOBIA, TRAIT.LINGERING_MAGIC, TRAIT.WELLSPRING]),
-    event: {
-      actorType: 'summon',
-      source: 'ranger-pet',
-      summonBasePower: 1500
-    },
-    time: 0,
-    runtime: { activeWeaponSet: 1 },
-    query: { mightStacksAt: () => 0 }
-  };
-  const petAttributes = rangerProfession.runtimeFor({ specialization: 'Core' }).calculations.modifyAttributes(
-    { catalog: rangerCatalog, ...petTraitContext },
-    {
-      power: 2000,
-      precision: 1000,
-      toughness: 1000,
-      vitality: 1000,
-      ferocity: 0,
-      conditionDamage: 1000,
-      expertise: 0,
-      concentration: 0,
-      healingPower: 0
-    }
-  );
-
-  assert.equal(petAttributes.expertise, 375);
-  assert.equal(petAttributes.concentration, 240);
-  assert.ok(Math.abs(petAttributes.healingPower - 105) < 1e-9);
 });

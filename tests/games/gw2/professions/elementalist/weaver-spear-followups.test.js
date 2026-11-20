@@ -1,11 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { WEAVER_SPEAR_BUFFS } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/spear.js';
@@ -191,7 +188,7 @@ test('spear buff grants and follow-up payloads remain independently patchable', 
   }
 });
 
-test('selected spear action patches control expiry, sibling conditions, and qualified tooltip facts', () => {
+test('selected spear action patches control expiry and sibling conditions', () => {
   const skill = elementalistCatalog.skillsById.get(ID.FIERY_IMPACT);
   const profession = withPatchPreview(elementalistProfession, {
     id: 'spear-followup',
@@ -242,17 +239,6 @@ test('selected spear action patches control expiry, sibling conditions, and qual
       assert.deepEqual(conditions, []);
     }
   }
-
-  const context = profession.resolvePatch({ id: 'spear-followup' }).balanceContext;
-  const model = describeSimulationSkill(context, context.catalog.skillsById.get(skill.id), elementalistTooltips);
-  assert.ok(model.facts.some((fact) => fact.detail.includes('1s') && fact.detail.includes('follow-up window')));
-  assert.ok(
-    model.facts.some(
-      (fact) => fact.detail.includes('4 coefficient') && fact.detail.includes('on the next qualifying strike')
-    )
-  );
-  assert.ok(model.facts.some((fact) => fact.name === 'Burning' && fact.stacks === 2 && fact.detail.includes('9s')));
-  assert.ok(!model.facts.some((fact) => fact.name === 'Bleeding'));
 });
 
 test('removing a spear follow-up strike retains its conditions and consumes the armed buff once', () => {
@@ -270,32 +256,6 @@ test('removing a spear follow-up strike retains its conditions and consumes the 
   const [trigger] = strikes(result, ID.ARCANE_BLAST);
   assert.ok(conditions.every((event) => event.at === trigger.at));
   assert.equal(liveBuffs(result, WEAVER_SPEAR_BUFFS[skill.id], trigger.at), 0);
-});
-
-// Live spear follow-ups expose the same coefficient to combat and tooltip consumers.
-test('live balance applies deferred spear coefficients in combat and tooltips', () => {
-  const profession = withActivePatchPreview(elementalistProfession);
-  for (const [id, coefficient] of [
-    [ID.SHALE_STORM, 2],
-    [ID.FIERY_IMPACT, 2.25],
-    [ID.GALVANIZE, 3.1]
-  ]) {
-    const skill = elementalistCatalog.skillsById.get(id);
-    const result = run(skill, [cast(id), wait(1000), cast(ID.ARCANE_BLAST)], {
-      profession
-    });
-    assert.deepEqual(result.warnings, [], skill.name);
-    assert.equal(strikes(result, id)[0].coefficient, coefficient, skill.name);
-    const context = profession.resolvePatch().balanceContext;
-    const model = describeSimulationSkill(context, context.catalog.skillsById.get(id), elementalistTooltips);
-    assert.ok(
-      model.facts.some(
-        (fact) =>
-          fact.detail.includes(`${coefficient} coefficient`) && fact.detail.includes('on the next qualifying strike')
-      ),
-      skill.name
-    );
-  }
 });
 
 test('spear blast finishers select fields at the consuming hit and retain the granting skill', () => {

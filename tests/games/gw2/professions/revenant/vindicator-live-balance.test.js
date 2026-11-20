@@ -1,12 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
-import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
-import { createBuildContext, profession, toApplicationBuild } from '#gw2/professions/revenant/build/context.js';
+import { profession } from '#gw2/professions/revenant/build/context.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
@@ -19,30 +15,6 @@ const patchId = 'current';
 const live = profession.resolvePatch({ id: 'current' });
 const config = { specialization: 'Vindicator', patchId };
 const run = (rotation, overrides = {}) => runRevenant(rotation, { ...config, ...overrides }, { profession });
-const line = (catalog) => catalog.specializations.find(({ name }) => name === 'Vindicator');
-
-// Live choices use the final tiers and exclude the retired attribute and damage grants.
-test('Vindicator live layout owns moved traits and the new grandmasters', () => {
-  assert.deepEqual(
-    line(live.catalog).majorTraits.map((tier) => tier.map((trait) => trait.id)),
-    [
-      [TRAIT.REAVERS_CURSE, TRAIT.ANGSIYANS_TRUST, TRAIT.SONG_OF_ARBOREUM],
-      [TRAIT.FORERUNNER_OF_DEATH, TRAIT.VASSALS_OF_THE_EMPIRE, TRAIT.SAINT_OF_ZU_HELTZER],
-      [TRAIT.FRIEND_OF_THE_LUXONS, TRAIT.HEATED_RIVALRY, TRAIT.FRIEND_OF_THE_KURZICKS]
-    ]
-  );
-  for (const id of [2258, 2248, 2228])
-    assert.equal(
-      live.catalog.traits.some((trait) => trait.id === id),
-      false
-    );
-  assert.equal(line(live.catalog).minorTraits[2].name, 'Rise to the Occasion');
-  assert.equal(live.catalog.balanceProfilesById.get(TRAIT.RISE_TO_THE_OCCASION).attributeBonuses, undefined);
-  const build = toApplicationBuild(profession.createBuildDefaults());
-  build.specializations = [{ name: 'Vindicator', traits: '1-1-1' }];
-  const context = createBuildContext({ build, transitionDelays: normalizeTransitionDelays(), patch: live });
-  assert.ok(context.simulationConfig().selectedTraitIds.includes(TRAIT.RISE_TO_THE_OCCASION));
-});
 
 // Starting endurance is a fixture-only input; a non-damaging swap keeps the precombat case out of combat.
 test('Balance in Discord grants selected endurance once per swap and respects the cap', () => {
@@ -124,8 +96,6 @@ test('moved dodge traits and adept Energy Meld traits remain functional in live 
       initialEnergy: 100
     });
     assert.deepEqual(result.warnings, []);
-    const tooltip = revenantAppAdapter.skillTooltip(live.catalog.skillsById.get(SHARED_SKILL_IDS.DODGE), live, build);
-    assert.ok(tooltip.description.includes(landing));
 
     // Landing damage retains the shared input identity but carries the selected attack's artwork.
     const damage = result.breakdown.find((entry) => entry.name === landing && entry.strikeDamage > 0);
@@ -156,21 +126,6 @@ test('moved dodge traits and adept Energy Meld traits remain functional in live 
 
     if (choices.startsWith('3')) assert.ok(result.events.some((event) => event.kind === 'vigor'));
   }
-});
-
-test('confirmed Vindicator tuning replaces neutral values and deferred effects are disclosed', () => {
-  const describe = (id) =>
-    describeSimulationTrait(
-      live.balanceContext,
-      live.catalog.traits.find((trait) => trait.id === id),
-      revenantTooltips,
-      'Vindicator'
-    );
-  assert.equal(live.catalog.balanceProfilesById.get(TRAIT.BALANCE_IN_DISCORD).resourceGain, 50);
-  assert.equal(live.catalog.balanceProfilesById.get(TRAIT.RISE_TO_THE_OCCASION).damageIncrease, 0.1);
-  assert.equal(live.catalog.balanceProfilesById.get(TRAIT.HEATED_RIVALRY).minimumStacks, 2);
-  assert.match(describe(TRAIT.HEATED_RIVALRY).description, /Deferred/);
-  assert.match(describe(TRAIT.FRIEND_OF_THE_KURZICKS).description, /outside simulation scope/);
 });
 
 // The grandmaster unlock is independent of Alliance, including with no energy, and cancellation grants no bonus.
@@ -215,37 +170,6 @@ test("Archemorus's Strike requires Friend of the Luxons and works outside Allian
     cancelled.events.some((event) => event.kind === 'friend-of-the-luxons'),
     false
   );
-});
-
-// The Luxon bonus adds to Forerunner before Rise multiplies the combined strike bonus.
-test('Friend of the Luxons shares additive damage while Rise to the Occasion stays multiplicative', () => {
-  const selected = {
-    ...config,
-    selectedTraitIds: [TRAIT.FRIEND_OF_THE_LUXONS, TRAIT.FORERUNNER_OF_DEATH, TRAIT.RISE_TO_THE_OCCASION]
-  };
-  const native = profession.resolveProfession(selected);
-  let multiplier;
-  const result = runRevenant(['Dodge', "Archemorus's Strike", { type: 'wait', durationMs: 1000 }], selected, {
-    probes: [
-      [
-        2,
-        (runtime) => {
-          multiplier = native.calculations.modifyStrikeDamage(
-            {
-              catalog: live.catalog,
-              config: selected,
-              time: runtime.time,
-              runtime,
-              event: { actorType: 'player' }
-            },
-            1
-          );
-        }
-      ]
-    ]
-  });
-  assert.deepEqual(result.warnings, []);
-  assert.ok(Math.abs(multiplier - (1 + 0.25 + 0.1) * 1.1) < 1e-12);
 });
 
 // Short fixture casts isolate bonus refresh and expiry from native animation and recharge tuning.

@@ -2,30 +2,25 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { authoringNumericFieldLabel } from '#gw2/app/patch-authoring/model.js';
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { skillPatchableNumericFields } from '#gw2/integrations/patches/authoring/fields.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { ATTRIBUTE_NAMES, baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { combineFields } from '#gw2/platform/skills/field-specs.js';
-import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import { ELEMENTALIST_CORE_SKILL_FIELDS } from '#gw2/professions/elementalist/core/catalog-fields.js';
 import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
 import { elementalistRockBarrierLifecycle } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
-import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
-import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { EVOKER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/catalog-fields.js';
 import { WEAVE_SELF_ATTUNEMENT_RECHARGE_SECONDS } from '#gw2/professions/elementalist/specializations/weaver/mechanics/attunements.js';
 import { weaveSelfAvailability } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -40,104 +35,10 @@ function preview(edits) {
   });
 }
 
-function facts(context, id) {
-  const model = describeSimulationSkill(context, context.catalog.skillsById.get(id), elementalistTooltips);
-  assert.ok(!model.incomplete);
-  return Object.fromEntries(model.facts.map(({ name, detail }) => [name, detail]));
-}
-
-test('skill patches own signet and conjure attributes in preview, runtime, and pickup tooltips', () => {
-  // Distinct patched grants; unpatched expectations come from the canonical skills rather than pinned balance.
-  const patchedBonuses = {
-    [ID.SIGNET_OF_FIRE]: { precision: 41 },
-    [ID.CONJURE_LIGHTNING_HAMMER]: { ferocity: 23, precision: 37 },
-    [ID.CONJURE_FIERY_GREATSWORD]: { conditionDamage: 29, power: 43 }
-  };
-  const profession = preview(
-    Object.fromEntries(
-      Object.entries(patchedBonuses).map(([id, bonuses]) => [
-        id,
-        Object.fromEntries(
-          Object.entries(bonuses).map(([attribute, amount]) => [`attributeBonuses.${attribute}`, amount])
-        )
-      ])
-    )
-  );
-  // Returning to current must restore the original source, without leaking preview tuning.
-  for (const patchId of ['current', 'skill-tuning', 'current']) {
-    const context = profession.resolvePatch({ id: patchId }).balanceContext;
-    const bonuses = (id) =>
-      patchId === 'skill-tuning' ? patchedBonuses[id] : elementalistCatalog.skillsById.get(id).attributeBonuses;
-    const signet = bonuses(ID.SIGNET_OF_FIRE).precision;
-    const config = { patchId, selectedSkillIds: [ID.SIGNET_OF_FIRE], selectedTraitIds: [] };
-    const initial = { power: 1000, precision: 1000, conditionDamage: 0, ferocity: 0 };
-    const core = createElementalistCoreState();
-    const query = { catalog: context.catalog, config, time: 1, runtime: { profession: { core } } };
-    assert.equal(
-      evaluateAttributeDeclarations(query, initial, elementalistCoreModule.attributes).precision,
-      1000 + signet
-    );
-    assert.equal(facts(context, ID.SIGNET_OF_FIRE)['Passive precision'], String(signet));
-    for (const [weapon, id, pickup, first, second, firstName, secondName] of [
-      [
-        'Lightning Hammer',
-        ID.CONJURE_LIGHTNING_HAMMER,
-        ID.PICK_UP_LIGHTNING_HAMMER,
-        'precision',
-        'ferocity',
-        'Precision while wielded',
-        'Ferocity while wielded'
-      ],
-      [
-        'Fiery Greatsword',
-        ID.CONJURE_FIERY_GREATSWORD,
-        ID.PICK_UP_FIERY_GREATSWORD,
-        'power',
-        'conditionDamage',
-        'Power while wielded',
-        'Condition damage while wielded'
-      ]
-    ]) {
-      const firstValue = bonuses(id)[first];
-      const secondValue = bonuses(id)[second];
-      Object.assign(core, { conjureEquipped: weapon, conjureExpiresAt: 2 });
-      const attributes = evaluateAttributeDeclarations(query, initial, elementalistCoreModule.attributes);
-      assert.equal(attributes[first], initial[first] + firstValue + (first === 'precision' ? signet : 0));
-      assert.equal(attributes[second], initial[second] + secondValue);
-      for (const skillId of [id, pickup]) {
-        assert.equal(facts(context, skillId)[firstName], String(firstValue));
-        assert.equal(facts(context, skillId)[secondName], String(secondValue));
-      }
-
-      // The bonus ends with the held bundle, even though its source skill still exists.
-      const expired = evaluateAttributeDeclarations({ ...query, time: 2 }, initial, elementalistCoreModule.attributes);
-      assert.equal(expired[first], initial[first] + (first === 'precision' ? signet : 0));
-    }
-
-    const samples = [];
-    const result = runElementalist(
-      [{ type: 'wait', durationMs: 1000 }],
-      {
-        ...config,
-        attributeInputs: baseAttributeInputs(initial)
-      },
-      {
-        profession,
-        timeline: [
-          { at: 0.5, run: (runtime) => samples.push(runtime.combat.statsAt(runtime.time, null, runtime).precision) }
-        ]
-      }
-    );
-    assert.deepEqual(result.warnings, []);
-    assert.deepEqual(samples, [1000 + signet]);
-  }
-});
-
 test('skill-owned Rock Barrier expiry releases held recharge at the patched deadline', () => {
   const profession = preview({ [ID.ROCK_BARRIER]: { flipDuration: 2 } });
   const context = profession.resolvePatch({ id: 'skill-tuning' }).balanceContext;
   const hurl = context.catalog.skillsById.get(ID.HURL);
-  assert.equal(facts(context, ID.ROCK_BARRIER)['Hurl window'], '2s');
   // Opening at a known instant isolates lifetime ownership from cast and packet schedules.
   const result = runElementalist(
     [{ type: 'wait', durationMs: 4000 }],
@@ -171,8 +72,6 @@ test('Arcane Echo window and Ride the Lightning recharge factor read the selecte
     [ID.ARCANE_ECHO]: { duration: 4 },
     [ID.RIDE_THE_LIGHTNING]: { rechargeMultiplier: 0.25 }
   });
-  const context = profession.resolvePatch({ id: 'skill-tuning' }).balanceContext;
-  assert.equal(facts(context, ID.ARCANE_ECHO).Window, '4s');
   const result = runElementalist(
     [{ type: 'wait', durationMs: 3000 }],
     {
@@ -205,8 +104,6 @@ test('Arcane Echo window and Ride the Lightning recharge factor read the selecte
 test('Weave Self owns its form and Perfect Weave windows and starts recharge at activation', () => {
   const profession = preview({ [ID.WEAVE_SELF]: { duration: 30, flipDuration: 7 } });
   const context = profession.resolvePatch({ id: 'skill-tuning' }).balanceContext;
-  assert.equal(facts(context, ID.WEAVE_SELF)['Weave Self window'], '30s');
-  assert.equal(facts(context, ID.WEAVE_SELF)['Perfect Weave window'], '7s');
   const result = runElementalist(
     [
       { type: 'combat-start' },

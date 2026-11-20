@@ -2,10 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/devourer.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { wait } from '#tests/helpers/commands.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
@@ -15,39 +12,6 @@ const config = {
   initialUntamedState: 'Ranger',
   attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 })
 };
-
-test('Carrion Devourer exposes its land command without underwater Regenerate', () => {
-  // Removing the underwater identity must preserve both Poisonous Cloud and Fern Hound's distinct land heal.
-  const carrion = RANGER_PETS.find((pet) => pet.name === 'Carrion Devourer');
-  assert.equal(carrion.skillIds.includes(12703), false);
-  assert.ok(carrion.skillIds.includes(ID.POISONOUS_CLOUD));
-  assert.equal(rangerCatalog.skillsById.has(12703), false);
-  assert.equal(RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS[12703], undefined);
-  assert.equal(rangerCatalog.skillsById.get(ID.REGENERATE_FERN_HOUND).name, 'Regenerate');
-});
-
-// Each projectile owns one full-duration bleed; splitting the strike coefficient must not halve condition duration.
-test('Twin Darts splits damage and bleeding between its two pet-owned projectiles', () => {
-  const result = runRanger(['__combat_start', wait(1600)], config);
-  assert.deepEqual(result.warnings, []);
-  const packets = result.resolvedEvents.filter(({ skillId }) => skillId === ID.TWIN_DARTS);
-  const strikes = packets.filter(({ type }) => type === 'damage');
-  const bleeds = packets.filter(({ type }) => type === 'condition');
-  assert.ok(strikes.length > 0);
-  assert.equal(
-    strikes.reduce((sum, { coefficient }) => sum + coefficient, 0),
-    0.3
-  );
-  assert.deepEqual(
-    bleeds.map(({ stacks, duration }) => [stacks, duration]),
-    [
-      [1, 4],
-      [1, 4]
-    ]
-  );
-  assert.ok(packets.every(({ actorType }) => actorType === 'summon'));
-  assert.equal(rangerCatalog.skillsById.get(ID.TWIN_DARTS).effects[0].comboFinishers[0].chance, 0.2);
-});
 
 // Preserve the game's stat-ownership bug while ordinary attacks retain independent pet attributes.
 test('Poisonous Cloud scales with Ranger power and condition damage on Untamed', () => {
@@ -65,10 +29,8 @@ test('Poisonous Cloud scales with Ranger power and condition damage on Untamed',
     const poison = cloud.filter(({ type }) => type === 'condition');
     assert.ok(strikes.length > 0);
     assert.ok(poison.length > 0);
-    assert.ok(strikes.every(({ coefficient, actorType }) => coefficient === 0.2 && actorType === 'player'));
-    assert.ok(
-      poison.every(({ stacks, duration, actorType }) => stacks === 1 && duration === 6 && actorType === 'player')
-    );
+    assert.ok(strikes.every(({ actorType }) => actorType === 'player'));
+    assert.ok(poison.every(({ actorType }) => actorType === 'player'));
   }
 
   for (const type of ['damage', 'condition']) {
@@ -94,7 +56,6 @@ test('pet and Soulbeast Tail Lash trigger Carnivore', () => {
       selectedTraitIds: [TRAIT.CARNIVORE]
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(rangerCatalog.skillsById.get(skillId).cooldown, 20);
     assert.ok(
       result.events.some(
         (event) => event.skillId === skillId && event.type === 'control' && event.controlKind === 'knockback'

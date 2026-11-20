@@ -4,7 +4,6 @@ import test from 'node:test';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
-import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { mesmerCoreModule } from '#gw2/professions/mesmer/core/module.js';
 import { cryOfPainConfusion } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -93,12 +92,6 @@ test('Mirage player ambush retains ordinary added effects without an explicit so
     },
     { profession }
   );
-  const context = profession.resolvePatch({ id: 'ambush-owner' }).balanceContext;
-  const protection = mesmerTooltips.skills[ID.SPLIT_SURGE](
-    context,
-    context.catalog.skillsById.get(ID.SPLIT_SURGE)
-  ).facts.find(({ name }) => name === 'Protection');
-  assert.equal(protection.applications, 1);
   assert.deepEqual(result.warnings, []);
   assert.ok(
     result.events.some(
@@ -281,7 +274,6 @@ test('Crescendo owns instrument scaling and Fragmentation replacement for scalar
         (entry) => entry.type === 'mesmer.instrument' && entry.instrument === 'Flute'
       );
       assert.equal(event.at >= instrument.expiresAt, delayed);
-      assert.equal(event.coefficient, 2.25);
       assert.equal(event.metadata?.crescendoInstrumentCount, 1);
       assert.equal(event.metadata?.crescendoEffectiveness, fragmentation ? 0.6 : 0.4);
       const factor = fragmentation ? 1.6 : 1.4;

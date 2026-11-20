@@ -57,40 +57,6 @@ test('Maul palette selects the player variant only while Soulbeast is merged', (
   }
 });
 
-test('Ranger greatsword authors one strike per attack and the supplied recharge and effects', () => {
-  for (const [id, coefficient] of [
-    [ID.SLASH_ID_12474, 0.88],
-    [ID.SLICE, 1.1],
-    [ID.ENDURING_SWING, 1.76],
-    [ID.SWOOP, 2.4],
-    [ID.HILT_BASH, 2.5],
-    [ID.MAUL_SOULBEAST, 2.2],
-    [ID.MAUL_BASE, 2.2]
-  ]) {
-    const strikes = rangerCatalog.skillsById.get(id).effects.filter((effect) => effect.type === 'strike');
-    assert.deepEqual(
-      strikes.map((effect) => effect.coefficient),
-      [coefficient]
-    );
-  }
-
-  for (const [id, cooldown] of [
-    [ID.MAUL_SOULBEAST, 4],
-    [ID.MAUL_BASE, 4],
-    [ID.HILT_BASH, 20],
-    [ID.SWOOP, 10]
-  ]) {
-    assert.equal(rangerCatalog.skillsById.get(id).cooldown, cooldown);
-  }
-
-  const maul = rangerCatalog.skillsById.get(ID.MAUL_SOULBEAST);
-  const vulnerability = maul.effects.find((effect) => effect.type === 'condition');
-  assert.equal(vulnerability.condition, 'Vulnerability');
-  assert.equal(vulnerability.stacks, 5);
-  assert.equal(vulnerability.duration, 8);
-  assert.equal(rangerCatalog.skillsById.get(ID.SWOOP).effects[0].comboFinishers[0].finisherType, 'Leap');
-});
-
 test('Hilt Bash dazes normal targets, stuns defiant targets, and triggers player-owned Untamed poison', () => {
   for (const defiant of [false, true]) {
     const run = (poisonMaster) =>

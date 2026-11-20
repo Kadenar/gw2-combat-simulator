@@ -202,10 +202,9 @@ test('Arcane Echo accepts weapon starts through its ten-second deadline and cons
 });
 
 // Original recharge is transferred before modifiers, while both running cooldowns earn Alacrity progress.
-test('Arcane Echo adds original weapon recharge to its 15-second base and grants one base second', () => {
+test('Arcane Echo adds original weapon recharge to its remaining recharge and grants one base second', () => {
   const echo = elementalistCatalog.skillsById.get(ID.ARCANE_ECHO);
   const weapon = { ...elementalistCatalog.skillsById.get(ID.LIGHTNING_STRIKE), cooldown: 30 };
-  assert.equal(echo.cooldown, 15);
   for (const rate of [1, 1.25]) {
     const context = arcaneEchoContext(rate);
     context.cooldownController.startRecharge(echo, 0);
@@ -215,8 +214,11 @@ test('Arcane Echo adds original weapon recharge to its 15-second base and grants
     completeArcaneEcho(context, { start: 4, effectiveEnd: 5, rechargeWork: 7 }, weapon);
     assert.deepEqual(context.cooldownController.rechargeFor(weapon.id), { workAnchorAt: 5, work: 1 });
     assert.equal(context.cooldownController.readyAt(weapon.id), canonicalTime(5 + 1 / rate));
-    assert.deepEqual(context.cooldownController.rechargeFor(echo.id), { workAnchorAt: 5, work: 45 - 5 * rate });
-    assert.equal(context.cooldownController.readyAt(echo.id), 45 / rate);
+    assert.deepEqual(context.cooldownController.rechargeFor(echo.id), {
+      workAnchorAt: 5,
+      work: echo.cooldown + weapon.cooldown - 5 * rate
+    });
+    assert.equal(context.cooldownController.readyAt(echo.id), (echo.cooldown + weapon.cooldown) / rate);
   }
 });
 
@@ -241,7 +243,7 @@ test('Arcane Echo ignores autoattacks, non-weapons, follow-ups, zero recharge, a
     completeArcaneEcho(context, { start: 1, effectiveEnd: 2, cancelledBeforeCommit }, { ...weapon, ...patch });
     assert.equal(context.profession.core.arcaneEchoUntil, 10);
     assert.equal(context.cooldownController.readyAt(weapon.id), 20);
-    assert.equal(context.cooldownController.readyAt(echo.id), 15);
+    assert.equal(context.cooldownController.readyAt(echo.id), echo.cooldown);
     completeArcaneEcho(context, { start: 1, effectiveEnd: 2 }, weapon);
     assert.equal(context.profession.core.arcaneEchoUntil, 0);
   }
@@ -260,7 +262,7 @@ test('Arcane Echo preserves spent ammunition and adds its original count recharg
   const ammo = context.cooldownController.readAmmo(weapon.id);
   assert.equal(ammo.charges, 1);
   assert.deepEqual(ammo.recharges, [{ workAnchorAt: 2, work: 7 }]);
-  assert.equal(context.cooldownController.readyAt(echo.id), 15 + weapon.cooldown);
+  assert.equal(context.cooldownController.readyAt(echo.id), echo.cooldown + weapon.cooldown);
 });
 
 // Native hit-based recharge reduction must not shrink Echo's surcharge, and the repeat waits for reduced recharge.

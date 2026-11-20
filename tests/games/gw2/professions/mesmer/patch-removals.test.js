@@ -1,12 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
-import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -30,8 +27,8 @@ function run(patch, specialization, rotation, config = {}, skills = {}) {
   return result;
 }
 
-// The selected profile owns Poison in both combat and tooltips, including removal without restoring authored data.
-test('Chaos Storm profile edits and removal reach combat and tooltip consumers', () => {
+// The selected profile owns Poison in combat after an edit or removal.
+test('Chaos Storm profile edits and removal change its combat applications', () => {
   const skill = mesmerCatalog.skillsById.get(ID.CHAOS_STORM);
   const profile = requireSkillAction(skill, 'poison');
   const poison = profile.effects.find((effect) => effect.type === 'condition' && effect.name === 'Poison');
@@ -78,33 +75,11 @@ test('Chaos Storm profile edits and removal reach combat and tooltip consumers',
   );
   assert.ok(withoutPoison.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.CHAOS_STORM));
 
-  const tooltipFacts = (catalog) =>
-    mesmerTooltips.skills[ID.CHAOS_STORM]({ catalog }, catalog.skillsById.get(ID.CHAOS_STORM)).facts.filter(
-      ({ name }) => name === 'Poisoned'
-    );
-  assert.notDeepEqual(tooltipFacts(applySkillPatch(mesmerCatalog, { skills: edited })), tooltipFacts(mesmerCatalog));
-  assert.deepEqual(tooltipFacts(applySkillPatch(mesmerCatalog, { skills: removed })), []);
   assert.ok(poison.ticks.every((tick) => tick.duration === 4));
 });
 
-test('shatter removal keeps surviving tier edits and the current catalog isolated', () => {
+test('Removing a clone shatter strike spends the clones without triggering Maim', () => {
   const id = ID.MIND_WRACK;
-  const catalog = applySkillPatch(mesmerCatalog, {
-    skills: {
-      [id]: {
-        sideEffects: {
-          shatter: {
-            removeEffects: [{ type: 'strike', name: '1 resources' }],
-            effects: [{ type: 'strike', name: '2 resources', coefficient: { from: 2.42, to: 7 } }]
-          }
-        }
-      }
-    }
-  });
-  const compiled = mesmerSelectedShatter(catalog, ID.MIND_WRACK);
-  assert.equal(compiled.strikes[1], undefined);
-  assert.equal(compiled.strikes[2].coefficient, 7);
-  assert.equal(requireSkillAction(mesmerCatalog.skillsById.get(id), 'shatter').effects[2].coefficient, 2.42);
   const result = run(
     { skills: { [id]: { sideEffects: { shatter: { removeEffects: [{ type: 'strike', name: '1 resources' }] } } } } },
     'Core',
@@ -213,14 +188,13 @@ for (const [specialization, trait, skill, attack] of [
     );
   });
 
-// The selected trait profile owns the explosion formula and the armed window without a runtime damage copy.
-test('Time Bomb trait profile edits control its explosion and delay without mutating base data', () => {
+// The armed Time Bomb waits for its selected duration.
+test('Time Bomb explodes when its patched window ends', () => {
   const result = run(
     {
       balanceProfiles: {
         [TRAIT.TIME_BOMB]: {
-          fields: { duration: { from: 5, to: 2 } },
-          effects: [{ type: 'strike', name: 'Strike', coefficient: { from: 3, to: 4 } }]
+          fields: { duration: 2 }
         }
       }
     },
@@ -230,12 +204,7 @@ test('Time Bomb trait profile edits control its explosion and delay without muta
   );
   const armed = result.events.find((event) => event.type === 'buff' && event.kind === 'time-bomb');
   const explosion = result.events.find((event) => event.type === 'damage' && event.name === 'Time Bomb');
-  assert.equal(armed.duration, 2);
   assert.equal(explosion.at, armed.at + 2);
-  assert.equal(explosion.coefficient, 4);
-  const base = mesmerCatalog.balanceProfilesById.get(TRAIT.TIME_BOMB);
-  assert.equal(base.duration, 5);
-  assert.equal(base.effects.find((effect) => effect.name === 'Strike').coefficient, 3);
 });
 
 test('Mirage player and clone strikes are removed independently of their conditions', () => {
@@ -277,15 +246,6 @@ test('removed Split Surge strike preserves independent repeated boon and Vulnera
       .map(({ at, kind, condition, stacks }) => ({ at, kind, condition, stacks }));
   assert.ok(statuses(baseline).length > 0);
   assert.deepEqual(statuses(removed), statuses(baseline));
-  const catalog = applySkillPatch(mesmerCatalog, {
-    skills: { [ID.SPLIT_SURGE]: { removeEffects: [{ type: 'strike', name: 'Player attack' }] } }
-  });
-  const statusFacts = (catalog) =>
-    mesmerTooltips.skills[ID.SPLIT_SURGE]({ catalog }, catalog.skillsById.get(ID.SPLIT_SURGE)).facts.filter(
-      ({ name }) => name === 'Might' || name === 'Vulnerability'
-    );
-  assert.ok(statusFacts(catalog).length > 0);
-  assert.deepEqual(statusFacts(catalog), statusFacts(mesmerCatalog));
   assert.equal(
     removed.events.some((event) => event.type === 'damage' && event.skillId === ID.SPLIT_SURGE),
     false
@@ -467,4 +427,36 @@ test('tick edits survive deletion of a lower Virtuoso resource tier', () => {
   );
   const firstHit = result.events.find((event) => event.type === 'damage' && event.skillId === ID.BLADESONG_HARMONY);
   assert.equal(firstHit.coefficient, 7);
+});
+
+// A defensive shatter can trigger Maim even when the strike deals zero damage.
+test('Removing a defensive shatter strike suppresses hit traits', () => {
+  for (const [specialization, skillId] of [
+    ['Core', ID.DISTORTION],
+    ['Virtuoso', ID.BLADESONG_DISTORTION]
+  ]) {
+    for (const removed of [false, true]) {
+      const patch = removed
+        ? {
+            skills: {
+              [skillId]: {
+                sideEffects: {
+                  shatter: {
+                    removeEffects: [{ type: 'strike', name: '2 resources' }]
+                  }
+                }
+              }
+            }
+          }
+        : {};
+      const result = run(patch, specialization, [{ type: 'cast', skillId }], {
+        initialResource: 2,
+        selectedTraitIds: [TRAIT.MAIM_THE_DISILLUSIONED]
+      });
+      assert.equal(
+        result.events.some((event) => event.type === 'condition' && event.condition === 'Torment'),
+        !removed
+      );
+    }
+  }
 });

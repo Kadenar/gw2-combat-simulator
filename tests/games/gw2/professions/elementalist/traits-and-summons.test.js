@@ -11,7 +11,6 @@ import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import {
@@ -55,12 +54,6 @@ test('Gale Song and Bolstered Elements expand their selected boon profile at com
     assert.ok(boons.every((event) => event.activationId === action.activationId));
   }
 });
-
-// Attribute assertions use the same calculator composed into the Elementalist adapter.
-const calculateAttributes = createCalculateAttributes(
-  createProfessionBuildAttributeRules(elementalistCatalog),
-  elementalistProfession.attributeContributions
-);
 
 test('Persisting Flames grants stacks from Fire Sphere without extending profession fields', () => {
   // Isolate the field trigger from Burning traits and autonomous elemental summons.
@@ -153,21 +146,6 @@ test('Evoker familiar flip interruption cancels both familiar attacks', () => {
     );
     assert.equal(result.planningState.profession[STATE.EMPOWERED_CHARGES].value, 1);
   }
-});
-
-// A disabled trait contributes nothing and leaves the active list, whatever value its profile authors.
-test('disabled traits drop their attribute contribution and active listing', () => {
-  const { app: water } = createNativeApp({ lines: [['Water', '1-1-3'], ['Air'], ['Arcane']] });
-  const withoutSoothingPower = calculateAttributes(water.build, [], 1, 'Soothing Power');
-  const vitality = elementalistCatalog.balanceProfilesById.get(TRAIT.SOOTHING_POWER).attributeBonuses.vitality;
-  assert.equal(
-    water.attributeData.attributes.Vitality.traits - withoutSoothingPower.attributes.Vitality.traits,
-    vitality
-  );
-  assert.equal(
-    withoutSoothingPower.activeTraits.some((trait) => trait.name === 'Soothing Power'),
-    false
-  );
 });
 
 test('core attunement and aura traits emit named boon and damage payloads', () => {

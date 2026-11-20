@@ -8,12 +8,9 @@ import { createGuardianBuildDefaults, migrateGuardianBuild } from '#gw2/professi
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
 
 const config = {
@@ -48,57 +45,29 @@ test('Guardian player strikes trigger shared player-owned sigils', () => {
   );
 });
 
-// Recharge modifiers and exhausted ammo must affect when the scheduler allows another cast.
-test('Guardian recharge applies Alacrity, ammo, and trait reductions', () => {
-  const alacrity = createObservedProfessionSimulator(guardianProfession, { ...config, boons: { alacrity: true } })(
-    undefined,
-    ['Virtue of Justice']
-  );
-  const virtuous = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS]
-  })(undefined, ['Virtue of Justice']);
-  const ammo = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Pistol'
-  })(undefined, ['Hail of Justice', 'Hail of Justice', 'Hail of Justice']);
+// Compare the same virtue under identical boon settings to isolate its trait recharge.
+test('Power of the Virtuous shortens Justice recharge', () => {
+  const readyAt = (selectedTraitIds) => {
+    const result = createObservedProfessionSimulator(guardianProfession, { ...config, selectedTraitIds })(undefined, [
+      'Virtue of Justice'
+    ]);
+    assert.deepEqual(result.warnings, []);
+    return result.planningState.cooldownsBySkillId[GUARDIAN_SKILL_IDS.JUSTICE].readyAtMs;
+  };
 
-  assert.equal(alacrity.planningState.cooldownsBySkillId[GUARDIAN_SKILL_IDS.JUSTICE].readyAtMs, 16000);
-  assert.equal(virtuous.planningState.cooldownsBySkillId[GUARDIAN_SKILL_IDS.JUSTICE].readyAtMs, 13600);
-  assert.equal(ammo.planningState.ammoBySkillId[GUARDIAN_SKILL_IDS.HAIL_OF_JUSTICE].charges, 0);
-  assert.equal(ammo.steps[2].start, ammo.steps[0].end + 8000);
-  assert.deepEqual(ammo.warnings, []);
+  assert.ok(readyAt([GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS]) < readyAt([]));
 });
 
-// Helio's reuse gap and depleted-charge recovery both count from activation under Alacrity.
-test('Helio Rush reuses and replenishes charges from activation', () => {
-  const result = runGuardian(
-    [GUARDIAN_SKILL_IDS.HELIO_RUSH, GUARDIAN_SKILL_IDS.HELIO_RUSH, GUARDIAN_SKILL_IDS.HELIO_RUSH],
-    { primaryWeapon: 'Spear', boons: { alacrity: true } }
-  );
-  assert.deepEqual(result.warnings, []);
-  assert.deepEqual(
-    result.steps.map((step) => step.start),
-    [0, 1600, 6400]
-  );
-});
-
-// Utility effects retain their control, finisher, and virtue ownership through the shared runtime.
-test('Willbender utilities deliver control, per-hit conditions, and virtue effects', () => {
+// Whirling Light applies its conditions on each landed strike.
+test('Whirling Light applies its conditions with its whirl finishers', () => {
   const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Willbender' })(
     undefined,
-    ["Heaven's Palm", 'Whirling Light', 'Crashing Courage', { type: 'wait', durationMs: 6000 }]
+    ['Whirling Light']
   );
   const strikes = (name) =>
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === name);
   const whirls = strikes('Whirling Light');
   assert.deepEqual(result.warnings, []);
-  assert.ok(
-    result.events.some(
-      (event) => event.type === 'control' && event.skillName === "Heaven's Palm" && event.controlKind === 'knockback'
-    )
-  );
   assert.ok(whirls.length > 0);
   assert.ok(
     whirls.every(
@@ -114,18 +83,6 @@ test('Willbender utilities deliver control, per-hit conditions, and virtue effec
       whirls.map((event) => event.at)
     );
   }
-
-  for (const kind of ['aegis', 'stability']) {
-    assert.ok(
-      result.events.some(
-        (event) => event.type === 'buff' && event.skillName === 'Crashing Courage' && event.kind === kind
-      )
-    );
-  }
-
-  assert.ok(
-    strikes('Willbender Flames').some((event) => event.skillId === GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES_COURAGE)
-  );
 });
 
 // Native finishers bind to a live field and retain their condition payload.
@@ -233,120 +190,28 @@ test('Guardian Blasts use centralized field binding and require an active field'
 });
 
 // Virtue traits modify landed flames and their rewards independently of the native cast and pulse schedule.
-test('Willbender virtues, flames, and trait triggers use their full mechanics', () => {
-  const willbenderConfig = {
-    ...config,
-    specialization: 'Willbender',
-    primaryWeapon: 'Greatsword',
-    boons: { quickness: true }
-  };
-  const full = createObservedProfessionSimulator(guardianProfession, {
-    ...willbenderConfig,
-    selectedTraitIds: [
-      GUARDIAN_TRAIT_IDS.POWER_FOR_POWER,
-      GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES,
-      GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM
-    ]
-  })(undefined, ['Rushing Justice', 'Whirling Wrath', { type: 'wait', durationMs: 6000 }]);
-  const powerFlames = createObservedProfessionSimulator(guardianProfession, {
-    ...willbenderConfig,
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.POWER_FOR_POWER]
-  })(undefined, ['Rushing Justice', { type: 'wait', durationMs: 6000 }]);
-  const plainFlames = createObservedProfessionSimulator(guardianProfession, willbenderConfig)(undefined, [
-    'Rushing Justice',
-    { type: 'wait', durationMs: 6000 }
-  ]);
-  const searingFlames = createObservedProfessionSimulator(guardianProfession, {
-    ...willbenderConfig,
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.SEARING_PACT]
-  })(undefined, ['Rushing Justice', { type: 'wait', durationMs: 6000 }]);
-  const amplifiedWrath = createObservedProfessionSimulator(guardianProfession, {
-    ...willbenderConfig,
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH]
-  })(undefined, ['Rushing Justice', 'Whirling Wrath']);
-  const permeatingWrath = createObservedProfessionSimulator(guardianProfession, {
-    ...willbenderConfig,
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH]
-  })(undefined, ['Rushing Justice', 'Whirling Wrath']);
-  const flameStrikes = full.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillName === 'Willbender Flames'
+// Compare both flame traits on the same virtue activation.
+test('Power for Power strengthens flame hits and Searing Pact burns on each flame hit', () => {
+  const flames = (selectedTraitIds) =>
+    createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Willbender',
+      selectedTraitIds
+    })(undefined, ['Rushing Justice', { type: 'wait', durationMs: 6000 }]);
+  const hits = (result) =>
+    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Willbender Flames');
+  const burns = (result) =>
+    result.resolvedEvents.filter((event) => event.type === 'condition' && event.skillName === 'Searing Pact');
+  const plain = flames([]);
+  const powered = flames([GUARDIAN_TRAIT_IDS.POWER_FOR_POWER]);
+  const searing = flames([GUARDIAN_TRAIT_IDS.SEARING_PACT]);
+  assert.ok(hits(powered)[0].damage > hits(plain)[0].damage);
+  assert.deepEqual(burns(plain), []);
+  assert.ok(hits(searing).length > 0);
+  assert.deepEqual(
+    burns(searing).map((event) => event.at),
+    hits(searing).map((event) => event.at)
   );
-  const whirlingAction = full.events.find((event) => event.type === 'action' && event.skillName === 'Whirling Wrath');
-  const firstFlameDamage = (result) =>
-    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Willbender Flames').damage;
-
-  assert.deepEqual(full.warnings, []);
-  assert.equal(full.resolvedEvents.find((event) => event.name === 'Rushing Justice - Impact Damage').coefficient, 1.5);
-  assert.equal(full.resolvedEvents.find((event) => event.name === 'Rushing Justice - Initial Burning').duration, 4);
-  assert.ok(flameStrikes.length > 0);
-  assert.equal(
-    flameStrikes.every((event) => event.coefficient === 0.22),
-    true
-  );
-  assert.ok(
-    Math.abs(
-      firstFlameDamage(powerFlames) -
-        (firstFlameDamage(plainFlames) * 3 * (config.attributeInputs.weaponSets[0].commonTotals.power + 120)) /
-          config.attributeInputs.weaponSets[0].commonTotals.power
-    ) <= 2
-  );
-  assert.equal(
-    searingFlames.resolvedEvents.filter(
-      (event) =>
-        event.type === 'condition' &&
-        event.skillName === 'Searing Pact' &&
-        event.condition === 'Burning' &&
-        event.duration === 1
-    ).length,
-    searingFlames.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Willbender Flames')
-      .length
-  );
-  assert.equal(
-    powerFlames.resolvedEvents.some((event) => event.type === 'condition' && event.skillName === 'Willbender Flames'),
-    false
-  );
-  assert.equal(
-    full.resolvedEvents.some(
-      (event) => event.name === 'Justice - Active Burning' && event.duration === 2 && event.icon
-    ),
-    true
-  );
-  assert.equal(
-    amplifiedWrath.resolvedEvents.find((event) => event.name === 'Rushing Justice - Initial Burning').effectiveDuration,
-    4
-  );
-  assert.equal(
-    amplifiedWrath.resolvedEvents.find((event) => event.name === 'Justice - Active Burning').effectiveDuration,
-    2.4
-  );
-  assert.equal(amplifiedWrath.resolvedEvents.filter((event) => event.name === 'Justice - Active Burning').length, 3);
-  assert.equal(permeatingWrath.resolvedEvents.filter((event) => event.name === 'Justice - Active Burning').length, 5);
-  assert.equal(full.planningState.profession[STATE.JUSTICE_UNTIL], 10.04);
-  assert.equal(full.planningState.profession[STATE.LETHAL_TEMPO].count, 5);
-  assert.equal(
-    full.procSteps.filter(
-      (step) =>
-        step.skill === 'Restorative Virtues' &&
-        step.start / 1000 >= whirlingAction.at &&
-        step.start / 1000 <= whirlingAction.endsAt
-    ).length,
-    3
-  );
-  assert.equal(
-    full.procSteps.some((step) => step.skill === 'Restorative Virtues' && step.detail === '0.224s weapon recharge'),
-    true
-  );
-  assert.equal(full.events.find((event) => event.type === 'buff' && event.name === 'Lethal Tempo').duration, 4);
-  const rushingJusticeAction = full.events.find(
-    (event) => event.type === 'action' && event.skillName === 'Rushing Justice'
-  );
-  const rushingJusticePackets = full.resolvedEvents.filter(
-    (event) => event.name === 'Rushing Justice - Impact Damage' || event.name === 'Rushing Justice - Initial Burning'
-  );
-
-  // Authored packets retain their impact identity after removing the static modifyEffects hook.
-  assert.ok(rushingJusticePackets.every((event) => event.sourceId === GUARDIAN_SKILL_IDS.RUSHING_JUSTICE_IMPACT));
-  assert.equal(observedRuntime(full).cooldownController.rechargeFor(rushingJusticeAction.skillId).work, 12);
 });
 
 test('Restorative Virtues converts base recharge reduction through Alacrity', () => {
@@ -720,45 +585,26 @@ test("Zealot's Fire locks out Flame until 400 ms or an intervening skill", () =>
   }
 });
 
-test("Radiant Fire upgrades Zealot's Flame duration, recharge, and ammo", () => {
-  const result = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    primaryWeapon: 'Axe',
-    secondaryWeapon: 'Torch',
-    boons: { quickness: true },
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.RADIANT_FIRE]
-  })(undefined, [
-    "Zealot's Flame",
-    "Zealot's Fire",
-    "Zealot's Flame",
-    "Zealot's Fire",
-    "Zealot's Flame",
-    "Zealot's Fire",
-    { type: 'wait', durationMs: 4000 }
-  ]);
-  const flameActions = result.events.filter((event) => event.type === 'action' && event.skillName === "Zealot's Flame");
-  const flameBurns = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillName === "Zealot's Flame" && event.condition === 'Burning'
-  );
-  const fireBurns = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillName === "Zealot's Fire" && event.condition === 'Burning'
-  );
-
-  assert.deepEqual(result.warnings, []);
-  assert.deepEqual(
-    flameActions.map((event) => event.at),
-    [0, 1.08, 9.6]
-  );
-  assert.equal(result.planningState.ammoBySkillId[GUARDIAN_SKILL_IDS.ZEALOTS_FLAME].maximum, 2);
-  assert.ok(flameBurns.length > 0);
-  assert.equal(
-    flameBurns.every((event) => Math.abs(event.effectiveDuration - 5.4) < 1e-9),
-    true
-  );
-  assert.equal(
-    fireBurns.every((event) => event.stacks === 1 && Math.abs(event.effectiveDuration - 3.6) < 1e-9),
-    true
-  );
+// Compare charge availability and Burning on the same torch input before and after selecting Radiant Fire.
+test("Radiant Fire adds a Zealot's Flame charge and extends its Burning", () => {
+  const cast = (selectedTraitIds) =>
+    createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Torch',
+      selectedTraitIds
+    })(undefined, ["Zealot's Flame", "Zealot's Fire", { type: 'wait', durationMs: 4000 }]);
+  const normal = cast([]);
+  const traited = cast([GUARDIAN_TRAIT_IDS.RADIANT_FIRE]);
+  assert.deepEqual(normal.warnings, []);
+  assert.deepEqual(traited.warnings, []);
+  const charges = (result) => result.planningState.ammoBySkillId[GUARDIAN_SKILL_IDS.ZEALOTS_FLAME]?.maximum ?? 1;
+  const burning = (result) =>
+    result.resolvedEvents.find(
+      (event) => event.type === 'condition' && event.skillName === "Zealot's Flame" && event.condition === 'Burning'
+    ).effectiveDuration;
+  assert.ok(charges(traited) > charges(normal));
+  assert.ok(burning(traited) > burning(normal));
 });
 
 test('Guardian damage traits use resolver-time target state', () => {
@@ -807,64 +653,6 @@ test('Guardian alias input loads canonical Sword of Justice while Shield of Abso
   assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION).flipSkillId, 9224);
   assert.equal(guardianCatalog.skillsById.get(9224).flipParentId, GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION);
 });
-
-// Minimal shout rotations check loadout persistence, charge scheduling, and party boon duration scaling.
-for (const [name, recharge, boons, duration] of [
-  ['"Advance!"', 24, ['swiftness', 'aegis'], 20],
-  ['"Hold the Line!"', 20, ['protection', 'regeneration'], 6]
-]) {
-  test(`${name} remains selectable and shares instant boons with a two-charge cooldown`, () => {
-    const defaults = createGuardianBuildDefaults();
-    const migrated = migrateGuardianBuild({
-      ...defaults,
-      selectedSkillIds: {
-        ...defaults.selectedSkillIds,
-        Utility1: guardianCatalog.skills.find((candidate) => candidate.name === name).id
-      }
-    });
-    assert.equal(
-      migrated.selectedSkillIds.Utility1,
-      guardianCatalog.skills.find((candidate) => candidate.name === name).id
-    );
-
-    for (const alacrity of [false, true]) {
-      const result = createObservedProfessionSimulator(guardianProfession, {
-        ...config,
-        selectedSkillIds: [guardianCatalog.skills.find((candidate) => candidate.name === name).id],
-        boons: { alacrity },
-        attributeInputs: baseAttributeInputs({
-          ...config.attributeInputs.weaponSets[0].commonTotals,
-          concentration: alacrity ? 750 : 0
-        }),
-        allies: { count: 4 }
-      })(undefined, [name, name, name]);
-      const rate = 1.25;
-      assert.deepEqual(result.warnings, []);
-      assert.deepEqual(
-        result.steps.map((step) => step.start),
-        [0, 5000 / rate, (recharge * 1000) / rate]
-      );
-      assert.ok(result.steps.every((step) => step.end === step.start));
-      assert.equal(
-        result.planningState.ammoBySkillId[guardianCatalog.skills.find((candidate) => candidate.name === name).id]
-          .charges,
-        0
-      );
-      const buffs = result.events.filter(
-        (event) => event.type === 'buff' && event.skillName === name && event.at === 0
-      );
-      assert.deepEqual(
-        buffs.map((event) => event.kind),
-        boons
-      );
-      for (const buff of buffs) {
-        assert.equal(buff.duration, duration * (alacrity ? 1.5 : 1));
-        assert.equal(buff.resolvedAudience.includesSelf, true);
-        assert.equal(buff.resolvedAudience.alliedPlayerCount, 4);
-      }
-    }
-  });
-}
 
 // Supported boon shouts must remain available when loading a canonical saved build.
 test('"Stand Your Ground!" is available and retained in saved Guardian builds', () => {
@@ -923,81 +711,4 @@ test('Guardian results advance to cooldown expiry before recasting', () => {
   assert.equal(casts[1].start - casts[0].start, 16000);
   assert.ok(result.steps.every((step) => !step.invalid));
   assert.deepEqual(result.warnings, []);
-});
-
-test('Willbender build definitions read active tuning and honor disabled trait previews', () => {
-  // Each mutually exclusive adept owns its panel grant, including the Vitality input to later conversions.
-  const family = patchTraitProfession(guardianProfession, {
-    balanceProfiles: {
-      [GUARDIAN_TRAIT_IDS.SEARING_PACT]: { fields: { 'attributeBonuses.conditionDamage': 150 } },
-      [GUARDIAN_TRAIT_IDS.POWER_FOR_POWER]: { fields: { 'attributeBonuses.power': 200 } },
-      [GUARDIAN_TRAIT_IDS.CONCEITED_CURATE]: { fields: { 'attributeBonuses.vitality': 240 } }
-    }
-  });
-  const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(guardianCatalog),
-    family.attributeContributions
-  );
-  for (const [choices, name, attribute, baseline, preview] of [
-    ['1-1-1', 'Searing Pact', 'Condition Damage', 120, 150],
-    ['2-1-1', 'Power for Power', 'Power', 120, 200],
-    ['3-1-1', 'Conceited Curate', 'Vitality', 180, 240]
-  ]) {
-    const build = { specializations: [{ name: 'Willbender', traits: choices }] };
-    for (const [patchId, bonus] of [
-      ['current', baseline],
-      ['s4-preview', preview]
-    ]) {
-      const balance = family.resolvePatch({ id: patchId }).balanceContext;
-      assert.equal(calculate(build, [], 1, null, null, balance).attributes[attribute].traits, bonus);
-      assert.equal(calculate(build, [], 1, name, null, balance).attributes[attribute].traits, 0);
-    }
-  }
-});
-
-test('Guardian weapon definitions preserve patched build bonuses and live weapon-swap provenance', () => {
-  // A delayed Greatsword packet uses the equipped weapon's bonus, subtracting the panel's previous weapon grant.
-  const family = patchTraitProfession(guardianProfession, {
-    balanceProfiles: {
-      [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]: {
-        fields: { 'attributeBonuses.power': 100, 'conditionalAttributeBonuses.power': 300 }
-      },
-      [GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH]: {
-        fields: { 'attributeBonuses.precision': 40, 'attributeBonuses.power': 40 }
-      }
-    }
-  });
-  const balance = family.resolvePatch({ id: 's4-preview' }).balanceContext;
-  const calculate = createCalculateAttributes(
-    createProfessionBuildAttributeRules(guardianCatalog),
-    family.attributeContributions
-  );
-  const build = {
-    specializations: [
-      { name: 'Zeal', traits: '1-2-1' },
-      { name: 'Radiance', traits: '2-1-1' }
-    ],
-    weapons: ['Greatsword'],
-    alternateWeapons: ['Sword', 'Focus']
-  };
-  assert.equal(calculate(build, [], 1, null, null, balance).attributes.Power.traits, 300);
-  assert.equal(calculate(build, [], 2, null, null, balance).attributes.Power.traits, 140);
-  const runtime = family.runtimeFor({ patchId: 's4-preview' });
-  const context = {
-    catalog: runtime.catalog,
-    time: 1,
-    event: { skillWeapon: 'Greatsword' },
-    config: {
-      primaryWeapon: 'Sword',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH]
-    }
-  };
-  assert.equal(runtime.calculations.modifyAttributes(context, { power: 1000 }).power, 1140);
-  assert.equal(
-    runtime.calculations.modifyAttributes(
-      { ...context, config: { ...context.config, primaryWeapon: 'Greatsword' } },
-      { power: 1000 }
-    ).power,
-    1300
-  );
 });

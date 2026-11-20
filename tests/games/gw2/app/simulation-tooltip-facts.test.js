@@ -36,7 +36,7 @@ test('aura facts expose selected durations', () => {
     const model = simulationEffectFacts([{ ...aura, duration }]);
     assert.equal(model.incomplete, false);
     assert.equal(model.facts.length, 1);
-    assert.equal(model.facts[0].name, 'Chaos Aura');
+    assert.equal(model.facts[0].name, aura.name);
     assert.equal(model.facts[0].detail, `${duration}s`);
     assert.equal(model.facts[0].stacks, undefined);
   }
@@ -88,19 +88,20 @@ test('tooltip helpers retain their own identity, callback arguments, qualifiers,
             return [{ name: 'Value', detail: String(selected.catalog.balanceProfilesById.get(id).value) }];
           }
         : [['value', 'Value', String]];
-    const trait = traitTooltip('Trait', input(1), 'trait effect')(context, { id: 1 });
+    const qualifier = 'fixture qualifier';
+    const trait = traitTooltip('Trait', input(1), qualifier)(context, { id: 1 });
     const skill = skillTooltip('Skill', input(1, true))(context, { id: 1 });
     assert.deepEqual(
       trait.facts.map(({ name }) => name),
-      ['Value', 'Burning']
+      ['Value', context.catalog.balanceProfilesById.get(1).effects[0].condition]
     );
-    assert.equal(trait.facts[0].detail, '1.234567891');
-    assert.match(trait.facts[1].detail, /trait effect/);
+    assert.equal(trait.facts[0].detail, String(context.catalog.balanceProfilesById.get(1).value));
+    assert.ok(trait.facts[1].detail.includes(qualifier));
     assert.deepEqual(
       skill.facts.map(({ name }) => name),
-      ['Torment', 'Value']
+      [context.catalog.skillsById.get(1).effects[0].condition, 'Value']
     );
-    assert.equal(skill.facts[1].detail, '1.234567891');
+    assert.equal(skill.facts[1].detail, String(context.catalog.balanceProfilesById.get(1).value));
     assert.equal(calls, computed ? 2 : 0);
   }
 });

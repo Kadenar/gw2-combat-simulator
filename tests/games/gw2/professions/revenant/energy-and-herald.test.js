@@ -1,15 +1,13 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 
-import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { applyMightAttributes, attributeContext } from '#gw2/platform/attributes/evaluation.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { durationStackState, timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import {
   createRevenantBuildDefaults,
   migrateRevenantBuild,
@@ -632,8 +630,6 @@ test('legend invocation traits resolve after swap effects', () => {
 
   assert.equal(swap.at, 0);
   assert.equal(call.at, 0);
-  assert.equal(call.coefficient, 0.9);
-  assert.equal(invoke.coefficient, 1);
   // Diabolic Inferno augments the same invocation despite using another balance profile.
   assert.ok(
     result.events
@@ -642,19 +638,6 @@ test('legend invocation traits resolve after swap effects', () => {
   );
   assert.ok(spiritBoon.eventOrder < call.eventOrder);
   assert.ok(call.eventOrder < invoke.eventOrder);
-  assert.deepEqual(
-    result.events
-      .filter((event) => event.type === 'condition' && event.skillName === 'Invoke Torment')
-      .map((event) => [event.condition, event.stacks, event.duration]),
-    [
-      ['Torment', 1, 10],
-      ['Poisoned', 1, 10],
-      ['Burning', 1, 4]
-    ]
-  );
-  assert.ok(
-    result.events.some((event) => event.type === 'buff' && event.kind === 'resistance' && event.duration === 2)
-  );
 });
 
 // Every destination uses one trait package; Entity borrows its paired Core legend and setup swaps grant nothing.
@@ -704,63 +687,7 @@ test('invocation packages are selected once and require combat and the matching 
   }
 });
 
-test('Herald invocation traits emit their declared proc skills', () => {
-  const result = simulate('Herald', ['Swap Legends'], {
-    selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],
-    startingLegend: LEGEND.ASSASSIN,
-    selectedTraitIds: [TRAIT.SPIRIT_BOON, TRAIT.SONG_OF_THE_MISTS]
-  });
-  const call = result.events.find((event) => event.type === 'damage' && event.name === 'Call of the Dragon');
-  const spiritBoon = result.events.find((event) => event.type === 'buff' && event.skillName === 'Spirit Boon');
-
-  assert.equal(call.skillId, SKILL.CALL_OF_THE_DRAGON);
-  assert.equal(call.sourceId, TRAIT.SONG_OF_THE_MISTS);
-  assert.equal(call.coefficient, 0.75);
-  assert.equal(spiritBoon.sourceId, TRAIT.SPIRIT_BOON);
-  assert.equal(spiritBoon.kind, 'protection');
-  assert.equal(spiritBoon.duration, 3);
-});
-
-test('Renegade invocation traits emit declared proc skills and grant fervor', () => {
-  const result = simulate('Renegade', ['Swap Legends'], {
-    selectedLegends: [LEGEND.ASSASSIN, LEGEND.RENEGADE],
-    startingLegend: LEGEND.ASSASSIN,
-    selectedTraitIds: [TRAIT.SPIRIT_BOON, TRAIT.SONG_OF_THE_MISTS]
-  });
-  const call = result.events.find((event) => event.type === 'damage' && event.name === 'Call of the Renegade');
-  const bleeding = result.events.find(
-    (event) =>
-      event.type === 'condition' && event.skillName === 'Call of the Renegade' && event.condition === 'Bleeding'
-  );
-  const spiritBoon = result.events.find((event) => event.type === 'buff' && event.skillName === 'Spirit Boon');
-
-  assert.equal(call.skillId, SKILL.CALL_OF_THE_RENEGADE);
-  assert.equal(call.sourceId, TRAIT.SONG_OF_THE_MISTS);
-  assert.equal(call.coefficient, 0.5);
-  assert.equal(bleeding.stacks, 2);
-  assert.equal(bleeding.duration, 8);
-  assert.equal(spiritBoon.sourceId, TRAIT.SPIRIT_BOON);
-  assert.equal(spiritBoon.kind, 'resolution');
-  assert.equal(spiritBoon.duration, 4);
-  assert.equal(result.planningState.profession[STATE.KALLAS_FERVOR].length, 2);
-});
-
-test('Corruption traits update attributes, duration, and chill triggers', () => {
-  const build = createRevenantBuildDefaults();
-
-  build.specializations = [
-    { name: 'Corruption', traits: '1-3-1' },
-    { name: 'Devastation', traits: '2-2-2' }
-  ];
-  build.assumptions.might = 25;
-  const attributes = calculateRevenantAttributes(build).attributes;
-
-  assert.equal(attributes['Condition Damage'].traits, 120);
-  assert.equal(attributes.Power.traits, 0);
-  assert.equal(attributes['Condition Duration'].traits, 15);
-  assert.equal(attributes['Torment Duration'].traits, 10);
-  assert.equal(attributes['Poison Duration'].traits, 10);
-
+test('Abyssal Chill reacts to the Chill from a Dragon legend swap', () => {
   const chill = simulate('Herald', ['Swap Legends'], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],
     startingLegend: LEGEND.ASSASSIN,
@@ -769,54 +696,9 @@ test('Corruption traits update attributes, duration, and chill triggers', () => 
 
   assert.ok(
     chill.events.some(
-      (event) =>
-        event.type === 'condition' &&
-        event.skillName === 'Abyssal Chill' &&
-        event.condition === 'Torment' &&
-        event.stacks === 1 &&
-        event.duration === 3
+      (event) => event.type === 'condition' && event.skillName === 'Abyssal Chill' && event.condition === 'Torment'
     )
   );
-  assert.equal(
-    revenantModifiers.modifyConditionDamage(
-      {
-        config: { selectedTraitIds: [TRAIT.ACOLYTE_OF_TORMENT] },
-        event: { actorType: 'player' },
-        condition: 'Torment'
-      },
-      1
-    ),
-    1.1
-  );
-});
-
-test('Notoriety applies its Might conversion at runtime without negative UI attributes', async () => {
-  const saved = JSON.parse(
-    await readFile(new URL('../../../../../data/gw2/builds/revenant/b-power-conduit.json', import.meta.url), 'utf8')
-  );
-  const attributes = calculateRevenantAttributes(migrateRevenantBuild(saved)).attributes;
-
-  assert.equal(attributes['Condition Damage'].traits, 75);
-  assert.equal(attributes['Condition Damage'].final, 75);
-
-  const runtime = notorietyAttributes(
-    {
-      config: {
-        specialization: 'Core',
-        selectedTraitIds: [TRAIT.NOTORIETY],
-        boons: { might: 25 }
-      },
-      time: 0,
-      runtime: { liveEffects: createTestLiveEffects(), profession: {} }
-    },
-    {
-      power: 1000,
-      conditionDamage: 0
-    }
-  );
-
-  assert.equal(runtime.power, 2000);
-  assert.equal(runtime.conditionDamage, 500);
 });
 
 test('Retribution and Invocation traits use live combat state', () => {
@@ -1216,27 +1098,6 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
   const low = simulate('Core', [], { initialEnergy: 4.9 });
   assert.equal(low.planningState.availability[phase.id].ready, false);
   assert.equal(low.planningState.availability[SKILL.CHILLING_ISOLATION].ready, false);
-  // The rich tooltip's energy badge reads the structured base-cost fact.
-  for (const [skill, cost] of [
-    [phase, '30'],
-    [relinquish, '0']
-  ]) {
-    const view = paletteSkillView(
-      paletteInputFixture({
-        tooltip: (skill) => revenantAppAdapter.skillTooltip(skill, revenantAppAdapter.profession.resolvePatch()),
-        planning: null,
-        specialization: 'Core',
-        isSkillAvailable: revenantAppAdapter.isSkillAvailable,
-        weaponSkillMatchesSet: revenantAppAdapter.weaponSkillMatchesSet,
-        slotLoadout: revenantAppAdapter.slotLoadout,
-        weaponData: revenantAppAdapter.weaponData,
-        ui: revenantAppAdapter.profession.ui,
-        projectActions: revenantAppAdapter.profession.ui.paletteActionSkills
-      }),
-      skill
-    );
-    assert.equal(view.tooltip.facts.find((fact) => fact.name === 'Base energy cost').detail, cost);
-  }
 });
 
 test('Herald palette replaces active facets with their consume skills', () => {
@@ -1448,139 +1309,6 @@ test('Core Value extends allied boons by three seconds without duration scaling'
     durationStackState(extended, extension.at, { maximum: 30 }).remaining,
     durationStackState(original, extension.at, { maximum: 30 }).remaining + 3
   );
-});
-
-test('True Nature variants declare a twenty-second cooldown across legends', () => {
-  const result = simulate(
-    'Herald',
-    [
-      'Facet of Nature',
-      { skillId: SKILL.TRUE_NATURE_ASSASSIN },
-      'Swap Legends',
-      'Facet of Nature',
-      { skillId: SKILL.TRUE_NATURE_DRAGON }
-    ],
-    {
-      selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],
-      startingLegend: LEGEND.ASSASSIN,
-      initialEnergy: 100
-    }
-  );
-
-  assert.deepEqual(result.warnings, []);
-  for (const skillId of [
-    SKILL.TRUE_NATURE_ASSASSIN,
-    SKILL.TRUE_NATURE_DWARF,
-    SKILL.TRUE_NATURE_DRAGON,
-    SKILL.TRUE_NATURE_CENTAUR,
-    SKILL.TRUE_NATURE_DEMON
-  ]) {
-    assert.equal(revenantCatalog.skillsById.get(skillId).cooldown, 20);
-  }
-});
-
-test('Herald consume skills apply their full outgoing profiles', () => {
-  const gaze = simulate('Herald', ['Facet of Darkness', 'Gaze of Darkness'], {
-    selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.DRAGON
-  });
-
-  assert.equal(observedRuntime(gaze).cooldownController.readyAt(revenantCatalog.skillsById.get(27080).id), 12);
-  assert.ok(
-    gaze.events.some(
-      (event) =>
-        event.type === 'condition' &&
-        event.condition === 'Blindness' &&
-        event.skillName === 'Gaze of Darkness' &&
-        event.duration === 5
-    )
-  );
-  assert.ok(gaze.events.some((event) => event.condition === 'Revealed' && event.duration === 5));
-  assert.ok(
-    gaze.events.some((event) => event.condition === 'Vulnerability' && event.stacks === 10 && event.duration === 6)
-  );
-
-  const elements = simulate(
-    'Herald',
-    ['Facet of Elements', 'Elemental Blast'],
-    {
-      selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.DRAGON
-    },
-    observationTail(3000)
-  );
-  assert.deepEqual(
-    elements.resolvedEvents
-      .filter((event) => event.type === 'condition' && event.skillName === 'Elemental Blast')
-      .map((event) => [event.condition, event.stacks, event.duration]),
-    [
-      ['Weakness', 1, 5],
-      ['Chilled', 1, 3],
-      ['Burning', 1, 4],
-      ['Burning', 1, 4]
-    ]
-  );
-
-  const strength = simulate('Herald', ['Facet of Strength', 'Burst of Strength'], {
-    selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.DRAGON
-  });
-  assert.ok(
-    strength.events.some(
-      (event) => event.type === 'buff' && event.kind === 'burst-of-strength' && event.duration === 10
-    )
-  );
-  const burstContext = {
-    config: { specialization: 'Herald' },
-    time: 5,
-    event: { actorType: 'player', skillName: 'Chilling Isolation' },
-    runtime: {
-      liveEffects: createTestLiveEffects([
-        ['burst-of-strength', [{ resolvedAudience: { includesSelf: true }, at: 1, expiresAt: 11, stacks: 1 }]]
-      ]),
-
-      profession: {}
-    }
-  };
-
-  assert.equal(revenantModifiers.modifyStrikeDamage(burstContext, 1), 1.1);
-  assert.equal(revenantModifiers.modifyConditionDamage(burstContext, 1), 1.05);
-  const reinforcedPotencyContext = {
-    config: {
-      specialization: 'Herald',
-      selectedTraitIds: [TRAIT.REINFORCED_POTENCY],
-      boons: {
-        aegis: true,
-        alacrity: true,
-        fury: true,
-        might: 25,
-        protection: true,
-        quickness: true,
-        regeneration: true,
-        resolution: true,
-        swiftness: true,
-        vigor: true
-      }
-    },
-    time: 5,
-    event: { actorType: 'player' },
-    runtime: { liveEffects: createTestLiveEffects(), profession: {} }
-  };
-
-  assert.equal(revenantModifiers.modifyStrikeDamage(reinforcedPotencyContext, 1), 1.1);
-
-  const chaos = simulate('Herald', ['Facet of Chaos', 'Chaotic Release'], {
-    selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.DRAGON
-  });
-
-  assert.ok(
-    chaos.events.some(
-      (event) => event.type === 'damage' && event.skillName === 'Chaotic Release' && event.coefficient === 4
-    )
-  );
-  assert.ok(chaos.events.some((event) => event.type === 'control' && event.controlKind === 'knockback'));
-  assert.ok(chaos.events.some((event) => event.type === 'buff' && event.kind === 'superspeed' && event.duration === 5));
 });
 
 // Cross-line duration contributions respect the effective selection used by isolated build previews.

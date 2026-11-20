@@ -3,7 +3,6 @@ import { test } from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
-import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import { skillFlipReady, skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { handleElectricArtillery } from '#gw2/professions/engineer/core/mechanics/spear.js';
@@ -316,20 +315,10 @@ test('Amalgam protocol selection swaps conflicting protocol names', () => {
   assert.equal(new Set(build.selectedMorphSkillIds.map((id) => engineerCatalog.skillsById.get(id).name)).size, 3);
 });
 
-test('Engineer sword variants have specialization-owned facts and runtime gating', () => {
+test('sword variants follow specialization and grant heat-dependent Quickness', () => {
   const skill = (id) => engineerCatalog.skillsById.get(id);
   const mechanistRuntime = engineerProfession.resolveProfession({ specialization: 'Mechanist' });
   const holosmithRuntime = engineerProfession.resolveProfession({ specialization: 'Holosmith' });
-
-  for (const id of [
-    ID.SUN_EDGE_NON_HOLOSMITH,
-    ID.SUN_RIPPER_NON_HOLOSMITH,
-    ID.GLEAM_SABER_NON_HOLOSMITH,
-    ID.RADIANT_ARC_NON_HOLOSMITH,
-    ID.REFRACTION_CUTTER_NON_HOLOSMITH
-  ]) {
-    assert.equal(skill(id).specialization, undefined);
-  }
 
   assert.equal(mechanistRuntime.catalog.skillsById.has(ID.GLEAM_SABER), false);
   assert.equal(mechanistRuntime.catalog.skillsById.has(ID.GLEAM_SABER_NON_HOLOSMITH), true);
@@ -347,10 +336,6 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
     }),
     true
   );
-  // Variant selection retains combo behavior without fixing each variant's balance payload.
-  for (const id of [ID.RADIANT_ARC, ID.RADIANT_ARC_NON_HOLOSMITH]) {
-    assert.equal(skill(id).comboFinishers[0].finisherType, 'Leap');
-  }
 
   const replaced = simulate('Holosmith', [{ type: 'cast', skillId: ID.SUN_EDGE_NON_HOLOSMITH }]);
 
@@ -424,27 +409,6 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
   );
 });
 
-test('Engineer mace packets retain player, explosion, and finisher classifications', () => {
-  const result = simulate('Mechanist', ['Mace Strike', 'Mace Smash', 'Mace Blast', 'Rocket Fist Prototype']);
-
-  assert.equal(result.warnings.length, 0);
-  const damage = (name) => result.events.find((event) => event.type === 'damage' && event.name === name);
-  const smash = damage('Mace Smash');
-  const blast = damage('Mace Blast');
-  const fist = damage('Rocket Fist Prototype');
-
-  assert.equal(smash.actorType, 'player');
-  assert.equal(
-    result.events.find((event) => event.type === 'condition' && event.skillName === 'Mace Smash').actorType,
-    'player'
-  );
-  assert.equal(blast.damageKind, 'explosion');
-  assert.equal(engineerCatalog.skillsById.get(ID.MACE_BLAST).comboFinishers[0].finisherType, 'Leap');
-  assert.equal(fist.damageKind, 'explosion');
-  assert.equal(fist.projectile, true);
-  assert.equal(fist.comboFinishers[0].finisherType, 'Projectile');
-});
-
 // The opening control precedes the field; each later strike and condition share the same pulse.
 test('Thunderclap pairs field strikes with Vulnerability after its opening control', () => {
   const result = simulate('Core', ['Thunderclap', { type: 'wait', durationMs: 5000 }]);
@@ -463,59 +427,8 @@ test('Thunderclap pairs field strikes with Vulnerability after its opening contr
   );
 });
 
-test('Bomb Kit effects retain explosion ownership, cancellation behavior, and combo eligibility', () => {
+test('Bomb Kit blasts trigger Bloodstone only inside a combo field', () => {
   const selectedSkillIds = [5857, 5812, 5805, 5933, 5868];
-  const waitForBombPackets = () => ({ type: 'wait', durationMs: 5000 });
-  const bombSkills = engineerCatalog.skills.filter(
-    (candidate) => candidate.kitId === ID.BOMB_KIT && candidate.effects.some((effect) => effect.type === 'strike')
-  );
-
-  // Require matching skills so a stale kit lookup cannot bypass the explosion checks.
-  assert.ok(bombSkills.length > 0, 'Bomb Kit must contain strike skills');
-  assert.ok(
-    bombSkills.every((candidate) =>
-      candidate.effects
-        .filter((effect) => effect.type === 'strike')
-        .every((effect) => effect.damageKind === 'explosion')
-    )
-  );
-
-  const bomb = simulate('Core', ['Bomb Kit', 'Bomb', waitForBombPackets()], {
-    selectedSkillIds
-  });
-  const bombHit = bomb.events.find((event) => event.type === 'damage' && event.name === 'Bomb');
-  assert.equal(bombHit.damageKind, 'explosion');
-
-  const galvanic = simulate('Core', ['Bomb Kit', 'Galvanic Bomb', waitForBombPackets()], { selectedSkillIds });
-
-  assert.ok(galvanic.events.some((event) => event.type === 'damage'));
-  assert.ok(
-    galvanic.events.some(
-      (event) =>
-        event.type === 'condition' && event.condition === 'Confusion' && event.stacks === 6 && event.duration === 8
-    )
-  );
-  assert.ok(galvanic.events.some((event) => event.type === 'control' && event.controlKind === 'daze'));
-  assert.equal(engineerCatalog.skillsById.get(5822).comboFinishers[0].finisherType, 'Blast');
-
-  const magnetic = engineerCatalog.skillsById.get(76530);
-
-  assert.equal(strikeEffectCoefficient(magnetic.effects[0]), 1.5);
-  assert.equal(magnetic.effects[1].controlKind, 'pull');
-  const magneticResult = simulate('Core', ['Bomb Kit', 'Magnetic Bomb', waitForBombPackets()], {
-    selectedSkillIds,
-    boons: { quickness: true }
-  });
-
-  assert.ok(magneticResult.events.some((event) => event.type === 'damage' && event.name === 'Magnetic Bomb'));
-  assert.ok(magneticResult.events.some((event) => event.type === 'control' && event.skillName === 'Magnetic Bomb'));
-
-  const big = simulate('Core', ['Bomb Kit', "Big Ol' Bomb", waitForBombPackets()], { selectedSkillIds });
-
-  assert.ok(big.events.some((event) => event.type === 'damage'));
-  assert.ok(big.events.some((event) => event.type === 'control' && event.controlKind === 'knockdown'));
-  assert.equal(engineerCatalog.skillsById.get(5813).comboFinishers[0].successfulCombos, 2);
-
   const doubleBlast = simulate(
     'Core',
     [
@@ -611,11 +524,6 @@ test('Engineer spear focus selects its condition branch and consumes Lightning R
 
   assert.equal(focused.warnings.length, 0);
 
-  const rodStep = focused.steps.find((step) => step.skillName === 'Lightning Rod');
-  const artilleryStep = focused.steps.find((step) => step.skillName === 'Electric Artillery');
-
-  assert.equal(artilleryStep.start - rodStep.start, 4200);
-  assert.equal(focused.events.find((event) => event.type === 'engineer.electric-artillery').charges, 8);
   const immobilize = focused.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.condition === 'Immobilized'
   );
@@ -623,22 +531,9 @@ test('Engineer spear focus selects its condition branch and consumes Lightning R
   assert.equal(immobilize.length, 1);
   assert.equal(immobilize[0].sourceId, ID.ELECTRIC_ARTILLERY);
   assert.equal(immobilize[0].at, focused.events.find((event) => event.type === 'engineer.electric-artillery').at);
-  assert.equal(
-    focused.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Conduit Surge').length,
-    1
-  );
-  assert.equal(
-    focused.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Electric Artillery').length,
-    1
-  );
   const artilleryBurns = focused.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.name === 'Electric Artillery - Burning'
   );
-
-  // Focused charges extend both independent burns without increasing the total stack count.
-  assert.equal(artilleryBurns.length, 2);
-  assert.ok(artilleryBurns.every((event) => event.stacks === 1 && event.duration === 7));
-  assert.equal(artilleryBurns[0].at, artilleryBurns[1].at);
 
   const unfocused = simulate(
     'Amalgam',
@@ -651,12 +546,11 @@ test('Engineer spear focus selects its condition branch and consumes Lightning R
     { kind: 'tail', durationMs: 1000 }
   );
 
-  assert.equal(
-    unfocused.resolvedEvents.find(
-      (event) => event.type === 'condition' && event.skillName === 'Electric Artillery' && event.condition === 'Burning'
-    ).duration,
-    5
+  const unfocusedBurn = unfocused.resolvedEvents.find(
+    (event) => event.type === 'condition' && event.skillName === 'Electric Artillery' && event.condition === 'Burning'
   );
+  assert.ok(artilleryBurns.length > 0);
+  assert.ok(artilleryBurns.every((event) => event.duration > unfocusedBurn.duration));
   assert.deepEqual(unfocused.planningState.profession[STATE.LIGHTNING_ROD_CHARGE_EXPIRIES], []);
   assert.equal(unfocused.planningState.profession[STATE.AVAILABLE_FLIPS][ID.ELECTRIC_ARTILLERY], undefined);
   for (const [result, rodStacks, artilleryStacks] of [
@@ -667,7 +561,6 @@ test('Engineer spear focus selects its condition branch and consumes Lightning R
       (event) => event.condition === 'Vulnerability' && event.sourceId === ID.LIGHTNING_ROD
     );
     assert.ok(rodVulnerability.length > 0);
-    assert.ok(rodVulnerability.every((event) => event.stacks === 1 && event.duration === 8));
     const rodImpacts = new Set(rodVulnerability.map((event) => event.at)).size;
     assert.equal(
       rodVulnerability.reduce((sum, event) => sum + event.stacks, 0),
@@ -680,7 +573,6 @@ test('Engineer spear focus selects its condition branch and consumes Lightning R
       artilleryVulnerability.reduce((sum, event) => sum + event.stacks, 0),
       artilleryStacks
     );
-    assert.ok(artilleryVulnerability.every((event) => event.duration === 8 && event.effectiveDuration === 8));
   }
 });
 

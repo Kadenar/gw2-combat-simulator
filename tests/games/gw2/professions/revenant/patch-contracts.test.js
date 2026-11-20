@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
 import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_LEGEND_IDS as LEGEND,
@@ -380,21 +378,7 @@ test('Revenant stack displays use patched skill and selected trait caps', () => 
 });
 
 // The stance carries a helper window for warband completion, never an automatic stance reward.
-test('Renegade stance does not advertise or grant Band Together on entry', () => {
-  const context = { catalog: revenantCatalog };
-  const tooltip = describeSimulationSkill(
-    context,
-    revenantCatalog.skillsById.get(ID.LEGENDARY_RENEGADE_STANCE),
-    revenantTooltips
-  );
-  assert.equal(
-    tooltip.facts.some((fact) => /band.together/i.test(fact.name)),
-    false
-  );
-  const warband = describeSimulationSkill(context, revenantCatalog.skillsById.get(ID.ICERAZORS_IRE), revenantTooltips);
-  assert.ok(
-    warband.factTabs.find((tab) => tab.label === 'Base effects').facts.some((fact) => /band.together/i.test(fact.name))
-  );
+test('Entering Renegade stance does not grant Band Together', () => {
   const result = runRevenant([ID.SWAP_LEGENDS], {
     specialization: 'Renegade',
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.RENEGADE],

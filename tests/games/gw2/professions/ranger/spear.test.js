@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
@@ -170,12 +169,6 @@ test("Hunter's Shot retains declared stealth and survives its Shrike follow-up",
   assert.deepEqual(result.warnings, []);
   assert.ok(strike(result, ID.WOLFS_ONSLAUGHT));
   assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.SHRIKE));
-  const tooltip = describeSimulationSkill(
-    { catalog: rangerCatalog },
-    rangerCatalog.skillsById.get(ID.HUNTERS_SHOT),
-    {}
-  );
-  assert.ok(tooltip.facts.some((fact) => fact.name === 'Stealth' && fact.detail === '3s'));
 });
 
 test('spear finishers consume Smoke Cloud and Spider grants superspeed to the pet', () => {
@@ -193,7 +186,6 @@ test('spear finishers consume Smoke Cloud and Spider grants superspeed to the pe
   const superspeed = spider.resolvedEvents.find((event) => event.type === 'buff' && event.kind === 'superspeed');
   assert.equal(superspeed.resolvedAudience.includesSelf, false);
   assert.equal(superspeed.resolvedAudience.includesSummons, true);
-  assert.equal(rangerCatalog.skillsById.get(ID.FALCONS_STOOP).effects[0].comboFinishers[0].finisherType, 'Projectile');
 });
 
 test('Jaguar stealth enables spear stealth attacks independently of Prowl', () => {

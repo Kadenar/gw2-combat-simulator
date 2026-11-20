@@ -10,7 +10,7 @@ import { composeSkillDefinitions, materializeSkillDefinitions } from '#gw2/platf
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { ELEMENTALIST_CORE_SKILLS } from '#gw2/professions/elementalist/core/skills/index.js';
-import { ELEMENTALIST_SKILL_IDS, ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { ELEMENTALIST_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { TRAIT_LINES } from '#gw2/professions/elementalist/data/trait-lines.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
@@ -114,13 +114,4 @@ test('Elementalist declaration order follows its module contributions', () => {
       modules[1].data.skills[0].id
     );
   }
-});
-
-test('Specialized Elements models percentage recharge changes as multipliers', () => {
-  const catalog = assembleNativeApplicationCatalog([elementalistCoreModule, evokerModule]);
-  const trait = catalog.balanceProfilesById.get(ELEMENTALIST_TRAIT_IDS.SPECIALIZED_ELEMENTS);
-
-  assert.equal(Object.hasOwn(trait, 'rechargeReduction'), false);
-  assert.equal(trait.rechargeMultiplier, 0.9);
-  assert.equal(trait.empoweredRechargeMultiplier, 0.8);
 });

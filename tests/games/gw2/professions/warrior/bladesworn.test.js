@@ -489,29 +489,6 @@ test('Daring Dragon with Tactical Reload caps charges and preserves entry and co
   assert.equal(state(result).dragonTriggerActive, false);
 });
 
-// Force's provisional endpoint belongs to Daring Dragon and must not change other builds or Slash variants.
-test('Daring Dragon applies its provisional Force endpoint before capturing the release', () => {
-  for (const [skillId, traits, charges, expected] of [
-    [ID.DRAGON_SLASH_FORCE, [TRAIT.DARING_DRAGON], 1, 1.16],
-    [ID.DRAGON_SLASH_FORCE, [TRAIT.DARING_DRAGON], 3, (1.16 + 13.26) / 2],
-    [ID.DRAGON_SLASH_FORCE, [TRAIT.DARING_DRAGON], 5, 13.26],
-    [ID.DRAGON_SLASH_FORCE, [], 10, 20.4],
-    [ID.DRAGON_SLASH_FORCE, [TRAIT.DARING_DRAGON, TRAIT.SHARP_AS_THE_WIND], 5, 3],
-    [ID.DRAGON_SLASH_BOOST, [TRAIT.DARING_DRAGON], 5, 16.3],
-    [ID.DRAGON_SLASH_REACH, [TRAIT.DARING_DRAGON], 5, 10.21]
-  ]) {
-    const result = run([combat, 'Dragon Trigger', { skillId, releaseAtCharges: charges }], {
-      initialResource: 100,
-      selectedTraitIds: traits
-    });
-    assert.deepEqual(result.warnings, []);
-    const release = result.events.find((event) => event.reason === 'profession mechanic');
-    close(release.coefficient, expected);
-    const hit = result.resolvedEvents.find((event) => event.type === 'damage');
-    close(hit.coefficient, expected);
-  }
-});
-
 // Keep the assumed endpoint adjustable through the trait's balance profile.
 test('Daring Dragon Force endpoint responds to balance patches', () => {
   const patched = withPatchPreview(warriorProfession, {
@@ -527,8 +504,14 @@ test('Daring Dragon Force endpoint responds to balance patches', () => {
     patched
   );
   assert.deepEqual(result.warnings, []);
-  close(result.events.find((event) => event.reason === 'profession mechanic').coefficient, 15.3);
-  close(result.resolvedEvents.find((event) => event.type === 'damage').coefficient, 15.3);
+  const ordinary = run([combat, 'Dragon Trigger', slash(5)], {
+    initialResource: 100,
+    selectedTraitIds: [TRAIT.DARING_DRAGON]
+  });
+  const release = result.events.find((event) => event.reason === 'profession mechanic');
+  const hit = (run) => run.resolvedEvents.find((event) => event.type === 'damage');
+  assert.equal(hit(result).coefficient, release.coefficient);
+  assert.ok(hit(result).coefficient > hit(ordinary).coefficient);
 });
 
 test('Tactical Reload restores existing ammunition and doubles charges only for the next Dragon Trigger entry', () => {

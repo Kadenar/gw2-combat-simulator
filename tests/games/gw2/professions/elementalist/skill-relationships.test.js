@@ -2,10 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { AURA } from '#gw2/platform/constants.js';
-import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -15,11 +12,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-
-function tooltip(catalog, id) {
-  const context = { ...elementalistAppAdapter.profession.resolvePatch().balanceContext, catalog };
-  return describeSimulationSkill(context, catalog.skillsById.get(id), elementalistTooltips);
-}
 
 test('pickups and attacks use their declared conjure for admission, lifetime, and presentation', () => {
   const catalog = withSkill(
@@ -40,7 +32,6 @@ test('pickups and attacks use their declared conjure for admission, lifetime, an
   assert.equal(core.conjureEquipped, 'Lightning Hammer');
   assert.equal(core.conjurePickups['Lightning Hammer'], undefined);
   assert.equal(core.conjureExpiresAt, canonicalTime(pickup.end / 1000 + 7));
-  assert.match(tooltip(catalog, ID.PICK_UP_FROST_BOW).description, /Lightning Hammer/);
   const ui = bindElementalistCoreUi(catalog);
   const skill = catalog.skillsById.get(ID.PICK_UP_FROST_BOW);
   assert.equal(
@@ -58,7 +49,7 @@ test('pickups and attacks use their declared conjure for admission, lifetime, an
   );
 });
 
-test('a transmute consumes and displays its declared aura independently of its attunement', () => {
+test('a transmute consumes its declared aura and marks the matching palette tile independently of its attunement', () => {
   const catalog = withSkill(elementalistCatalog, ID.TRANSMUTE_FIRE, { transmuteAura: AURA.FROST });
   const result = runElementalist(
     [{ type: 'cast', skillId: ID.TRANSMUTE_FIRE }],
@@ -81,7 +72,6 @@ test('a transmute consumes and displays its declared aura independently of its a
     observedRuntime(result).profession.core.activeAuras.map((aura) => aura.type),
     [AURA.FIRE]
   );
-  assert.ok(tooltip(catalog, ID.TRANSMUTE_FIRE).description.includes(AURA.FROST));
   const ui = bindElementalistCoreUi(catalog);
   const context = { professionState: { [STATE.ACTIVE_AURAS]: [{ type: AURA.FROST, expiresAt: 10 }] }, time: 0 };
   assert.equal(ui.paletteOverride(context, catalog.skillsById.get(ID.TRANSMUTE_FIRE)).tileActive, true);
@@ -110,6 +100,4 @@ test('etching release roles and names come from the selected root in runtime and
     ui.paletteWeaponSkills(context, family).map((skill) => skill.id),
     [ID.VOLCANO]
   );
-  assert.match(tooltip(catalog, ID.VOLCANO).description, /partially charged/);
-  assert.match(tooltip(catalog, ID.LESSER_VOLCANO).description, /fully charged/);
 });

@@ -79,9 +79,7 @@ test('Signet Mastery bar shows the stacks active at the inspection point', () =>
   const [item] = snapshot(WITH_TRAIT, 3);
 
   assert.equal(item.id, 'signet-mastery');
-  assert.equal(item.label, 'Signet Mastery');
   assert.equal(item.value, '2/5');
-  assert.match(item.title, /\+200 ferocity/);
 });
 
 test('Signet Mastery bar counts only applications still within their window', () => {

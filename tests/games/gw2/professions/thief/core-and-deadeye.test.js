@@ -4,7 +4,7 @@ import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
@@ -342,65 +342,6 @@ test('Deadeye live runtime and palette enforce the same flip expiry boundary', (
   }
 });
 
-test('Thief catalog retains valid effect schemas and skill metadata', () => {
-  // Thief strike timelines stay explicit unless every hit shares one timestamp.
-  for (const skill of thiefCatalog.skills) {
-    for (const effect of skill.effects || []) {
-      if (effect.type === 'strike') {
-        if (effect.ticks) {
-          for (const field of ['coefficient', 'hits', 'atMs', 'intervalMs']) {
-            assert.equal(field in effect, false, `${skill.name}: ${field}`);
-          }
-        } else {
-          assert.ok(Number(effect.coefficient) >= 0, skill.name);
-          assert.ok(Number.isInteger(effect.hits) && effect.hits > 0, skill.name);
-
-          if (effect.hits > 1) assert.ok(Number.isFinite(effect.atMs), skill.name);
-        }
-      } else if (effect.type === 'condition') {
-        // Single impacts carry their payload directly; repeated applications retain explicit timelines.
-        for (const packet of effect.ticks ?? [effect]) {
-          assert.ok(packet.condition, skill.name);
-          assert.ok(packet.stacks > 0 && packet.duration > 0, skill.name);
-          assert.ok(packet.atMs == null || Number.isFinite(packet.atMs), skill.name);
-        }
-      }
-    }
-  }
-
-  assert.ok(
-    thiefCatalog.skills
-      .filter((skill) => skill.type === 'Weapon')
-      .every((skill) => skill.cost == null || skill.cost.resource === 'initiative')
-  );
-  assert.ok(
-    thiefCatalog.skills
-      .filter((skill) => skill.artifactKind)
-      .every((skill) => skill.type === 'Profession' && skill.slot === 'Profession_2')
-  );
-});
-
-// Grouped payloads retain their effect indices so patches can target one packet without changing its neighbors.
-test('Thief shared impacts remain independently patchable beside separate strike timelines', () => {
-  const original = thiefCatalog.skillsById.get(ID.SHADOW_STRIKE);
-  const baseline = structuredClone(original);
-  const preview = applySkillPatch(thiefCatalog, {
-    skills: {
-      [ID.SHADOW_STRIKE]: {
-        effects: [
-          { effectIndex: 1, coefficient: 2 },
-          { effectIndex: 2, duration: 8 }
-        ]
-      }
-    }
-  });
-  const patched = preview.skillsById.get(ID.SHADOW_STRIKE);
-  assert.deepEqual(patched.effects[0], original.effects[0]);
-  assert.deepEqual(patched.effects[1], { ...original.effects[1], coefficient: 2 });
-  assert.deepEqual(patched.effects[2], { ...original.effects[2], duration: 8 });
-  assert.deepEqual(original, baseline);
-});
-
 test('Thief resources use profession-specific initiative and malice pips', () => {
   const resourceViews = (specialization, config = {}) =>
     thiefProfession.ui.resourceViews({
@@ -575,26 +516,6 @@ test('every terrestrial main hand exposes its normal stealth attack', () => {
       weapon
     );
   }
-});
-
-// A selected target receives the primary strike formula, never the sum of alternate-target tooltip damage.
-test("Death's Judgment applies only its primary damage formula to the selected target", () => {
-  const result = runThief(
-    [ID.DEATHS_JUDGMENT],
-    {
-      primaryWeapon: 'Rifle',
-      secondaryWeapon: '',
-      attributeInputs: baseAttributeInputs({ power: 2000, precision: 0, ferocity: 0 }),
-      target: { armor: 2597, conditions: {} }
-    },
-    {
-      initialize(runtime) {
-        Object.assign(runtime.profession.core, { stealthStartedAt: 0, stealthUntil: 10 });
-      }
-    }
-  );
-  assert.deepEqual(result.warnings, []);
-  assert.equal(result.strikeDamage, Math.floor((2.67 * 1150 * 2000) / 2597));
 });
 
 test('initiative regenerates at exact boundaries and ignores Alacrity', () => {

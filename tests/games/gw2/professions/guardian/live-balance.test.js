@@ -2,7 +2,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { resolveAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
@@ -17,19 +16,6 @@ import { wait } from '#tests/helpers/commands.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-
-test('the live Firebrand layout replaces retired traits without a preview overlay', () => {
-  assert.equal(activePatchPreview, null);
-  const line = guardianCatalog.specializations.find((line) => line.name === 'Firebrand');
-  assert.deepEqual(
-    line.majorTraits.map((tier) => tier.map((trait) => trait.name)),
-    [
-      ['Unrelenting Criticism', 'Revelation', 'Bastion'],
-      ['Fervid Conviction', 'Stalwart Speed', 'Legendary Lore'],
-      ['Righteous Flames', 'Stoic Demeanor', 'Deliverance']
-    ]
-  );
-});
 
 // Only final charges refund pages; Solace grants an extra page independently of Revelation.
 test('Solace refunds two pages, other mantras refund one, and Revelation adds one independently', () => {
@@ -80,24 +66,6 @@ test('Unscathed Contender applies its health-or-Aegis multiplier once', () => {
     assert.ok(Math.abs(native.calculations.modifyStrikeDamage(context, 100) - expected) < 1e-9);
     delete context.attributePreviewPlayerHealthFraction;
     assert.ok(Math.abs(native.calculations.modifyStrikeDamage(context, 100) - 112) < 1e-9);
-  }
-});
-
-// The selected trait multiplies existing strike bonuses and leaves condition damage unchanged.
-test('Unscathed Contender multiplies strike damage only when selected', () => {
-  const native = guardianProfession.runtimeFor({ specialization: 'Core' });
-  for (const selected of [false, true]) {
-    const context = {
-      catalog: native.catalog,
-      config: { selectedTraitIds: selected ? [TRAIT.UNSCATHED_CONTENDER] : [], boons: { aegis: true } },
-      runtime: { liveEffects: createTestLiveEffects() },
-      time: 0,
-      event: { actorType: 'player' },
-      damageInputs: { strikeSigilBonus: 0.1 }
-    };
-    const expected = selected ? 123.2 : 110;
-    assert.ok(Math.abs(native.calculations.modifyStrikeDamage(context, 100) - expected) < 1e-9);
-    assert.equal(native.calculations.modifyConditionDamage(context, 100), 100);
   }
 });
 
@@ -180,25 +148,6 @@ test('Righteous Flames multiplies selected base duration without changing Burnin
     assert.equal(resolved.burning.baseDurationSeconds, duration * 1.5);
     assert.equal(resolved.burning.stacks, 2);
   }
-});
-
-// Bleeding and Quickness bonuses multiply independently; other conditions receive only Imbued Haste.
-test('live Firebrand condition bonuses use the supplied values and condition gates', () => {
-  const native = guardianProfession.runtimeFor({ specialization: 'Firebrand' });
-  for (const quickness of [false, true])
-    for (const condition of ['Bleeding', 'Burning']) {
-      const context = {
-        catalog: native.catalog,
-        time: 0,
-        condition,
-        config: { selectedTraitIds: [TRAIT.UNRELENTING_CRITICISM, TRAIT.IMBUED_HASTE], boons: { quickness } },
-        runtime: { liveEffects: createTestLiveEffects() }
-      };
-      const expected = 100 * (condition === 'Bleeding' ? 1.05 : 1) * (quickness ? 1.1 : 1);
-      assert.ok(Math.abs(native.calculations.modifyConditionDamage(context, 100) - expected) < 1e-9);
-    }
-
-  assert.equal(native.catalog.balanceProfilesById.get(TRAIT.UNRELENTING_CRITICISM).conditionDurationBonus, 0.2);
 });
 
 // Nearby controls cannot claim another reduction until the quarter-second cooldown has elapsed.

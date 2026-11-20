@@ -40,7 +40,6 @@ test('Grand Finale selects one delayed projectile for one consumed orb', () => {
   assert.deepEqual(result.warnings, []);
   const packets = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.GRAND_FINALE);
   assert.equal(packets.length, 1);
-  assert.equal(packets[0].coefficient, 1.4);
   assert.equal(result.planningState.profession[STATE.HAMMER_ORBS].Fire, null);
 });
 

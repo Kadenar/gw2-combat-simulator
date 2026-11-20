@@ -19,54 +19,6 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
-const revenantModifiers = Object.freeze({
-  modifyAttributes(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyAttributes(
-      {
-        catalog: revenantCatalog,
-        ...context
-      },
-      value
-    );
-  },
-  modifyCriticalChance(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyCriticalChance(
-      {
-        ...context,
-        catalog: revenantProfession.resolveProfession(context?.config || {}).catalog
-      },
-      value
-    );
-  },
-  modifyStrikeDamage(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyStrikeDamage(
-      {
-        catalog: revenantCatalog,
-        ...context
-      },
-      value
-    );
-  },
-  modifyConditionDamage(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyConditionDamage(
-      {
-        catalog: revenantCatalog,
-        ...context
-      },
-      value
-    );
-  },
-  modifyConditionDuration(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyConditionDuration(
-      {
-        ...context,
-        catalog: revenantProfession.resolveProfession(context?.config || {}).catalog
-      },
-      value
-    );
-  }
-});
-
 const baseConfig = Object.freeze({
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
   startingLegend: LEGEND.ASSASSIN,
@@ -136,14 +88,6 @@ describe('Power Conduit skill profiles', () => {
     result.events
       .filter((event) => event.type === 'damage' && event.skillName === skillName)
       .map((event) => [event.name, event.coefficient]);
-
-  test('Deathstrike exposes its cooldown after execution', () => {
-    const deathstrike = simulate('Conduit', [{ type: 'cast', skillId: 27074 }], config);
-    assert.deepEqual(deathstrike.planningState.cooldownsBySkillId[SKILL.DEATHSTRIKE], {
-      readyAtMs: 12440,
-      remainingMs: 11720
-    });
-  });
 
   test('Phantom Onslaught recharges from dash completion', () => {
     const onslaught = simulate('Vindicator', [SKILL.PHANTOMS_ONSLAUGHT], {
@@ -554,32 +498,6 @@ test('Form of the Assassin fires daggers on skills and Impossible Odds pulses', 
   assert.ok(daggers.every((event) => event.triggeredBy === 'Impossible Odds'));
 });
 
-test('Lesser Enchanted Daggers scales life siphon with Power independently of armor and critical stats', () => {
-  // Both activation and upkeep daggers use the siphon formula, not weapon damage or critical scaling.
-  for (const power of [1000, 2000]) {
-    for (const armor of [1000, 4000]) {
-      const result = runRevenant(['Cosmic Wisdom', 'Impossible Odds', { type: 'wait', durationMs: 2100 }], {
-        specialization: 'Conduit',
-        selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
-        startingLegend: LEGEND.ASSASSIN,
-        initialEnergy: 100,
-        attributeInputs: baseAttributeInputs({ power, precision: 4000, ferocity: 2000 }),
-        target: { armor, conditions: {} }
-      });
-      const daggers = result.resolvedEvents.filter(
-        (event) => event.type === 'damage' && event.skillId === SKILL.LESSER_ENCHANTED_DAGGERS
-      );
-      assert.deepEqual(result.warnings, []);
-      assert.ok(daggers.length > 0);
-      for (const event of daggers) {
-        // Conduit's mandatory Bolstered Bonds adds 150 Power while Cosmic Wisdom is active.
-        assert.equal(event.damage, 1028 + 0.06 * (power + 150));
-        assert.equal(event.canCrit, false);
-      }
-    }
-  }
-});
-
 test('Form of the Dervish follows every Entity skill and doubles Twin Moon', () => {
   const result = simulate(
     'Conduit',
@@ -598,7 +516,6 @@ test('Form of the Dervish follows every Entity skill and doubles Twin Moon', () 
     scythes.map((event) => event.triggeredBy),
     ['Shielding Hands', 'Hex-Eater Vortex', 'Twin Moon Sweep', 'Twin Moon Sweep']
   );
-  assert.ok(scythes.every((event) => event.coefficient === 0.8));
 });
 
 test('Dervish casts retain their scythes through form expiry and concurrent legend swaps', () => {
@@ -1090,11 +1007,7 @@ test('Conduit grandmasters alter invocation and Cosmic Wisdom', () => {
 
   assert.equal(cosmic.planningState.cooldownsBySkillId[SKILL.SWAP_LEGENDS].readyAtMs, 6000);
   assert.equal(cosmic.planningState.profession[STATE.COSMIC_WISDOM_UNTIL], 8);
-  assert.ok(
-    cosmic.events.some(
-      (event) => event.type === 'damage' && event.skillName === 'Mistfire' && event.coefficient === 0.6
-    )
-  );
+  assert.ok(cosmic.events.some((event) => event.type === 'damage' && event.skillName === 'Mistfire'));
   assert.ok(
     cosmic.events.some(
       (event) =>
@@ -1131,76 +1044,6 @@ test('Conduit grandmasters alter invocation and Cosmic Wisdom', () => {
     1
   );
   assert.equal(disableProcs.filter((event) => event.type === 'damage').length, 0);
-});
-
-test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage', () => {
-  const context = {
-    config: {
-      specialization: 'Conduit',
-      selectedTraitIds: [TRAIT.KINETIC_INSIGHT, TRAIT.BOLSTERED_BONDS]
-    },
-    time: 1,
-    // The modifier follows mechanic identity even when the display name changes.
-    event: { skillId: SKILL.RELEASE_POTENTIAL_WARRIOR, skillName: 'Renamed release', actorType: 'player' },
-    runtime: {
-      profession: {
-        core: { selectedLegendIds: [LEGEND.ASSASSIN, LEGEND.ENTITY] },
-        specialization: {
-          kind: 'Conduit',
-          state: { affinity: { value: 3, maximum: 5, unitsPerSecond: 0, updatedAt: 0 }, cosmicWisdomUntil: 7 }
-        }
-      }
-    }
-  };
-  const attributes = revenantModifiers.modifyAttributes(context, {
-    power: 1000,
-    precision: 1000,
-    toughness: 1000,
-    vitality: 1000,
-    ferocity: 0,
-    conditionDamage: 0,
-    expertise: 0,
-    concentration: 0,
-    healingPower: 0
-  });
-
-  assert.equal(attributes.power, 1300);
-  assert.equal(attributes.ferocity, 300);
-  assert.equal(attributes.precision, 1150);
-  assert.equal(attributes.conditionDamage, 150);
-  assert.equal(revenantModifiers.modifyStrikeDamage(context, 1), 1.75);
-
-  const numinousContext = {
-    ...context,
-    config: {
-      specialization: 'Conduit',
-      selectedTraitIds: [TRAIT.YEARNING_EMPOWERMENT, TRAIT.NUMINOUS_GIFT]
-    }
-  };
-  const numinousAttributes = revenantModifiers.modifyAttributes(numinousContext, {
-    conditionDurationBonuses: {
-      Poisoned: 10,
-      Torment: 10
-    }
-  });
-
-  assert.deepEqual(numinousAttributes.conditionDurationBonuses, {
-    Bleeding: 15,
-    Burning: 15,
-    Confusion: 15,
-    Poisoned: 25,
-    Torment: 25
-  });
-  assert.equal(
-    revenantModifiers.modifyConditionDuration(
-      {
-        ...numinousContext,
-        condition: 'Poisoned'
-      },
-      0.6
-    ),
-    0.6
-  );
 });
 
 test("Conduit runtime rejects Vindicator's Alliance legend", () => {

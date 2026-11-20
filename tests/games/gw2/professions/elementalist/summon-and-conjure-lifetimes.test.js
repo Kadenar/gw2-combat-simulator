@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import {
   createElementalistSpearLifecycle,
   openElementalistEtching
@@ -33,12 +31,6 @@ function preview(skills, balanceProfiles = {}) {
       }
     }
   });
-}
-
-function facts(balance, id) {
-  const tooltip = describeSimulationSkill(balance, balance.catalog.skillsById.get(id), elementalistTooltips);
-  assert.equal(tooltip.incomplete, false);
-  return Object.fromEntries(tooltip.facts.map(({ name, detail }) => [name, detail]));
 }
 
 test('each elemental glyph owns configured and explicit summon lifetime, startup, and post-expiry recharge', () => {
@@ -78,11 +70,6 @@ test('each elemental glyph owns configured and explicit summon lifetime, startup
         false
       );
     }
-
-    const balance = profession.resolvePatch({ id: 'mechanic-ownership' }).balanceContext;
-    assert.equal(facts(balance, id)['Elemental lifetime'], `${duration}s`);
-    assert.equal(facts(balance, id)['Recharge after expiry'], `${recharge}s`);
-    assert.equal(balance.catalog.skillsById.get(id).cooldown, elementalistCatalog.skillsById.get(id).cooldown);
   }
 });
 
@@ -108,8 +95,6 @@ test('each conjure owns ground expiry and the fresh lifetime granted by its pick
     assert.equal(picked.planningState.profession[STATE.CONJURE_EQUIPPED], weapon);
     assert.equal(picked.planningState.profession[STATE.CONJURE_PICKUPS][weapon], undefined);
     assert.equal(picked.planningState.profession[STATE.CONJURE_EXPIRES_AT], action.endsAt + duration);
-    const balance = profession.resolvePatch({ id: 'mechanic-ownership' }).balanceContext;
-    assert.equal(facts(balance, id)['Ground pickup lifetime'], `${duration}s`);
   }
 });
 
@@ -144,7 +129,7 @@ test('selected spear bonuses preserve one-shot acceptance while etchings always 
   assert.equal(core.spearNextRechargeReduction, true);
   assert.equal(lifecycle.reserveRecharge(context, skill, 10), 4);
   assert.equal(lifecycle.reserveRecharge(context, skill, 10), 10);
-  // Balance previews can change spear bonuses without changing etching progression or its displayed requirement.
+  // Balance previews can change spear bonuses without changing etching progression.
   for (const entry of roots) {
     const root = balance.catalog.skillsById.get(entry.id);
     openElementalistEtching(context, root);
@@ -152,11 +137,7 @@ test('selected spear bonuses preserve one-shot acceptance while etchings always 
     assert.equal(core.etchings[root.name].stage, 'lesser');
     lifecycle.onCastCommit(context, { id: 'credit', skill });
     assert.equal(core.etchings[root.name].stage, 'full');
-    assert.equal(facts(balance, root.id)['Completed actions to fully charge'], '3');
   }
-
-  assert.equal(facts(balance, ID.SEETHE)["Next eligible skill's strike damage"], '+70%');
-  assert.equal(facts(balance, ID.RIPPLE)["Next eligible skill's recharge"], '-60%');
 });
 
 test('Singularity owns baseline dwell and Transcendent Tempest independently overrides it', () => {
@@ -190,22 +171,6 @@ test('Singularity owns baseline dwell and Transcendent Tempest independently ove
         duration / 1.25
       );
     }
-
-    const model = describeSimulationTrait(
-      balance,
-      balance.catalog.traits.find((trait) => trait.id === TRAIT.SINGULARITY),
-      elementalistTooltips
-    );
-    assert.equal(
-      model.facts.find((fact) => fact.name === 'Base attunement dwell').detail,
-      patchId === 'current' ? '6s' : '9s'
-    );
-    assert.equal(
-      facts(balance, ID.OVERLOAD_FIRE)['Base time in attunement before overload'],
-      patchId === 'current' ? '6s' : '9s'
-    );
-    const trait = balance.catalog.balanceProfilesById.get(TRAIT.TRANSCENDENT_TEMPEST);
-    assert.equal(trait.effects.find((effect) => effect.name === 'Transcendent Tempest').duration, 7);
   }
 });
 

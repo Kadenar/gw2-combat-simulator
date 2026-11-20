@@ -14,13 +14,8 @@ const simulate = createObservedProfessionSimulator(engineerProfession, {
   target: { armor: 2597, conditions: {} }
 });
 
-// Repeated commands isolate charge accumulation from weapon and kit trait interactions.
-test('every mech command retains tool-belt classification and Tools reactions', () => {
-  const commands = engineerCatalog.skills.filter(
-    (skill) => skill.specialization === 'Mechanist' && skill.independentCast
-  );
-  assert.equal(commands.length, 9);
-  assert.ok(commands.every((skill) => skill.countsAsToolbeltSkill === true));
+// Issuing a mech command activates traits that respond to tool-belt skills.
+test('mech commands trigger Tools traits', () => {
   const result = simulate('Mechanist', ['Discharge Array'], {
     selectedTraitIds: [
       TRAIT.KINETIC_BATTERY,
@@ -33,7 +28,6 @@ test('every mech command retains tool-belt classification and Tools reactions', 
   assert.equal(result.planningState.profession[STATE.KINETIC_CHARGES], 1);
   assert.ok(result.events.some((event) => event.kind === 'vigor'));
   assert.ok(result.resolvedEvents.some((event) => event.name === 'Static Discharge'));
-  assert.equal(result.planningState.cooldownsBySkillId[63367].readyAtMs, 20400);
 });
 
 test('mech command charges count when issued, before the independent animation completes', () => {

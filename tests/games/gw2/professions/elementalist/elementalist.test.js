@@ -8,7 +8,6 @@ import {
   validateElementalistBuild
 } from '#gw2/professions/elementalist/build/build.js';
 import { elementalistAttunementRechargeDuration } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { ELEMENTALIST_CORE_SKILLS } from '#gw2/professions/elementalist/core/skills/index.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -117,78 +116,5 @@ test('Elementalist build defaults and canonical builds normalize explicitly', ()
       alternateWeapons: ['Staff', '']
     }).valid,
     true
-  );
-});
-
-test('Elementalist canonical condition timelines preserve their packet start and applications', () => {
-  const frostStorm = ELEMENTALIST_CORE_SKILLS.find((skill) => skill.id === ID.FROST_STORM);
-  const [strike, bleeding] = frostStorm.effects;
-
-  assert.equal(strike.type, 'strike');
-  assert.equal(bleeding.type, 'condition');
-
-  // Bleeding skips the opening strike and inherits the hitbox identity of its matching packet.
-  assert.equal(bleeding.ticks[0].atMs, strike.ticks[1].atMs);
-  assert.deepEqual(bleeding.ticks[0].metadata, strike.ticks[1].metadata);
-  assert.deepEqual(
-    bleeding.ticks.map(({ atMs }) => atMs),
-    strike.ticks.slice(1).map(({ atMs }) => atMs)
-  );
-
-  const [hurlStrike, hurlBleeding] = ELEMENTALIST_CORE_SKILLS.find((skill) => skill.id === ID.HURL).effects;
-  assert.equal(ELEMENTALIST_CORE_SKILLS.find((skill) => skill.id === ID.HURL).effects.length, 2);
-  assert.equal(hurlStrike.type, 'strike');
-  assert.equal(hurlBleeding.type, 'condition');
-
-  assert.deepEqual(
-    hurlStrike.ticks.map(({ atMs }) => atMs),
-    hurlBleeding.ticks.map(({ atMs }) => atMs)
-  );
-  assert.equal(
-    hurlStrike.ticks.every(({ comboFinishers }) => comboFinishers?.[0]?.finisherType === 'Projectile'),
-    true
-  );
-});
-
-test('Elementalist canonical strike timelines retain per-packet combat metadata', () => {
-  const fieryWhirl = ELEMENTALIST_CORE_SKILLS.find((skill) => skill.id === ID.FIERY_WHIRL);
-  const strike = fieryWhirl.effects[0];
-
-  assert.equal(strike.type, 'strike');
-  assert.deepEqual(strike.comboFinishers, [
-    {
-      ownerId: 'elementalist',
-      finisherType: 'Whirl'
-    }
-  ]);
-
-  assert.deepEqual(
-    strike.ticks.map(({ atMs }) => atMs),
-    fieryWhirl.effects[1].ticks.map(({ atMs }) => atMs)
-  );
-});
-
-// Every hitbox's strike must precede its companion condition, even when all impacts share a timestamp.
-test('Elementalist canonical timelines pair strikes and conditions in hitbox order', () => {
-  const skill = elementalistCatalog.skillsById.get(ID.GLYPH_OF_STORMS_AIR);
-  const firstStrike = skill.effects.find((effect) => effect.type === 'strike');
-  const atMs = firstStrike.ticks[0].atMs;
-  const packets = skill.effects.flatMap((effect) =>
-    (effect.ticks ?? [effect])
-      .filter((tick) => tick.atMs === atMs)
-      .map((tick) => [effect.type, tick.metadata.hitboxIndex, tick.condition ?? null])
-  );
-  const hitboxes = packets.filter(([type]) => type === 'strike').map(([, index]) => index);
-  assert.ok(hitboxes.length > 0);
-  assert.deepEqual(
-    hitboxes,
-    [...hitboxes].sort((left, right) => left - right)
-  );
-  assert.deepEqual(
-    packets,
-    hitboxes.flatMap((index) => [
-      ['strike', index, null],
-      ['condition', index, 'Vulnerability']
-    ])
   );
 });

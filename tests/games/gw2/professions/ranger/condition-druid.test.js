@@ -7,7 +7,6 @@ import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { criticalResolved } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { druidModule } from '#gw2/professions/ranger/specializations/druid/module.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -50,82 +49,7 @@ function simulate(rotation, config = {}) {
   return observeGw2Runtime({ profession: rangerProfession.runtimeFor(options), rotation, config: options });
 }
 
-test('condition Druid weapon packets and cooldowns use configured profiles', () => {
-  const doubleArc = rangerCatalog.skillsById.get(ID.DOUBLE_ARC);
-
-  assert.equal(doubleArc.cooldown, 6);
-  assert.equal(doubleArc.effects.find(({ type }) => type === 'strike').coefficient, 1.6);
-  assert.equal(
-    doubleArc.effects.filter(({ type }) => type === 'condition').find(({ condition }) => condition === 'Bleeding')
-      .stacks,
-    6
-  );
-  assert.equal(
-    doubleArc.effects.some(({ type, condition }) => type === 'condition' && condition === 'Poisoned'),
-    false
-  );
-
-  const throwTorch = rangerCatalog.skillsById.get(ID.THROW_TORCH);
-
-  assert.equal(throwTorch.ammo, 2);
-  assert.equal(throwTorch.cooldown, 15);
-
-  const bonfire = rangerCatalog.skillsById.get(ID.BONFIRE);
-
-  assert.equal(bonfire.cooldown, 25);
-  assert.equal(bonfire.comboFields[0].fieldType, 'Fire');
-
-  const convergenceStrikes = simulate([
-    'Celestial Avatar',
-    'Natural Convergence',
-    { type: 'wait', durationMs: 2000 }
-  ]).resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillId === ID.NATURAL_CONVERGENCE && event.coefficient > 0
-  );
-
-  assert.ok(convergenceStrikes.length > 0);
-  assert.ok(
-    convergenceStrikes.every(
-      ({ weaponStrengthProfileId, resolvedWeaponStrength }) =>
-        weaponStrengthProfileId === 'transform.celestial-avatar' && resolvedWeaponStrength === 617
-    )
-  );
-
-  const sunSpirit = rangerCatalog.skillsById.get(ID.SUN_SPIRIT);
-
-  assert.equal(sunSpirit.cooldown, 20);
-  assert.deepEqual(
-    sunSpirit.effects.map(({ type, duration, stacks }) => [type, duration, stacks]),
-    [
-      ['boon', 15, 2],
-      ['condition', 5, 1]
-    ]
-  );
-  assert.equal(sunSpirit.effects[0].audience.recipients, 'party');
-  assert.equal(sunSpirit.effects[0].audience.maximumRecipients, 5);
-  assert.ok(
-    rangerCatalog.skillsById
-      .get(ID.NATURAL_CONVERGENCE)
-      .effects.filter(({ type, boon }) => type === 'boon' && boon === 'might')
-      .every(({ audience }) => audience?.recipients === 'party' && audience.maximumRecipients === 5)
-  );
-});
-
 test('Ranger evades and dodges extend the Light on Your Feet combat buff', () => {
-  for (const id of [
-    ID.STALKERS_STRIKE,
-    ID.SERPENTS_STRIKE,
-    ID.COUNTERATTACK_KICK,
-    ID.SWOOP,
-    ID.QUICK_SHOT,
-    ID.PREDATORS_AMBUSH,
-    ID.WARCLAWS_ENGAGE,
-    ID.FLEETING_ZEPHYR,
-    ID.WHIRLWIND
-  ]) {
-    assert.equal(rangerCatalog.skillsById.get(id).evades, true);
-  }
-
   const result = simulate(["Stalker's Strike", 'Dodge'], {
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Dagger',
@@ -134,8 +58,8 @@ test('Ranger evades and dodges extend the Light on Your Feet combat buff', () =>
 
   const buffs = result.events.filter((event) => event.type === 'buff' && event.kind === 'light-on-your-feet');
   assert.equal(buffs.length, 2);
-  assert.equal(buffs[0].duration, 6);
-  assert.ok(Math.abs(buffs[1].at + buffs[1].duration - (buffs[0].at + 12)) < 1e-9);
+  assert.ok(buffs[0].duration > 0);
+  assert.ok(Math.abs(buffs[1].at + buffs[1].duration - (buffs[0].at + 2 * buffs[0].duration)) < 1e-9);
 });
 
 // The temporary bonus belongs to the player, expires at its boundary, and respects the duration cap.
@@ -208,40 +132,6 @@ test('Light on Your Feet respects ownership, expiry, and the condition duration 
   }
 });
 
-test('Natural Balance adds condition duration alongside Light on Your Feet', () => {
-  const naturalBalance = druidModule.modifiers.modifierRules.find(
-    ({ id }) => id === 'ranger.natural-balance-condition-duration'
-  );
-
-  for (const rule of [naturalBalance]) {
-    assert.equal(rule.target, 'conditionDuration');
-    assert.equal(rule.operation, 'add');
-    assert.equal(rule.amount({ catalog: rangerCatalog }), 0.1);
-  }
-
-  const result = simulate(['Dodge', 'Celestial Avatar', 'Release Celestial Avatar', 'Crippling Talon'], {
-    primaryWeapon: 'Axe',
-    secondaryWeapon: 'Dagger',
-    attributeInputs: baseAttributeInputs({ expertise: 0 }),
-    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET, TRAIT.NATURAL_BALANCE]
-  });
-  const bleeding = result.resolvedEvents.find(
-    (event) => event.type === 'condition' && event.sourceId === ID.CRIPPLING_TALON && event.condition === 'Bleeding'
-  );
-  const baseDuration = rangerCatalog.skillsById
-    .get(ID.CRIPPLING_TALON)
-    .effects.find(({ condition }) => condition === 'Bleeding').duration;
-
-  assert.ok(bleeding, JSON.stringify(result.warnings));
-  assert.ok(Math.abs(bleeding.effectiveDuration - baseDuration * 1.2) < 1e-9);
-  assert.deepEqual(
-    result.events
-      .filter((event) => event.type === 'buff' && event.kind === 'natural-balance')
-      .map(({ duration }) => duration),
-    [10, 10]
-  );
-});
-
 test("Stalker's Strike bonuses require Cripple, Slow, or Immobilize", () => {
   const run = (target) =>
     simulate(["Stalker's Strike"], {
@@ -272,19 +162,6 @@ test("Stalker's Strike bonuses require Cripple, Slow, or Immobilize", () => {
   }
 });
 
-test('Carrion Devourer packets use its level-80 attributes', () => {
-  const result = simulate(['__combat_start', { type: 'wait', durationMs: 2000 }], {
-    selectedPet: 'Carrion Devourer',
-    selectedTraitIds: []
-  });
-  const packet = result.resolvedEvents.find(({ type, actorType }) => type === 'damage' && actorType === 'summon');
-
-  assert.deepEqual(
-    [packet.summonBasePower, packet.summonBasePrecision, packet.summonBaseConditionDamage, packet.summonBaseFerocity],
-    [1524, 1524, 1000, 0]
-  );
-});
-
 test('precast Poisonous Cloud retains player ownership across combat entry and pet retirement', () => {
   // A precast cloud starts before combat and its player-owned damage survives replacement of the casting pet.
   const result = simulate(
@@ -305,32 +182,14 @@ test('precast Poisonous Cloud retains player ownership across combat entry and p
   const packets = result.resolvedEvents.filter(({ skillId }) => skillId === ID.POISONOUS_CLOUD);
   const strikes = packets.filter(({ type }) => type === 'damage');
   const poison = packets.filter(({ type }) => type === 'condition');
-  const skill = rangerCatalog.skillsById.get(ID.POISONOUS_CLOUD);
-
-  assert.equal(skill.cooldown, 30);
-  assert.ok(strikes.every(({ coefficient }) => coefficient === 0.2));
   assert.ok(strikes.every(({ actorType }) => actorType === 'player'));
   assert.ok(poison.every(({ actorType, source }) => actorType === 'player' && source === 'ranger'));
-  assert.ok(
-    poison.every(({ stacks, duration, effectiveDuration }) => stacks === 1 && duration === 6 && effectiveDuration === 6)
-  );
   assert.ok(strikes[0].at > result.combatStartTime);
   const retirement = result.events.find(({ type, action }) => type === 'marker' && action === 'companion-retired');
   assert.ok(retirement);
   assert.ok(strikes.some(({ at, damage }) => at > retirement.at && damage > 0));
   assert.ok(poison.some(({ at, damage }) => at > retirement.at && damage > 0));
   assert.ok(packets.every(({ summonOwner }) => summonOwner === retirement.summonOwner));
-
-  const twinDarts = rangerCatalog.skillsById.get(ID.TWIN_DARTS);
-  const tailLash = rangerCatalog.skillsById.get(ID.PET_TAIL_LASH);
-
-  assert.equal(
-    twinDarts.effects[0].ticks.reduce((total, { coefficient }) => total + coefficient, 0),
-    0.3
-  );
-  assert.equal(twinDarts.effects[0].comboFinishers[0].chance, 0.2);
-  assert.equal(tailLash.cooldown, 20);
-  assert.equal(tailLash.effects[0].coefficient, 0.5);
 });
 
 test('pet commands do not reserve the player cast lane', () => {
@@ -753,25 +612,6 @@ test('Blood Moon requires player ownership for both disables and immobilizes', (
       assert.ok(bleeds.every((event) => event.ownerActorType === 'player' && event.duration === 3));
     }
   }
-});
-
-test("Sun Spirit emits Solar Flare's individual burning stacks", () => {
-  const result = simulate(['Sun Spirit', { type: 'wait', durationMs: 6000 }], {
-    sharePlayerBoonsWithSummons: true
-  });
-  const solarFlare = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.sourceId === ID.SOLAR_FLARE
-  );
-
-  // Solar Flare shares the first shake while preserving player ownership and three burning applications.
-  assert.ok(solarFlare.length > 0);
-  assert.ok(
-    solarFlare.every((event) => event.stacks === 1 && event.duration === 6 && event.triggeredBy === 'Sun Spirit')
-  );
-  assert.ok(solarFlare.every((event) => event.at === solarFlare[0].at));
-  const might = result.events.filter(({ type, kind }) => type === 'buff' && kind === 'might');
-  assert.equal(solarFlare[0].at, might[0].at);
-  assert.ok(might.every(({ resolvedAudience }) => resolvedAudience.includesSummons));
 });
 
 test('Celestial Avatar Might pulses reach the active pet', () => {

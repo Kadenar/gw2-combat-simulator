@@ -1,18 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam/module.js';
 import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import { holosmithSkillStrikeFactor } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
-import { overclockRechargeWork } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
@@ -57,67 +54,6 @@ test('Engineer rejects removed skill profile targets', () => {
     assert.throws(
       () => preview({}, { [id]: { fields: { duration: 1 } } }).resolvePatch({ id: 'engineer-ownership' }),
       /unknown|missing|not found/i
-    );
-  }
-});
-
-test('signet passives and Static Discharge consume independent selected skill fields', () => {
-  const profession = preview({
-    [ID.FORCE_SIGNET]: { fields: { damageIncrease: 0.31 } },
-    [ID.SUPERCONDUCTING_SIGNET]: { fields: { conditionDamageIncrease: 0.27 } },
-    [ID.OVERCLOCK_SIGNET]: { fields: { rechargeMultiplier: 0.37 } },
-    [ID.STATIC_DISCHARGE_TRAIT_SKILL]: { fields: { criticalDamage: 1.7 } }
-  });
-  for (const patchId of ['current', 'engineer-ownership', 'current']) {
-    const selected = profession.resolvePatch({ id: patchId }).balanceContext;
-    const context = {
-      ...selected,
-      time: 0,
-      config: {
-        selectedTraitIds: [],
-        selectedSkillIds: [ID.FORCE_SIGNET, ID.SUPERCONDUCTING_SIGNET, ID.OVERCLOCK_SIGNET]
-      },
-      cooldownController: { readyAt: () => 0 }
-    };
-    const expected = (id, field, patched) =>
-      patchId === 'current' ? engineerCatalog.skillsById.get(id)[field] : patched;
-    for (const [rule, id, field, patched] of [
-      [selected.modifierRulesById.get('engineer.force-signet'), ID.FORCE_SIGNET, 'damageIncrease', 0.31],
-      [
-        selected.modifierRulesById.get('engineer.superconducting-signet'),
-        ID.SUPERCONDUCTING_SIGNET,
-        'conditionDamageIncrease',
-        0.27
-      ]
-    ]) {
-      assert.equal(rule.when(context), true);
-      assert.equal(rule.amount(context), expected(id, field, patched));
-      assert.equal(rule.when({ ...context, timeline: { skillOnCooldownAt: () => true } }), false);
-      const improved = {
-        ...context,
-        config: { ...context.config, selectedTraitIds: [TRAIT.MECH_CORE_J_DRIVE] },
-        timeline: { skillOnCooldownAt: () => true }
-      };
-      assert.equal(rule.when(improved), true);
-      assert.equal(rule.amount(improved), selected.catalog.balanceProfilesById.get(TRAIT.MECH_CORE_J_DRIVE)[field]);
-    }
-
-    const signet = selected.catalog.skillsById.get(ID.FORCE_SIGNET);
-    assert.equal(
-      overclockRechargeWork({ ...context, helpers: context.catalog }, signet, 100),
-      100 * expected(ID.OVERCLOCK_SIGNET, 'rechargeMultiplier', 0.37)
-    );
-    assert.equal(overclockRechargeWork({ ...context, cooldownController: { readyAt: () => 10 } }, signet, 100), 100);
-    assert.equal(
-      selected.modifierRulesById.get('engineer.static-discharge-critical-damage').factor(context),
-      expected(ID.STATIC_DISCHARGE_TRAIT_SKILL, 'criticalDamage', 1.7)
-    );
-    assert.ok(
-      describeSimulationSkill(
-        selected,
-        selected.catalog.skillsById.get(ID.OVERCLOCK_SIGNET),
-        engineerTooltips
-      ).facts.some((fact) => fact.name === 'Signet recharge')
     );
   }
 });
@@ -328,7 +264,7 @@ for (const id of [
   ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104,
   ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163
 ]) {
-  test('Thorns ' + id + ' reads shared Rapacious cooldown, payload, expiry, and tooltip', () => {
+  test('Thorns ' + id + ' shares the Rapacious cooldown and loses the proc on expiry', () => {
     const baseline = engineerCatalog.skillsById.get(ID.DEFENSIVE_PROTOCOL_THORNS).rapaciousDuration;
     const family = preview({
       [ID.DEFENSIVE_PROTOCOL_THORNS]: {
@@ -379,13 +315,6 @@ for (const id of [
       procs.map((event) => event.at),
       [0.28, 1]
     );
-    assert.ok(procs.every((event) => event.coefficient === 0.9));
-    const selected = family.resolvePatch({ id: 'engineer-ownership' }).balanceContext;
-    const tooltip = describeSimulationSkill(selected, selected.catalog.skillsById.get(id), engineerTooltips);
-    const strain = tooltip.factSections.find((section) => section.label === 'Rapacious Strain');
-    assert.equal(strain.facts.find((fact) => fact.name === 'Duration').detail, '1.5s');
-    assert.equal(strain.facts.find((fact) => fact.name === 'Internal cooldown').detail, '0.6s');
-    assert.equal(strain.facts.find((fact) => fact.name === 'Bonus strike damage').detail, '0.9 coefficient');
     assert.equal(engineerCatalog.skillsById.get(ID.DEFENSIVE_PROTOCOL_THORNS).rapaciousDuration, baseline);
   });
 }

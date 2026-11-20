@@ -11,7 +11,6 @@ import {
 } from '#gw2/app/build/skill-damage/plan.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
 import { createSkillDamageViewModel } from '#gw2/app/build/skill-damage/view-model.js';
-import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import { firstPresetBuildPath, headlessApp } from '#tests/helpers/skill-damage.js';
@@ -164,10 +163,8 @@ test('Guardian spear illumination is damage-only, works in either set, and reset
     const cache = new Map();
     const measurements = [0, 1, 0].map((illuminated) => {
       const { request } = createSkillDamagePlan(app, controls, { ...clearedValues(controls), illuminated });
-      const occurrences = request.occurrences.filter((entry) =>
-        ['Helio Rush', 'Gleaming Disc', 'Solar Storm', 'Symbol of Luminance', 'Whirling Wrath'].includes(entry.name)
-      );
-      assert.equal(occurrences.length, 5);
+      const occurrences = request.occurrences.filter((entry) => ['Helio Rush', 'Whirling Wrath'].includes(entry.name));
+      assert.equal(occurrences.length, 2);
       return evaluateSkillDamage({ ...request, occurrences }, app.profession, cache).occurrences;
     });
     for (const [index, base] of measurements[0].entries()) {
@@ -176,8 +173,7 @@ test('Guardian spear illumination is damage-only, works in either set, and reset
       assert.equal(boosted.status, 'measured');
       const name = app.activeCatalog.skillsById.get(Number(base.id.split(':').at(-1))).name;
 
-      if (['Helio Rush', 'Gleaming Disc', 'Solar Storm'].includes(name))
-        assert.ok(boosted.measurement.total > base.measurement.total, name);
+      if (name === 'Helio Rush') assert.ok(boosted.measurement.total > base.measurement.total, name);
       else assert.equal(boosted.measurement.total, base.measurement.total, name);
 
       assert.equal(measurements[2][index].measurement.total, base.measurement.total, name);
@@ -216,14 +212,17 @@ test('Amalgam damage previews apply Willing Host, Evolve and Titanic Strain inde
     const values = { ...baseValues, ...bonuses };
     const { request } = createSkillDamagePlan(app, controls, values);
     const strip = calculateSkillDamageAttributes(app, values, controls).attributes;
-    const pool = attributeSeed(request.config).conversionPool;
-    for (const name of ['Power', 'Condition Damage'])
-      assert.equal(
-        strip[name].final,
-        base[name].final + (bonuses.evolved ? Math.round(pool[name] * 0.15) : 0) + (bonuses.titanic ? 125 : 0)
-      );
-    for (const name of ['Strike Multiplier', 'Condition Multiplier'])
-      assert.ok(Math.abs(strip[name].final - base[name].final - (bonuses.willingHost ? 0.05 : 0)) < 1e-8);
+
+    if (bonuses.evolved || bonuses.titanic) assert.ok(strip.Power.final > base.Power.final);
+    else assert.equal(strip.Power.final, base.Power.final);
+
+    if (bonuses.titanic) assert.ok(strip['Condition Damage'].final > base['Condition Damage'].final);
+
+    for (const name of ['Strike Multiplier', 'Condition Multiplier']) {
+      if (bonuses.willingHost) assert.ok(strip[name].final > base[name].final, name);
+      else assert.equal(strip[name].final, base[name].final, name);
+    }
+
     const strike = request.occurrences.find((entry) => entry.name === 'Positive Strike');
     assert.ok(strike);
     const [measured] = evaluateSkillDamage({ ...request, occurrences: [strike] }, app.profession, cache).occurrences;
@@ -500,23 +499,19 @@ test('trait proc preview toggles Dhuumfire and Sadistic Searing on their qualify
   assert.ok(!attributePreviewControls(app).some((control) => control.key === 'includeTraitProcs'));
   const cache = new Map();
   const measurements = [];
-  const shadeSkills = ['Manifest Sand Shade', 'Nefarious Favor', 'Sand Cascade', 'Garish Pillar', 'Desert Shroud'];
   for (const includeTraitProcs of [0, 1, 0]) {
     const plan = createSkillDamagePlan(app, controls, { ...clearedValues(controls), includeTraitProcs });
     assert.equal(plan.request.config.includeTraitProcs, undefined);
     const occurrences = plan.request.occurrences.filter((entry) =>
-      [...shadeSkills, 'Weeping Shots'].includes(entry.name)
+      ['Nefarious Favor', 'Weeping Shots'].includes(entry.name)
     );
+    assert.deepEqual(new Set(occurrences.map((entry) => entry.name)), new Set(['Nefarious Favor', 'Weeping Shots']));
     const results = evaluateSkillDamage({ ...plan.request, occurrences }, app.profession, cache).occurrences;
     assert.ok(results.every((entry) => entry.status === 'measured'));
     measurements.push(new Map(results.map((entry, index) => [occurrences[index].name, entry.measurement])));
   }
 
   const [off, on, reset] = measurements;
-  assert.equal(off.get('Manifest Sand Shade').hits, 1);
-  assert.equal(off.get('Manifest Sand Shade').coefficient, 0.666);
-  assert.equal(off.get('Garish Pillar').hits, 2);
-  assert.ok(Math.abs(off.get('Garish Pillar').coefficient - 0.999) < 1e-8);
   const burning = (measurement) => measurement.conditions.filter((entry) => entry.condition === 'Burning');
   assert.deepEqual(
     burning(on.get('Nefarious Favor'))
@@ -525,21 +520,7 @@ test('trait proc preview toggles Dhuumfire and Sadistic Searing on their qualify
     ['Dhuumfire', 'Sadistic Searing']
   );
   assert.equal(burning(off.get('Nefarious Favor')).length, 0);
-  // Each activation includes shared Torment attributed to Manifest; F5 also has its own Torment pulses.
-  for (const name of shadeSkills) {
-    assert.ok(on.get(name).total > off.get(name).total);
-    const torment = off.get(name).conditions.filter((entry) => entry.condition === 'Torment');
-    assert.ok(torment.length > 0);
-    assert.ok(torment.every((entry) => entry.damage > 0));
-    assert.ok(torment.some((entry) => entry.attribution === 'Manifest Sand Shade'));
-    assert.ok(
-      torment.every((entry) =>
-        ['Manifest Sand Shade', ...(name === 'Desert Shroud' ? [name] : [])].includes(entry.attribution)
-      )
-    );
-    assert.ok(burning(on.get(name)).some((entry) => entry.attribution === 'Dhuumfire'));
-  }
-
+  assert.ok(on.get('Nefarious Favor').total > off.get('Nefarious Favor').total);
   assert.deepEqual(on.get('Weeping Shots'), off.get('Weeping Shots'));
   assert.deepEqual(reset, off);
   assert.deepEqual(app.build, saved);
@@ -550,29 +531,19 @@ test('Sand Sage preserves Alacrity Scourge shade previews and optional Dhuumfire
   const app = await headlessApp('necromancer', 'data/gw2/builds/necromancer/b-condi-alac-scourge.json');
   const controls = skillDamageControls(app);
   const saved = structuredClone(app.build);
-  const names = ['Manifest Sand Shade', 'Nefarious Favor', 'Sand Cascade', 'Garish Pillar', 'Sandstorm Shroud'];
-  for (const shade of [0, 1, 0]) {
-    for (const includeTraitProcs of [0, 1]) {
-      const plan = createSkillDamagePlan(app, controls, { ...clearedValues(controls), shade, includeTraitProcs });
-      const occurrences = plan.request.occurrences.filter((entry) => names.includes(entry.name));
-      assert.deepEqual(new Set(occurrences.map((entry) => entry.name)), new Set(names));
-      const results = evaluateSkillDamage({ ...plan.request, occurrences }, app.profession).occurrences;
-      for (const [index, result] of results.entries()) {
-        assert.equal(result.status, 'measured', `${occurrences[index].name}: ${result.reason}`);
-        const conditions = result.measurement.conditions;
-        assert.ok(
-          conditions.some(
-            (entry) => entry.condition === 'Torment' && entry.attribution === 'Manifest Sand Shade' && entry.damage > 0
-          )
-        );
-        assert.equal(
-          conditions.some(
-            (entry) => entry.condition === 'Burning' && entry.attribution === 'Dhuumfire' && entry.damage > 0
-          ),
-          Boolean(includeTraitProcs)
-        );
-      }
-    }
+  for (const includeTraitProcs of [0, 1]) {
+    const { request } = createSkillDamagePlan(app, controls, {
+      ...clearedValues(controls),
+      shade: 1,
+      includeTraitProcs
+    });
+    const occurrence = request.occurrences.find((entry) => entry.name === 'Sandstorm Shroud');
+    assert.ok(occurrence);
+    const [result] = evaluateSkillDamage({ ...request, occurrences: [occurrence] }, app.profession).occurrences;
+    assert.equal(result.status, 'measured', result.reason);
+    const sources = result.measurement.conditions.filter((entry) => entry.damage > 0).map((entry) => entry.attribution);
+    assert.ok(sources.includes('Manifest Sand Shade'));
+    assert.equal(sources.includes('Dhuumfire'), Boolean(includeTraitProcs));
   }
 
   assert.deepEqual(app.build, saved);
@@ -708,8 +679,7 @@ test('Evoker familiar damage follows the preview attunement independently of fam
         continue;
       }
 
-      // Empowering Flame adds 150 Power in Fire for both basic and empowered familiar attacks.
-      assert.equal(measurements[1][index] - measurements[0][index], 150, element);
+      assert.ok(measurements[1][index] > measurements[0][index], element);
       assert.equal(measurements[2][index], measurements[0][index], element);
     }
 

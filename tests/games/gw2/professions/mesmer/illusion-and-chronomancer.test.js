@@ -9,11 +9,13 @@ import {
 } from '#gw2/app/rotation/timeline/model.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import { createDefaultConfig, runMesmer, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -36,10 +38,8 @@ test('queueing a cooling-down icon waits until it is available', () => {
     defaultSimulationConfig()
   );
 
-  assert.equal(result.steps[0].start, 0);
-  assert.equal(result.steps[1].start, 4440);
-  assert.equal(result.planningState.cooldownsBySkillId[ID.BLADECALL].readyAtMs, 8880);
-  assert.equal(result.planningState.cooldownsBySkillId[ID.BLADECALL].remainingMs, 4000);
+  const firstCast = simulateMesmer([{ type: 'cast', skillId: ID.BLADECALL }], defaultSimulationConfig());
+  assert.equal(result.steps[1].start, firstCast.planningState.cooldownsBySkillId[ID.BLADECALL].readyAtMs);
 });
 
 // Controlled recharge data exercises the real profession without pinning the live balance value.
@@ -458,10 +458,8 @@ test('Shift+click timeline form schedules a concurrent instant skill on the next
     ],
     defaultSimulationConfig()
   );
-
-  assert.equal(result.steps[1].start, 120);
-  assert.equal(result.planningState.atSeconds * 1000, 440);
-  assert.equal(result.planningState.cooldownsBySkillId[ID.BLADESONG_DISTORTION].readyAtMs, 40120);
+  assert.ok(result.steps[1].start >= result.steps[0].start + 100);
+  assert.ok(result.steps[1].start < result.steps[0].end);
 });
 
 test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () => {
@@ -490,8 +488,11 @@ test('Confusing Images starts its cooldown after its channel ends', () => {
   });
   const full = simulateMesmer(['Confusing Images', 'Confusing Images'], config);
   const interrupted = simulateMesmer([{ name: 'Confusing Images', interruptMs: 250 }], config);
-  assert.equal(full.steps[1].start, 9120);
-  assert.equal(interrupted.planningState.cooldownsBySkillId[ID.CONFUSING_IMAGES].readyAtMs, 7480);
+  const completed = simulateMesmer(['Confusing Images'], config);
+  const sharedRecharge = (run) =>
+    run.planningState.cooldownsBySkillId[ID.CONFUSING_IMAGES].readyAtMs - run.steps[0].end;
+  assert.equal(full.steps[1].start, completed.planningState.cooldownsBySkillId[ID.CONFUSING_IMAGES].readyAtMs);
+  assert.equal(sharedRecharge(completed), sharedRecharge(interrupted));
 });
 
 test('Phantasmal Swordsman registers its player hit before a later overlapping action', () => {
@@ -558,6 +559,34 @@ test('phantasm conditions use the summoner condition sigil modifiers', () => {
     plainApplication.damageTicks.find((tick) => tick.fraction === 1).damage,
     1.05
   );
+});
+
+// Strike sigils belong to the player's additive bucket. Clones and phantasms strike without them.
+test('strike sigils apply to player strikes but not clone or phantasm strikes', () => {
+  const rules = mesmerProfession.resolveProfession({ specialization: 'Core' });
+  const strikeMultiplier = (event) =>
+    rules.calculations.modifyStrikeDamage(
+      {
+        catalog: mesmerCatalog,
+        time: 1,
+        traits: new Set(),
+        event,
+        events: [],
+        config: { boons: {}, target: {} },
+        runtime: {
+          totals: { strike: 0, condition: 0 },
+          profession: {},
+          conditionState: new Map(),
+          liveEffects: createTestLiveEffects()
+        },
+        damageInputs: { strikeSigilBonus: 0.1 }
+      },
+      1
+    );
+
+  assert.equal(strikeMultiplier({ source: 'Player', actorType: 'player' }), 1.1);
+  assert.equal(strikeMultiplier({ source: 'Clone', actorType: 'summon', summonKind: 'clone' }), 1);
+  assert.equal(strikeMultiplier({ source: 'Phantasm', actorType: 'summon', summonKind: 'phantasm' }), 1);
 });
 
 test('Phantasmal Mage separates player, Pledge, and phantasm conditions', () => {

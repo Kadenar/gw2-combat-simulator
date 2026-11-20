@@ -1,12 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
 import { guardianPassiveAttributes } from '#gw2/professions/guardian/core/skills/attribute-passives.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -21,31 +19,6 @@ function preview(skills = {}, balanceProfiles = {}) {
     professions: { guardian: { skills, balanceProfiles } }
   });
 }
-
-test('Guardian keeps Justice and Ashes tuning on skills', () => {
-  for (const id of [
-    'guardian.core.justice',
-    'guardian.firebrand.ashes-of-the-just',
-    'guardian.core.bane-signet-passive',
-    'guardian.core.signet-of-wrath-passive',
-    ...['helio-rush-illuminated', 'gleaming-disc-illuminated', 'solar-storm-illuminated', 'symbol-of-luminance'].map(
-      (name) => `guardian.core.spear.${name}`
-    ),
-    'guardian.core.symbol-of-ignition-field',
-    'guardian.dragonhunter.spear-of-justice-tether',
-    'guardian.dragonhunter.passive-courage',
-    ...['tome-pages', 'tome-justice', 'tome-resolve', 'tome-courage', 'passive-courage', 'epilogue-ashes-grant'].map(
-      (name) => `guardian.firebrand.${name}`
-    ),
-    ...['flames', 'virtue-windows', 'courage-trigger'].map((name) => `guardian.willbender.${name}`)
-  ]) {
-    assert.equal(guardianProfession.catalog.balanceProfilesById.has(id), false);
-    assert.throws(
-      () => preview({}, { [id]: { fields: { duration: 1 } } }).resolvePatch({ id: 'guardian-ownership' }),
-      /unknown balance profile/
-    );
-  }
-});
 
 test('selected signet grants preserve independent tuning, readiness, and Perfect Inscriptions', () => {
   const profession = preview({
@@ -148,13 +121,9 @@ test('each Willbender flame identity consumes its own selected payload', () => {
   }
 });
 
-// Justice burns are deferred hit rewards: presentation must not count them as cast damage or repeat their facts.
-test('Justice exposes each helper burn once and has no damaging cast occurrence', () => {
+// Justice defers its damage until the next eligible hit.
+test('Justice has no damaging cast occurrence', () => {
   const family = preview();
-  const context = family.resolvePatch().balanceContext;
-  const justice = context.catalog.skillsById.get(ID.JUSTICE);
-  const tooltip = describeSimulationSkill(context, justice, guardianTooltips);
-  assert.equal(tooltip.facts.filter((fact) => fact.name === 'Burning').length, 2);
   const occurrence = executeDamageOccurrence(
     family,
     { specialization: 'Core', selectedTraitIds: [] },

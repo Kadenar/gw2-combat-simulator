@@ -171,7 +171,6 @@ test('Mimic gives one second of base recharge and adds the original utility rech
     const context = lifetimeContext([], rate);
     const mimic = context.catalog.skillsById.get(ID.MIMIC);
     const utility = { ...context.catalog.skillsById.get(ID.SIGNET_OF_ILLUSIONS), cooldown: 30 };
-    assert.equal(mimic.cooldown, 20);
     context.cooldownController.startRecharge(mimic, 1, mimic.cooldown);
     const originalReadyAt = context.cooldownController.readyAt(mimic.id);
     complete(context, { skill: mimic, start: 0, fullEnd: 1 });
@@ -183,9 +182,11 @@ test('Mimic gives one second of base recharge and adds the original utility rech
     assert.equal(context.cooldownController.readyAt(utility.id), gw2Time(5 + 1 / rate));
     assert.deepEqual(context.cooldownController.rechargeFor(mimic.id), {
       workAnchorAt: 5,
-      work: 20 - 4 * rate + 30
+      work: mimic.cooldown - 4 * rate + utility.cooldown
     });
-    assert.ok(Math.abs(context.cooldownController.readyAt(mimic.id) - originalReadyAt - 30 / rate) < 0.000002);
+    assert.ok(
+      Math.abs(context.cooldownController.readyAt(mimic.id) - originalReadyAt - utility.cooldown / rate) < 0.000002
+    );
 
     const extendedReadyAt = context.cooldownController.readyAt(mimic.id);
     complete(context, { skill: utility, start: 6, fullEnd: 7 });

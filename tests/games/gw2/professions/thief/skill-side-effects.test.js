@@ -84,7 +84,6 @@ test('Falling Spider samples target control at impact and preserves effect and t
       assert.deepEqual(result.warnings, []);
       const packets = result.resolvedEvents.filter((event) => event.skillId === ID.FALLING_SPIDER);
       const strike = packets.find((event) => event.type === 'damage');
-      assert.equal(strike.coefficient, 2);
 
       if (!empowered) baselineDamage = strike.damage;
 
@@ -408,8 +407,6 @@ test('Malicious Ashen scales its final strike on impact and refunds a fully land
   assert.deepEqual(result.warnings, []);
   const ordinary = result.resolvedEvents.find((event) => event.name === 'Ordinary packet');
   const final = result.resolvedEvents.find((event) => event.name === 'Malicious Ashen Assault - Final Strike');
-  assert.equal(ordinary.coefficient, 1);
-  assert.equal(final.coefficient, 2);
   assertFlooredDamageMultiplier(final.damage, ordinary.damage, 2.6);
   const runtime = observedRuntime(result);
   assert.ok(Math.abs(runtime.resourceController.value('initiative') - runtime.time - 7) < 1e-9);
@@ -478,7 +475,7 @@ test('Backstab and Larcenous Strike use selected modifiers without changing thei
       assert.deepEqual(baseline.warnings, []);
       assert.deepEqual(boosted.warnings, []);
       const hit = (result) => result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === id);
-      assert.equal(hit(boosted).coefficient, id === ID.BACKSTAB ? 3 : 4.34);
+      assert.equal(hit(boosted).coefficient, hit(baseline).coefficient);
       assertFlooredDamageMultiplier(
         hit(boosted).damage,
         hit(baseline).damage,

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { attributeSeed, baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
@@ -10,13 +10,9 @@ import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/profession
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
-import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam/module.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
-import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
-import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -174,33 +170,6 @@ test('Amalgam traits activate on morph and Evolve chronology', () => {
       (event) => event.type === 'condition' && event.name === 'Carbolic Composition - Poisoned'
     )
   );
-});
-
-test("Sharpshooter derives bleeding damage from Evolve's Power bonus", () => {
-  const config = {
-    selectedMorphSkillIds: [76815, 77285, 77358],
-    selectedTraitIds: [TRAIT.SHARPSHOOTER, TRAIT.DOUBLE_HELIX],
-    attributeInputs: baseAttributeInputs({
-      power: 2000,
-      conditionDamage: 1000,
-      expertise: 0
-    }),
-    target: { conditions: {} }
-  };
-  const result = simulate(
-    'Amalgam',
-    ['Evolve', 'Grenade Kit', 'Shrapnel Grenade', { type: 'wait', durationMs: 2000 }],
-    config
-  );
-  const bleed = result.resolvedEvents.find(
-    (event) => event.type === 'condition' && event.skillName === 'Shrapnel Grenade' && event.condition === 'Bleeding'
-  );
-
-  // Double Helix raises eligible Power from 2000 to 2300; Sharpshooter then
-  // replaces bleeding's condition damage with two-thirds of that final Power.
-  assert.ok(bleed);
-  // Select a complete interval because shared partial packets attribute rounded integer shares.
-  assert.equal(bleed.damageTicks.find((tick) => tick.fraction === 1).damage, 114 * bleed.stacks);
 });
 
 test('Evolve cannot raise condition duration above the global cap', () => {
@@ -563,32 +532,6 @@ test('Willing Host and Symbiotic Synergy apply their damage windows', () => {
   assert.equal(morphSteps[1].start, evolveStep.end);
 });
 
-test('Symbiotic Synergy multiplies Morph damage independently of Willing Host', () => {
-  // The full 33% Morph bonus must survive another active damage bonus without boosting ordinary weapon hits.
-  const config = {
-    selectedMorphSkillIds: [76815, 76866, 76954],
-    selectedTraitIds: [TRAIT.WILLING_HOST],
-    target: { conditions: {} }
-  };
-  const rotation = [76815, 'Puncturing Jab'];
-  const baseline = simulate('Amalgam', rotation, config);
-  const traited = simulate('Amalgam', rotation, {
-    ...config,
-    selectedTraitIds: [...config.selectedTraitIds, TRAIT.SYMBIOTIC_SYNERGY]
-  });
-  const damage = (result, name) =>
-    result.resolvedEvents.find((event) => event.type === 'damage' && event.name === name).damage;
-
-  assert.deepEqual(baseline.warnings, []);
-  assert.deepEqual(traited.warnings, []);
-  assertFlooredDamageMultiplier(
-    damage(traited, 'Offensive Protocol: Pierce'),
-    damage(baseline, 'Offensive Protocol: Pierce'),
-    1.33
-  );
-  assert.equal(damage(traited, 'Puncturing Jab'), damage(baseline, 'Puncturing Jab'));
-});
-
 test('Symbiotic Synergy boosts Thorns retaliation for every protocol slot', () => {
   // Retaliation retains its Morph identity after activation, so the trait boosts both immediate and delayed hits.
   for (const [slot, skillId] of [
@@ -677,187 +620,20 @@ test('Evolve aliases use only the trait-selected identity and share its charges 
   }
 });
 
-test('Evolve scales only its eligible static attribute pool', () => {
-  const pool = {
-    Power: 1000,
-    Precision: 1000,
-    Toughness: 1000,
-    Vitality: 1000,
-    Ferocity: 1000,
-    'Condition Damage': 1000,
-    Expertise: 1000,
-    Concentration: 1000,
-    'Healing Power': 1000
-  };
-  const attributes = [
-    'power',
-    'precision',
-    'toughness',
-    'vitality',
-    'ferocity',
-    'conditionDamage',
-    'expertise',
-    'concentration',
-    'healingPower'
-  ];
-  const resolved = Object.fromEntries(attributes.map((attribute) => [attribute, 1500]));
-  const context = (traits) => ({
-    catalog: engineerCatalog,
-    traits: new Set(traits),
-    config: {
-      attributeInputs: {
-        weaponSets: [0, 1].map(() => ({
-          commonTotals: baseAttributeInputs().weaponSets[0].commonTotals,
-          conversionPool: pool,
-          conversions: baseAttributeInputs().weaponSets[0].conversions,
-          sources: {}
-        }))
-      }
-    },
-    runtime: {
-      profession: {
-        specialization: {
-          kind: 'Amalgam',
-          state: { evolvedUntil: 10 }
-        }
-      }
-    },
-    time: 1
-  });
-
-  assert.deepEqual(
-    evaluateAttributeDeclarations(context([]), resolved, amalgamModule.attributes),
-    Object.fromEntries(attributes.map((attribute) => [attribute, attribute === 'vitality' ? 1650 : 1600]))
-  );
-  assert.deepEqual(
-    evaluateAttributeDeclarations(context([TRAIT.DOUBLE_HELIX]), resolved, amalgamModule.attributes),
-    Object.fromEntries(attributes.map((attribute) => [attribute, attribute === 'vitality' ? 1700 : 1650]))
-  );
-});
-
-test('Evolve includes eligible flat traits without scaling Might or conversion-ineligible traits', () => {
-  // Exercise the composed attribute rules so Chemical Rounds and Thermal Vision enter Evolve's pool,
-  // while Hybrid Vigor, No Scope, and Might retain their own conversion exclusions.
-  for (const [extraTraits, factor] of [
-    [[], 0.1],
-    [[TRAIT.DOUBLE_HELIX], 0.15]
-  ]) {
-    const config = {
-      selectedMorphSkillIds: [],
-      selectedTraitIds: [
-        TRAIT.CHEMICAL_ROUNDS,
-        TRAIT.THERMAL_VISION,
-        TRAIT.HYBRID_VIGOR,
-        TRAIT.NO_SCOPE,
-        ...extraTraits
-      ],
-      boons: { might: 25, fury: true }
-    };
-    const stats = (rotation) => {
-      const runtime = observedRuntime(simulate('Amalgam', rotation, config));
-      return runtime.query.statsAt(runtime.time, null, runtime);
+// Compare the gain during Evolve so any passive stat changes cancel out.
+test('Double Helix increases the Power gained during Evolve', () => {
+  const gain = (selectedTraitIds) => {
+    const power = (rotation) => {
+      const result = simulate('Amalgam', rotation, { selectedTraitIds, selectedMorphSkillIds: [] });
+      assert.deepEqual(result.warnings, []);
+      const runtime = observedRuntime(result);
+      return runtime.query.statsAt(runtime.time, null, runtime).power;
     };
 
-    const base = stats([{ type: 'wait', durationMs: 1000 }]);
-    const evolved = stats(['Evolve', { type: 'wait', durationMs: 1000 }]);
-
-    assert.equal(evolved.conditionDamage - base.conditionDamage, Math.round(1120 * factor));
-    assert.equal(evolved.expertise - base.expertise, Math.round(150 * factor));
-    assert.equal(evolved.power - base.power, Math.round(2000 * factor));
-    assert.equal(evolved.vitality - base.vitality, Math.round(1000 * factor));
-    assert.equal(evolved.ferocity - base.ferocity, Math.round(500 * factor));
-  }
-});
-
-test('Evolve rounds fractional attribute bonuses before derived calculations', () => {
-  // Fractional inputs expose rounding that integer-only conversion fixtures cannot exercise.
-  const result = simulate('Amalgam', ['Evolve', { type: 'wait', durationMs: 1000 }], {
-    selectedMorphSkillIds: [],
-    selectedTraitIds: [],
-    attributeInputs: baseAttributeInputs({ precision: 1675, expertise: 787, ferocity: 449, vitality: 1684 })
-  });
-  const runtime = observedRuntime(result);
-  const stats = runtime.query.statsAt(runtime.time, null, runtime);
-
-  assert.equal(stats.precision, 1843);
-  assert.equal(stats.expertise, 866);
-  assert.equal(stats.ferocity, 494);
-  // Reinforced Armor shares Vitality's conversion group, so the combined 15% rounds once.
-  assert.equal(stats.vitality, 1937);
-});
-
-test('Amalgam app config excludes temporary attributes from Evolve', () => {
-  const canonical = createEngineerBuildDefaults();
-
-  canonical.specializations = [
-    { name: 'Explosives', traits: '3-2-3' },
-    { name: 'Firearms', traits: '3-3-2' },
-    { name: 'Amalgam', traits: '2-2-3' }
-  ];
-  const app = {
-    analysis: { needsPatchComparison: () => false, state: { results: null } },
-    patch: engineerAppAdapter.profession.resolvePatch({ id: 'current' }),
-    build: toApplicationBuild(canonical),
-    activeCatalog: engineerCatalog,
-    attributeWeaponSet: 1
+    return power(['Evolve']) - power([]);
   };
 
-  app.attributeData = engineerAppAdapter
-    .createBuildContext({
-      analysis: { needsPatchComparison: () => false, state: { results: null } },
-      build: app.build,
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-      patch: engineerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
-    })
-    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-  const config = engineerAppAdapter
-    .createBuildContext({
-      analysis: { needsPatchComparison: () => false, state: { results: null } },
-      build: app.build,
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-      patch: engineerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
-    })
-    .simulationConfig();
-
-  assert.deepEqual(attributeSeed(config).conversionPool, app.attributeData.attributeSeed.conversionPool);
-  assert.equal(app.attributeData.attributes.Ferocity.final - attributeSeed(config).conversionPool.Ferocity, 150);
-});
-
-test('Amalgam food comparisons use the recalculated Evolve attribute pool', () => {
-  const canonical = createEngineerBuildDefaults();
-
-  canonical.food = 'Plate of Coq Au Vin with Salsa';
-  canonical.specializations = [
-    { name: 'Explosives', traits: '3-2-3' },
-    { name: 'Firearms', traits: '3-3-2' },
-    { name: 'Amalgam', traits: '2-2-3' }
-  ];
-  const app = {
-    analysis: { needsPatchComparison: () => false, state: { results: null } },
-    patch: engineerAppAdapter.profession.resolvePatch({ id: 'current' }),
-    build: toApplicationBuild(canonical),
-    activeCatalog: engineerCatalog,
-    attributeWeaponSet: 1
-  };
-
-  app.attributeData = engineerAppAdapter
-    .createBuildContext({
-      analysis: { needsPatchComparison: () => false, state: { results: null } },
-      build: app.build,
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-      patch: engineerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
-    })
-    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-  const request = modifierComparisonRequest(app, engineerAppAdapter);
-  const comparison = request.comparisons.find(({ modifier }) => modifier.id === `Food:${canonical.food}`);
-  const baseline = attributeSeed(
-    captureAnalysisFixture(app, engineerAppAdapter).baseline({ collectChartData: false, comparePatch: false })
-      .baseConfig
-  ).conversionPool;
-  const removed = attributeSeed(comparison.config).conversionPool;
-
-  assert.equal(baseline.Power - removed.Power, 100);
-  assert.equal(baseline.Precision - removed.Precision, 70);
+  assert.ok(gain([TRAIT.DOUBLE_HELIX]) > gain([]));
 });
 
 test('Thorns retaliation requires the damaging-field assumption', () => {

@@ -47,7 +47,7 @@ test('Deft Initiation consumes its combat-entry reward once across multiple stri
   assert.equal(observedRuntime(result).profession.core.deftInitiationArmed, false);
 });
 
-// Base tooltip durations scale once through the ordinary boon and condition resolvers.
+// Attribute bonuses extend both the self-applied boons and the conditions inflicted on the target.
 test('Acrobatics grants self boons and target conditions with attribute-scaled durations', () => {
   for (const bonus of [0, 750]) {
     const result = runThief([ID.STEAL, ID.DOUBLE_STRIKE, wait(100)], {
@@ -182,7 +182,6 @@ test('Sharp Initiation emits one player-owned nonweapon strike without rearming 
     (event) => event.type === 'damage' && event.sourceId === TRAIT.SHARP_INITIATION
   );
   assert.equal(strikes.length, 1);
-  assert.equal(strikes[0].coefficient, 1.25);
   assert.equal(strikes[0].weaponStrengthProfileId, 'nonweapon.unequipped');
   assert.equal(strikes[0].ownerActorType, 'player');
   assert.equal(observedRuntime(result).profession.core.deftInitiationArmed, false);

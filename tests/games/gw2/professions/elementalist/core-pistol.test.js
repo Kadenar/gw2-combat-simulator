@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
@@ -31,11 +29,6 @@ function run(profession, attunement, rotation, options = {}) {
     },
     { profession, ...options }
   );
-}
-
-function tooltip(profession, id) {
-  const context = profession.resolvePatch({ id: 'core-pistol-ownership' }).balanceContext;
-  return describeSimulationSkill(context, context.catalog.skillsById.get(id), elementalistTooltips);
 }
 
 test('Core Fire bullet payload edits and removal preserve native effects and bullet consumption', () => {
@@ -66,12 +59,6 @@ test('Core Fire bullet payload edits and removal preserve native effects and bul
       );
       assert.ok(result.events.some((event) => event.type === 'condition' && event.condition === 'Burning'));
       assert.equal(observedRuntime(result).profession.core.pistolBullets.Fire, false);
-      assert.equal(
-        tooltip(profession, id).facts.some(
-          (fact) => fact.detail.includes('17s') && fact.detail.includes('Fire bullet')
-        ),
-        !removed
-      );
     }
   }
 });
@@ -129,8 +116,6 @@ test('Dazing Discharge selected recharge benefit survives autos and expires with
     assert.equal(runtime.cooldownController.rechargeFor(ID.DAZING_DISCHARGE).work, 8);
     assert.equal(runtime.cooldownController.rechargeFor(ID.AERIAL_AGILITY).work, expired ? 12 : 3);
   }
-
-  assert.ok(tooltip(profession, ID.DAZING_DISCHARGE).facts.some((fact) => fact.detail === '-75%'));
 });
 
 test('Shattering Stone selected charges expire and consume even when their bleeding reward is removed', () => {

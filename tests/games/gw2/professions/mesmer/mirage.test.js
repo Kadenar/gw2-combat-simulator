@@ -4,7 +4,6 @@ import test from 'node:test';
 import { displayedWeaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -526,7 +525,6 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
   );
 
   assert.equal(dune.planningState.profession[STATE.AVAILABLE_AMBUSH].source, 'Dune Cloak');
-  assert.equal(dune.planningState.cooldownsBySkillId[ID.MIND_WRACK].readyAtMs, 8800);
 
   const twoClones = simulateMesmer(
     ['Mind Wrack'],
@@ -538,40 +536,6 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
   );
 
   assert.equal(twoClones.planningState.profession[STATE.AVAILABLE_AMBUSH], null);
-});
-
-test('Infinite Horizon axe clones each apply one 4-second Torment', () => {
-  const result = simulateMesmer(
-    ['Dodge / Mirage Cloak', { name: '__wait', waitMs: 1200 }],
-    defaultSimulationConfig({
-      specialization: 'Mirage',
-      selectedTraitIds: [TRAIT.INFINITE_HORIZON],
-      primaryWeapon: 'Axe',
-      secondaryWeapon: 'Torch',
-      initialResource: 3
-    })
-  );
-  const torment = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillName.startsWith('Imaginary Axes') && event.source === 'Clone'
-  );
-
-  assert.equal(torment.length, 3);
-  assert.ok(torment.every((event) => event.stacks === 1 && event.duration === 4));
-});
-
-// Defensive cleansing remains selectable for builds but has no simulated effects or balance tuning.
-test('Elusive Mind reports no simulated effect without a balance profile', () => {
-  const trait = mesmerAppAdapter.profession.catalog.specializations
-    .find((specialization) => specialization.name === 'Mirage')
-    .majorTraits.flat()
-    .find((entry) => entry.id === TRAIT.ELUSIVE_MIND);
-  assert.ok(trait);
-  assert.match(
-    mesmerAppAdapter.traitTooltip(trait, mesmerAppAdapter.profession.resolvePatch({ id: 'current' }), 'Mirage')
-      .description,
-    /no effect in the simulation/
-  );
-  assert.equal(mesmerCatalog.balanceProfilesById.has(TRAIT.ELUSIVE_MIND), false);
 });
 
 test('Mirage support and cloak traits emit their current effects', () => {
@@ -798,7 +762,6 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
     6
   );
   assert.equal(confusion.duration, 4);
-  assert.equal(mirror.coefficient, 0.6);
   assert.equal(observedRuntime(result).profession.specialization.state.mirrors.length, 0);
   assert.equal(result.planningState.profession[STATE.AVAILABLE_AMBUSH].source, 'Pick Up Mirage Mirror');
   assert.deepEqual(

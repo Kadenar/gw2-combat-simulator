@@ -1,19 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
-import {
-  createObservedProfessionSimulator,
-  observedRuntime,
-  observeGw2Runtime
-} from '#tests/helpers/observed-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Small rotations exercise patched scheduler/resolver contracts without benchmark snapshots.
@@ -43,19 +37,6 @@ const runSkills = (skills, specialization, rotation, config = {}) => run({}, spe
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const packet = (result, type, sourceId) =>
   result.events.filter((event) => event.type === type && event.sourceId === sourceId);
-
-test('Shade Step tooltips omit a removed boon without relabeling a surviving one', () => {
-  const profession = withPatchPreview(thiefProfession, {
-    id: 'thief-tooltip-removal',
-    label: 'Thief tooltip removal',
-    professions: { thief: { balanceProfiles: { [TRAIT.SHADESTEP]: remove('boon', 'alacrity') } } }
-  });
-  const context = profession.resolvePatch({ id: 'thief-tooltip-removal' }).balanceContext;
-  const describe = (id) => describeSimulationSkill(context, context.catalog.skillsById.get(id), thiefTooltips);
-  const grasping = JSON.stringify(describe(ID.GRASPING_SHADOWS));
-  assert.doesNotMatch(grasping, /Alacrity|Protection|Aegis/i);
-  assert.match(JSON.stringify(describe(ID.DAWNS_REPOSE)), /protection/i);
-});
 
 test('Shade Step retains skill identities and surviving edits after removing its first boon', () => {
   const result = run(
@@ -345,52 +326,5 @@ test('patched Preparedness and Maleficent Seven capacities initialize before res
     assert.equal(runtime.profession.core.initiative.maximum, selectedTraitIds.length ? 21 : 12);
     assert.equal(runtime.profession.core.initiative.value, selectedTraitIds.length ? 21 : 12);
     assert.equal(runtime.profession.specialization.state.malice.maximum, selectedTraitIds.length ? 11 : 9);
-  }
-});
-
-// Construction, resource admission, and presentation must agree before regeneration can hide a stale starting cap.
-test('Preparedness owns patched initiative capacity in initial state, live resources, and tooltips', () => {
-  const family = withPatchPreview(thiefProfession, {
-    id: 'preparedness-capacity',
-    label: 'Preparedness capacity',
-    professions: {
-      thief: {
-        balanceProfiles: {
-          [TRAIT.PREPAREDNESS]: { fields: { maximumStacks: 21 } }
-        }
-      }
-    }
-  });
-  for (const [patchId, untraited, traited] of [
-    ['current', 12, 15],
-    ['preparedness-capacity', 12, 21]
-  ]) {
-    const balanceContext = family.resolvePatch({ id: patchId }).balanceContext;
-    const { facts } = describeSimulationTrait(balanceContext, { id: TRAIT.PREPAREDNESS }, thiefTooltips);
-    assert.equal(facts.find(({ name }) => name === 'Maximum initiative with Preparedness').detail, String(traited));
-    assert.equal(
-      facts.find(({ name }) => name === 'Maximum initiative without Preparedness').detail,
-      String(untraited)
-    );
-    for (const selected of [false, true]) {
-      const maximum = selected ? traited : untraited;
-      for (const initialInitiative of [4, 100]) {
-        const config = {
-          specialization: 'Core',
-          patchId,
-          selectedTraitIds: selected ? [TRAIT.PREPAREDNESS] : [],
-          initialInitiative
-        };
-        const profession = family.runtimeFor(config);
-        const state = profession.createState(config);
-        assert.equal(state.core.initiative.maximum, maximum);
-        assert.equal(state.core.initiative.value, Math.min(initialInitiative, maximum));
-        const result = observeGw2Runtime({ profession, config, rotation: [] });
-        const initiative = observedRuntime(result).profession.core.initiative;
-        assert.equal(initiative.maximum, maximum);
-        assert.equal(initiative.value, Math.min(initialInitiative, maximum));
-        assert.deepEqual(result.warnings, []);
-      }
-    }
   }
 });

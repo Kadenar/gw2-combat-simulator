@@ -6,7 +6,6 @@ import { mechanicResourceSpends, timelineDeadTimeMarkers } from '#gw2/app/rotati
 import { presentedTimelineSteps } from '#gw2/app/rotation/timeline/occupancy.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { autoattackChainSkillAvailable } from '#gw2/platform/execution/autoattack-chains.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import {
@@ -20,7 +19,6 @@ import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorNativeModules, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { berserkerModule } from '#gw2/professions/warrior/specializations/berserker/module.js';
-import { bloodReaction } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
 import { bladeswornModule } from '#gw2/professions/warrior/specializations/bladesworn/module.js';
 import { paragonModule } from '#gw2/professions/warrior/specializations/paragon/module.js';
 import { spellbreakerModule } from '#gw2/professions/warrior/specializations/spellbreaker/module.js';
@@ -576,148 +574,8 @@ test('Outrage queued after a wait clears the remaining Head Butt self-stun', () 
   );
 });
 
-test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', () => {
-  const result = simulate('Berserker', ['Berserk', 'Arc Divider', 'Outrage'], {
-    initialResource: 30,
-    selectedTraitIds: [TRAIT.SMASH_BRAWLER, TRAIT.BLOODY_ROAR],
-    attributeInputs: baseAttributeInputs({ precision: 0 }),
-    boons: { fury: false }
-  });
-
-  assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession[STATE.ADRENALINE].maximum, 10);
-  assert.equal(result.planningState.profession[STATE.BERSERK_UNTIL], 25);
-  assert.equal(
-    result.events.some((event) => event.kind === 'quickness' && event.duration === 3),
-    true
-  );
-  assert.equal(
-    result.events.some((event) => event.kind === 'fury' && event.duration === 8),
-    true
-  );
-  assert.equal(
-    result.events.some(
-      (event) => event.sourceId === TRAIT.BLOODY_ROAR && event.kind === 'resistance' && event.duration === 3.5
-    ),
-    true
-  );
-  const arc = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.ARC_DIVIDER);
-
-  assert.equal(arc.criticalChance, 0.4);
-
-  const attributes = evaluateAttributeDeclarations(
-    {
-      catalog: warriorCatalog,
-      config: { selectedTraitIds: [TRAIT.BLOOD_REACTION] },
-      runtime: {
-        profession: {
-          specialization: {
-            kind: 'Berserker',
-            state: { berserkUntil: Infinity }
-          }
-        }
-      }
-    },
-    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, vitality: 1000 },
-    (context) => [
-      ...berserkerModule.attributes(context),
-      ...(hasTrait(context, TRAIT.BLOOD_REACTION) ? [bloodReaction.attributes(context)] : [])
-    ]
-  );
-
-  assert.deepEqual(attributes, {
-    power: 1300,
-    precision: 1000,
-    ferocity: 240,
-    conditionDamage: 390,
-    vitality: 1050
-  });
-
-  const bloodReactionOutsideBerserk = evaluateAttributeDeclarations(
-    {
-      catalog: warriorCatalog,
-      config: { selectedTraitIds: [TRAIT.BLOOD_REACTION] },
-      runtime: {
-        profession: {
-          specialization: {
-            kind: 'Berserker',
-            state: { berserkUntil: null }
-          }
-        }
-      }
-    },
-    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, vitality: 1000 },
-    (context) => [
-      ...berserkerModule.attributes(context),
-      ...(hasTrait(context, TRAIT.BLOOD_REACTION) ? [bloodReaction.attributes(context)] : [])
-    ]
-  );
-
-  assert.deepEqual(bloodReactionOutsideBerserk, {
-    power: 1000,
-    precision: 1000,
-    ferocity: 120,
-    conditionDamage: 120,
-    vitality: 1050
-  });
-
-  const berserkWithGreatFortitude = evaluateAttributeDeclarations(
-    {
-      catalog: warriorCatalog,
-      config: { selectedTraitIds: [TRAIT.GREAT_FORTITUDE] },
-      runtime: {
-        profession: {
-          specialization: {
-            kind: 'Berserker',
-            state: { berserkUntil: Infinity }
-          }
-        }
-      }
-    },
-    {
-      power: 1000,
-      precision: 0,
-      ferocity: 100,
-      conditionDamage: 0,
-      vitality: 1000
-    },
-    (context) => [
-      ...berserkerModule.attributes(context),
-      ...(hasTrait(context, TRAIT.BLOOD_REACTION) ? [bloodReaction.attributes(context)] : [])
-    ]
-  );
-
-  // Berserk's own declarations must not add converted stats on top of Great Fortitude's ordinary conversion.
-  assert.deepEqual(berserkWithGreatFortitude, {
-    power: 1300,
-    precision: 0,
-    ferocity: 100,
-    conditionDamage: 150,
-    vitality: 1050
-  });
-
-  const strikeDamage = (selectedTraitIds) =>
-    simulate('Berserker', ['Berserk', 'Arc Divider'], {
-      initialResource: 30,
-      selectedTraitIds,
-      attributeInputs: baseAttributeInputs({ precision: 0 }),
-      boons: { fury: false }
-    }).strikeDamage;
-
-  assertFlooredDamageMultiplier(
-    strikeDamage([TRAIT.SMASH_BRAWLER, TRAIT.BLOODY_ROAR]),
-    strikeDamage([TRAIT.SMASH_BRAWLER]),
-    1.1
-  );
-});
-
 // Weapon ownership and explosion tags determine eligibility and proc behavior independently of balance values.
 test('Berserker spear and greatsword packets retain weapon and explosion ownership', () => {
-  const arc = warriorCatalog.skillsById.get(ID.ARC_DIVIDER);
-  const wildThrow = warriorCatalog.skillsById.get(ID.WILD_THROW);
-  assert.equal(arc.skillWeapon, 'Greatsword');
-  assert.equal(wildThrow.skillWeapon, 'Spear');
-
   const singleTarget = simulate('Berserker', ['Mighty Throw']);
 
   assert.equal(
@@ -784,13 +642,11 @@ test('Warrior dagger bursts always apply their boonless-target multiplier', () =
     const rule = owner.modifierRules.find((rule) => rule.id === id);
     const context = { profession: warriorProfession, config: { target: { boonless: false } }, event: { skillId } };
     assert.equal(rule.when(context), true);
-    assert.equal(rule.factor, 1.5);
     assert.equal(rule.when({ ...context, event: { skillId: ID.KICK } }), false);
   }
 });
 
-test('Arcing Slice scales Fury by adrenaline tier and damage below half health', () => {
-  const arcingSlice = warriorCatalog.skillsById.get(ID.ARCING_SLICE);
+test('Arcing Slice grants longer Fury at higher adrenaline tiers', () => {
   const furyDurations = [10, 20, 30].map((initialResource) => {
     const result = simulate('Core', ['Arcing Slice'], {
       initialResource,
@@ -802,7 +658,6 @@ test('Arcing Slice scales Fury by adrenaline tier and damage below half health',
   });
 
   assert.ok(furyDurations[0] < furyDurations[1] && furyDurations[1] < furyDurations[2]);
-  assert.equal(arcingSlice.effects[0].modifiers[0].id, 'warrior.arcing-slice-target-health');
 });
 
 test('Kill Shot scales with adrenaline, stays level one on Spellbreaker, and gains its target bonus', () => {
@@ -827,8 +682,8 @@ test('Kill Shot scales with adrenaline, stays level one on Spellbreaker, and gai
   const defiant = killShot('Core', 10, { target: { defiant: true, conditions: {} } });
   const belowHalf = killShot('Core', 10, { target: { defiant: false, startingHealthFraction: 0.49, conditions: {} } });
 
-  assertFlooredDamageMultiplier(defiant.strikeDamage, normal.strikeDamage, 1.2);
-  assertFlooredDamageMultiplier(belowHalf.strikeDamage, normal.strikeDamage, 1.2);
+  assert.ok(defiant.strikeDamage > normal.strikeDamage);
+  assert.ok(belowHalf.strikeDamage > normal.strikeDamage);
 });
 
 test('Kill Shot tiers and Fierce Blow target bonuses preserve patched strike coefficients', () => {

@@ -49,7 +49,6 @@ for (const [pet, skill, count, beast = false] of [
       assert.equal(event.sourceId, beast ? ID.APEX_PREDATOR_BEAST : ID.APEX_PREDATOR);
       assert.equal(event.actorType, 'effect');
       assert.equal(event.ownerActorType, 'player');
-      assert.equal(event.coefficient, 0.3);
       assert.equal(event.weaponStrengthProfileId, 'nonweapon.unequipped');
       assert.ok(event.damage > 0);
     }

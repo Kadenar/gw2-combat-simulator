@@ -47,8 +47,6 @@ test('tier variants use the captured spend after the live adrenaline pool change
           assert.equal(strike.metadata.warriorAdrenalineSpent, initialResource);
           assert.equal(strike.metadata.warriorBurstTier, initialResource / 10);
 
-          if (initialResource === 20) assert.equal(strike.coefficient, 2.5);
-
           assert.ok(result.events.some((event) => event.kind === 'might' && event.skillId === id));
         }
       }

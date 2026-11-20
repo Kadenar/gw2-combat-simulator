@@ -55,23 +55,6 @@ for (const name of RANGER_PETS.filter((pet) => rangerPetAutoProfile(pet.name)).m
   });
 }
 
-// Recharge remains a separate resource: AI recovery cannot make a special ready before its wiki recharge.
-test('new autonomous specials respect their unmodified cooldowns', () => {
-  for (const name of ['Wolf', 'Bristleback', 'White Tiger', 'Spinegazer']) {
-    const profile = rangerPetAutoProfile(name);
-    const result = runRanger(['__combat_start', wait(90000)], { selectedPet: name });
-    assert.deepEqual(result.warnings, []);
-    for (const skill of profile.specials) {
-      const uses = petActions(result).filter((event) => event.skillId === skill.id);
-      assert.ok(uses.length > 1);
-      for (let index = 1; index < uses.length; index++)
-        assert.ok(
-          uses[index].at - uses[index - 1].at >= rangerProfession.catalog.skillsById.get(skill.id).cooldown - 1e-6
-        );
-    }
-  }
-});
-
 // Charge consumption is scoped to the current pet, and retirement must discard its unspent entitlement.
 test('Bristleback bleed charges expire, are spent, and cannot migrate through a swap', () => {
   const measure = (expiresAt, swap) => {

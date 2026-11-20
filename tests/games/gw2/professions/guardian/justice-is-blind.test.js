@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
@@ -82,35 +81,4 @@ test('reopening dormant Tome of Justice does not repeat its trait aura', () => {
   });
   assert.deepEqual(result.warnings, []);
   assert.equal(result.events.filter((event) => event.type === 'aura').length, 1);
-});
-
-test('Justice Is Blind describes its aura without a specialization restriction', () => {
-  const context = withPatchPreview(guardianProfession, null).resolvePatch().balanceContext;
-  const tooltip = guardianTooltips.traits[TRAIT.JUSTICE_IS_BLIND](context, { id: TRAIT.JUSTICE_IS_BLIND });
-  assert.match(tooltip.description, /blinds the target for 3 seconds/);
-  assert.match(tooltip.description, /grants you a light aura for 4 seconds/);
-  assert.doesNotMatch(tooltip.description, /Luminary/);
-  const aura = tooltip.facts.find((fact) => fact.name === 'Light Aura');
-  assert.ok(aura);
-  assert.doesNotMatch(aura.detail, /Luminary/);
-
-  const patched = withPatchPreview(guardianProfession, {
-    id: 'justice-tooltip',
-    label: 'Justice tooltip durations',
-    professions: {
-      guardian: {
-        balanceProfiles: {
-          [TRAIT.JUSTICE_IS_BLIND]: {
-            effects: [
-              { type: 'condition', name: 'Blind', duration: 5 },
-              { type: 'aura', name: 'Light Aura', duration: 7 }
-            ]
-          }
-        }
-      }
-    }
-  }).resolvePatch({ id: 'justice-tooltip' }).balanceContext;
-  const selected = guardianTooltips.traits[TRAIT.JUSTICE_IS_BLIND](patched, { id: TRAIT.JUSTICE_IS_BLIND });
-  assert.match(selected.description, /blinds the target for 5 seconds/);
-  assert.match(selected.description, /light aura for 7 seconds/);
 });

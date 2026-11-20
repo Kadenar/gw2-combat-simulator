@@ -1,14 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
-import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
-import { firebrandTooltips } from '#gw2/professions/guardian/app/tooltips/firebrand.js';
 import { createBuildContext, toApplicationBuild } from '#gw2/professions/guardian/build/context.js';
 import {
   GUARDIAN_TRAIT_IDS as REWORK,
@@ -150,28 +147,6 @@ test('Righteous Flames tunes self and allied Burning per charge only when select
   }
 });
 
-test('Unrelenting Criticism replaces axe procs and contributes capped bleeding duration through attributes', () => {
-  const result = run(['Symbol of Vengeance', wait(1000)], {
-    primaryWeapon: 'Axe',
-    selectedTraitIds: [TRAIT.UNRELENTING_CRITICISM]
-  });
-  assert.deepEqual(result.warnings, []);
-  assert.ok(!result.events.some((event) => event.triggeredBy === 'Unrelenting Criticism'));
-  const build = toApplicationBuild(profession.createBuildDefaults());
-  build.specializations = [{ name: 'Firebrand', traits: '1-0-0' }];
-  const attributes = createBuildContext({
-    build,
-    transitionDelays: normalizeTransitionDelays(),
-    patch: profession.resolvePatch({ id: patchId })
-  }).attributes(1);
-  assert.equal(
-    attributes.attributes['Bleeding Duration'].traits,
-    100 *
-      profession.resolvePatch({ id: patchId }).catalog.balanceProfilesById.get(TRAIT.UNRELENTING_CRITICISM)
-        .conditionDurationBonus
-  );
-});
-
 test('Swift Scholar refunds grant selected Ashes or Quickness while other page gains do not', () => {
   for (const trait of [REWORK.FERVID_CONVICTION, TRAIT.STALWART_SPEED]) {
     const result = run([...cycle, wait(100)], { selectedTraitIds: [trait], allies: { count: 2, strikesPerSecond: 1 } });
@@ -300,13 +275,6 @@ test('experimental values select independent catalogs, attributes and worker-saf
   assert.equal(context.attributes(1).attributes['Bleeding Duration'].traits, 25);
   assert.equal(serialized.previewValues.bleedingDuration, 0.25);
   assert.equal(context.simulationConfig().previewValues.bleedingDuration, 0.25);
-  const tooltip = describeSimulationTrait(
-    profession.resolvePatch({ id: patchId, values: serialized.previewValues }).balanceContext,
-    selected.traits.find((trait) => trait.id === REWORK.RIGHTEOUS_FLAMES),
-    guardianTooltips,
-    'Firebrand'
-  );
-  assert.ok(tooltip.facts.some((fact) => fact.name === 'Ashes burning duration increase' && /100%/.test(fact.detail)));
   assert.equal(
     createBuildContext({ ...input, patch: profession.resolvePatch({ id: 'current' }) }).simulationConfig()
       .previewValues,
@@ -446,31 +414,6 @@ test('one eligible personal hit spends one charge for the selected Burning paylo
     assert.equal(burn.name, 'Ashes of the Just - Burning');
     assert.equal(burn.skillId, SKILL.ASHES_OF_THE_JUST);
   }
-});
-
-test('Ashes tooltips resolve build trait positions and distinguish baseline from selected provisional Burning', () => {
-  const patch = profession.resolvePatch({ id: patchId, values: { ashesMultiplier: 2 } });
-  const skill = patch.catalog.skillsById.get(SKILL.ASHES_OF_THE_JUST);
-  const tooltip = (build) =>
-    firebrandTooltips.skills[SKILL.ASHES_OF_THE_JUST](patch.balanceContext, skill, 'Firebrand', build);
-  const selected = tooltip({
-    specializations: [{ name: 'Firebrand', traits: '1-1-1' }]
-  });
-  // Burning rows use the shared effect formatter: stacks are a fact field and the qualifier names the row.
-  const burning = (facts, stacks, duration, qualifier) =>
-    facts.some(
-      (fact) => fact.name === 'Burning' && fact.stacks === stacks && fact.detail === `${duration}s - ${qualifier}`
-    );
-  const base = patch.catalog.skillsById.get(ashesBurningSkill.id).effects[0];
-  assert.ok(burning(selected.facts, 1, 4, 'per charge'));
-  assert.ok(burning(selected.facts, base.stacks, base.duration, 'baseline per charge'));
-  assert.ok(selected.facts.some((fact) => fact.name === 'Selected adjustment' && /Righteous Flames/.test(fact.detail)));
-  const unselected = tooltip({
-    specializations: [{ name: 'Firebrand', traits: '1-1-3' }]
-  });
-  assert.ok(!unselected.facts.some((fact) => fact.name === 'Selected adjustment'));
-  assert.ok(burning(unselected.facts, base.stacks, base.duration, 'per charge'));
-  assert.ok(burning(tooltip().facts, base.stacks, base.duration, 'baseline per charge · no build selected'));
 });
 
 test('observed Ashes Burning exposes its skill edits without an Epilogue cast', () => {
