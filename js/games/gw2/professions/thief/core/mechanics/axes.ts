@@ -12,6 +12,10 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 const THIEF_AXE_LAND = 'thief.axe-land';
+// Assault can catch an outbound Salvo before it lands and displaces a grounded Volley axe.
+const ASSAULT_SELECTION_MS = 440;
+const ASSAULT_HIT_FROM_START = { salvo: 0.48, volley: 0.96, spinning: 0.96 };
+const RECALL_HIT_FROM_RELEASE = { salvo: 0.04, volley: 0.48, spinning: 0.52 };
 
 /** Committed throws create axes even off target or before combat; damage eligibility does not own the projectile pool. */
 function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContext<ThiefSkill>): void {
@@ -23,12 +27,12 @@ function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContext<Thief
   if (!strike) return;
 
   const impact = (strike.timingAnchor === 'castStart' ? cast.start : cast.fullEnd) + (strike.atMs ?? 0) / 1000;
-  // The scheduled landing owns flight timing; retained axes need only identity for landing and recall.
-  // Melee EVTC missile lifetimes: ordinary axes continue ~560ms after hitting; Salvo ~720ms.
-  // These flight measurements used 1,500 units/s. Scale travel after release for the new 1,800 units/s velocity.
+  // Salvo remains airborne for 720 ms after impact. The velocity increase applies to ordinary throws.
   const release = cast.start + (cast.skill.interruptCommitMs ?? 0) / 1000;
-  const flight = Math.max(0, impact + (context.skill.stealthAttack ? 0.72 : 0.56) - release);
-  const landsAt = gw2Time(Math.max(runtime.time, release + flight * (1500 / 1800)));
+  const landing = context.skill.stealthAttack
+    ? impact + 0.72
+    : release + Math.max(0, impact + 0.56 - release) * (1500 / 1800);
+  const landsAt = gw2Time(Math.max(runtime.time, landing));
   for (let index = 0; index < (strike.hits ?? 1); index++) {
     const axe = {
       id: `${cast.id}:${index}`,
@@ -44,7 +48,8 @@ function scheduleThiefAxeRecall(runtime: ThiefRuntime, context: ActionContext<Th
   if (context.kind !== 'cast' || context.cast.cancelledBeforeCommit) return;
 
   const cast = context.cast;
-  const at = cast.skill.interruptCommitMs == null ? cast.fullEnd : cast.start + cast.skill.interruptCommitMs / 1000;
+  const selectionMs = cast.skill.id === ID.ORCHESTRATED_ASSAULT ? ASSAULT_SELECTION_MS : cast.skill.interruptCommitMs;
+  const at = selectionMs == null ? cast.fullEnd : cast.start + selectionMs / 1000;
   runtime.scheduleForCast('thief.recall-axes', gw2Time(at), cast);
 }
 
@@ -98,11 +103,18 @@ function recallThiefAxes(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): 
   runtime.profession.core.spinningAxes = [];
   runtime.profession.core.outboundAxes = [];
   const torment = cast.skill.id === ID.HARROWING_STORM;
+  const assault = cast.skill.id === ID.ORCHESTRATED_ASSAULT;
+  const anchor = assault ? cast.start : runtime.time;
+  const offsets = assault ? ASSAULT_HIT_FROM_START : RECALL_HIT_FROM_RELEASE;
   const arrivals = axes.map((axe) => {
     const skill = runtime.helpers.skillsById.get(axe.skillId)!;
-    // Both recalls launch travelling projectiles; resolving Storm instantly loses their ordering against later throws.
-    const delay = skill.stealthAttack ? 0.04 : skill.id === ID.VENOMOUS_VOLLEY ? 0.48 : 0.52;
-    return { skill, at: gw2Time(runtime.time + delay) };
+
+    const delay = skill.stealthAttack
+      ? offsets.salvo
+      : skill.id === ID.VENOMOUS_VOLLEY
+        ? offsets.volley
+        : offsets.spinning;
+    return { skill, at: gw2Time(anchor + delay) };
   });
   // The fifth arriving projectile owns immobilize, even when a later-emitted Salvo returns first.
   arrivals.sort((a, b) => a.at - b.at);

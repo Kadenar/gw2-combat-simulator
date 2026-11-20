@@ -81,34 +81,39 @@ test('recalled Salvo receives live Revealed Training power without empowering th
 });
 
 // Recall can intercept an outgoing axe without replacing a ground slot or later resurrecting that projectile.
-test('recall consumes grounded and outbound axes once; landing alone enforces the shared cap', () => {
-  for (const waitForLanding of [false, true]) {
-    const result = runThief(
-      [
-        ID.MALICIOUS_CUNNING_SALVO,
-        ...(waitForLanding ? [{ type: 'wait', durationMs: 1000 }] : []),
-        ID.ORCHESTRATED_ASSAULT,
-        { type: 'wait', durationMs: 1500 }
-      ],
-      { ...axeConfig, specialization: 'Deadeye' },
-      {
-        initialize(runtime) {
-          runtime.profession.core.stealthUntil = 10;
-          runtime.profession.core.spinningAxes = Array.from({ length: 6 }, () => ({
-            skillId: ID.VENOMOUS_VOLLEY,
-            expiresAt: 10
-          }));
+for (const [specialization, salvo] of [
+  ['Core', ID.CUNNING_SALVO],
+  ['Deadeye', ID.MALICIOUS_CUNNING_SALVO]
+]) {
+  test(`${specialization} Salvo displaces a grounded Volley axe only if it lands before recall`, () => {
+    for (const waitForLanding of [false, true]) {
+      const result = runThief(
+        [
+          salvo,
+          ...(waitForLanding ? [{ type: 'wait', durationMs: 1000 }] : []),
+          ID.ORCHESTRATED_ASSAULT,
+          { type: 'wait', durationMs: 1500 }
+        ],
+        { ...axeConfig, specialization, boons: { quickness: true } },
+        {
+          initialize(runtime) {
+            runtime.profession.core.stealthUntil = 10;
+            runtime.profession.core.spinningAxes = Array.from({ length: 6 }, () => ({
+              skillId: ID.VENOMOUS_VOLLEY,
+              expiresAt: 10
+            }));
+          }
         }
-      }
-    );
-    assert.deepEqual(result.warnings, []);
-    const hits = returned(result, 'damage');
-    assert.equal(hits.filter((event) => event.skillId === ID.VENOMOUS_VOLLEY).length, waitForLanding ? 5 : 6);
-    assert.equal(hits.filter((event) => event.skillId === ID.MALICIOUS_CUNNING_SALVO).length, 1);
-    assert.deepEqual(observedRuntime(result).profession.core.spinningAxes, []);
-    assert.deepEqual(observedRuntime(result).profession.core.outboundAxes, []);
-  }
-});
+      );
+      assert.deepEqual(result.warnings, []);
+      const hits = returned(result, 'damage');
+      assert.equal(hits.filter((event) => event.skillId === ID.VENOMOUS_VOLLEY).length, waitForLanding ? 5 : 6);
+      assert.equal(hits.filter((event) => event.skillId === salvo).length, 1);
+      assert.deepEqual(observedRuntime(result).profession.core.spinningAxes, []);
+      assert.deepEqual(observedRuntime(result).profession.core.outboundAxes, []);
+    }
+  });
+}
 
 // Return damage is queued independently, so a following throw builds the next pool instead of replacing returns.
 test('a new Volley cannot replace recalled axes still travelling back', () => {
