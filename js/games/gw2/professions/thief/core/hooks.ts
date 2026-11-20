@@ -40,9 +40,7 @@ import {
   storeThiefStolenSkillChoices
 } from '#gw2/professions/thief/core/mechanics/steal.js';
 import {
-  commitThiefStealth,
   reactThiefStealthBreakingStrike,
-  selectThiefStealth,
   thiefStealthLifecycle
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import {
@@ -170,9 +168,6 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     'thief.activate-venom'(runtime, context) {
       if (context.kind === 'cast') activateVenom(runtime, context.cast);
     },
-    'thief.stealth'(runtime, context) {
-      commitThiefStealth(runtime, context);
-    },
 
     'thief.unsuspecting-bleeding'(runtime, context) {
       if (context.kind === 'effect') emitSpearBonusCondition(runtime, context.trigger.event, 3);
@@ -184,7 +179,6 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   onCastStart(runtime, cast) {
     if (cast.skill.id === SHARED_SKILL_IDS.DODGE) runtime.fireTrigger(thiefDodgeStarted, { cast });
   },
-  modifyEffects: selectThiefStealth,
   onCastCommit(runtime, cast) {
     // The deferred task reloads the catalog skill, so carry the accepted cast's cost and movement flag.
     deferThiefCompletion(runtime, THIEF_CORE_COMPLETE, cast, {

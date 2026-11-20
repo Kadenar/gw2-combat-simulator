@@ -2,12 +2,13 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, CONDITION, CONTROL, STATUS, WEAPON } from '#gw2/platform/constants.js';
+import { ACTOR, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { fallingSpiderTargetControlled } from '#gw2/professions/thief/core/mechanics/spear.js';
+import { thiefStealthGrant } from '#gw2/professions/thief/core/skills/stealth-grant.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
@@ -355,17 +356,11 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
-      },
-      {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1
       }
     ],
     // The skill owns this transition at successful commitment.
     sideEffects: [
-      { on: 'castCommit', do: { type: 'thief.stealth' } },
+      { on: 'castCommit', do: thiefStealthGrant(3) },
       { on: 'castCommit', do: { type: 'thief.spear-chain' } }
     ]
   },

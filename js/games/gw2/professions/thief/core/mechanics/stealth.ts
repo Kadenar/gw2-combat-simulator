@@ -8,19 +8,19 @@ import {
   revealedActive,
   stealthActive
 } from '#gw2/platform/combat/stealth.js';
-import { ACTOR, STATUS } from '#gw2/platform/constants.js';
-import type { ActionContext } from '#gw2/platform/effects/actions.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { ActionContext, CustomSideEffectAction, SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefSkill } from '#gw2/professions/thief/core/events.js';
 import type { BonusStealthAttackCharges } from '#gw2/professions/thief/core/mechanics/bonus-stealth-attacks.js';
 import { stealthEntered, stealthExited } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
+import { findThiefStealthGrant, stealthGrantBuffs } from '#gw2/professions/thief/core/skills/stealth-grant.js';
 import { hiddenKillerLinger } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { DEADEYE_STOLEN_SKILL_ID_SET } from '#gw2/professions/thief/data/stolen-skills.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { claimActivation } from '#kernel/execution/activation-claims.js';
 
@@ -50,9 +50,31 @@ function reactToStealthGrant(runtime: ThiefRuntime, event: Gw2ResolverEvent, ent
   }
 }
 
-export const thiefStealthLifecycle = createStealthLifecycle<ThiefRuntimeState, ThiefSkill>({
-  onGranted: reactToStealthGrant
-});
+export const thiefStealthLifecycle = {
+  ...createStealthLifecycle<ThiefRuntimeState, ThiefSkill>({ onGranted: reactToStealthGrant }),
+  // A variant can replace the granting strike, so record the grant from the selected effects. Effects pass through.
+  modifyEffects(runtime, cast, effects) {
+    const grant = findThiefStealthGrant(cast.skill, effects);
+
+    if (grant && (grant.commit || !cast.command.offTarget)) {
+      let packets = stealthPackets.get(runtime);
+
+      if (!packets) stealthPackets.set(runtime, (packets = new Map()));
+
+      packets.set(cast.id, { cast, commit: grant.commit });
+    }
+
+    return effects;
+  },
+  onCastCommit: discardPendingCommitGrant,
+  // A cancelled cast grants nothing, so its strikes lose protection.
+  onCastCancel(runtime, cast) {
+    const packets = stealthPackets.get(runtime);
+
+    if (packets?.get(cast.id) !== 'granted') packets?.delete(cast.id);
+  },
+  sideEffectHandlers: { 'thief.stealth': commitThiefStealth }
+} satisfies RuntimeHooks<ThiefRuntimeState, ThiefSkill>;
 
 /** Removes active stealth, applies Revealed, and fires the traits shared by every attack that breaks stealth. */
 function breakThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, at: number): boolean {
@@ -109,7 +131,7 @@ export function reactThiefStealthBreakingStrike(runtime: ThiefRuntime, event: Gw
 
   const grant = stealthPackets.get(runtime)?.get(String(event.activationId));
 
-  if (grant === 'granted' || grant?.effects.some((effect) => !effect.when || effect.when(runtime, grant.cast))) return;
+  if (grant === 'granted' || (grant && (!grant.commit?.when || grant.commit.when(runtime.queries, grant.cast)))) return;
 
   if (isStealthGrantingImpact(runtime.profession.core, event)) return;
 
@@ -147,55 +169,41 @@ export function beginThiefStealthAttack(
   endStealth(core, runtime.time);
 }
 
-// Selected stealth packets belong to their activation so either commitment or a landed hit can consume them once.
-type StealthGrant = { cast: RuntimeCast<ThiefSkill>; effects: readonly SkillEffect[] } | 'granted';
+// Strikes can precede their grant or land after it. Each activation tracks its own eligibility.
+type StealthGrant = { cast: RuntimeCast<ThiefSkill>; commit?: SkillSideEffect } | 'granted';
 const stealthPackets = new WeakMap<ThiefRuntime, Map<string, StealthGrant>>();
 
-/** Stolen skills check malice at the grant. Other skills preserve the stealth variant selected at cast start. */
-export function selectThiefStealth(
-  runtime: ThiefRuntime,
-  cast: RuntimeCast<ThiefSkill>,
-  effects: readonly SkillEffect[]
-): readonly SkillEffect[] {
-  const stolen = DEADEYE_STOLEN_SKILL_ID_SET.has(cast.skill.id);
-  const stealth = effects.flatMap((effect) => {
-    if (effect.type !== 'buff' || effect.kind !== STATUS.STEALTH) return [];
+/** A failed commit predicate skips the grant. Later strikes lose its protection. */
+function discardPendingCommitGrant(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+  const packets = stealthPackets.get(runtime);
+  const grant = packets?.get(cast.id);
 
-    if (stolen || !effect.when) return [effect];
-
-    return effect.when(runtime, cast) ? [{ ...effect, when: undefined }] : [];
-  });
-
-  if (stealth.length) {
-    let packets = stealthPackets.get(runtime);
-
-    if (!packets) stealthPackets.set(runtime, (packets = new Map()));
-
-    packets.set(cast.id, { cast, effects: stealth });
-  }
-
-  return effects.filter((effect) => effect.type !== 'buff' || effect.kind !== STATUS.STEALTH);
+  if (grant && grant !== 'granted' && grant.commit) packets?.delete(cast.id);
 }
 
-/** A grant uses the accepted duration at its actual trigger; later damage can reveal the thief during aftercast. */
-export function commitThiefStealth(runtime: ThiefRuntime, context: ActionContext<ThiefSkill>): void {
-  const activationId = context.kind === 'cast' ? context.cast.id : String(context.trigger.event.activationId);
+/** Only the authored trigger can spend this activation's grant. Revealed blocks it at that instant. */
+function commitThiefStealth(
+  runtime: ThiefRuntime,
+  context: ActionContext<ThiefSkill>,
+  action: CustomSideEffectAction
+): void {
+  const activationId = context.kind === 'cast' ? context.cast.id : context.trigger.event.activationId;
+
+  if (!activationId) return;
+
   const packets = stealthPackets.get(runtime);
   const grant = packets?.get(activationId);
 
   if (!packets || !grant || grant === 'granted') return;
 
-  // Claim the grant before checking Revealed: a blocked attempt cannot be replayed later by the other trigger.
-  packets.delete(activationId);
+  // Read the dispatched action so a patch to the payload changes the applied duration.
+  const effects = stealthGrantBuffs(action);
 
-  if (revealedActive(runtime.profession.core, runtime.time)) return;
+  if (!effects.length || revealedActive(runtime.profession.core, runtime.time)) {
+    packets.delete(activationId);
+    return;
+  }
 
-  const effects = grant.effects.filter((effect) => !effect.when || effect.when(runtime, grant.cast));
-  const duration = effects.reduce((sum, effect) => sum + (('duration' in effect && effect.duration) || 0), 0);
-
-  if (!(duration > 0)) return;
-
-  // The strike belonging to this successful grant can land after stealth has been applied.
   packets.set(activationId, 'granted');
   runtime.effects.emit({
     kind: 'profile',

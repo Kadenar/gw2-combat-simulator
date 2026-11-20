@@ -24,6 +24,7 @@ import { thiefShadowArtsTooltips } from '#gw2/professions/thief/app/tooltips/sha
 import { stealthAttack } from '#gw2/professions/thief/app/tooltips/shared.js';
 import { thiefTrickeryTooltips } from '#gw2/professions/thief/app/tooltips/trickery.js';
 import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
+import { findThiefStealthGrant } from '#gw2/professions/thief/core/skills/stealth-grant.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -176,17 +177,22 @@ const spearChainTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
 
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const thiefCoreTooltips = {
-  skillFacts: (_c, entity) => [
-    ...(thiefInitiativeCost(entity) > 0
-      ? [{ name: 'Initiative cost', detail: tooltipDecimal(thiefInitiativeCost(entity)) }]
-      : []),
-    ...(typeof entity.resourceGain === 'number' && entity.resourceGain > 0
-      ? [{ name: 'Endurance restored', detail: tooltipDecimal(tooltipNumber(entity, 'resourceGain')) }]
-      : []),
-    ...(entity.flipDuration == null
-      ? []
-      : [{ name: 'Follow-up window', detail: tooltipSeconds(tooltipNumber(entity, 'flipDuration')) }])
-  ],
+  skillFacts: (_c, entity) => {
+    // Stolen skills describe their malice requirement separately. Show the duration for unconditional grants here.
+    const stealth = findThiefStealthGrant(entity);
+    return [
+      ...(stealth && !stealth.commit?.when ? simulationEffectFacts(stealth.effects).facts : []),
+      ...(thiefInitiativeCost(entity) > 0
+        ? [{ name: 'Initiative cost', detail: tooltipDecimal(thiefInitiativeCost(entity)) }]
+        : []),
+      ...(typeof entity.resourceGain === 'number' && entity.resourceGain > 0
+        ? [{ name: 'Endurance restored', detail: tooltipDecimal(tooltipNumber(entity, 'resourceGain')) }]
+        : []),
+      ...(entity.flipDuration == null
+        ? []
+        : [{ name: 'Follow-up window', detail: tooltipSeconds(tooltipNumber(entity, 'flipDuration')) }])
+    ];
+  },
   skills: {
     // Read execute tiers from their owning modifiers, including balance patches.
     [ID.HEARTSEEKER]: skillTooltip('Leap at your target, dealing increased damage at low target health.', [

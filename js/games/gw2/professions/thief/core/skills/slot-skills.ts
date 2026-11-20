@@ -1,10 +1,11 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { thiefStealthGrant } from '#gw2/professions/thief/core/skills/stealth-grant.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
@@ -55,12 +56,6 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     castTimeMs: 920,
     effects: [
       {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1
-      },
-      {
         type: 'boon',
         boon: BOON.REGENERATION,
         duration: 6,
@@ -68,7 +63,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDef
       }
     ],
     // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }]
+    sideEffects: [{ on: 'castCommit', do: thiefStealthGrant(3) }]
   },
   [ID.CALTROPS]: {
     name: 'Caltrops',
@@ -143,12 +138,6 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     castTimeMs: 0,
     effects: [
       {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1
-      },
-      {
         type: 'condition',
         condition: CONDITION.BLINDNESS,
         stacks: 1,
@@ -157,7 +146,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDef
       }
     ],
     // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }]
+    sideEffects: [{ on: 'castCommit', do: thiefStealthGrant(3) }]
   },
   [ID.ASSASSINS_SIGNET]: {
     name: "Assassin's Signet",

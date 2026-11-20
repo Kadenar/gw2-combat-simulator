@@ -1,10 +1,11 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, CONDITION, CONTROL, STATUS } from '#gw2/platform/constants.js';
+import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import { thiefStealthGrant } from '#gw2/professions/thief/core/skills/stealth-grant.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { consumeDeadeyeMalice } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
 import { markedTarget } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
@@ -136,18 +137,10 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition<ThiefS
 
     ammoCastLockout: 5,
     castTimeMs: 440,
-    effects: [
-      {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1
-      }
-    ],
-    // Clear Revealed before selecting the stealth grant; only commitment applies it.
+    // Clear Revealed at cast start. The Stealth grant checks Revealed again at commitment.
     sideEffects: [
       { on: 'castStart', do: { type: 'thief.clear-revealed' } },
-      { on: 'castCommit', do: { type: 'thief.stealth' } }
+      { on: 'castCommit', do: thiefStealthGrant(3) }
     ]
   },
   [ID.SHADOW_SWAP]: {
@@ -199,19 +192,13 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition<ThiefS
         timingScale: 'fixed'
       },
       {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1
-      },
-      {
         type: 'control',
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.KNOCKBACK
       }
     ],
     // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }]
+    sideEffects: [{ on: 'castCommit', do: thiefStealthGrant(3) }]
   }
 };
 

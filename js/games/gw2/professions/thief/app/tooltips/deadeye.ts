@@ -13,7 +13,7 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { RECIPIENT, STATUS } from '#gw2/platform/constants.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { stealthAttack } from '#gw2/professions/thief/app/tooltips/shared.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -63,7 +63,6 @@ const deadeyeStolenSkillTooltip: DescribeSimulationTooltip = (balanceContext, en
       .effects?.map((effect): SkillEffect =>
         effect.type === 'boon' ? { ...effect, audience: { recipients: RECIPIENT.PARTY } } : effect
       )
-      .filter((effect) => !(effect.type === 'buff' && effect.kind === STATUS.STEALTH))
   ).facts
 });
 

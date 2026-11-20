@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { simulationEffectFacts } from '#gw2/app/shared/simulation-tooltip.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { thiefCoreTooltips } from '#gw2/professions/thief/app/tooltips/core.js';
+import { thiefStealthGrant } from '#gw2/professions/thief/core/skills/stealth-grant.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { activeBatchCount } from '#kernel/resources/batch.js';
@@ -284,41 +287,48 @@ test('Thief activation declarations are the sole owners of their state transitio
   }
 });
 
-// Selection, commitment and display share one accepted stealth payload, including variant and predicate edits.
-test('selected stealth respects acceptance predicates, Revealed, extension and cancellation', () => {
-  for (const accepted of [false, true]) {
+// Present the selected duration on unconditional grants. A gated grant has its own description.
+test('Stealth tooltip facts follow the commit or impact grant', () => {
+  const grant = thiefStealthGrant(7);
+  const expected = simulationEffectFacts(grant.effects).facts;
+  const commit = { on: 'castCommit', do: grant };
+  const describe = (skill) => thiefCoreTooltips.skillFacts({}, skill);
+  assert.deepEqual(describe({ sideEffects: [commit] }), expected);
+  assert.deepEqual(
+    describe({ effects: [{ type: 'strike', reactions: [{ on: 'damage.resolved', do: [grant] }] }] }),
+    expected
+  );
+  assert.deepEqual(describe({ sideEffects: [{ ...commit, when: () => true }] }), []);
+  assert.deepEqual(describe({ sideEffects: [{ ...commit, do: { ...grant, effects: [] } }] }), []);
+});
+
+// The commit rule's predicate reads live state at commitment. Revealed can still block the grant there.
+test('stealth grants respect commit predicates, Revealed, extension and cancellation', () => {
+  for (const committed of [false, true]) {
     for (const revealed of [false, true]) {
       const result = runThief(
         [ID.HIDE_IN_SHADOWS],
         { selectedSkillIds: [13027] },
         {
           initialize(runtime) {
-            runtime.profession.core.spearChainStage = Number(accepted);
+            runtime.profession.core.spearChainStage = Number(!committed);
             runtime.profession.core.revealedUntil = revealed ? 10 : 0;
           },
           probes: [
             [
               0.1,
               (runtime) => {
-                runtime.profession.core.spearChainStage = Number(!accepted);
+                runtime.profession.core.spearChainStage = Number(committed);
               }
             ]
           ],
           catalog: (catalog) =>
             withSkill(catalog, ID.HIDE_IN_SHADOWS, {
-              castTimeMs: 1000,
-              effects: [{ type: 'buff', kind: 'stealth', duration: 9 }],
-              effectVariants: [
+              sideEffects: [
                 {
-                  when: () => true,
-                  transform: () => [
-                    {
-                      type: 'buff',
-                      kind: 'stealth',
-                      duration: 4,
-                      when: (runtime) => runtime.profession.core.spearChainStage === 1
-                    }
-                  ]
+                  on: 'castCommit',
+                  when: (runtime) => runtime.profession.core.spearChainStage === 1,
+                  do: thiefStealthGrant(4)
                 }
               ]
             })
@@ -326,7 +336,7 @@ test('selected stealth respects acceptance predicates, Revealed, extension and c
       );
       assert.deepEqual(result.warnings, []);
       const buff = result.events.find((event) => event.type === 'buff' && event.kind === 'stealth');
-      assert.equal(Boolean(buff), accepted && !revealed);
+      assert.equal(Boolean(buff), committed && !revealed);
       assert.equal(observedRuntime(result).profession.core.stealthUntil, buff ? buff.at + 4 : 0);
     }
   }
@@ -339,8 +349,12 @@ test('selected stealth respects acceptance predicates, Revealed, extension and c
         runtime.profession.core.stealthUntil = 14;
       },
       catalog: (catalog) =>
-        withSkill(catalog, ID.HIDE_IN_SHADOWS, {
-          effects: [{ type: 'buff', kind: 'stealth', duration: 10 }]
+        applySkillPatch(catalog, {
+          skills: {
+            [ID.HIDE_IN_SHADOWS]: {
+              sideEffects: { stealth: { effects: [{ type: 'buff', duration: 10 }] } }
+            }
+          }
         })
     }
   );

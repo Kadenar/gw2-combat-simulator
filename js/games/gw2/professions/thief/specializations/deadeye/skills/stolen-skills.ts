@@ -1,10 +1,16 @@
-import { ACTOR, BOON, CONDITION, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import { thiefStealthGrant } from '#gw2/professions/thief/core/skills/stealth-grant.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 
-/** Stolen skills commit stealth before consuming their stored use, then deliver their authored effects. */
+/** Malice gates Stealth at commitment. Spending the stolen use is unconditional. */
+const stolenSkillCommit: readonly SkillSideEffect[] = [
+  { on: 'castCommit', when: (runtime) => runtime.resourceController.value('malice') >= 3, do: thiefStealthGrant(3) },
+  { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
+];
+
 export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = {
   [ID.STEAL_WARMTH]: {
     name: 'Steal Warmth',
@@ -13,18 +19,10 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
     slot: 'Profession_2',
 
     cooldown: 0.5,
-    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 200,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Warmth', actorType: ACTOR.PLAYER },
-      {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime.profession).malice.value >= 3
-      },
       {
         type: 'boon',
         boon: BOON.VIGOR,
@@ -34,11 +32,7 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
       },
       { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 3, actorType: ACTOR.PLAYER }
     ]),
-    // The skill owns this transition at successful commitment.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'thief.stealth' } },
-      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
-    ]
+    sideEffects: stolenSkillCommit
   },
   [ID.STEAL_RESISTANCE]: {
     name: 'Steal Resistance',
@@ -47,18 +41,10 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
     slot: 'Profession_2',
 
     cooldown: 0.5,
-    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 280,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Resistance', actorType: ACTOR.PLAYER },
-      {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime.profession).malice.value >= 3
-      },
       {
         type: 'boon',
         boon: BOON.RESISTANCE,
@@ -68,11 +54,7 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
       },
       { type: 'condition', condition: CONDITION.TORMENT, stacks: 3, duration: 8, actorType: ACTOR.PLAYER }
     ]),
-    // The skill owns this transition at successful commitment.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'thief.stealth' } },
-      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
-    ]
+    sideEffects: stolenSkillCommit
   },
   [ID.STEAL_PRECISION]: {
     name: 'Steal Precision',
@@ -81,18 +63,10 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
     slot: 'Profession_2',
 
     cooldown: 0.5,
-    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 280,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Precision', actorType: ACTOR.PLAYER },
-      {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime.profession).malice.value >= 3
-      },
       {
         type: 'boon',
         boon: BOON.FURY,
@@ -108,11 +82,7 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
         actorType: ACTOR.PLAYER
       }
     ]),
-    // The skill owns this transition at successful commitment.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'thief.stealth' } },
-      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
-    ]
+    sideEffects: stolenSkillCommit
   },
   [ID.STEAL_HEALTH]: {
     name: 'Steal Health',
@@ -121,25 +91,13 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
     slot: 'Profession_2',
 
     cooldown: 0.5,
-    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 200,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Health', actorType: ACTOR.PLAYER },
-      {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime.profession).malice.value >= 3
-      },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 5, duration: 8, actorType: ACTOR.PLAYER }
     ]),
-    // The skill owns this transition at successful commitment.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'thief.stealth' } },
-      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
-    ]
+    sideEffects: stolenSkillCommit
   },
   [ID.STEAL_STRENGTH]: {
     name: 'Steal Strength',
@@ -148,18 +106,10 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
     slot: 'Profession_2',
 
     cooldown: 0.5,
-    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 280,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Strength', actorType: ACTOR.PLAYER },
-      {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime.profession).malice.value >= 3
-      },
       {
         type: 'boon',
         boon: BOON.MIGHT,
@@ -169,11 +119,7 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
       },
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 8, actorType: ACTOR.PLAYER }
     ]),
-    // The skill owns this transition at successful commitment.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'thief.stealth' } },
-      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
-    ]
+    sideEffects: stolenSkillCommit
   },
   [ID.STEAL_TIME]: {
     name: 'Steal Time',
@@ -182,7 +128,6 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
     slot: 'Profession_2',
 
     cooldown: 0.5,
-    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 280,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -195,13 +140,6 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
       {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime.profession).malice.value >= 3
-      },
-      {
         type: 'boon',
         boon: BOON.QUICKNESS,
         duration: 5,
@@ -210,11 +148,7 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
       },
       { type: 'condition', condition: CONDITION.SLOW, stacks: 1, duration: 3, actorType: ACTOR.PLAYER }
     ]),
-    // The skill owns this transition at successful commitment.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'thief.stealth' } },
-      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
-    ]
+    sideEffects: stolenSkillCommit
   },
   [ID.STEAL_DURABILITY]: {
     name: 'Steal Durability',
@@ -223,18 +157,10 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
     slot: 'Profession_2',
 
     cooldown: 0.5,
-    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 280,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Durability', actorType: ACTOR.PLAYER },
-      {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime.profession).malice.value >= 3
-      },
       {
         type: 'boon',
         boon: BOON.PROTECTION,
@@ -244,11 +170,7 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
       },
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 5, actorType: ACTOR.PLAYER }
     ]),
-    // The skill owns this transition at successful commitment.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'thief.stealth' } },
-      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
-    ]
+    sideEffects: stolenSkillCommit
   },
   [ID.STEAL_DEFENSES]: {
     name: 'Steal Defenses',
@@ -257,18 +179,10 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
     slot: 'Profession_2',
 
     cooldown: 0.5,
-    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 200,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Defenses', actorType: ACTOR.PLAYER },
-      {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime.profession).malice.value >= 3
-      },
       {
         type: 'boon',
         boon: BOON.AEGIS,
@@ -278,11 +192,7 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
       },
       { type: 'condition', condition: CONDITION.POISONED, stacks: 2, duration: 8, actorType: ACTOR.PLAYER }
     ]),
-    // The skill owns this transition at successful commitment.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'thief.stealth' } },
-      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
-    ]
+    sideEffects: stolenSkillCommit
   },
   [ID.STEAL_MOBILITY]: {
     name: 'Steal Mobility',
@@ -291,24 +201,12 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
     slot: 'Profession_2',
 
     cooldown: 0.5,
-    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 200,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Mobility', actorType: ACTOR.PLAYER },
-      {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime.profession).malice.value >= 3
-      },
       { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1.5, actorType: ACTOR.PLAYER }
     ]),
-    // The skill owns this transition at successful commitment.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'thief.stealth' } },
-      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
-    ]
+    sideEffects: stolenSkillCommit
   }
 };

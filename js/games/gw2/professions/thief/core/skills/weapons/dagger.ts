@@ -1,9 +1,10 @@
 /** Canonical Core thief skill definitions grouped by their GW2 owner. */
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
-import { ACTOR, COMBO_FINISHER, CONDITION, STATUS, WEAPON } from '#gw2/platform/constants.js';
+import { ACTOR, COMBO_FINISHER, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import { thiefStealthGrant } from '#gw2/professions/thief/core/skills/stealth-grant.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
@@ -349,9 +350,8 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
           hits: 1,
           name: 'Cloak and Dagger',
           actorType: ACTOR.PLAYER,
-          reactions: [{ on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'first', do: [{ type: 'thief.stealth' }] }]
+          reactions: [{ on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'first', do: [thiefStealthGrant(3)] }]
         },
-        { type: 'buff', kind: STATUS.STEALTH, duration: 3, stacks: 1 },
         { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 5, actorType: ACTOR.PLAYER }
       ]
     )
