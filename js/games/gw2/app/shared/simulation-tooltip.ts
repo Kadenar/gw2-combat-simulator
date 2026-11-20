@@ -1,5 +1,6 @@
 import type { ModifierDescriptions } from '#gw2/app/modifier-reference/presentation.js';
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
+import type { ATTRIBUTE_KEYS } from '#gw2/platform/attributes/inputs.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
@@ -88,6 +89,7 @@ export function resolveTooltips(context: ProfessionBalanceContext, tooltips: Pro
 /** Tuples read the described profile; named sources keep skill, profile, and modifier ownership explicit. */
 export type FactSpec =
   | readonly [field: string, name: string, format?: (value: number) => string]
+  | ((context: ProfessionBalanceContext, id: SkillId) => TooltipFact)
   | {
       readonly skill: SkillId;
       readonly field: string;
@@ -142,6 +144,8 @@ function resolveFacts(
   facts: readonly FactSpec[]
 ): readonly TooltipFact[] {
   return facts.map((fact) => {
+    if (typeof fact === 'function') return fact(context, id);
+
     if ('skill' in fact) return skillFact(context, fact.skill, fact.field, fact.name, fact.format);
 
     if ('profile' in fact) return profileFact(context, fact.profile, fact.field, fact.name, fact.format);
@@ -182,6 +186,8 @@ effectNames.set('lesser-sic-em', 'Lesser "Sic \'Em!" (merged)');
 // Show the strike variant without repeating its owning skill or exposing its patch key.
 effectNames.set('lesser spinal shivers - no boons', 'No boons');
 effectNames.set('ashes-of-the-just', 'Ashes of the Just');
+// Display the trait name and icon for its timed strike-damage bonus.
+effectNames.set('guardian-inspiring-virtue', 'Inspiring Virtue');
 effectNames.set('lethal-tempo', 'Lethal Tempo');
 effectNames.set('enchanted-daggers', 'Enchanted Daggers');
 // Resolve weapon-spell charge kinds to their named skill icons.
@@ -224,9 +230,33 @@ export const tooltipPercent = (value: number, options: { maximumFractionDigits?:
 /** Absolute chances, thresholds, and conversion rates are quantities, not signed bonuses. */
 export const tooltipPercentValue = (value: number): string => `${tooltipDecimal(value * 100)}%`;
 
-/** Attribute conversions grant a bonus without spending the source attribute. */
-export const tooltipAttributeConversion = (value: number): string =>
-  `${tooltipPercentValue(value)} (source attribute unchanged)`;
+/** Show the bonus at the stack limit using the rate and cap from the selected patch. */
+export function maximumBonusFact(
+  rateField: string,
+  limit: string | number,
+  name: string,
+  format: (value: number) => string = tooltipPercent,
+  capOwner?: SkillId
+) {
+  return (context: ProfessionBalanceContext, id: SkillId): TooltipFact => {
+    const cap = typeof limit === 'number' ? limit : balanceNumber(context.catalog, capOwner ?? id, limit);
+    return { name, detail: format(balanceNumber(context.catalog, id, rateField) * cap) };
+  };
+}
+
+/** Each converted attribute gets its own row showing the percentage of the source attribute. */
+export function attributeConversionFact(
+  from: keyof typeof ATTRIBUTE_KEYS,
+  to: keyof typeof ATTRIBUTE_KEYS,
+  field = 'attributeConversion',
+  condition = ''
+): FactSpec {
+  return [
+    field,
+    `${to} gained${condition ? ` ${condition}` : ''}`,
+    (rate) => `${tooltipPercentValue(rate)} of your ${from}`
+  ];
+}
 
 // Keep duration units and signed multiplier changes consistent across professions.
 export const tooltipSeconds = (value: number): string => `${tooltipDecimal(value)}s`;
@@ -610,6 +640,54 @@ function ordinarySkillDescription(skill: Skill): string {
   return sentences.join(' ') || 'The simulator lists no direct damage or status effects for this action.';
 }
 
+/** Collect skill and packet combo facts, keeping custom field durations when the tooltip supplies them. */
+export function simulationComboFacts(skill: Skill, model: SimulationTooltip): TooltipFact[] {
+  const facts: TooltipFact[] = [];
+  const comboFields = [
+    ...(skill.comboFields || []),
+    ...(skill.effects || []).flatMap((effect) => effect.comboFields || [])
+  ];
+  for (const field of new Map(comboFields.map((field) => [JSON.stringify(field), field])).values()) {
+    // Custom field facts own their durations so base facts cannot contradict a selected trait or variant.
+    if (
+      model.facts.some((fact) => fact.name === 'Combo field' && fact.detail.split(' · ')[0] === field.fieldType) ||
+      model.factTabs?.some((tab) =>
+        tab.facts.some((fact) => fact.name === 'Combo field' && fact.detail.split(' · ')[0] === field.fieldType)
+      )
+    )
+      continue;
+
+    facts.push({
+      name: 'Combo field',
+      detail: `${String(field.fieldType)}${typeof field.duration === 'number' ? ` · ${tooltipDecimal(field.duration)}s` : ''}`
+    });
+  }
+
+  const comboFinishers = [
+    ...(skill.comboFinishers || []),
+    ...(skill.effects || []).flatMap((effect) => [
+      ...(effect.comboFinishers || []),
+      // Explicit strike packets can own finishers independently of their enclosing effect.
+      ...(effect.type === 'strike' || effect.type === 'condition'
+        ? (effect.ticks || []).flatMap((tick) => tick.comboFinishers || [])
+        : [])
+    ])
+  ];
+  // Group identical displayed finishers so per-tick attempt IDs do not produce repeated tooltip rows.
+  const finisherFacts = new Map<string, TooltipFact>();
+  for (const finisher of comboFinishers) {
+    // Only projectile finishers expose a chance; other finisher types are guaranteed by their type.
+    const detail = `${String(finisher.finisherType)}${finisher.finisherType === COMBO_FINISHER.PROJECTILE && typeof finisher.chance === 'number' ? ` · ${tooltipDecimal(finisher.chance * 100)}% chance` : ''}`;
+    finisherFacts.set(detail, {
+      name: 'Combo finisher',
+      detail,
+      applications: (finisherFacts.get(detail)?.applications ?? 0) + Number(finisher.attempts ?? 1)
+    });
+  }
+
+  return [...facts, ...finisherFacts.values()];
+}
+
 /** Generic skills describe only modeled payloads; profession functions supply conditional and skill-specific prose. */
 export function describeSimulationSkill(
   context: ProfessionBalanceContext,
@@ -656,49 +734,7 @@ export function describeSimulationSkill(
 
   if (Number(skill.ammo) > 0) facts.push({ name: 'Ammunition', detail: tooltipDecimal(tooltipNumber(skill, 'ammo')) });
 
-  const comboFields = [
-    ...(skill.comboFields || []),
-    ...(skill.effects || []).flatMap((effect) => effect.comboFields || [])
-  ];
-  for (const field of new Map(comboFields.map((field) => [JSON.stringify(field), field])).values()) {
-    // Custom field facts own their durations so base facts cannot contradict a selected trait or variant.
-    if (
-      model.facts.some((fact) => fact.name === 'Combo field' && fact.detail.split(' · ')[0] === field.fieldType) ||
-      model.factTabs?.some((tab) =>
-        tab.facts.some((fact) => fact.name === 'Combo field' && fact.detail.split(' · ')[0] === field.fieldType)
-      )
-    )
-      continue;
-
-    facts.push({
-      name: 'Combo field',
-      detail: `${String(field.fieldType)}${typeof field.duration === 'number' ? ` · ${tooltipDecimal(field.duration)}s` : ''}`
-    });
-  }
-
-  const comboFinishers = [
-    ...(skill.comboFinishers || []),
-    ...(skill.effects || []).flatMap((effect) => [
-      ...(effect.comboFinishers || []),
-      // Explicit strike packets can own finishers independently of their enclosing effect.
-      ...(effect.type === 'strike' || effect.type === 'condition'
-        ? (effect.ticks || []).flatMap((tick) => tick.comboFinishers || [])
-        : [])
-    ])
-  ];
-  // Group identical displayed finishers so per-tick attempt IDs do not produce repeated tooltip rows.
-  const finisherFacts = new Map<string, TooltipFact>();
-  for (const finisher of comboFinishers) {
-    // Only projectile finishers expose a chance; other finisher types are guaranteed by their type.
-    const detail = `${String(finisher.finisherType)}${finisher.finisherType === COMBO_FINISHER.PROJECTILE && typeof finisher.chance === 'number' ? ` · ${tooltipDecimal(finisher.chance * 100)}% chance` : ''}`;
-    finisherFacts.set(detail, {
-      name: 'Combo finisher',
-      detail,
-      applications: (finisherFacts.get(detail)?.applications ?? 0) + Number(finisher.attempts ?? 1)
-    });
-  }
-
-  facts.push(...finisherFacts.values());
+  facts.push(...simulationComboFacts(skill, model));
 
   return {
     ...model,

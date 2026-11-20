@@ -1,6 +1,7 @@
 import {
   fromModifier,
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   skillTooltip,
   tooltipFactorChange,
@@ -68,7 +69,7 @@ export const reaperTooltips = {
     ]),
     [TRAIT.DECIMATE_DEFENSES]: traitTooltip('Gain critical-strike chance for vulnerability on the target.', [
       ['criticalChancePerStack', 'Critical chance per vulnerability stack', tooltipPercent],
-      ['maximumStacks', 'Maximum counted stacks', String]
+      maximumBonusFact('criticalChancePerStack', 'maximumStacks', 'Maximum critical chance bonus')
     ]),
     [TRAIT.BLIGHTERS_BOON]: traitTooltip('Gaining boons generates life force.', [
       ['lifeForceGain', 'Life force gained', lifeForce]

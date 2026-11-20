@@ -1,9 +1,10 @@
 import {
+  attributeConversionFact,
+  maximumBonusFact,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
   skillTooltip,
-  tooltipAttributeConversion,
   tooltipDecimal,
   tooltipNumber,
   tooltipPercent,
@@ -81,7 +82,7 @@ export const heraldTooltips = {
           (value) => '+' + tooltipDecimal(value)
         ),
         profileFact(balanceContext, id, 'damagePerBoon', 'Strike damage per unique boon', tooltipPercent),
-        profileFact(balanceContext, id, 'maximumBoons', 'Maximum boons')
+        maximumBonusFact('damagePerBoon', 'maximumBoons', 'Maximum strike damage bonus')(balanceContext, id)
       ]
     ),
     [TRAIT.ELDERS_RESPITE]: outsideScopeTooltip,
@@ -97,7 +98,7 @@ export const heraldTooltips = {
     [TRAIT.ELEVATED_COMPASSION]: traitTooltip(
       'Gain concentration based on power before profession bonuses and attribute conversions. Maintaining enough aggregate upkeep periodically grants party quickness.',
       [
-        ['attributeConversion', 'Concentration gained from power', tooltipAttributeConversion],
+        attributeConversionFact('Power', 'Concentration'),
         ['threshold', 'Required aggregate upkeep'],
         ['cooldown', 'Quickness interval', tooltipSeconds]
       ]

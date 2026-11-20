@@ -1,12 +1,16 @@
 import {
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
+  tooltipDecimal,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { MAX_MIGHT_STACKS } from '#gw2/platform/combat/boons.js';
+import { MAX_VULNERABILITY_STACKS } from '#gw2/platform/combat/state/targets.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 /** Describe devastation tooltips from the selected balance data. */
@@ -24,7 +28,10 @@ export const revenantDevastationTooltips = {
   ),
   [TRAIT.TARGETED_DESTRUCTION]: traitTooltip(
     'Player-owned strikes deal increased damage for each vulnerability stack on the target.',
-    [['damageIncreasePerStack', 'Strike damage per vulnerability stack', tooltipPercent]]
+    [
+      ['damageIncreasePerStack', 'Strike damage per vulnerability stack', tooltipPercent],
+      maximumBonusFact('damageIncreasePerStack', MAX_VULNERABILITY_STACKS, 'Maximum strike damage bonus')
+    ]
   ),
   [TRAIT.AGGRESSIVE_ARRIVAL]: outsideScopeTooltip,
   [TRAIT.UNSUSPECTING_STRIKES]: traitTooltip(
@@ -39,7 +46,15 @@ export const revenantDevastationTooltips = {
   ]),
   [TRAIT.NOTORIETY]: traitTooltip(
     'Legendary stance skills grant might. Your might grants more power and less condition damage.',
-    [['attributePerStack', 'Additional power and reduced condition damage per might stack']]
+    [
+      ['attributePerStack', 'Additional power and reduced condition damage per might stack'],
+      maximumBonusFact(
+        'attributePerStack',
+        MAX_MIGHT_STACKS,
+        'Maximum Power gained and Condition Damage lost',
+        tooltipDecimal
+      )
+    ]
   ),
   [TRAIT.THRILL_OF_COMBAT]: traitTooltip(
     'Periodically gain Battle Scars during combat. Qualifying player strikes consume a scar to deal life-siphon damage.',

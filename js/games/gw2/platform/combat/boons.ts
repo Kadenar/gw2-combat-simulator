@@ -30,12 +30,14 @@ interface DurationStackOptions<T> {
 
 const GW2_BOON_DURATION_CAP_SECONDS = 30;
 const GW2_SWIFTNESS_DURATION_CAP_SECONDS = 60;
+
+export const MAX_MIGHT_STACKS = 25;
 // Standard metadata is shared by combat queries and effect reporting.
 const STANDARD_BOON_DEFINITIONS: Readonly<Record<string, StandardBoonPresentation>> = Object.freeze({
   [BOON.AEGIS]: Object.freeze({ name: BOON_NAMES[BOON.AEGIS], maximumStacks: 1 }),
   [BOON.ALACRITY]: Object.freeze({ name: BOON_NAMES[BOON.ALACRITY], maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
   [BOON.FURY]: Object.freeze({ name: BOON_NAMES[BOON.FURY], maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  [BOON.MIGHT]: Object.freeze({ name: BOON_NAMES[BOON.MIGHT], maximumStacks: 25 }),
+  [BOON.MIGHT]: Object.freeze({ name: BOON_NAMES[BOON.MIGHT], maximumStacks: MAX_MIGHT_STACKS }),
   [BOON.PROTECTION]: Object.freeze({
     name: BOON_NAMES[BOON.PROTECTION],
     maximumDuration: GW2_BOON_DURATION_CAP_SECONDS

@@ -1,7 +1,8 @@
 import {
+  attributeConversionFact,
+  maximumBonusFact,
   outsideScopeTooltip,
   profileFact,
-  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
@@ -24,12 +25,11 @@ export const necromancerCursesTooltips = {
     ['attributeBonuses.precision', 'Precision']
   ]),
   [TRAIT.TARGET_THE_WEAK]: traitTooltip(
-    'Gain condition damage from precision and critical-strike chance for each condition on the target.',
+    'Gain condition damage from precision and critical-strike chance for each distinct condition on the target.',
     [
-      ['attributeConversion', 'Condition damage gained from precision', tooltipAttributeConversion],
+      attributeConversionFact('Precision', 'Condition Damage'),
       ['criticalChancePerCondition', 'Critical chance per target condition', tooltipPercent],
-      // The selected profile exposes its condition cap alongside the per-condition critical chance.
-      ['maximumConditions', 'Maximum conditions counted']
+      maximumBonusFact('criticalChancePerCondition', 'maximumConditions', 'Maximum critical chance bonus')
     ]
   ),
   [TRAIT.INSIDIOUS_DISRUPTION]: traitTooltip('Applying a control effect inflicts torment.', undefined, 'on control'),

@@ -1,7 +1,9 @@
 import {
+  attributeConversionFact,
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
-  tooltipAttributeConversion,
+  tooltipDecimal,
   tooltipFactorChange,
   tooltipSeconds,
   traitTooltip,
@@ -37,14 +39,14 @@ export const scrapperTooltips = {
       'Successful blast, leap, and whirl combos grant quickness and might to the party. Function Gyro becomes a blast finisher. Gain concentration based on power. Bonuses from other attribute conversions do not count.',
       [
         ['internalCooldown', 'Whirl-combo boon cooldown', tooltipSeconds],
-        ['attributeConversion', 'Concentration gained from power', tooltipAttributeConversion]
+        attributeConversionFact('Power', 'Concentration')
       ]
     ),
     [TRAIT.APPLIED_FORCE]: traitTooltip(
       'Might grants additional power. Reaching the might threshold grants stability.',
       [
         ['attributePerStack', 'Additional power per might stack'],
-        ['maximumStacks', 'Maximum might stacks counted'],
+        maximumBonusFact('attributePerStack', 'maximumStacks', 'Maximum additional Power', tooltipDecimal),
         ['threshold', 'Might needed for stability'],
         ['internalCooldown', 'Stability cooldown', tooltipSeconds]
       ]

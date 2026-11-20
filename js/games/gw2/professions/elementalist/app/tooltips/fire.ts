@@ -1,7 +1,7 @@
 import {
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
-  profileFact,
   simulationEffectFacts,
   tooltipDecimal,
   tooltipFactorChange,
@@ -13,6 +13,7 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { MAX_MIGHT_STACKS } from '#gw2/platform/combat/boons.js';
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import { percentagePoints } from '#gw2/professions/elementalist/app/tooltips/shared.js';
 import { FLAME_EXPULSION_DELAY_SECONDS } from '#gw2/professions/elementalist/core/traits/fire/attunement-transition.js';
@@ -66,13 +67,14 @@ export const elementalistFireTooltips = {
     'Eligible fire-field hits grant temporary strike-damage stacks. Weapon fire fields last longer and keep pulsing their damage and conditions.',
     [
       fromProfile(TRAIT.PERSISTING_FLAMES, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
-      ['maximumStacks', 'Maximum stacks', tooltipDecimal],
+      maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike damage bonus'),
       ['duration', 'Stack duration', tooltipSeconds],
       ['durationPerTier', 'Additional weapon field duration', tooltipSeconds]
     ]
   ),
   [TRAIT.PYROMANCERS_PUISSANCE]: (context, trait) => {
     const profile = tooltipProfile(context, trait.id);
+    const maximumMight = Math.min(MAX_MIGHT_STACKS, tooltipNumber(profile, 'maximumStacks'));
     // Keep each reward's trigger distinct and combine base values with their selected Might scaling.
     const factsFor = (effects: NonNullable<typeof profile.effects>) =>
       effects.flatMap((effect) =>
@@ -84,21 +86,25 @@ export const elementalistFireTooltips = {
             return {
               ...fact,
               name: 'Might to other allies',
-              detail: `counted stacks · ${fact.detail}`,
+              detail: `up to ${tooltipDecimal(maximumMight)} stacks · ${fact.detail}`,
               stacks: undefined
             };
 
-          if (effect.name === 'Flame Expulsion' && effect.type === 'strike')
+          if (effect.name === 'Flame Expulsion' && effect.type === 'strike') {
+            const perMight = tooltipNumber(profile, 'damageIncreasePerStack');
             return {
               ...fact,
-              detail: `${fact.detail} + ${tooltipDecimal(tooltipNumber(profile, 'damageIncreasePerStack'))} per Might`
+              detail: `${fact.detail} + ${tooltipDecimal(perMight)} per Might (maximum bonus +${tooltipDecimal(perMight * maximumMight)})`
             };
+          }
 
-          if (effect.name === 'Flame Expulsion' && effect.type === 'condition')
+          if (effect.name === 'Flame Expulsion' && effect.type === 'condition') {
+            const perMight = tooltipNumber(profile, 'durationPerTier');
             return {
               ...fact,
-              detail: `${fact.detail} + ${tooltipSeconds(tooltipNumber(profile, 'durationPerTier'))} per Might`
+              detail: `${fact.detail} + ${tooltipSeconds(perMight)} per Might (maximum ${tooltipSeconds(tooltipNumber(effect, 'duration') + perMight * maximumMight)})`
             };
+          }
 
           return fact;
         })
@@ -110,13 +116,6 @@ export const elementalistFireTooltips = {
       facts: [
         ...factsFor((profile.effects ?? []).filter((effect) => effect.name === 'Attunement Might')),
         { name: 'Flame Expulsion delay', detail: tooltipSeconds(FLAME_EXPULSION_DELAY_SECONDS) },
-        profileFact(
-          context,
-          trait.id,
-          'maximumStacks',
-          'Might counted',
-          (value) => `up to ${tooltipDecimal(value)} stacks`
-        ),
         ...factsFor((profile.effects ?? []).filter((effect) => effect.name !== 'Attunement Might'))
       ]
     };

@@ -13,7 +13,14 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumber,
+  balanceProfileNumber,
+  effectNumber,
+  requireEffect,
+  requireSkill,
+  skillNumber
+} from '#gw2/platform/skills/balance-profiles.js';
 import { virtueBoons } from '#gw2/professions/guardian/app/tooltips/shared.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { resolveAshes, type ResolvedAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
@@ -158,7 +165,7 @@ export const firebrandTooltips = {
   },
   traits: {
     [TRAIT.SWIFT_SCHOLAR]: traitTooltip(
-      'Opening a tome with a ready passive grants quickness. Consecutive page skills in the same tome refund a page.',
+      'Opening a tome with a ready passive grants quickness. Consecutive page skills in the same tome trigger a page refund.',
       [
         ['minimumStacks', 'Consecutive page skills required'],
         ['resourceGain', 'Pages refunded']
@@ -183,15 +190,41 @@ export const firebrandTooltips = {
     [TRAIT.BASTION]: traitTooltip(
       'Protection has increased effectiveness on you. Incoming damage is outside simulation scope.'
     ),
-    [TRAIT.FERVID_CONVICTION]: traitTooltip(
-      'Swift Scholar page refunds grant two Ashes charges to you and one to each nearby ally.',
-      [
-        ['allyStacks', 'Ashes charges per ally'],
-        ['maximumTargets', 'Maximum recipients'],
-        ['internalCooldown', 'Internal cooldown', tooltipSeconds]
-      ],
-      'per Swift Scholar refund'
-    ),
+    [TRAIT.FERVID_CONVICTION]: (context, trait) => {
+      // Read the refund threshold and charge limits from the same profiles used by combat.
+      const profile = tooltipProfile(context, trait.id);
+      const grant = requireEffect(profile, 'buff', 'ashes-of-the-just');
+      const ashes = resolveAshes({ catalog: context.catalog, traits: new Set() });
+      const charges = grant ? effectNumber(profile, grant, 'stacks') : 0;
+      const duration = grant ? effectNumber(profile, grant, 'duration') : 0;
+      const targets = balanceProfileNumber(profile, 'maximumTargets');
+
+      if (!ashes || charges <= 0 || duration <= 0 || targets <= 0)
+        return { description: 'Swift Scholar refunds grant no Ashes of the Just.', facts: [] };
+
+      const pageSkills = balanceNumber(context.catalog, TRAIT.SWIFT_SCHOLAR, 'minimumStacks');
+      const refund = balanceNumber(context.catalog, TRAIT.SWIFT_SCHOLAR, 'resourceGain');
+      const allies = targets - 1;
+      const allyCharges = balanceProfileNumber(profile, 'allyStacks');
+      const cooldown = balanceProfileNumber(profile, 'internalCooldown');
+      return {
+        description: `After ${pageSkills} consecutive page ${pageSkills === 1 ? 'skill' : 'skills'} in the same tome, Swift Scholar refunds ${refund} ${refund === 1 ? 'page' : 'pages'} and Fervid Conviction grants Ashes of the Just. Each recipient's next strike spends a charge to burn the target.`,
+        facts: [
+          { name: 'Charges for you', detail: tooltipDecimal(charges) },
+          ...(allies > 0 && allyCharges > 0
+            ? [
+                {
+                  name: 'Charges per nearby ally',
+                  detail: `${tooltipDecimal(allyCharges)} (up to ${allies} ${allies === 1 ? 'ally' : 'allies'})`
+                }
+              ]
+            : []),
+          { name: 'Charge duration', detail: tooltipSeconds(duration) },
+          { name: 'Charge use interval per recipient', detail: tooltipSeconds(ashes.triggerIntervalSeconds) },
+          ...(cooldown > 0 ? [{ name: 'Ashes grant cooldown', detail: tooltipSeconds(cooldown) }] : [])
+        ]
+      };
+    },
     [TRAIT.STALWART_SPEED]: traitTooltip(
       'Swift Scholar page refunds grant party Quickness.',
       [['internalCooldown', 'internal cooldown', tooltipSeconds]],

@@ -1,10 +1,12 @@
 import {
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
   skillFact,
   skillTooltip,
+  tooltipDecimal,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
@@ -12,6 +14,7 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { MAX_MIGHT_STACKS } from '#gw2/platform/combat/boons.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
@@ -151,7 +154,8 @@ export const evokerTooltips = {
       [
         ['attributeBonuses.ferocity', 'Air ferocity with fury'],
         ['criticalChance', 'Air additional critical chance with fury', tooltipPercent],
-        ['attributePerStack', 'Fire condition damage per might']
+        ['attributePerStack', 'Fire condition damage per might'],
+        maximumBonusFact('attributePerStack', MAX_MIGHT_STACKS, 'Maximum Fire Condition Damage bonus', tooltipDecimal)
       ]
     ),
     [TRAIT.FAMILIARS_PROWESS]: traitTooltip(

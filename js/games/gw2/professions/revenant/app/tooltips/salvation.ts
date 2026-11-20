@@ -1,7 +1,7 @@
 import {
+  attributeConversionFact,
   outsideScopeTooltip,
   simulationEffectFacts,
-  tooltipAttributeConversion,
   tooltipProfile,
   traitTooltip,
   type ProfessionTooltips
@@ -13,10 +13,7 @@ export const revenantSalvationTooltips = {
   [TRAIT.HEALERS_GIFT]: outsideScopeTooltip,
   [TRAIT.LIFE_ATTUNEMENT]: traitTooltip(
     'Gain healing power, then gain concentration based on healing power. Bonuses from other attribute conversions do not count.',
-    [
-      ['attributeBonuses.healingPower', 'Healing power'],
-      ['attributeConversion', 'Concentration gained from healing power', tooltipAttributeConversion]
-    ]
+    [['attributeBonuses.healingPower', 'Healing power'], attributeConversionFact('Healing Power', 'Concentration')]
   ),
   // Show the supported skill-specific boons while explicitly excluding healing effectiveness.
   [TRAIT.SERENE_REJUVENATION]: (balanceContext, entity) => ({

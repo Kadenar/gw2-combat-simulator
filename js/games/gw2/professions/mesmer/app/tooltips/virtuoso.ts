@@ -1,8 +1,10 @@
+import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import {
+  attributeConversionFact,
   fromProfile,
   outsideScopeTooltip,
+  profileFact,
   skillTooltip,
-  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
@@ -34,11 +36,11 @@ export const virtuosoTooltips = {
       ]
     ),
     [TRAIT.QUIET_INTENSITY]: traitTooltip(
-      'Gain ferocity from vitality and additional personal critical-strike chance while fury is active. Phantasms gain additional critical-strike chance with Phantasmal Fury selected.',
+      'Gain ferocity based on your vitality. Fury grants you extra critical chance. If you take Phantasmal Fury, your phantasms also gain extra critical chance.',
       [
-        ['vitalityConversion', 'Ferocity gained from vitality', tooltipAttributeConversion],
-        ['criticalChance', 'Additional critical chance with fury', tooltipPercent],
-        ['phantasmCriticalChance', 'Additional phantasm critical chance with Phantasmal Fury', tooltipPercent]
+        attributeConversionFact('Vitality', 'Ferocity', 'vitalityConversion'),
+        ['criticalChance', 'Extra critical chance for you', tooltipPercent],
+        ['phantasmCriticalChance', 'Extra critical chance for phantasms', tooltipPercent]
       ]
     ),
     [TRAIT.BLADETURN_REFRAIN]: outsideScopeTooltip,
@@ -70,7 +72,10 @@ export const virtuosoTooltips = {
       [
         fromProfile(TRAIT.BLOODSONG, 'conditionDamageMultiplier', 'Bleeding damage', tooltipFactorChange),
         ['threshold', 'Bleeding stacks to stock blades'],
-        ['resourceGain', 'Blades stocked']
+        (context, id) => ({
+          ...profileFact(context, id, 'resourceGain', 'Blades stocked'),
+          icon: MODIFIER_EFFECT_ICONS.Charges
+        })
       ]
     )
   }

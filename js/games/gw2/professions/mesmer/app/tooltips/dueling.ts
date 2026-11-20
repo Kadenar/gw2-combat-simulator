@@ -1,5 +1,5 @@
 import {
-  fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   tooltipDecimal,
   tooltipFactorChange,
@@ -21,18 +21,9 @@ export const mesmerDuelingTooltips = {
     'Your eligible critical hits grant fury to yourself and nearby allies, with different durations.',
     [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
   ),
-  [TRAIT.PHANTASMAL_FURY]: traitTooltip(
-    'Phantasms gain critical-strike chance. Virtuoso grants an additional phantasm critical-chance bonus.',
-    [
-      ['criticalChance', 'Phantasm critical chance', tooltipPercent],
-      fromProfile(
-        TRAIT.QUIET_INTENSITY,
-        'phantasmCriticalChance',
-        'Additional phantasm critical chance as Virtuoso',
-        tooltipPercent
-      )
-    ]
-  ),
+  [TRAIT.PHANTASMAL_FURY]: traitTooltip('Your phantasms gain fury.', [
+    ['criticalChance', 'Phantasm critical chance from fury', tooltipPercent]
+  ]),
   [TRAIT.MENTAL_GYMNASTICS]: outsideScopeTooltip,
   [TRAIT.DUELISTS_DISCIPLINE]: outsideScopeTooltip,
   [TRAIT.BLINDING_DISSIPATION]: traitTooltip(
@@ -41,7 +32,7 @@ export const mesmerDuelingTooltips = {
   [TRAIT.WANDERING_MIND]: outsideScopeTooltip,
   [TRAIT.FENCERS_FINESSE]: traitTooltip('Sword hits grant stacking ferocity. Sword skills recharge faster.', [
     ['attributePerStack', 'Ferocity per stack'],
-    ['maximumStacks', 'Maximum stacks'],
+    maximumBonusFact('attributePerStack', 'maximumStacks', 'Maximum Ferocity bonus', tooltipDecimal),
     ['duration', 'Stack duration', tooltipSeconds],
     ['rechargeMultiplier', 'Sword recharge', tooltipFactorChange]
   ]),

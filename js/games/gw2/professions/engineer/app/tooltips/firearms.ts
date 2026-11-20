@@ -1,6 +1,7 @@
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import {
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   tooltipDecimal,
   tooltipNumber,
@@ -38,7 +39,7 @@ export const engineerFirearmsTooltips = {
         'Strike damage per target condition',
         tooltipPercent
       ),
-      fromProfile(TRAIT.MODIFIED_AMMUNITION, 'maximumConditions', 'Maximum conditions counted', tooltipDecimal)
+      maximumBonusFact('damagePerCondition', 'maximumConditions', 'Maximum strike damage bonus')
     ]
   ),
   [TRAIT.CHEMICAL_ROUNDS]: traitTooltip('Gain condition damage. Conditions inflicted by pistol skills last longer.', [

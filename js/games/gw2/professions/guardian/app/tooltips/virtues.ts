@@ -1,8 +1,9 @@
 import {
+  attributeConversionFact,
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   profileFact,
-  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
@@ -22,6 +23,7 @@ export const guardianVirtuesTooltips = {
       ...tooltip,
       facts: [
         profileFact(balanceContext, TRAIT.INSPIRED_VIRTUE, 'damagePerBoon', 'Strike damage per boon', tooltipPercent),
+        maximumBonusFact('damagePerBoon', 'maximumBoons', 'Maximum strike damage bonus')(balanceContext, entity.id),
         ...tooltip.facts
       ]
     };
@@ -33,7 +35,7 @@ export const guardianVirtuesTooltips = {
   [TRAIT.POWER_OF_THE_VIRTUOUS]: traitTooltip(
     'Gain condition damage from vitality. Virtues recharge faster; Firebrand tome dormancy is also shortened.',
     [
-      ['attributeConversion', 'Condition damage gained from vitality', tooltipAttributeConversion],
+      attributeConversionFact('Vitality', 'Condition Damage'),
       ['rechargeMultiplier', 'Virtue recharge duration', tooltipFactorChange]
     ]
   ),

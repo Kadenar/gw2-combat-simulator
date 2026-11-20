@@ -1,7 +1,8 @@
 import {
+  attributeConversionFact,
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
-  tooltipAttributeConversion,
   tooltipPercent,
   tooltipSeconds,
   traitTooltip,
@@ -27,12 +28,13 @@ export const rangerNatureMagicTooltips = {
     'You and your pet deal increased strike damage for each different boon affecting the respective attacker.',
     [
       fromProfile(TRAIT.BOUNTIFUL_HUNTER, 'damagePerBoon', 'Player strike damage per boon', tooltipPercent),
-      fromProfile(TRAIT.BOUNTIFUL_HUNTER, 'damagePerBoon', 'Pet strike damage per boon', tooltipPercent)
+      fromProfile(TRAIT.BOUNTIFUL_HUNTER, 'damagePerBoon', 'Pet strike damage per boon', tooltipPercent),
+      maximumBonusFact('damagePerBoon', 'maximumBoons', 'Maximum strike damage bonus for player or pet')
     ]
   ),
   [TRAIT.WELLSPRING]: traitTooltip(
     'Gain healing power from power. Completing a healing skill grants regeneration to the party.',
-    [['attributeConversion', 'Healing power gained from power', tooltipAttributeConversion]],
+    [attributeConversionFact('Power', 'Healing Power')],
     RECIPIENT.PARTY
   ),
   [TRAIT.ALLIES_AID]: outsideScopeTooltip,

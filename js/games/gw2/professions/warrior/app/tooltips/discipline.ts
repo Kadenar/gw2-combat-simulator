@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   tooltipFactorChange,
   tooltipPercent,
@@ -32,7 +33,7 @@ export const warriorDisciplineTooltips = {
     'Increase damage per boon on the target, up to the cap. The simulated target has no boons, so this trait adds no damage.',
     [
       ['damagePerBoon', 'Damage per target boon', tooltipPercent],
-      ['maximumBoons', 'Maximum target boons']
+      maximumBonusFact('damagePerBoon', 'maximumBoons', 'Maximum damage bonus against boons')
     ]
   ),
   [TRAIT.BRAWLERS_RECOVERY]: outsideScopeTooltip,

@@ -1,7 +1,8 @@
 import {
+  attributeConversionFact,
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
-  tooltipAttributeConversion,
   tooltipDecimal,
   tooltipPercent,
   tooltipPercentValue,
@@ -9,6 +10,7 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { MAX_MIGHT_STACKS } from '#gw2/platform/combat/boons.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 /** Describe strength tooltips from the selected balance data. */
@@ -19,6 +21,7 @@ export const warriorStrengthTooltips = {
   ]),
   [TRAIT.PINNACLE_OF_STRENGTH]: traitTooltip('Might grants additional power. Gain critical-strike chance.', [
     ['attributePerStack', 'Power per might stack'],
+    maximumBonusFact('attributePerStack', MAX_MIGHT_STACKS, 'Maximum additional Power', tooltipDecimal),
     ['criticalChance', 'Critical chance', tooltipPercent]
   ]),
   [TRAIT.BRAVE_STRIDE]: traitTooltip('Completing a movement skill grants adrenaline and stability.', [
@@ -47,14 +50,14 @@ export const warriorStrengthTooltips = {
     ]
   ),
   [TRAIT.GREAT_FORTITUDE]: traitTooltip(
-    'Gain vitality and ferocity based on power. Bonuses from other attribute conversions do not count. The power gained during Berserk also contributes.',
-    [['attributeConversion', 'Each attribute gained from power', tooltipAttributeConversion]]
+    'Gain Vitality and Ferocity based on your Power. This excludes Power from Berserk and other attribute conversions.',
+    [attributeConversionFact('Power', 'Vitality'), attributeConversionFact('Power', 'Ferocity')]
   ),
   [TRAIT.BERSERKERS_POWER]: traitTooltip(
     'The first qualifying burst hit grants damage-bonus stacks according to the resource tier spent.',
     [
       ['damageIncreasePerStack', 'Strike damage per stack', tooltipPercent],
-      ['maximumStacks', 'Maximum stacks', tooltipDecimal]
+      maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike damage bonus')
     ]
   ),
   [TRAIT.MIGHT_MAKES_RIGHT]: outsideScopeTooltip,

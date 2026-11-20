@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
@@ -102,7 +103,7 @@ export const untamedTooltips = {
       "Your strikes build the pet's strike-damage stacks; pet strikes build yours. Each side has an independent trigger cooldown and refreshes its stack duration.",
       [
         fromProfile(TRAIT.FEROCIOUS_SYMBIOSIS, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
-        ['maximumStacks', 'Maximum stacks per side'],
+        maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike damage bonus per attacker'),
         ['duration', 'Stack duration', tooltipSeconds],
         ['internalCooldown', 'Cooldown per side', tooltipSeconds]
       ]

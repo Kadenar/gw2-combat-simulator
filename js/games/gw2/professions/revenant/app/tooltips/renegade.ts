@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   simulationEffectFacts,
   skillTooltip,
@@ -169,7 +170,9 @@ export const renegadeTooltips = {
     [TRAIT.AMBUSH_COMMANDER]: traitTooltip(
       "Qualifying critical or positional hits grant Kalla's Fervor. Defiant targets satisfy the simulator's positional condition.",
       [
-        ['maximumStacks', 'Maximum stacks'],
+        maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike damage bonus'),
+        maximumBonusFact('conditionDamageIncreasePerStack', 'maximumStacks', 'Maximum condition damage bonus'),
+        maximumBonusFact('lifeSiphonDamagePerStack', 'maximumStacks', 'Maximum life-siphon damage bonus'),
         fromProfile(TRAIT.AMBUSH_COMMANDER, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
         fromProfile(
           TRAIT.AMBUSH_COMMANDER,
@@ -224,7 +227,9 @@ export const renegadeTooltips = {
     [TRAIT.LASTING_LEGACY]: traitTooltip(
       "Kalla's Fervor lasts longer and grants stronger damage bonuses. Heroic Command grants additional might per Fervor stack.",
       [
-        ['maximumStacks', 'Maximum stacks'],
+        maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike damage bonus'),
+        maximumBonusFact('conditionDamageIncreasePerStack', 'maximumStacks', 'Maximum condition damage bonus'),
+        maximumBonusFact('lifeSiphonDamagePerStack', 'maximumStacks', 'Maximum life-siphon damage bonus'),
         fromProfile(TRAIT.LASTING_LEGACY, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
         fromProfile(
           TRAIT.LASTING_LEGACY,

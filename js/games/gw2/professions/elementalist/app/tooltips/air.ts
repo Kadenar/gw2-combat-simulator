@@ -1,6 +1,6 @@
 import {
+  attributeConversionFact,
   fromProfile,
-  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
@@ -29,7 +29,7 @@ export const elementalistAirTooltips = {
   [TRAIT.ONE_WITH_AIR]: traitTooltip('Entering Air grants superspeed.'),
   [TRAIT.FEROCIOUS_WINDS]: traitTooltip(
     'Gain ferocity based on precision. Bonuses from other attribute conversions do not count.',
-    [['attributeConversion', 'Ferocity gained from precision', tooltipAttributeConversion]]
+    [attributeConversionFact('Precision', 'Ferocity')]
   ),
   [TRAIT.INSCRIPTION]: traitTooltip(
     'Completing a glyph grants the boon corresponding to your primary attunement. Entering Air separately grants resistance.'

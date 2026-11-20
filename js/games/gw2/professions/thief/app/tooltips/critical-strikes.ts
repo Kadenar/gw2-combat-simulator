@@ -1,9 +1,9 @@
 import {
+  attributeConversionFact,
   fromProfile,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
-  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipProfile,
@@ -46,7 +46,7 @@ export const thiefCriticalStrikesTooltips = {
   [TRAIT.SUNDERING_SHADE]: traitTooltip('Completing a stealth attack inflicts vulnerability.'),
   [TRAIT.PRACTICED_TOLERANCE]: traitTooltip(
     'Gain ferocity based on precision. Bonuses from other attribute conversions do not count.',
-    [['attributeConversion', 'Ferocity gained from precision', tooltipAttributeConversion]]
+    [attributeConversionFact('Precision', 'Ferocity')]
   ),
   [TRAIT.DEADLY_AIM]: traitTooltip('Pistol strikes deal increased damage.', [
     fromProfile(TRAIT.DEADLY_AIM, 'damageMultiplier', 'Pistol strike damage', tooltipFactorChange)

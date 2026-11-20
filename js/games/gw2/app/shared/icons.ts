@@ -83,6 +83,7 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   // Insight's buff fact uses the owning trait icon instead of the generic attribute icon.
   "Attacker's Insight": 'https://render.guildwars2.com/file/211512491566A15FDCE3E1B64A010445F1EB39E5/1770023.png',
   'Ashes of the Just': new URL('@images/wiki/epilogue-ashes-of-the-just.png', import.meta.url).href,
+  'Inspiring Virtue': 'https://render.guildwars2.com/file/3EC057E1739EF1F22815605956B46142D2669A6D/1466322.png',
   'Lethal Tempo': 'https://render.guildwars2.com/file/08351965141B6F3013600B3B9CC7F880DEFF05D4/2479325.png',
   'Enchanted Daggers': 'https://render.guildwars2.com/file/A01907F923B160E6261174BEF5975D070D4D6511/1012989.png',
   'Burst of Strength': 'https://render.guildwars2.com/file/91F9252B1F3C71C934B75502B8DD070A064115D8/1013008.png',
@@ -253,9 +254,6 @@ export function tooltipFactIcon(name: string): string | undefined {
   if (/\bboon duration\b/.test(label)) return MODIFIER_EFFECT_ICONS.Concentration;
 
   if (/\battributes?\b/.test(label)) return MODIFIER_EFFECT_ICONS['Attribute increase'];
-
-  // Carapace grants, durations, and per-stack rewards share the effect's official CDN icon.
-  if (/\bcarapace\b/.test(label)) return MODIFIER_EFFECT_ICONS["Death's Carapace"];
 
   const match = tooltipIconNames.find(({ pattern }) => pattern.test(label));
   return (

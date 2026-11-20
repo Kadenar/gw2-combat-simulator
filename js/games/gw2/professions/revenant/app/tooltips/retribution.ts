@@ -1,7 +1,7 @@
 import {
+  attributeConversionFact,
   fromProfile,
   outsideScopeTooltip,
-  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
@@ -48,7 +48,7 @@ export const revenantRetributionTooltips = {
   ),
   [TRAIT.VERSED_IN_STONE]: traitTooltip(
     'Gain power based on toughness before profession bonuses and attribute conversions.',
-    [['attributeConversion', 'Power gained from toughness', tooltipAttributeConversion]]
+    [attributeConversionFact('Toughness', 'Power')]
   ),
   [TRAIT.STEADFAST_REJUVENATION]: outsideScopeTooltip
 } satisfies NonNullable<ProfessionTooltips['traits']>;

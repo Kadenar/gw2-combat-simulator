@@ -1,6 +1,7 @@
 import {
   fromProfile,
   fromSkill,
+  maximumBonusFact,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
@@ -12,6 +13,7 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { MAX_MIGHT_STACKS } from '#gw2/platform/combat/boons.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/execution/cast-timing.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -55,7 +57,8 @@ export const mesmerIllusionsTooltips = {
         'Condition damage per stack',
         tooltipPercent
       ),
-      ['maximumStacks', 'Maximum stacks'],
+      maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike damage bonus'),
+      maximumBonusFact('conditionDamageIncreasePerStack', 'maximumStacks', 'Maximum condition damage bonus'),
       ['duration', 'Stack duration', tooltipSeconds]
     ]
   ),
@@ -92,7 +95,8 @@ export const mesmerIllusionsTooltips = {
           : 'per shatter source: you or one clone'
     )(context, entity),
   [TRAIT.PHANTASMAL_FORCE]: traitTooltip('Phantasms deal increased strike damage for each active might stack.', [
-    fromProfile(TRAIT.PHANTASMAL_FORCE, 'damageIncreasePerStack', 'Phantasm strike damage per might', tooltipPercent)
+    fromProfile(TRAIT.PHANTASMAL_FORCE, 'damageIncreasePerStack', 'Phantasm strike damage per might', tooltipPercent),
+    maximumBonusFact('damageIncreasePerStack', MAX_MIGHT_STACKS, 'Maximum phantasm strike damage bonus')
   ]),
   [TRAIT.MASTER_OF_FRAGMENTATION]: (balanceContext, entity, specialization) => ({
     description:

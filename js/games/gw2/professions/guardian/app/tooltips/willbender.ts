@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
@@ -64,7 +65,8 @@ export const willbenderTooltips = {
     [TRAIT.LETHAL_TEMPO]: traitTooltip(
       'Virtue activations and completed virtue triggers grant stacking damage. New grants refresh the active stack window.',
       [
-        ['maximumStacks', 'Maximum stacks'],
+        maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike damage bonus'),
+        maximumBonusFact('conditionDamageIncreasePerStack', 'maximumStacks', 'Maximum condition damage bonus'),
         fromProfile(TRAIT.LETHAL_TEMPO, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
         fromProfile(TRAIT.LETHAL_TEMPO, 'conditionDamageIncreasePerStack', 'Condition damage per stack', tooltipPercent)
       ]
@@ -92,11 +94,25 @@ export const willbenderTooltips = {
       'Lethal Tempo grants stronger damage bonuses with a shorter stack window. Rushing Justice uses the extended Justice window.',
       [
         fromProfile(TRAIT.TYRANTS_MOMENTUM, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
+        maximumBonusFact(
+          'damageIncreasePerStack',
+          'maximumStacks',
+          'Maximum strike damage bonus',
+          tooltipPercent,
+          TRAIT.LETHAL_TEMPO
+        ),
         fromProfile(
           TRAIT.TYRANTS_MOMENTUM,
           'conditionDamageIncreasePerStack',
           'Condition damage per stack',
           tooltipPercent
+        ),
+        maximumBonusFact(
+          'conditionDamageIncreasePerStack',
+          'maximumStacks',
+          'Maximum condition damage bonus',
+          tooltipPercent,
+          TRAIT.LETHAL_TEMPO
         )
       ]
     ),

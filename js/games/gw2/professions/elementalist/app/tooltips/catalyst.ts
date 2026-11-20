@@ -1,6 +1,7 @@
 import {
   fromModifier,
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   simulationEffectFacts,
   skillFact,
@@ -58,7 +59,7 @@ export const catalystTooltips = {
       'Elemental Empowerment grants temporary increases to eligible power, precision, ferocity, condition damage, expertise, and concentration.',
       [
         ['attributePerStack', 'Attribute increase per stack', tooltipPercent],
-        ['maximumStacks', 'Maximum stacks'],
+        maximumBonusFact('attributePerStack', 'maximumStacks', 'Maximum base attribute bonus'),
         ['playerStacks', 'Initial stacks'],
         ['duration', 'Initial stack duration', tooltipSeconds]
       ]
@@ -81,7 +82,8 @@ export const catalystTooltips = {
         // Damage facts read the same trait balance fields as combat modifiers.
         ['damageIncreasePerStack', 'Strike damage per stack', tooltipPercent],
         ['conditionDamageIncreasePerStack', 'Condition damage per stack', tooltipPercent],
-        ['maximumStacks', 'Maximum stacks'],
+        maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike damage bonus'),
+        maximumBonusFact('conditionDamageIncreasePerStack', 'maximumStacks', 'Maximum condition damage bonus'),
         ['duration', 'Stack duration', tooltipSeconds]
       ]
     ),

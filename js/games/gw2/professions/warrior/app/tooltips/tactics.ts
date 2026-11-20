@@ -1,7 +1,8 @@
 import {
+  attributeConversionFact,
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
-  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
@@ -17,7 +18,8 @@ export const warriorTacticsTooltips = {
     [['internalCooldown', "Soldier's Focus cooldown", tooltipSeconds]]
   ),
   [TRAIT.EMPOWERED]: traitTooltip('Deal increased strike damage for each different boon on you.', [
-    fromProfile(TRAIT.EMPOWERED, 'damagePerBoon', 'Strike damage per boon', tooltipPercent)
+    fromProfile(TRAIT.EMPOWERED, 'damagePerBoon', 'Strike damage per boon', tooltipPercent),
+    maximumBonusFact('damagePerBoon', 'maximumBoons', 'Maximum strike damage bonus')
   ]),
   [TRAIT.MENDING_MIGHT]: outsideScopeTooltip,
   [TRAIT.LEG_SPECIALIST]: traitTooltip(
@@ -47,7 +49,7 @@ export const warriorTacticsTooltips = {
     "Soldier's Focus grants stability to the party. Weapon swaps make Soldier's Focus ready again."
   ),
   [TRAIT.VIGOROUS_SHOUTS]: traitTooltip('Gain healing power based on power.', [
-    ['attributeConversion', 'Healing power gained from power', tooltipAttributeConversion]
+    attributeConversionFact('Power', 'Healing Power')
   ]),
   [TRAIT.PHALANX_STRENGTH]: outsideScopeTooltip
 } satisfies NonNullable<ProfessionTooltips['traits']>;

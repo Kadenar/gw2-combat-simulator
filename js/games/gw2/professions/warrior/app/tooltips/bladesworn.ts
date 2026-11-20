@@ -1,6 +1,7 @@
 import {
   fromProfile,
   fromSkill,
+  maximumBonusFact,
   outsideScopeTooltip,
   simulationEffectFacts,
   skillTooltip,
@@ -167,7 +168,7 @@ export const bladeswornTooltips = {
     [TRAIT.UNSHAKABLE_MOUNTAIN]: outsideScopeTooltip,
     [TRAIT.FIERCE_AS_FIRE]: traitTooltip('Spending ammunition grants damage-bonus stacks, one per round spent.', [
       ['damageIncreasePerStack', 'Strike and condition damage per stack', tooltipPercent],
-      ['maximumStacks', 'Maximum stacks', tooltipDecimal]
+      maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike and condition damage bonus')
     ]),
     [TRAIT.LUSH_FOREST]: traitTooltip(
       'Spending ammunition from a fully loaded skill reduces eligible active-bar cooldowns. Gunsaber swaps, Dragon Trigger, and Artillery Slash are excluded.',

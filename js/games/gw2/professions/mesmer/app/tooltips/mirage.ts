@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
@@ -156,7 +157,8 @@ export const mirageTooltips = {
           'Condition damage per stack',
           tooltipPercent
         ),
-        ['maximumStacks', 'Maximum stacks'],
+        maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike damage bonus'),
+        maximumBonusFact('conditionDamageIncreasePerStack', 'maximumStacks', 'Maximum condition damage bonus'),
         ['duration', 'Stack duration', tooltipSeconds]
       ]
     ),

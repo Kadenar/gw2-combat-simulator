@@ -2,6 +2,7 @@ import {
   fromModifier,
   fromProfile,
   fromSkill,
+  maximumBonusFact,
   outsideScopeTooltip,
   simulationEffectFacts,
   skillTooltip,
@@ -131,7 +132,8 @@ export const deadeyeTooltips = {
       'Gain concentration and increased strike damage for each different boon on you.',
       [
         ['attributeBonuses.concentration', 'Concentration'],
-        fromProfile(TRAIT.PREMEDITATION, 'damagePerBoon', 'Strike damage per boon', tooltipPercent)
+        fromProfile(TRAIT.PREMEDITATION, 'damagePerBoon', 'Strike damage per boon', tooltipPercent),
+        maximumBonusFact('damagePerBoon', 'maximumBoons', 'Maximum strike damage bonus')
       ]
     ),
     [TRAIT.MALEFICENT_SEVEN]: traitTooltip(

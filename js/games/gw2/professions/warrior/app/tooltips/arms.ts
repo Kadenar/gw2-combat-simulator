@@ -1,7 +1,9 @@
 import {
+  attributeConversionFact,
+  maximumBonusFact,
   profileFact,
   simulationEffectFacts,
-  tooltipAttributeConversion,
+  tooltipDecimal,
   tooltipPercent,
   tooltipPercentValue,
   tooltipProfile,
@@ -30,14 +32,14 @@ export const warriorArmsTooltips = {
   ]),
   [TRAIT.WOUNDING_PRECISION]: traitTooltip(
     'Gain expertise based on precision. Bonuses from other attribute conversions do not count.',
-    [['attributeConversion', 'Expertise gained from precision', tooltipAttributeConversion]]
+    [attributeConversionFact('Precision', 'Expertise')]
   ),
   [TRAIT.SIGNET_MASTERY]: traitSkillTooltip(
     [ID.LESSER_SIGNET_OF_MIGHT],
     'Activating signets grants stacking ferocity. Striking below the target health threshold invokes Lesser Signet of Might.',
     [
       ['attributePerStack', 'Ferocity per stack'],
-      ['maximumStacks', 'Maximum stacks'],
+      maximumBonusFact('attributePerStack', 'maximumStacks', 'Maximum Ferocity bonus', tooltipDecimal),
       ['threshold', 'Target health below', tooltipPercentValue]
     ]
   ),
@@ -76,7 +78,7 @@ export const warriorArmsTooltips = {
   [TRAIT.FURIOUS]: traitTooltip('Eligible critical hits grant adrenaline and stacking condition damage.', [
     ['resourceGain', 'Adrenaline per critical hit'],
     ['attributePerStack', 'Condition damage per stack'],
-    ['maximumStacks', 'Maximum stacks']
+    maximumBonusFact('attributePerStack', 'maximumStacks', 'Maximum Condition Damage bonus', tooltipDecimal)
   ]),
   [TRAIT.DUAL_WIELDING]: traitTooltip(
     'Attack faster while wielding an axe, dagger, mace, or sword in your off hand. In this simulator, the speed increase applies only to skills with recorded Dual Wielding timings.'

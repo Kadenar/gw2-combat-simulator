@@ -1,6 +1,8 @@
 import {
+  attributeConversionFact,
   fromProfile,
-  tooltipAttributeConversion,
+  maximumBonusFact,
+  tooltipDecimal,
   tooltipFactorChange,
   tooltipPercent,
   tooltipPercentValue,
@@ -9,6 +11,7 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { MAX_MIGHT_STACKS } from '#gw2/platform/combat/boons.js';
 import { lifeForce } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
@@ -17,7 +20,8 @@ export const necromancerSpiteTooltips = {
   [TRAIT.REAPERS_MIGHT]: traitTooltip('The first hit of shroud skill 1 grants might.', undefined, 'on shroud skill 1'),
   // Shroud-entry boons and imperative procs are not included in the automatic trait-profile facts.
   [TRAIT.AWAKEN_THE_PAIN]: traitTooltip('Might grants additional power. Entering shroud grants might.', [
-    ['attributePerStack', 'Power per stack of might']
+    ['attributePerStack', 'Power per stack of might'],
+    maximumBonusFact('attributePerStack', MAX_MIGHT_STACKS, 'Maximum additional Power', tooltipDecimal)
   ]),
   [TRAIT.SIPHONED_POWER]: traitTooltip(
     'Striking a low-health target grants might.',
@@ -43,7 +47,7 @@ export const necromancerSpiteTooltips = {
   [TRAIT.SPITEFUL_FORTITUDE]: traitTooltip(
     'Gain vitality from power. Player strikes against a low-health target generate life force.',
     [
-      ['attributeConversion', 'Vitality gained from power', tooltipAttributeConversion],
+      attributeConversionFact('Power', 'Vitality'),
       ['threshold', 'Life force target health threshold', tooltipPercentValue],
       ['lifeForceGain', 'Life force gained', lifeForce]
     ]

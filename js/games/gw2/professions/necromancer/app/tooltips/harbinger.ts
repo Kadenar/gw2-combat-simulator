@@ -1,8 +1,9 @@
 import {
+  attributeConversionFact,
   fromProfile,
+  maximumBonusFact,
   profileFact,
   simulationEffectFacts,
-  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipNumber,
   tooltipPercent,
@@ -102,6 +103,13 @@ export const harbingerTooltips = {
       'Blight increases strike damage. Critical strikes deal more damage to targets with torment.',
       [
         fromProfile(TRAIT.WICKED_CORRUPTION, 'damageIncreasePerStack', 'Strike damage per blight', tooltipPercent),
+        maximumBonusFact(
+          'damageIncreasePerStack',
+          'maximumStacks',
+          'Maximum strike damage bonus from blight',
+          tooltipPercent,
+          TRAIT.DARK_DISCIPLE
+        ),
         ['criticalDamage', 'Critical damage against tormented targets', tooltipFactorChange]
       ]
     ),
@@ -124,18 +132,25 @@ export const harbingerTooltips = {
             'Condition damage per blight',
             tooltipPercent
           ),
+          maximumBonusFact(
+            'conditionDamageIncreasePerStack',
+            'maximumStacks',
+            'Maximum condition damage bonus from blight',
+            tooltipPercent,
+            TRAIT.DARK_DISCIPLE
+          )(balanceContext, entity.id),
           ...effects.facts
         ]
       };
     },
     [TRAIT.IMPLACABLE_FOE]: traitTooltip('Gain ferocity from vitality. Entering Harbinger Shroud grants stability.', [
-      ['attributeConversion', 'Ferocity gained from vitality', tooltipAttributeConversion]
+      attributeConversionFact('Vitality', 'Ferocity')
     ]),
     [TRAIT.TWISTED_MEDICINE]: traitTooltip('Gain concentration from vitality. Elixir boons are shared with allies.', [
-      ['attributeConversion', 'Concentration gained from vitality', tooltipAttributeConversion]
+      attributeConversionFact('Vitality', 'Concentration')
     ]),
     [TRAIT.DARK_GUNSLINGER]: traitTooltip('Gain expertise from vitality. Pistol skills recharge faster.', [
-      ['attributeConversion', 'Expertise gained from vitality', tooltipAttributeConversion],
+      attributeConversionFact('Vitality', 'Expertise'),
       ['rechargeMultiplier', 'Pistol recharge reduction', (value) => tooltipPercent(1 - value)]
     ]),
     [TRAIT.CASCADING_CORRUPTION]: traitTooltip(

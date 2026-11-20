@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   tooltipDecimal,
   tooltipFactorChange,
@@ -7,6 +8,7 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { MAX_VULNERABILITY_STACKS } from '#gw2/platform/combat/state/targets.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
@@ -15,7 +17,8 @@ export const mesmerDominationTooltips = {
   [TRAIT.ILLUSION_OF_VULNERABILITY]: outsideScopeTooltip,
   [TRAIT.DAZZLING]: traitTooltip('Landed control effects from you or your summons inflict vulnerability.'),
   [TRAIT.FRAGILITY]: traitTooltip('Your strikes deal increased damage for each vulnerability stack on the target.', [
-    fromProfile(TRAIT.FRAGILITY, 'damageIncreasePerStack', 'Strike damage per vulnerability stack', tooltipPercent)
+    fromProfile(TRAIT.FRAGILITY, 'damageIncreasePerStack', 'Strike damage per vulnerability stack', tooltipPercent),
+    maximumBonusFact('damageIncreasePerStack', MAX_VULNERABILITY_STACKS, 'Maximum strike damage bonus')
   ]),
   [TRAIT.BOUNTIFUL_BLADES]: traitTooltip(
     'Mirror Blade gains additional target hits. Phantasmal Berserker summons additional phantasms, each with reduced damage.',

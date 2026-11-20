@@ -1,7 +1,7 @@
 import {
+  attributeConversionFact,
   fromProfile,
   outsideScopeTooltip,
-  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipSeconds,
   traitTooltip,
@@ -38,7 +38,7 @@ export const elementalistEarthTooltips = {
   [TRAIT.STRENGTH_OF_STONE]: traitTooltip(
     'Gain condition damage from toughness. Immobilizing the target inflicts bleeding.',
     [
-      ['attributeConversion', 'Condition damage gained from toughness', tooltipAttributeConversion],
+      attributeConversionFact('Toughness', 'Condition Damage'),
       ['internalCooldown', 'Bleeding cooldown', tooltipSeconds]
     ]
   ),

@@ -1,8 +1,9 @@
 import {
+  attributeConversionFact,
   fromProfile,
+  maximumBonusFact,
   profileFact,
   simulationEffectFacts,
-  tooltipAttributeConversion,
   tooltipDecimal,
   tooltipFactorChange,
   tooltipNumber,
@@ -39,7 +40,7 @@ export const engineerExplosivesTooltips = {
         'Strike damage per vulnerability stack',
         tooltipPercent
       ),
-      fromProfile(TRAIT.SHAPED_CHARGE, 'maximumStacks', 'Maximum stacks counted', tooltipDecimal)
+      maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike damage bonus')
     ]
   ),
   [TRAIT.GRENADIER]: (balanceContext) => {
@@ -82,12 +83,12 @@ export const engineerExplosivesTooltips = {
   }),
   [TRAIT.EXPLOSIVE_TEMPER]: traitTooltip('Explosions grant stacking ferocity.', [
     ['attributePerStack', 'Ferocity per stack'],
-    ['maximumStacks', 'Maximum stacks']
+    maximumBonusFact('attributePerStack', 'maximumStacks', 'Maximum Ferocity bonus', tooltipDecimal)
   ]),
   // Build-only bonuses and imperative triggers need explicit facts alongside profile-owned packets.
   [TRAIT.BLAST_SHIELD]: traitTooltip(
     'Gain vitality based on power. Bonuses from other attribute conversions do not count.',
-    [['attributeConversion', 'Vitality gained from power', tooltipAttributeConversion]]
+    [attributeConversionFact('Power', 'Vitality')]
   ),
   [TRAIT.GRAND_ENTRANCE]: traitTooltip(
     'Explosive Entrance opens a temporary critical-chance window and grants resistance.',

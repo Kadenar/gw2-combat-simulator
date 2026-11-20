@@ -1,8 +1,10 @@
 import {
   fromModifier,
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   skillTooltip,
+  tooltipDecimal,
   tooltipFactorChange,
   tooltipNumber,
   tooltipPercent,
@@ -44,7 +46,12 @@ export const spellbreakerTooltips = {
       'Player control effects grant stacking power, precision, and ferocity. Kick grants additional stacks against a defiant target.',
       [
         ['attributePerStack', 'Each attribute per stack'],
-        ['maximumStacks', 'Maximum stacks']
+        maximumBonusFact(
+          'attributePerStack',
+          'maximumStacks',
+          'Maximum Power, Precision, and Ferocity bonus each',
+          tooltipDecimal
+        )
       ]
     ),
     [TRAIT.PURE_STRIKE]: traitTooltip(

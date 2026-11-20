@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  maximumBonusFact,
   outsideScopeTooltip,
   profileFact,
   skillTooltip,
@@ -23,7 +24,7 @@ export const thiefTrickeryTooltips = {
   ]),
   [TRAIT.LEAD_ATTACKS]: traitTooltip('Spending initiative grants temporary damage stacks. Steal recharges faster.', [
     ['damageIncreasePerStack', 'Strike and condition damage per stack', tooltipPercent],
-    ['maximumStacks', 'Maximum stacks'],
+    maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike and condition damage bonus'),
     ['duration', 'Stack duration', tooltipSeconds],
     ['rechargeMultiplier', 'Steal recharge', tooltipFactorChange]
   ]),

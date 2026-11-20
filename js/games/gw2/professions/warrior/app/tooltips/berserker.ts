@@ -1,4 +1,5 @@
 import {
+  attributeConversionFact,
   fromProfile,
   modifierFact,
   outsideScopeTooltip,
@@ -6,7 +7,6 @@ import {
   simulationEffectFacts,
   skillFact,
   skillTooltip,
-  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipProfile,
@@ -108,8 +108,10 @@ export const berserkerTooltips = {
     [TRAIT.BLOOD_REACTION]: traitTooltip(
       'Gain ferocity from precision and condition damage from power. The conversion is stronger during Berserk.',
       [
-        ['attributeConversion', 'Base attribute gain', tooltipAttributeConversion],
-        ['coefficientMultiplier', 'Attribute gain during Berserk', tooltipAttributeConversion]
+        attributeConversionFact('Precision', 'Ferocity', 'attributeConversion', 'outside Berserk'),
+        attributeConversionFact('Power', 'Condition Damage', 'attributeConversion', 'outside Berserk'),
+        attributeConversionFact('Precision', 'Ferocity', 'coefficientMultiplier', 'during Berserk'),
+        attributeConversionFact('Power', 'Condition Damage', 'coefficientMultiplier', 'during Berserk')
       ]
     ),
     // Describe each Quickness variant from Heat the Soul's own selected effects.

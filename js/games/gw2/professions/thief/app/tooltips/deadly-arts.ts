@@ -1,6 +1,7 @@
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import {
   fromProfile,
+  maximumBonusFact,
   profileFact,
   simulationEffectFacts,
   tooltipFactorChange,
@@ -25,7 +26,8 @@ export const thiefDeadlyArtsTooltips = {
     ['internalCooldown', 'Internal cooldown', tooltipSeconds]
   ]),
   [TRAIT.EXPOSED_WEAKNESS]: traitTooltip('Deal increased strike damage for each different condition on the target.', [
-    fromProfile(TRAIT.EXPOSED_WEAKNESS, 'damagePerCondition', 'Strike damage per condition', tooltipPercent)
+    fromProfile(TRAIT.EXPOSED_WEAKNESS, 'damagePerCondition', 'Strike damage per condition', tooltipPercent),
+    maximumBonusFact('damagePerCondition', 'maximumConditions', 'Maximum strike damage bonus')
   ]),
   // State the full weapon-dependent bonus so build-only attributes are not hidden by empty profiles.
   [TRAIT.DAGGER_TRAINING]: traitTooltip('Gain power and additional power while wielding a dagger.', [

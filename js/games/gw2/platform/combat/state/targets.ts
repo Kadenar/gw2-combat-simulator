@@ -76,9 +76,15 @@ export function isDamagingCondition(value: unknown): boolean {
   return DAMAGING_CONDITION_SET.has(canonicalTargetConditionName(value));
 }
 
+export const MAX_VULNERABILITY_STACKS = 25;
+
 /** Effective intensity belongs to combat: non-damaging conditions represent presence, except Vulnerability. */
 export function conditionStackLimit(name: string): number | null {
-  return isDamagingCondition(name) ? null : canonicalTargetConditionName(name) === CONDITION.VULNERABILITY ? 25 : 1;
+  return isDamagingCondition(name)
+    ? null
+    : canonicalTargetConditionName(name) === CONDITION.VULNERABILITY
+      ? MAX_VULNERABILITY_STACKS
+      : 1;
 }
 
 function normalizeTargetConditions(
