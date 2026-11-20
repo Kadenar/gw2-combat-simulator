@@ -41,14 +41,7 @@ test('planning projections omit private mechanic state while retaining visible o
       STATE.SYMBOLIC_AVENGER_EXPIRATIONS
     ],
     [rangerProfession, 'Core', 'core', ['nextPetInstance', 'player'], 'activePetSlot', STATE.ACTIVE_PET_SLOT],
-    [
-      thiefProfession,
-      'Antiquary',
-      'specialization',
-      ['backfireState', 'canachCoinIndex'],
-      'artifactSlots',
-      STATE.ARTIFACT_SLOTS
-    ],
+    [thiefProfession, 'Antiquary', 'specialization', ['canachCoinIndex'], 'artifactSlots', STATE.ARTIFACT_SLOTS],
     [revenantProfession, 'Conduit', 'specialization', ['beguilingHazeRecharge'], 'affinity', STATE.AFFINITY],
     [warriorProfession, 'Bladesworn', 'specialization', ['dragonChargeReachedAt'], 'flow', STATE.FLOW],
     [

@@ -6,7 +6,7 @@ import { antiquaryEffectStates } from '#gw2/professions/thief/specializations/an
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
 import { antiquaryArtifactLifecycle } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { antiquaryArtifactActions } from '#gw2/professions/thief/specializations/antiquary/skills/artifact-actions.js';
-import { coinInitiative } from '#gw2/professions/thief/specializations/antiquary/skills/double-edge.js';
+import { doubleEdgeLifecycle } from '#gw2/professions/thief/specializations/antiquary/skills/double-edge.js';
 import { FORGED_SURFER, forgedSurfer } from '#gw2/professions/thief/specializations/antiquary/skills/forged-surfer.js';
 import {
   SKRITT_SCUFFLE,
@@ -19,6 +19,7 @@ import { consumeOldestStacks } from '#kernel/resources/timed-stacks.js';
 /** Antiquary hooks: artifact pilfering and use, Double Edge outcomes, Skritt summons, and artifact-driven traits. */
 export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = composeRuntimeHooks([
   antiquaryArtifactLifecycle,
+  doubleEdgeLifecycle,
   {
     observeEffects: antiquaryEffectStates,
     /** Seed non-expiring Combat High stacks for an isolated damage occurrence. */
@@ -38,9 +39,10 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = compo
     },
     sideEffectHandlers: antiquaryArtifactActions,
 
-    // Only accepted utility casts spend the oldest live Holo-Dancer entry, even when a newer one expires sooner.
+    // Only accepted utility casts that start a recharge spend the oldest live Holo-Dancer entry, even when a newer
+    // one expires sooner. A risky Double Edge recast keeps the entry for the next recharge.
     reserveRecharge(runtime, skill, work) {
-      if (skill.type !== 'Utility') return work;
+      if (skill.type !== 'Utility' || work <= 0) return work;
 
       const state = antiquaryState.from(runtime.profession);
       const { expiries, consumed } = consumeOldestStacks(
@@ -52,9 +54,6 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = compo
       return consumed > 0
         ? work * skillNumber(requireSkill(runtime.helpers, ID.HOLO_DANCER_DECOY), 'rechargeMultiplier')
         : work;
-    },
-    onCastCommit(_runtime, cast) {
-      coinInitiative.delete(cast);
     },
     reactions: {
       'damage.resolved'(runtime, event) {

@@ -105,6 +105,8 @@ export interface ThiefSkill
     NumericSkillFields<typeof THIEF_CORE_SKILL_FIELDS> {
   /** Artifact this skill stocks or spends. */
   readonly artifactKind?: ThiefArtifactKind;
+  /** Initiative this skill rolls at acceptance and pays at commitment. */
+  readonly doubleEdgeInitiative?: (runtime: ThiefRuntime, outcome: ThiefDoubleEdgeOutcome) => number;
   /** Has a backfire outcome selected in the rotation. */
   readonly backfire?: boolean;
   /** Uses the off-hand weapon's dual-wield opener. */

@@ -59,8 +59,7 @@ const doubleEdge = {
   id: 4,
   name: 'Double Edge',
   type: 'Utility',
-  usableWhileRecharging: true,
-  sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' } }]
+  skillFamily: 'Double Edge'
 };
 const anchor = { querySelector: () => null };
 const descriptor = {

@@ -25,8 +25,6 @@ export interface AntiquaryState {
   artifactSlots: ThiefArtifactSlot[];
   artifactUsesRemaining: number;
   scoundrelsLuck: number;
-
-  backfireState: Record<string, true>;
   initiativeSpentSincePilfer: number;
   nextSkrittScufflePilferAt: number;
   antiquaryDamageUntil: number;
@@ -45,8 +43,6 @@ export function createAntiquaryState(): AntiquaryState {
     artifactSlots: [],
     artifactUsesRemaining: 0,
     scoundrelsLuck: 0,
-
-    backfireState: {},
     initiativeSpentSincePilfer: 0,
     nextSkrittScufflePilferAt: 0,
     antiquaryDamageUntil: 0,

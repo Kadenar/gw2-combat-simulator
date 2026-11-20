@@ -9,6 +9,10 @@ import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-defini
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import {
+  DOUBLE_EDGE,
+  doubleEdgeBackfired
+} from '#gw2/professions/thief/specializations/antiquary/skills/double-edge.js';
 import { ANTIQUARY_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/specializations/antiquary/skills/guild-attacks.js';
 import { antiquaryState, kryptisDamageDeadline } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -233,7 +237,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     // Raw rifle EVTC places the explosion 1.92 seconds after the Cannon cast completes.
     backfireDelay: 1.92,
     // Acceptance fixes the outcome; even a cancelled use fires from its effective end with fixed profile offsets.
-    usableWhileRecharging: true,
+    ...DOUBLE_EDGE,
     cooldown: 15,
     castTimeMs: 520,
     effects: [
@@ -274,8 +278,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
       ].map((effect) => ({ ...effect, name: 'Backfire ' + effect.name, packetLabel: 'backfire' }))
     ],
     effectVariants: [true, false].map<NonNullable<Skill['effectVariants']>[number]>((backfire) => ({
-      when: (runtime, cast) =>
-        Boolean(antiquaryState.from(runtime.profession).backfireState[cast.skill.id]) === backfire,
+      when: (_runtime, cast) => doubleEdgeBackfired(cast) === backfire,
       transform: (_runtime, cast, effects) => {
         const delay = backfire ? skillNumber(cast.skill, 'backfireDelay') : 0;
         const offsetMs = (cast.effectiveEnd - cast.start + delay) * 1000;
@@ -301,9 +304,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
               }) as SkillEffect
           );
       }
-    })),
-    // Fix the outcome at acceptance; cancellation never rerolls or pays coins.
-    sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' as const } }]
+    }))
   },
   [ID.CHAK_SHIELD]: {
     name: 'Chak Shield',
@@ -349,12 +350,10 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     icon: 'https://render.guildwars2.com/file/51322CD33E32D80B7B341167E6C8A294143264A2/3680207.png',
     type: 'Heal',
     slot: 'Heal',
-    usableWhileRecharging: true,
+    ...DOUBLE_EDGE,
     cooldown: 10,
     castTimeMs: 520,
-    effects: [],
-    // Fix the outcome at acceptance; cancellation never rerolls or pays coins.
-    sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' as const } }]
+    effects: []
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL]: {
     name: 'Zephyrite Sun Crystal',
@@ -524,16 +523,22 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     icon: 'https://render.guildwars2.com/file/CA51F09750F4C7C70A546E9F040EEF2977370DFF/3680220.png',
     type: 'Utility',
     slot: 'Utility',
-    usableWhileRecharging: true,
+    ...DOUBLE_EDGE,
+    // The three coins alternate across casts. A backfire pays only for heads.
+    doubleEdgeInitiative(runtime, outcome) {
+      const state = antiquaryState.from(runtime.profession);
+      let payout = 0;
+      for (let coin = 0; coin < 3; coin++) {
+        const heads = state.canachCoinIndex % 2 === 0;
+        state.canachCoinIndex++;
+        payout += outcome === 'backfire' ? Number(heads) : heads ? 2 : 1;
+      }
+
+      return payout;
+    },
     cooldown: 15,
     castTimeMs: 0,
-    effects: [],
-    // Fix the outcome at acceptance; cancellation never rerolls or pays coins.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'thief.double-edge' as const } },
-      { on: 'castStart', do: { type: 'thief.roll-coins' as const } },
-      { on: 'castCommit', do: { type: 'thief.pay-coins' as const } }
-    ]
+    effects: []
   },
   [ID.SKRITT_SCUFFLE]: {
     name: 'Skritt Scuffle',

@@ -7,11 +7,6 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import {
-  coinInitiative,
-  startDoubleEdge,
-  tossCanachCoins
-} from '#gw2/professions/thief/specializations/antiquary/skills/double-edge.js';
 import { startForgedSurfer } from '#gw2/professions/thief/specializations/antiquary/skills/forged-surfer.js';
 import { completeSkrittScuffle } from '#gw2/professions/thief/specializations/antiquary/skills/skritt-scuffle.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
@@ -26,23 +21,6 @@ import { createBatch } from '#kernel/resources/batch.js';
 /** Artifact skills own their effects; the inventory lifecycle owns spending and reward ordering. */
 export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> =
   {
-    'thief.double-edge'(runtime, context) {
-      if (context.kind === 'cast') startDoubleEdge(runtime, context.cast);
-    },
-    'thief.roll-coins'(runtime, context) {
-      if (context.kind === 'cast')
-        coinInitiative.set(
-          context.cast,
-          tossCanachCoins(runtime, Boolean(antiquaryState.from(runtime.profession).backfireState[context.skill.id]))
-        );
-    },
-    'thief.pay-coins'(runtime, context) {
-      if (context.kind === 'cast') {
-        const initiativeGain = coinInitiative.get(context.cast) ?? 0;
-
-        if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
-      }
-    },
     'thief.forged-surfer'(runtime, context) {
       startForgedSurfer(runtime, context.skill);
     },

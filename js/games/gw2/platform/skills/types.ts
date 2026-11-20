@@ -30,6 +30,7 @@ export type SkillFamily =
   | 'Corruption'
   | 'Deception'
   | 'Dodge'
+  | 'Double Edge'
   | 'Elixir'
   | 'Familiar'
   | 'Preparation'

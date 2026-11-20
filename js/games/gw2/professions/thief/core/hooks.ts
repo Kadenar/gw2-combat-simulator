@@ -181,11 +181,6 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   resources: { initiative: thiefInitiative },
   endurance: thiefEndurance,
   rechargeWork: thiefRechargeWork,
-  // A Double Edge recast while recharging keeps the running recharge instead of reserving a new one.
-  reserveRecharge: (runtime, skill, work) =>
-    skill.usableWhileRecharging === true && (runtime.cooldownController.readyAt(skill.id) || 0) > runtime.time
-      ? 0
-      : work,
   onCastStart(runtime, cast) {
     if (cast.skill.id === SHARED_SKILL_IDS.DODGE) runtime.fireTrigger(thiefDodgeStarted, { cast });
   },

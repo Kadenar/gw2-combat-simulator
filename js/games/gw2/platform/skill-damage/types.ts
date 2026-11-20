@@ -142,4 +142,4 @@ export interface DamageEffectDefinition {
 }
 
 /** Cast-command fields an occurrence may set on its measured cast, such as a Dragon Charge release threshold. */
-export type SkillDamageCastOptions = Pick<CastCommand, 'releaseAtCharges' | 'releaseDelayMs' | 'doubleEdgeOutcome'>;
+export type SkillDamageCastOptions = Pick<CastCommand, 'releaseAtCharges' | 'releaseDelayMs'>;

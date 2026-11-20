@@ -18,18 +18,11 @@ export interface DoubleEdgeEditorOptions {
   readonly onApply: (outcome: DoubleEdgeOutcome) => void;
 }
 
-export type ConfigurableDoubleEdgeSkill = Skill & {
-  readonly usableWhileRecharging: true;
-};
-
-/** Only casts that resolve Double Edge need an outcome editor; pets also bypass ordinary recharge checks. */
+/** The catalog identifies which casts expose the risky recast choice. */
 export function hasConfigurableDoubleEdgeOutcome(
   skill: Skill | null | undefined
-): skill is ConfigurableDoubleEdgeSkill {
-  return (
-    skill?.usableWhileRecharging === true &&
-    skill.sideEffects?.some((effect) => effect.do.type === 'thief.double-edge') === true
-  );
+): skill is Skill & { readonly skillFamily: 'Double Edge' } {
+  return skill?.skillFamily === 'Double Edge';
 }
 
 /** Human-readable label for a stored outcome value. */

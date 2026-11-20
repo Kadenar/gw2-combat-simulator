@@ -1,54 +1,65 @@
+/** Resolve each Double Edge cast at acceptance so delayed effects and coin payouts use its own outcome. */
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import type { ThiefDoubleEdgeOutcome, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefDoubleEdgeOutcome, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
-/** Accepted Canach coin initiative, held by cast identity until commitment or cancellation. */
-export const coinInitiative = new WeakMap<RuntimeCast<ThiefSkill>, number>();
+/** The editor, outcome and recharge rules use the family. Readiness uses the paired recharge flag. */
+export const DOUBLE_EDGE = { skillFamily: 'Double Edge', usableWhileRecharging: true } as const;
+// Each cast keeps its outcome and any skill-authored payout until it commits or is cancelled.
+const accepted = new WeakMap<RuntimeCast, { outcome: ThiefDoubleEdgeOutcome; initiativeGain: number }>();
 
-/** Spend an already-earned Luck charge without requiring current selection. */
-function consumeScoundrelsLuck(runtime: ThiefRuntime): boolean {
-  const state = antiquaryState.from(runtime.profession);
+/** Cannon selects its packets using the outcome of the cast that fired them. */
+export function doubleEdgeBackfired(cast: RuntimeCast): boolean {
+  return accepted.get(cast)?.outcome === 'backfire';
+}
 
-  if (!(state.scoundrelsLuck > 0)) return false;
-
-  state.scoundrelsLuck -= 1;
-  return true;
+function recharging(
+  runtime: Pick<MechanicQueriesOf<ThiefRuntime>, 'time' | 'cooldownController'>,
+  skill: ThiefSkill
+): boolean {
+  return (runtime.cooldownController.readyAt(skill.id) ?? 0) > runtime.time;
 }
 
 /** Double Edge is risky only while its recharge is running; Scoundrel's Luck turns one risky use into a success. */
 function acceptDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): ThiefDoubleEdgeOutcome {
-  if ((runtime.cooldownController.readyAt(cast.skill.id) || 0) <= runtime.time) return 'success';
+  if (!recharging(runtime, cast.skill)) return 'success';
 
-  if (consumeScoundrelsLuck(runtime)) return 'success';
-
-  return cast.command.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';
-}
-
-/** Canach coins alternate heads and tails across uses; a backfire pays only for heads. */
-export function tossCanachCoins(runtime: ThiefRuntime, backfire: boolean): number {
   const state = antiquaryState.from(runtime.profession);
-  let initiative = 0;
-  for (let coin = 0; coin < 3; coin += 1) {
-    const heads = (state.canachCoinIndex || 0) % 2 === 0;
-    state.canachCoinIndex = (state.canachCoinIndex || 0) + 1;
-    initiative += backfire ? Number(heads) : heads ? 2 : 1;
+
+  if (state.scoundrelsLuck > 0) {
+    state.scoundrelsLuck -= 1;
+    return 'success';
   }
 
-  return initiative;
+  return cast.command.doubleEdgeOutcome ?? 'success';
 }
 
-/**
- * The accepted Double Edge outcome is fixed at cast start, including uses the rotation cancels immediately, and its
- * packets are timed from the reserved end of the cast.
- */
-export function startDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  const state = antiquaryState.from(runtime.profession);
-  const skill = cast.skill;
-  const outcome = acceptDoubleEdge(runtime, cast);
+/** Fix the outcome and reserve any initiative at acceptance. Only commitment pays the reserved amount. */
+export const doubleEdgeLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
+  // A risky recast keeps the running timer whether it commits or is cancelled, so it adds no recharge work.
+  rechargeWork(runtime, skill, work) {
+    return skill.skillFamily === 'Double Edge' && recharging(runtime, skill) ? 0 : work;
+  },
+  onCastStart(runtime, cast) {
+    if (cast.skill.skillFamily !== 'Double Edge') return;
 
-  if (outcome === 'backfire')
-    // The backfire variant stays visible until the running recharge ends.
-    state.backfireState[skill.id] = true;
-  else delete state.backfireState[skill.id];
-}
+    const outcome = acceptDoubleEdge(runtime, cast);
+    const initiativeGain = cast.skill.doubleEdgeInitiative?.(runtime, outcome) ?? 0;
+    accepted.set(cast, { outcome, initiativeGain });
+  },
+  onCastCommit(runtime, cast) {
+    const result = accepted.get(cast);
+
+    if (!result) return;
+
+    accepted.delete(cast);
+
+    if (result.initiativeGain > 0) runtime.resourceController.grant('initiative', result.initiativeGain);
+  },
+  onCastCancel(_runtime, cast) {
+    accepted.delete(cast);
+  }
+};
