@@ -5,8 +5,13 @@
 import { BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import {
+  mantraPhases,
+  MANTRAS,
+  type MantraSkillId
+} from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
 
-export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
+const mantraSkills: Record<MantraSkillId, SkillDefinition> = {
   [ID.MANTRA_OF_SOLACE]: {
     name: 'Mantra of Solace',
     icon: 'https://render.guildwars2.com/file/9E64514AF3280620040C0DBC61A7AABB0F765E54/1770463.png',
@@ -18,9 +23,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
 
     castTimeMs: 1520,
     canCastConcurrently: false,
-    effects: [],
-    // This phase updates the shared charge controller.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.prepare-mantra-${ID.MANTRA_OF_SOLACE}` } }]
+    effects: []
   },
   [ID.RESTORING_REPRIEVE]: {
     name: 'Restoring Reprieve',
@@ -37,9 +40,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     effects: [
       { type: 'boon', boon: BOON.PROTECTION, duration: 2, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.RESOLUTION, duration: 2, audience: { recipients: RECIPIENT.PARTY } }
-    ],
-    // This phase updates the shared charge controller.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.use-mantra-${ID.MANTRA_OF_SOLACE}` } }]
+    ]
   },
   [ID.REJUVENATING_RESPITE]: {
     name: 'Rejuvenating Respite',
@@ -56,10 +57,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       { type: 'boon', boon: BOON.RESOLUTION, duration: 3, audience: { recipients: RECIPIENT.PARTY } }
     ],
     // Match the reported in-game extra page on Solace's final charge, before the shared refund and Revelation.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'tomePages', amount: 1 } },
-      { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_SOLACE}` } }
-    ]
+    sideEffects: [{ on: 'castCommit', do: { type: 'resourceGrant', resource: 'tomePages', amount: 1 } }]
   },
   [ID.MANTRA_OF_FLAME]: {
     name: 'Mantra of Flame',
@@ -72,9 +70,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
 
     castTimeMs: 1520,
     canCastConcurrently: false,
-    effects: [],
-    // This phase updates the shared charge controller.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.prepare-mantra-${ID.MANTRA_OF_FLAME}` } }]
+    effects: []
   },
   [ID.FLAME_RUSH]: {
     name: 'Flame Rush',
@@ -100,9 +96,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
         stacks: 1,
         duration: 12
       }
-    ],
-    // This phase updates the shared charge controller.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.use-mantra-${ID.MANTRA_OF_FLAME}` } }]
+    ]
   },
   [ID.FLAME_SURGE]: {
     name: 'Flame Surge',
@@ -125,9 +119,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
         stacks: 3,
         duration: 12
       }
-    ],
-    // Retirement fires the final-charge point, so page refunds precede it.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_FLAME}` } }]
+    ]
   },
   [ID.MANTRA_OF_POTENCE]: {
     name: 'Mantra of Potence',
@@ -140,9 +132,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
 
     castTimeMs: 1520,
     canCastConcurrently: false,
-    effects: [],
-    // This phase updates the shared charge controller.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.prepare-mantra-${ID.MANTRA_OF_POTENCE}` } }]
+    effects: []
   },
   [ID.POTENT_HASTE]: {
     name: 'Potent Haste',
@@ -159,9 +149,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     effects: [
       { type: 'boon', boon: BOON.QUICKNESS, duration: 2.5, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 10, audience: { recipients: RECIPIENT.PARTY } }
-    ],
-    // This phase updates the shared charge controller.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.use-mantra-${ID.MANTRA_OF_POTENCE}` } }]
+    ]
   },
   [ID.OVERWHELMING_CELERITY]: {
     name: 'Overwhelming Celerity',
@@ -175,9 +163,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     effects: [
       { type: 'boon', boon: BOON.QUICKNESS, duration: 5, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.MIGHT, stacks: 8, duration: 10, audience: { recipients: RECIPIENT.PARTY } }
-    ],
-    // Retirement fires the final-charge point, so page refunds precede it.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_POTENCE}` } }]
+    ]
   },
   [ID.MANTRA_OF_TRUTH]: {
     name: 'Mantra of Truth',
@@ -190,9 +176,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
 
     castTimeMs: 1520,
     canCastConcurrently: false,
-    effects: [],
-    // This phase updates the shared charge controller.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.prepare-mantra-${ID.MANTRA_OF_TRUTH}` } }]
+    effects: []
   },
   [ID.ECHO_OF_TRUTH]: {
     name: 'Echo of Truth',
@@ -215,9 +199,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 4 },
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 },
       { type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 4 }
-    ],
-    // This phase updates the shared charge controller.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.use-mantra-${ID.MANTRA_OF_TRUTH}` } }]
+    ]
   },
   [ID.VOICE_OF_TRUTH]: {
     name: 'Voice of Truth',
@@ -234,9 +216,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 },
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 8 },
       { type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 8 }
-    ],
-    // Retirement fires the final-charge point, so page refunds precede it.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_TRUTH}` } }]
+    ]
   },
   [ID.MANTRA_OF_LIBERATION]: {
     name: 'Mantra of Liberation',
@@ -249,9 +229,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
 
     castTimeMs: 1520,
     canCastConcurrently: false,
-    effects: [],
-    // This phase updates the shared charge controller.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.prepare-mantra-${ID.MANTRA_OF_LIBERATION}` } }]
+    effects: []
   },
   [ID.PORTENT_OF_FREEDOM]: {
     name: 'Portent of Freedom',
@@ -268,9 +246,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     effects: [
       { type: 'boon', boon: BOON.STABILITY, duration: 5, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.RESOLUTION, duration: 5, audience: { recipients: RECIPIENT.PARTY } }
-    ],
-    // This phase updates the shared charge controller.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.use-mantra-${ID.MANTRA_OF_LIBERATION}` } }]
+    ]
   },
   [ID.UNHINDERED_DELIVERY]: {
     name: 'Unhindered Delivery',
@@ -285,8 +261,19 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       { type: 'boon', boon: BOON.RESOLUTION, duration: 8, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.STABILITY, stacks: 5, duration: 8, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.SWIFTNESS, duration: 5, audience: { recipients: RECIPIENT.PARTY } }
-    ],
-    // Retirement fires the final-charge point, so page refunds precede it.
-    sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_LIBERATION}` } }]
+    ]
   }
 };
+
+/** Apply the phase after skill-specific actions so Solace grants its extra page before the shared refund. */
+export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.fromEntries(
+  MANTRAS.flatMap((mantra) =>
+    Object.values(mantraPhases(mantra)).map(({ skillId, type }) => {
+      const skill = mantraSkills[skillId];
+      return [
+        skillId,
+        { ...skill, sideEffects: [...(skill.sideEffects ?? []), { on: 'castCommit', do: { type } }] }
+      ] as const;
+    })
+  )
+);

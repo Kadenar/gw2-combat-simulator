@@ -9,7 +9,7 @@ export interface MantraDefinition {
   readonly finalId: number;
 }
 
-export const MANTRAS: readonly MantraDefinition[] = Object.freeze([
+export const MANTRAS = Object.freeze([
   {
     rootId: ID.MANTRA_OF_SOLACE,
     normalId: ID.RESTORING_REPRIEVE,
@@ -35,7 +35,20 @@ export const MANTRAS: readonly MantraDefinition[] = Object.freeze([
     normalId: ID.PORTENT_OF_FREEDOM,
     finalId: ID.UNHINDERED_DELIVERY
   }
-]);
+] as const satisfies readonly MantraDefinition[]);
+
+type Mantra = (typeof MANTRAS)[number];
+
+export type MantraSkillId = Mantra['rootId' | 'normalId' | 'finalId'];
+
+/** Catalog assembly and runtime dispatch use the same action for each phase of a mantra. */
+export function mantraPhases({ rootId, normalId, finalId }: Mantra) {
+  return {
+    prepare: { skillId: rootId, type: `guardian.prepare-mantra-${rootId}` },
+    use: { skillId: normalId, type: `guardian.use-mantra-${rootId}` },
+    finish: { skillId: finalId, type: `guardian.finish-mantra-${rootId}` }
+  } as const;
+}
 
 export const GUARDIAN_FIREBRAND_SKILL_FLIPS: SkillFlips = Object.freeze(
   MANTRAS.flatMap(({ rootId, normalId, finalId }) => [

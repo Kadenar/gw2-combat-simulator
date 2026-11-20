@@ -19,6 +19,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { finalMantraChargeUsed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import {
+  mantraPhases,
   MANTRAS,
   type MantraDefinition
 } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
@@ -140,8 +141,9 @@ function firebrandMantraWake(runtime: GuardianRuntime, rootId: unknown): void {
 
 /** Preparation and final variants consult the one normal-charge pool, including its shared cast lockout. */
 export function firebrandMantraAvailability(runtime: MechanicQueriesOf<GuardianRuntime>, skill: Skill) {
-  const definition = MANTRAS.find(({ rootId, normalId, finalId }) =>
-    [rootId, normalId, finalId].includes(Number(skill.id))
+  const id = Number(skill.id);
+  const definition = MANTRAS.find(
+    ({ rootId, normalId, finalId }) => id === rootId || id === normalId || id === finalId
   );
 
   if (!definition) return CAST_READY;
@@ -168,35 +170,38 @@ export function firebrandMantraAvailability(runtime: MechanicQueriesOf<GuardianR
     : denyCast('guardian.mantra-charge', `${skill.name} is not the currently prepared charge.`);
 }
 
-/** Declarations choose the phase; shared charge pools and generation wakes retain one controller. */
+/** Bind the catalog's three commitment actions to each mantra's shared charge pool. */
 const firebrandMantraActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] =
   Object.fromEntries(
-    MANTRAS.flatMap((definition) => [
-      [
-        `guardian.prepare-mantra-${definition.rootId}`,
-        (runtime: GuardianRuntime) => {
-          arm(runtime, definition);
-          sync(runtime, definition);
-        }
-      ],
-      [`guardian.use-mantra-${definition.rootId}`, (runtime: GuardianRuntime) => sync(runtime, definition)],
-      [
-        `guardian.finish-mantra-${definition.rootId}`,
-        (runtime: GuardianRuntime, context: ActionContext) => {
-          // The shared final-charge refund adds one page before Revelation adds its separate refund.
-          applySideEffect(runtime, context, {
-            type: 'resourceGrant',
-            resource: 'tomePages',
-            amount: { profile: TRAIT.PURITY_OF_WORD, field: 'resourceGain' }
-          });
-          runtime.fireTrigger(finalMantraChargeUsed, { context });
-          closePreparedMagazine(runtime, runtime.cooldownController, magazine(runtime, definition));
-          const root = runtime.helpers.skillsById.get(definition.rootId)!;
-          runtime.cooldownController.startRecharge(root, runtime.time);
-          sync(runtime, definition);
-        }
-      ]
-    ])
+    MANTRAS.flatMap((definition) => {
+      const { prepare, use, finish } = mantraPhases(definition);
+      return [
+        [
+          prepare.type,
+          (runtime: GuardianRuntime) => {
+            arm(runtime, definition);
+            sync(runtime, definition);
+          }
+        ],
+        [use.type, (runtime: GuardianRuntime) => sync(runtime, definition)],
+        [
+          finish.type,
+          (runtime: GuardianRuntime, context: ActionContext) => {
+            // The shared final-charge refund adds one page before Revelation adds its separate refund.
+            applySideEffect(runtime, context, {
+              type: 'resourceGrant',
+              resource: 'tomePages',
+              amount: { profile: TRAIT.PURITY_OF_WORD, field: 'resourceGain' }
+            });
+            runtime.fireTrigger(finalMantraChargeUsed, { context });
+            closePreparedMagazine(runtime, runtime.cooldownController, magazine(runtime, definition));
+            const root = runtime.helpers.skillsById.get(definition.rootId)!;
+            runtime.cooldownController.startRecharge(root, runtime.time);
+            sync(runtime, definition);
+          }
+        ]
+      ];
+    })
   );
 
 /** During root recharge both faces are closed, so readiness checks must not create a pool for the normal skill. */
