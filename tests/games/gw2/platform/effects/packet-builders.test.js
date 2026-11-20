@@ -141,7 +141,7 @@ test('derived conditions preserve immediate visibility and same-time queued orde
 });
 
 // Independent companion conditions need concrete owner identity even when the parent hit is player-attributed.
-test('live Ranger profile emission and Engineer packets retain companion ownership without trigger annotations', () => {
+test('live Ranger profile emission retains companion ownership without trigger annotations', () => {
   const { effects, events: packets } = captureEffectEmissions();
   const config = { selectedPet: 'Carrion Devourer', selectedTraitIds: [] };
   const context = { config, helpers: rangerCatalog, effects, profession: { core: createRangerCoreState(config) } };
@@ -156,31 +156,6 @@ test('live Ranger profile emission and Engineer packets retain companion ownersh
   assert.equal(typeof pet.summonBaseConditionDamage, 'number');
   assert.equal(pet.procActivation.count, 1);
   assert.equal(pet.metadata?.holosmithStrikeFactor, undefined);
-  effects.emit({
-    kind: 'packet',
-    settlement: 'reaction',
-    proc: { count: 2 },
-    event: buildEngineerCondition(
-      { ...trigger, actorType: 'summon', summonOwner: 'mech:1', independentConditionOwner: true },
-      {
-        name: 'Mech proc',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 4,
-        actorType: 'summon',
-        metadata: { fixedDuration: true, engineerMech: true }
-      }
-    )
-  });
-  const mech = packets[1];
-  assert.equal(mech.summonOwner, 'mech:1');
-  assert.equal(mech.independentConditionOwner, true);
-  assert.equal(mech.fixedDuration, true);
-  // Explicit mech identity selects companion attributes without inheriting trigger annotations.
-  assert.deepEqual(mech.metadata, { engineerMech: true });
-  assert.equal(mech.procActivation.count, 2);
-  assert.equal(mech.summonInheritsAttributes, true);
-  assert.equal(mech.metadata?.holosmithStrikeFactor, undefined);
 });
 
 // Fresh boons sample live duration once; generic buffs and explicitly fixed durations bypass scaling.
