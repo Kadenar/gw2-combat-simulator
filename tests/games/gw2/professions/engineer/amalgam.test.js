@@ -228,19 +228,9 @@ test('Hardened Chrome and New Genes grant the requested morph boons', () => {
     [77103, 'fury', 6, 1],
     [76927, 'swiftness', 6, 1]
   ];
-  const defaults = new Map([
-    [2, 77103],
-    [3, 77203],
-    [4, 76954]
-  ]);
-
   for (const [skillId, kind, duration, stacks] of protocols) {
-    const skill = engineerCatalog.skillsById.get(skillId);
-    const selected = new Map(defaults);
-
-    selected.set(Number(skill.mechanicSlot), skillId);
     const result = simulate('Amalgam', [skillId], {
-      selectedMorphSkillIds: [...selected.values()],
+      selectedMorphSkillIds: [skillId],
       selectedTraitIds: [TRAIT.HARDENED_CHROME, TRAIT.NEW_GENES]
     });
     const hardened = result.events.find((event) => event.type === 'buff' && event.sourceId === TRAIT.HARDENED_CHROME);

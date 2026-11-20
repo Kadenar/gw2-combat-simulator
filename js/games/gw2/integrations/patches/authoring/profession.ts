@@ -119,7 +119,11 @@ function createPatchAuthoringMetadata(
           traits: Object.freeze([...(fragment.traits || [])]),
           skills: Object.freeze(
             (fragment.skills || [])
-              .filter((skill) => skill.patchAuthoringExcluded !== true)
+              .filter(
+                (skill) =>
+                  skill.patchAuthoringExcluded !== true &&
+                  (skill.tuningSkillId == null || skill.id === skill.tuningSkillId)
+              )
               .map((skill) =>
                 Object.freeze({
                   id: skill.id,

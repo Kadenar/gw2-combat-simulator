@@ -217,6 +217,13 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
 
     if (!String(skill.name || '')) throw new Error(`Skill ${skill.id} has no name.`);
 
+    // Every slotted skill must resolve to a single editable owner in the selected catalog.
+    if (
+      skill.tuningSkillId != null &&
+      catalog.skillsById.get(skill.tuningSkillId)?.tuningSkillId !== skill.tuningSkillId
+    )
+      throw new TypeError(`Skill ${skill.id} has an invalid tuning owner ${skill.tuningSkillId}.`);
+
     validateSkillDeclarations(catalog, skill);
     for (const reference of [skill.parentId, skill.flipParentId]) {
       if (reference != null && !catalog.skillsById.has(reference)) {

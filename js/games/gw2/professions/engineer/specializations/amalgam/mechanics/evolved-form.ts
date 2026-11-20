@@ -12,7 +12,7 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import { effectNumber, requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
+import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/mechanics/strains.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { type AmalgamMorphKind, type AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';

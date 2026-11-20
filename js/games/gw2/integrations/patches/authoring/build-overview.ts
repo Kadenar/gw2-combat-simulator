@@ -7,7 +7,6 @@ import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/type
 import type { AnyNativeModule } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
-import { ENGINEER_SKILL_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 
@@ -32,20 +31,7 @@ export function buildRelevantPatch(
   if (metadata.professionId === 'guardian') relevantIds.add(GUARDIAN_SKILL_IDS.JUSTICE);
 
   if (metadata.professionId === 'engineer' && config.specialization === 'Amalgam') {
-    const morphs = new Set((config as EngineerConfig).selectedMorphSkillIds);
-    for (const [owner, ...variants] of [
-      [
-        ENGINEER.DEFENSIVE_PROTOCOL_THORNS,
-        ENGINEER.DEFENSIVE_PROTOCOL_THORNS_ID_77163,
-        ENGINEER.DEFENSIVE_PROTOCOL_THORNS_ID_77104
-      ],
-      [
-        ENGINEER.OFFENSIVE_PROTOCOL_OBLITERATE,
-        ENGINEER.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806,
-        ENGINEER.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901
-      ]
-    ])
-      if ([owner, ...variants].some((id) => morphs.has(id))) relevantIds.add(owner);
+    for (const id of (config as EngineerConfig).selectedMorphSkillIds ?? []) relevantIds.add(id);
   }
 
   for (const skill of catalog.skills) {
@@ -68,14 +54,19 @@ export function buildRelevantPatch(
   const selectedModules = new Set(['Core', config.specialization ?? 'Core']);
   const profileOwners = new Map<SkillId, SkillId>();
   const modifierOwners = new Map<string, SkillId>();
-  // Intrinsic rules inherit skill relevance instead of appearing for every build using the owning module.
+  // Skill edits and intrinsic modifiers share the tuning owner of each selected or observed button.
+  const relevantSkillOwners = new Set<SkillId>();
   const skillModifierOwners = new Map<string, SkillId>();
   for (const skill of catalog.skills) {
+    const owner = skill.tuningSkillId ?? skill.id;
+
+    if (relevantIds.has(skill.id)) relevantSkillOwners.add(owner);
+
     for (const rule of [
       ...(skill.modifiers ?? []),
       ...(skill.effects ?? []).flatMap((effect) => (effect.type === 'strike' ? (effect.modifiers ?? []) : []))
     ])
-      skillModifierOwners.set(rule.id, skill.id);
+      skillModifierOwners.set(rule.id, owner);
   }
 
   for (const module of modules) {
@@ -105,7 +96,7 @@ export function buildRelevantPatch(
     for (const rule of module.modifierRules) {
       const skillOwner = skillModifierOwners.get(rule.id);
 
-      if (skillOwner != null && !relevantIds.has(skillOwner)) continue;
+      if (skillOwner != null && !relevantSkillOwners.has(skillOwner)) continue;
 
       const owner = modifierOwners.get(rule.id);
 
@@ -114,13 +105,9 @@ export function buildRelevantPatch(
   }
 
   const skillIds = new Set<string>();
-  for (const id of relevantIds) {
-    const skill = catalog.skillsById.get(id);
-
-    if (!skill) continue;
-
+  for (const id of relevantSkillOwners) {
     skillIds.add(String(id));
-    skillIds.add(skill.name);
+    skillIds.add(catalog.skillsById.get(id)!.name);
   }
 
   return {

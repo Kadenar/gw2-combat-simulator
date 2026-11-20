@@ -9,6 +9,7 @@ import {
   prepareEditorStateForRender,
   setNumericEdit
 } from '#gw2/app/patch-authoring/editor-state.js';
+import { buildRelevantPatch } from '#gw2/integrations/patches/authoring/build-overview.js';
 import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import { validatePatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -87,6 +88,22 @@ test('build notes derive from relevant edits without including unselected skills
     ]
   );
   assert.equal(Object.hasOwn(patched.preview.professions.warrior, 'overview'), false);
+});
+
+// Equipping any button makes its shared skill and strike modifiers relevant to the build.
+test('shared modifier notes follow the equipped button regardless of catalog order', () => {
+  const modifiers = [{ id: 'skill-bonus' }];
+  const effects = [{ type: 'strike', modifiers: [{ id: 'strike-bonus' }] }];
+  const skills = [1, 2, 3].map((id) => ({ id, name: 'Protocol', tuningSkillId: 1, modifiers, effects }));
+  skills.push({ id: 4, name: 'Other skill' });
+  const catalog = { skills, skillsById: new Map(skills.map((skill) => [skill.id, skill])) };
+  const metadata = {
+    modules: [{ id: 'Core', balanceProfiles: [], modifierRules: [...modifiers, ...effects[0].modifiers] }]
+  };
+  const patch = { modifierRules: { 'skill-bonus': { amount: 1 }, 'strike-bonus': { amount: 2 } } };
+  const notes = (id) => buildRelevantPatch(patch, { selectedSkillIds: [id] }, [], catalog, [], metadata).modifierRules;
+  assert.deepEqual(notes(2), patch.modifierRules);
+  assert.deepEqual(notes(4), {});
 });
 
 test('derived entries retain metadata labels and authored qualifications for every edit category', () => {

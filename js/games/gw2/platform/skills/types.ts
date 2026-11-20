@@ -120,6 +120,8 @@ export interface Skill extends CatalogEntity, SharedNumericSkillFields {
    * which also covers live indirect skills.
    */
   readonly patchAuthoringExcluded?: boolean;
+  /** Slotted copies share the designated skill's balance edits while retaining their in-game button IDs. */
+  readonly tuningSkillId?: SkillId;
   /** Named concrete choices for an input resolved by its profession before cast acceptance. */
   readonly selector?: Readonly<Record<string, SkillId>>;
   readonly type?: string;

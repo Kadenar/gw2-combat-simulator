@@ -1,23 +1,12 @@
-// Private deadlines use the same 40 ms clock as scheduled events.
-import { gw2Time } from '#gw2/platform/combat/clock.js';
-/**
- * Owns Amalgam Evolve, locked-slot, and evolved-state skill definitions.
- * Persistent strain and morph state remain under `mechanics/evolved-form.ts`.
- */
+/** Skill declarations for Evolve and evolved-state actions. */
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
-import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
-import { amalgamStrainOwnerId } from '#gw2/professions/engineer/specializations/amalgam/skills/strain-owner.js';
-import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
-import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
 // Replay both Plasmatic animations as one cast; recharge starts after the first part.
 const PLASMATIC_STATE_CAST_TIME_MS = 480 + 440;
@@ -279,73 +268,3 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     effects: []
   }
 };
-
-/**
- * Applies the strain owned by the selected protocol, emitting status effects immediately
- * while retaining timestamp-backed strains for later modifier and resolver checks.
- */
-export function applyAmalgamStrain(context: EngineerRuntime, skill: AmalgamSkill, at: number): void {
-  const state = amalgamState.from(context.profession);
-  const morphKind = skill.morphKind;
-  // Resolve shared strain tuning before granting it, independently of the triggering slot.
-  skill = requireSkill(context.helpers, amalgamStrainOwnerId(skill));
-  const action = requireSkillAction(skill, 'strain');
-
-  if (morphKind === 'thorns') {
-    // A removed shared payload cannot arm an empty proc window.
-    const duration = skillNumber(skill, 'rapaciousDuration');
-
-    if (duration > 0 && requireEffect(skill, 'strike', 'Rapacious Strain', action)) {
-      state.rapaciousUntil = gw2Time(Math.max(state.rapaciousUntil || 0, at + duration));
-    }
-
-    return;
-  }
-
-  // The selected packet owns its effect and duration; state windows follow their associated boon.
-  for (const effect of action.effects) {
-    if (!effect.sourceId || !effect.name) throw new Error('Missing Amalgam strain identity');
-
-    if (effect.type === 'control') {
-      buildEngineerPackets('control', {
-        at,
-        source: 'engineer',
-        sourceId: effect.sourceId,
-        actorType: ACTOR.PLAYER,
-        skillName: effect.name,
-        name: effect.name,
-        controlKind: effect.controlKind
-      }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
-      continue;
-    }
-
-    if (effect.type !== 'boon' && effect.type !== 'buff') continue;
-
-    if (effect.type === 'boon') {
-      if (morphKind === 'obliterate') {
-        state.titanicUntil = gw2Time(Math.max(state.titanicUntil || 0, at + effect.duration));
-      } else if (morphKind === 'shred')
-        state.predatorUntil = gw2Time(Math.max(state.predatorUntil || 0, at + effect.duration));
-      else if (morphKind === 'demolish')
-        state.berserkerUntil = gw2Time(Math.max(state.berserkerUntil || 0, at + effect.duration));
-    }
-
-    // Each strain grant is a finite occurrence; profile emission retains its yield lineage for sustained generation.
-    const sourceSkill = context.helpers.skillsById.get(effect.sourceId) || { id: effect.sourceId, name: effect.name };
-    context.effects.emit({
-      kind: 'profile',
-      profile: sourceSkill,
-      effects: [effect],
-      at,
-      attribution: {
-        source: 'engineer',
-        sourceId: effect.sourceId,
-        actorType: ACTOR.PLAYER,
-        skillId: sourceSkill.id,
-        skillName: effect.name
-      },
-      // Preserve the strain label for consumers that read the packet rather than its buff kind.
-      transform: (event) => ({ ...event, name: effect.name })
-    });
-  }
-}

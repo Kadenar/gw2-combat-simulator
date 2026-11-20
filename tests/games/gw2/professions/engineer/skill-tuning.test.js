@@ -7,11 +7,12 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/mechanics/strains.js';
 import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam/module.js';
-import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import { holosmithSkillStrikeFactor } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -196,42 +197,71 @@ test('heat-component removal is independent from ordinary packets and sibling co
   }
 });
 
-test('Evolve and Silver Lining consume the selected protocol slot without leaking sibling edits', () => {
-  const owner = ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103;
-  const other = ID.OFFENSIVE_PROTOCOL_SHRED;
-  const catalog = applySkillPatch(engineerCatalog, {
-    skills: {
-      [owner]: {
-        sideEffects: {
-          strain: {
-            effects: [{ type: 'boon', name: 'Predator Strain', duration: 17 }],
-            removeEffects: [{ type: 'buff', name: 'Predator Strain' }]
-          }
+// Direct simulation input must obey the same protocol uniqueness rule as a saved build.
+test('Evolve rejects a loadout with Shred equipped on two buttons', () => {
+  assert.throws(
+    () =>
+      runEngineer([ID.EVOLVE_BASE], {
+        specialization: 'Amalgam',
+        selectedMorphSkillIds: [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866]
+      }),
+    /distinct protocol/
+  );
+});
+
+// A protocol patch reaches the cast and its strain through every button and either grant path.
+test('Shred and Predator Strain share one patch across F2, F3, and F4', () => {
+  const owner = ID.OFFENSIVE_PROTOCOL_SHRED;
+  const family = preview({
+    [owner]: {
+      cooldown: 0,
+      sideEffects: {
+        strain: {
+          effects: [{ type: 'boon', name: 'Predator Strain', duration: 17 }],
+          removeEffects: [{ type: 'buff', name: 'Predator Strain' }]
         }
       }
     }
   });
-  for (const [id, selectedMorphSkillIds, duration] of [
-    [owner, [owner, 77203, 76954], 17],
-    [other, [76927, 77203, other], 8]
-  ]) {
+  for (const id of [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866, owner]) {
     for (const silver of [false, true]) {
-      const result = runEngineer(
-        [silver ? id : ID.EVOLVE_BASE],
-        { specialization: 'Amalgam', selectedMorphSkillIds, selectedTraitIds: silver ? [TRAIT.SILVER_LINING] : [] },
-        { catalog: () => catalog }
-      );
+      const config = {
+        specialization: 'Amalgam',
+        patchId: 'engineer-ownership',
+        selectedMorphSkillIds: [id],
+        selectedTraitIds: silver ? [TRAIT.SILVER_LINING] : []
+      };
+      const result = runEngineer(silver ? [id, id] : [ID.EVOLVE_BASE], config, { profession: family });
       assert.deepEqual(result.warnings, []);
-      const quickness = result.events.find(
+      const grants = result.events.filter(
         (event) => event.type === 'buff' && event.sourceId === 'engineer.predator-strain' && event.kind === 'quickness'
       );
-      assert.equal(quickness.duration, duration);
-      assert.equal(result.planningState.profession[STATE.PREDATOR_UNTIL], quickness.at + duration);
+      assert.equal(grants.length, silver ? 2 : 1);
+      assert.ok(grants.every((event) => event.duration === 17));
+      assert.equal(result.planningState.profession[STATE.PREDATOR_UNTIL], grants.at(-1).at + 17);
       assert.equal(
         result.events.some((event) => event.kind === 'superspeed'),
-        id === other
+        false
       );
     }
+  }
+});
+
+test('each protocol exposes a single balance patch target', () => {
+  const family = preview({});
+  const module = family.patchAuthoring.modules.find((entry) => entry.id === 'Amalgam');
+  const editableIds = new Set(module.skills.map((skill) => skill.id));
+  const protocols = engineerCatalog.skills.filter((skill) => skill.morphKind);
+  for (const kind of new Set(protocols.map((skill) => skill.morphKind))) {
+    const buttons = protocols.filter((skill) => skill.morphKind === kind);
+    const targets = buttons.filter((skill) => editableIds.has(skill.id));
+    assert.equal(targets.length, 1, kind);
+    assert.ok(buttons.every((skill) => skill.tuningSkillId === targets[0].id));
+    const other = buttons.find((skill) => skill.id !== targets[0].id);
+    assert.throws(
+      () => family.validatePatch({ skills: { [other.id]: { cooldown: 0 } } }),
+      new RegExp(`\\b${other.id}\\b.*\\b${targets[0].id}\\b`)
+    );
   }
 });
 
@@ -280,6 +310,9 @@ for (const id of [
       },
       {
         profession: family,
+        // A native extension can change a button independently. The strain still uses the protocol's tuning.
+        catalog: (catalog) =>
+          id === ID.DEFENSIVE_PROTOCOL_THORNS ? catalog : withSkill(catalog, id, { rapaciousDuration: 0 }),
         initialize(runtime) {
           const state = runtime.profession.specialization.state;
           state.evolvedUntil = 10;
@@ -428,7 +461,6 @@ test('Rapacious regrants from another slot retain the shared cooldown and canoni
     [0.12, 1.2]
   );
   for (const id of slots) {
-    assert.equal(engineerCatalog.skillsById.get(id).rapaciousInternalCooldown, undefined);
     const notes = family.patchOverviewFor(
       { specialization: 'Amalgam', selectedTraitIds: [], selectedMorphSkillIds: [id] },
       []

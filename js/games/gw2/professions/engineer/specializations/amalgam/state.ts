@@ -1,8 +1,10 @@
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
 } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { distinctAmalgamMorphs } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
@@ -18,10 +20,18 @@ export interface AmalgamState {
 }
 
 /** Creates an isolated Amalgam protocol and strain state from the selected morph configuration. */
-function createAmalgamState(config: EngineerConfig = {}): AmalgamState {
+function createAmalgamState(
+  config: EngineerConfig,
+  { balanceContext }: { balanceContext: ProfessionBalanceContext }
+): AmalgamState {
+  const selectedMorphSkillIds = [...(config.selectedMorphSkillIds ?? [])];
+
+  if (!distinctAmalgamMorphs(balanceContext.catalog, selectedMorphSkillIds))
+    throw new TypeError('Amalgam requires a distinct protocol in each equipped slot.');
+
   return {
     // IDs for the three selected Morph (F2/F3/F4) protocol skills.
-    selectedMorphSkillIds: [...(config.selectedMorphSkillIds || [])],
+    selectedMorphSkillIds,
     // Timestamp-until fields: each tracks when a strain/state buff expires.
     // Resolved by comparing event.at against the stored value.
     evolvedUntil: 0, // set by Evolve

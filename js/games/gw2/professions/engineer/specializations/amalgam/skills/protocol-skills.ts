@@ -1,7 +1,4 @@
-/**
- * Owns Amalgam offensive and defensive protocol skill definitions across mechanic slots.
- * Evolved-state actions and persistent morph behavior live in their named owners.
- */
+/** Each protocol has one skill definition and three in-game button IDs. */
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -20,7 +17,10 @@ const DEMOLISH_SPIN_TICKS = Object.freeze([
 const DEMOLISH_SMASH_AT_MS = 1440;
 
 // Declare each protocol once; its three catalog entries differ only in mechanic slot.
-const shred: Partial<SkillDefinition<AmalgamSkill>> = {
+const shred: SkillDefinition<AmalgamSkill> = {
+  name: 'Offensive Protocol: Shred',
+  icon: 'https://render.guildwars2.com/file/09A6184ADE9313765B0620780A27B23F4DF31D1A/3680134.png',
+  tuningSkillId: ID.OFFENSIVE_PROTOCOL_SHRED,
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 760,
@@ -82,7 +82,10 @@ const shred: Partial<SkillDefinition<AmalgamSkill>> = {
   ]
 };
 
-const thorns: Partial<SkillDefinition<AmalgamSkill>> = {
+const thorns: SkillDefinition<AmalgamSkill> = {
+  name: 'Defensive Protocol: Thorns',
+  icon: 'https://render.guildwars2.com/file/5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png',
+  tuningSkillId: ID.DEFENSIVE_PROTOCOL_THORNS,
   // The intrinsic field-gated retaliation is scheduled once; Morph trait rewards remain shared.
   maximumStacks: 6,
   retaliationInterval: 1,
@@ -92,6 +95,8 @@ const thorns: Partial<SkillDefinition<AmalgamSkill>> = {
 
   castTimeMs: 0,
   morphKind: 'thorns',
+  rapaciousDuration: 8,
+  rapaciousInternalCooldown: 0.52,
   effects: [
     {
       type: 'strike',
@@ -122,7 +127,10 @@ const thorns: Partial<SkillDefinition<AmalgamSkill>> = {
   ]
 };
 
-const demolish: Partial<SkillDefinition<AmalgamSkill>> = {
+const demolish: SkillDefinition<AmalgamSkill> = {
+  name: 'Offensive Protocol: Demolish',
+  icon: 'https://render.guildwars2.com/file/337E150FB638D080A5A845A73D06B3E3ED7494C7/3680128.png',
+  tuningSkillId: ID.OFFENSIVE_PROTOCOL_DEMOLISH,
   countsAsToolbeltSkill: true,
   cooldown: 20,
   // Recharge starts when the logged spin cast ends; the combined animation still includes the follow-up smash.
@@ -184,7 +192,10 @@ const demolish: Partial<SkillDefinition<AmalgamSkill>> = {
   ]
 };
 
-const obliterate: Partial<SkillDefinition<AmalgamSkill>> = {
+const obliterate: SkillDefinition<AmalgamSkill> = {
+  name: 'Offensive Protocol: Obliterate',
+  icon: 'https://render.guildwars2.com/file/569A167830C12BFC730095C72F1D095A7323DC3D/3680130.png',
+  tuningSkillId: ID.OFFENSIVE_PROTOCOL_OBLITERATE,
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 800,
@@ -193,6 +204,7 @@ const obliterate: Partial<SkillDefinition<AmalgamSkill>> = {
   retainsCastLockoutAfterInterrupt: true,
   // Share one impact timing while preserving independent payloads and declaration order.
   morphKind: 'obliterate',
+  titanicAttributePerStack: 5,
   effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
     {
       type: 'strike',
@@ -231,7 +243,10 @@ const obliterate: Partial<SkillDefinition<AmalgamSkill>> = {
   ]
 };
 
-const cleanse: Partial<SkillDefinition<AmalgamSkill>> = {
+const cleanse: SkillDefinition<AmalgamSkill> = {
+  name: 'Defensive Protocol: Cleanse',
+  icon: 'https://render.guildwars2.com/file/71A2EA9B60E691E61521C2B621E665146BF1D1DD/3680127.png',
+  tuningSkillId: ID.DEFENSIVE_PROTOCOL_CLEANSE,
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 0,
@@ -265,7 +280,10 @@ const cleanse: Partial<SkillDefinition<AmalgamSkill>> = {
   ]
 };
 
-const pierce: Partial<SkillDefinition<AmalgamSkill>> = {
+const pierce: SkillDefinition<AmalgamSkill> = {
+  name: 'Offensive Protocol: Pierce',
+  icon: 'https://render.guildwars2.com/file/6C253CBFD36ABEB219013B62C4C73193C947ED60/3680131.png',
+  tuningSkillId: ID.OFFENSIVE_PROTOCOL_PIERCE,
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 680,
@@ -306,7 +324,10 @@ const pierce: Partial<SkillDefinition<AmalgamSkill>> = {
   ]
 };
 
-const protect: Partial<SkillDefinition<AmalgamSkill>> = {
+const protect: SkillDefinition<AmalgamSkill> = {
+  name: 'Defensive Protocol: Protect',
+  icon: 'https://render.guildwars2.com/file/C043950F01DF7093BA14ACCCF67D1A16F245EAA8/3680132.png',
+  tuningSkillId: ID.DEFENSIVE_PROTOCOL_PROTECT,
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 1000,
@@ -333,204 +354,53 @@ const protect: Partial<SkillDefinition<AmalgamSkill>> = {
   ]
 };
 
-/**
- * Keep Morph activation on every slot, but expose shared strain tuning only on its owner.
- * Thorns and Obliterate still grant their strain through `amalgamStrainOwnerId`;
- * removing the duplicate payload prevents patches from targeting unused slot-local data.
- */
-function withoutStrainPayload(skill: Partial<SkillDefinition<AmalgamSkill>>): Partial<SkillDefinition<AmalgamSkill>> {
-  return {
-    ...skill,
-    sideEffects: skill.sideEffects?.map((rule) =>
-      'id' in rule.do && rule.do.id === 'strain' ? { ...rule, do: { type: 'engineer.morph' } } : rule
-    )
-  };
+/** Keep the button IDs used by builds and logs while sharing all protocol mechanics and patch edits. */
+function protocolSlots(
+  skill: SkillDefinition<AmalgamSkill>,
+  ids: readonly [number, number, number]
+): Record<number, SkillDefinition<AmalgamSkill>> {
+  return Object.fromEntries(
+    ids.map((id, index) => {
+      const mechanicSlot = index + 2;
+      return [id, { ...skill, type: 'Profession', slot: `Profession_${mechanicSlot}`, mechanicSlot }];
+    })
+  );
 }
 
-// Each protocol lists its in-game F2, F3, and F4 identities in slot order.
 export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<AmalgamSkill>>> = {
-  // Offensive: Shred (Predator Strain).
-  [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103]: {
-    name: 'Offensive Protocol: Shred',
-    icon: 'https://render.guildwars2.com/file/09A6184ADE9313765B0620780A27B23F4DF31D1A/3680134.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    ...shred,
-    mechanicSlot: 2
-  },
-  [ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866]: {
-    name: 'Offensive Protocol: Shred',
-    icon: 'https://render.guildwars2.com/file/09A6184ADE9313765B0620780A27B23F4DF31D1A/3680134.png',
-    type: 'Profession',
-    slot: 'Profession_3',
-    ...shred,
-    mechanicSlot: 3
-  },
-  [ID.OFFENSIVE_PROTOCOL_SHRED]: {
-    name: 'Offensive Protocol: Shred',
-    icon: 'https://render.guildwars2.com/file/09A6184ADE9313765B0620780A27B23F4DF31D1A/3680134.png',
-    type: 'Profession',
-    slot: 'Profession_4',
-    ...shred,
-    mechanicSlot: 4
-  },
-
-  // Offensive: Demolish (Berserker Strain).
-  [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927]: {
-    name: 'Offensive Protocol: Demolish',
-    icon: 'https://render.guildwars2.com/file/337E150FB638D080A5A845A73D06B3E3ED7494C7/3680128.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    ...demolish,
-    mechanicSlot: 2
-  },
-  [ID.OFFENSIVE_PROTOCOL_DEMOLISH]: {
-    name: 'Offensive Protocol: Demolish',
-    icon: 'https://render.guildwars2.com/file/337E150FB638D080A5A845A73D06B3E3ED7494C7/3680128.png',
-    type: 'Profession',
-    slot: 'Profession_3',
-    ...demolish,
-    mechanicSlot: 3
-  },
-  [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954]: {
-    name: 'Offensive Protocol: Demolish',
-    icon: 'https://render.guildwars2.com/file/337E150FB638D080A5A845A73D06B3E3ED7494C7/3680128.png',
-    type: 'Profession',
-    slot: 'Profession_4',
-    ...demolish,
-    mechanicSlot: 4
-  },
-
-  // Offensive: Obliterate. The F4 entry owns shared Titanic Strain tuning.
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806]: {
-    name: 'Offensive Protocol: Obliterate',
-    icon: 'https://render.guildwars2.com/file/569A167830C12BFC730095C72F1D095A7323DC3D/3680130.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    ...withoutStrainPayload(obliterate),
-    mechanicSlot: 2
-  },
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901]: {
-    name: 'Offensive Protocol: Obliterate',
-    icon: 'https://render.guildwars2.com/file/569A167830C12BFC730095C72F1D095A7323DC3D/3680130.png',
-    type: 'Profession',
-    slot: 'Profession_3',
-    ...withoutStrainPayload(obliterate),
-    mechanicSlot: 3
-  },
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: {
-    name: 'Offensive Protocol: Obliterate',
-    icon: 'https://render.guildwars2.com/file/569A167830C12BFC730095C72F1D095A7323DC3D/3680130.png',
-    type: 'Profession',
-    slot: 'Profession_4',
-    ...obliterate,
-    titanicAttributePerStack: 5,
-    mechanicSlot: 4
-  },
-
-  // Offensive: Pierce (Volatile Strain).
-  [ID.OFFENSIVE_PROTOCOL_PIERCE]: {
-    name: 'Offensive Protocol: Pierce',
-    icon: 'https://render.guildwars2.com/file/6C253CBFD36ABEB219013B62C4C73193C947ED60/3680131.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    ...pierce,
-    mechanicSlot: 2
-  },
-  [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77005]: {
-    name: 'Offensive Protocol: Pierce',
-    icon: 'https://render.guildwars2.com/file/6C253CBFD36ABEB219013B62C4C73193C947ED60/3680131.png',
-    type: 'Profession',
-    slot: 'Profession_3',
-    ...pierce,
-    mechanicSlot: 3
-  },
-  [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77015]: {
-    name: 'Offensive Protocol: Pierce',
-    icon: 'https://render.guildwars2.com/file/6C253CBFD36ABEB219013B62C4C73193C947ED60/3680131.png',
-    type: 'Profession',
-    slot: 'Profession_4',
-    ...pierce,
-    mechanicSlot: 4
-  },
-
-  // Defensive: Thorns. The F4 entry owns shared Rapacious Strain tuning.
-  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163]: {
-    name: 'Defensive Protocol: Thorns',
-    icon: 'https://render.guildwars2.com/file/5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    ...withoutStrainPayload(thorns),
-    mechanicSlot: 2
-  },
-  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104]: {
-    name: 'Defensive Protocol: Thorns',
-    icon: 'https://render.guildwars2.com/file/5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png',
-    type: 'Profession',
-    slot: 'Profession_3',
-    ...withoutStrainPayload(thorns),
-    mechanicSlot: 3
-  },
-  [ID.DEFENSIVE_PROTOCOL_THORNS]: {
-    name: 'Defensive Protocol: Thorns',
-    icon: 'https://render.guildwars2.com/file/5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png',
-    type: 'Profession',
-    slot: 'Profession_4',
-    ...thorns,
-    rapaciousDuration: 8,
-    rapaciousInternalCooldown: 0.52,
-    mechanicSlot: 4
-  },
-
-  // Defensive: Cleanse (Replicating Strain).
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_76798]: {
-    name: 'Defensive Protocol: Cleanse',
-    icon: 'https://render.guildwars2.com/file/71A2EA9B60E691E61521C2B621E665146BF1D1DD/3680127.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    ...cleanse,
-    mechanicSlot: 2
-  },
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_77285]: {
-    name: 'Defensive Protocol: Cleanse',
-    icon: 'https://render.guildwars2.com/file/71A2EA9B60E691E61521C2B621E665146BF1D1DD/3680127.png',
-    type: 'Profession',
-    slot: 'Profession_3',
-    ...cleanse,
-    mechanicSlot: 3
-  },
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE]: {
-    name: 'Defensive Protocol: Cleanse',
-    icon: 'https://render.guildwars2.com/file/71A2EA9B60E691E61521C2B621E665146BF1D1DD/3680127.png',
-    type: 'Profession',
-    slot: 'Profession_4',
-    ...cleanse,
-    mechanicSlot: 4
-  },
-
-  // Defensive: Protect (Resiliant Strain).
-  [ID.DEFENSIVE_PROTOCOL_PROTECT]: {
-    name: 'Defensive Protocol: Protect',
-    icon: 'https://render.guildwars2.com/file/C043950F01DF7093BA14ACCCF67D1A16F245EAA8/3680132.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    ...protect,
-    mechanicSlot: 2
-  },
-  [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77203]: {
-    name: 'Defensive Protocol: Protect',
-    icon: 'https://render.guildwars2.com/file/C043950F01DF7093BA14ACCCF67D1A16F245EAA8/3680132.png',
-    type: 'Profession',
-    slot: 'Profession_3',
-    ...protect,
-    mechanicSlot: 3
-  },
-  [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77358]: {
-    name: 'Defensive Protocol: Protect',
-    icon: 'https://render.guildwars2.com/file/C043950F01DF7093BA14ACCCF67D1A16F245EAA8/3680132.png',
-    type: 'Profession',
-    slot: 'Profession_4',
-    ...protect,
-    mechanicSlot: 4
-  }
+  ...protocolSlots(shred, [
+    ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103,
+    ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866,
+    ID.OFFENSIVE_PROTOCOL_SHRED
+  ]),
+  ...protocolSlots(demolish, [
+    ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927,
+    ID.OFFENSIVE_PROTOCOL_DEMOLISH,
+    ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954
+  ]),
+  ...protocolSlots(obliterate, [
+    ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806,
+    ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901,
+    ID.OFFENSIVE_PROTOCOL_OBLITERATE
+  ]),
+  ...protocolSlots(pierce, [
+    ID.OFFENSIVE_PROTOCOL_PIERCE,
+    ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77005,
+    ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77015
+  ]),
+  ...protocolSlots(thorns, [
+    ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163,
+    ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104,
+    ID.DEFENSIVE_PROTOCOL_THORNS
+  ]),
+  ...protocolSlots(cleanse, [
+    ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_76798,
+    ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_77285,
+    ID.DEFENSIVE_PROTOCOL_CLEANSE
+  ]),
+  ...protocolSlots(protect, [
+    ID.DEFENSIVE_PROTOCOL_PROTECT,
+    ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77203,
+    ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77358
+  ])
 };

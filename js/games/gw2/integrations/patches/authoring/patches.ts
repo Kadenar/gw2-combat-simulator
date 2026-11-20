@@ -870,16 +870,32 @@ export function applySkillPatch(
       throw new TypeError(`${catalogPatchLabel(catalog)} Patch references unknown skill ${key}.`);
     }
 
+    if (skill.tuningSkillId != null) {
+      if (skill.tuningSkillId !== skill.id)
+        throw new TypeError(
+          `${catalogPatchLabel(catalog)} Skill key ${key} identifies a slot for ${skill.name}. Use shared tuning ID ${skill.tuningSkillId}.`
+        );
+
+      if (edit.placement != null)
+        throw new TypeError(
+          `${catalogPatchLabel(catalog)} Cannot change the placement of slotted skill ${skill.name}.`
+        );
+    }
+
     if (replacements.has(skill)) {
       throw new TypeError(`Patch edits skill ${skill.name} more than once.`);
     }
 
-    replacements.set(skill, patchSkill(skill, edit, catalogPatchLabel(catalog), normalizer));
+    // Preserve each button's identity in both indexes while applying the owner's edit to its whole group.
+    const targets =
+      skill.tuningSkillId == null ? [skill] : catalog.skills.filter((entry) => entry.tuningSkillId === skill.id);
+    for (const target of targets)
+      replacements.set(target, patchSkill(target, edit, catalogPatchLabel(catalog), normalizer));
   }
 
   if (!replacements.size) return catalog;
 
-  const replacementFor = (skill: Skill): Skill => replacements.get(skill) || skill;
+  const replacementFor = (skill: Skill): Skill => replacements.get(skill) ?? skill;
   const skills = Object.freeze(catalog.skills.map(replacementFor));
   const skillsById = new Map([...catalog.skillsById].map(([id, skill]) => [id, replacementFor(skill)]));
   const result = Object.freeze({

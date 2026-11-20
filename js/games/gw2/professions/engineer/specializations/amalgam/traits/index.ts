@@ -31,8 +31,8 @@ import {
   type AmalgamMorph
 } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
+import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/mechanics/strains.js';
 import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
-import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 import type {

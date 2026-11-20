@@ -1,10 +1,6 @@
-import { BOON } from '#gw2/platform/constants.js';
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
-import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { TRAIT_LINES } from '#gw2/professions/engineer/data/trait-lines.js';
 import {
   AMALGAM_PROFILE_FIELDS,
@@ -12,6 +8,7 @@ import {
 } from '#gw2/professions/engineer/specializations/amalgam/catalog-fields.js';
 import { amalgamHooks } from '#gw2/professions/engineer/specializations/amalgam/hooks.js';
 import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
+import { titanicStrainBonus } from '#gw2/professions/engineer/specializations/amalgam/mechanics/strains.js';
 import { bindAmalgamUi } from '#gw2/professions/engineer/specializations/amalgam/presentation.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
 import { amalgamState, projectAmalgamPlanningState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
@@ -49,13 +46,7 @@ export const amalgamModule = defineNativeModule({
   attributes: (context) => {
     const evolved = activeAmalgamState(context, 'evolvedUntil');
     const factor = evolved ? evolveAttributeBonus(context) : 0;
-    const titanic = activeAmalgamState(context, 'titanicUntil')
-      ? activeBoonStacks(context, BOON.MIGHT) *
-        skillNumber(
-          requireSkill(context.balanceContext.catalog, ID.OFFENSIVE_PROTOCOL_OBLITERATE),
-          'titanicAttributePerStack'
-        )
-      : 0;
+    const titanic = titanicStrainBonus(context);
     return [
       {
         attributeEffects: [

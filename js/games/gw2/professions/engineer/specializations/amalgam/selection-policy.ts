@@ -42,16 +42,19 @@ export function amalgamProtocolOptions<S extends AmalgamSkill>(
     );
 }
 
-/** Canonical loadouts contain three distinct kinds, one legal identity for each profession slot. */
-export function validAmalgamMorphs(catalog: MorphCatalog, value: unknown): value is number[] {
-  if (!Array.isArray(value) || value.length !== 3) return false;
-
-  const skills = value.map((id) => catalog.skillsById.get(id));
+/** Headless scenarios can equip fewer protocols. Each equipped skill still needs a distinct kind and slot. */
+export function distinctAmalgamMorphs(catalog: Pick<MorphCatalog, 'skillsById'>, ids: readonly number[]): boolean {
+  const skills = ids.map((id) => catalog.skillsById.get(id));
   return (
     skills.every((skill) => legalMorph(skill)) &&
-    new Set(skills.map((skill: AmalgamSkill) => Number(skill.mechanicSlot))).size === 3 &&
-    new Set(skills.map((skill) => skill.morphKind)).size === 3
+    new Set(skills.map((skill: AmalgamSkill) => skill.mechanicSlot)).size === ids.length &&
+    new Set(skills.map((skill) => skill.morphKind)).size === ids.length
   );
+}
+
+/** A saved loadout fills all three protocol slots. */
+export function validAmalgamMorphs(catalog: MorphCatalog, value: unknown): value is number[] {
+  return Array.isArray(value) && value.length === 3 && distinctAmalgamMorphs(catalog, value);
 }
 
 /** Retain legal saved choices before filling vacant slots, comparing kinds rather than labels. */

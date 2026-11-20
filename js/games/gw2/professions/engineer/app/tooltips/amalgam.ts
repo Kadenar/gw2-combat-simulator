@@ -19,10 +19,10 @@ import {
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import type { SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
+import type { TooltipFact } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { AMALGAM_PROTOCOL_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
-import { amalgamStrainOwnerId } from '#gw2/professions/engineer/specializations/amalgam/skills/strain-owner.js';
 import type { AmalgamMorphKind, AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 
 // Describe each protocol's purpose; section headings name the strain so individual facts need not repeat it.
@@ -57,12 +57,10 @@ function protocolFacts(effects: readonly SkillEffect[] = []): readonly TooltipFa
   });
 }
 
-/** Section context owns the strain's name and trigger; numeric facts still read its simulation owner. */
-function strainFacts(balanceContext: ProfessionBalanceContext, skillId: SkillId): readonly TooltipFact[] {
-  const selected: AmalgamSkill = balanceContext.catalog.skillsById.get(skillId)!;
-  const kind = selected.morphKind;
-  skillId = amalgamStrainOwnerId(selected);
-  const skill = balanceContext.catalog.skillsById.get(skillId)!;
+/** Read strain effects and numeric facts from the protocol that owns their tuning. */
+function strainFacts(balanceContext: ProfessionBalanceContext, button: AmalgamSkill): readonly TooltipFact[] {
+  const skill: AmalgamSkill = requireSkill(balanceContext.catalog, button.tuningSkillId ?? button.id);
+  const kind = skill.morphKind;
   const effects = requireSkillAction(skill, 'strain').effects;
   const facts = protocolFacts(effects).map((fact) => ({
     ...fact,
@@ -71,15 +69,15 @@ function strainFacts(balanceContext: ProfessionBalanceContext, skillId: SkillId)
 
   if (kind === 'thorns')
     facts.push(
-      skillFact(balanceContext, skillId, 'rapaciousDuration', 'Duration', tooltipSeconds),
-      skillFact(balanceContext, skillId, 'rapaciousInternalCooldown', 'Internal cooldown', tooltipSeconds)
+      skillFact(balanceContext, skill.id, 'rapaciousDuration', 'Duration', tooltipSeconds),
+      skillFact(balanceContext, skill.id, 'rapaciousInternalCooldown', 'Internal cooldown', tooltipSeconds)
     );
 
   if (kind === 'obliterate')
     facts.push(
       skillFact(
         balanceContext,
-        skillId,
+        skill.id,
         'titanicAttributePerStack',
         'Power and Condition Damage per Might stack',
         (value) => `${value > 0 ? '+' : ''}${tooltipDecimal(value)}`
@@ -124,7 +122,7 @@ const amalgamMorphTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
             : kind === 'obliterate'
               ? `${strainDescription} Might grants extra attributes while the strain lasts.`
               : strainDescription,
-        facts: strainFacts(balanceContext, selected.id)
+        facts: strainFacts(balanceContext, selected)
       }
     ]
   };
