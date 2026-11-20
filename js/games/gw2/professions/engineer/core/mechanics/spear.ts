@@ -336,7 +336,7 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
           stacks: vulnerabilityStacks,
           duration: Number(vulnerability.duration),
           // Artillery's Vulnerability does not scale with condition duration.
-          metadata: { fixedDuration: true }
+          fixedDuration: true
         }),
         settlement: 'reaction'
       });

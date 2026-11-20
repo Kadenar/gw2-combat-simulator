@@ -354,12 +354,13 @@ test('Chemical Rounds extends every pistol condition beyond the condition-durati
   }
 });
 
-test('Incendiary Powder tracks player and mech cooldowns independently', () => {
+// Player grenades and Jade Cannons mech attacks both trigger Incendiary Powder.
+function simulateMechanistTraitConditions() {
   const result = simulate('Mechanist', ['Grenade Kit', 'Grenade', { type: 'wait', durationMs: 2500 }], {
     selectedSkillIds: [63049, 5805, 6161, 5933, 63095],
     selectedTraitIds: [
       TRAIT.INCENDIARY_POWDER,
-      TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
+      TRAIT.MECH_ARMS_JADE_CANNONS,
       TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
       TRAIT.MECH_CORE_JADE_DYNAMO
     ],
@@ -367,14 +368,33 @@ test('Incendiary Powder tracks player and mech cooldowns independently', () => {
     target: { conditions: {} }
   });
   const burning = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.condition === 'Burning' && event.skillName === 'Incendiary Powder'
+    (event) => event.type === 'condition' && event.condition === 'Burning' && event.sourceId === TRAIT.INCENDIARY_POWDER
   );
+  return { result, burning };
+}
 
-  assert.deepEqual(
-    burning.map((event) => event.actorType),
-    ['effect', 'summon']
-  );
+test('Incendiary Powder tracks player and mech cooldowns independently', () => {
+  const { burning } = simulateMechanistTraitConditions();
+
+  // The same trait credits the player and the mech separately when both trigger it.
+  assert.deepEqual(burning.map((event) => event.actorType).sort(), ['effect', 'summon']);
   assert.ok(burning.every((event) => Math.abs(event.naturalExpiresAt - event.at - 10.64) < 1e-12));
+});
+
+test('Mechanist assigns mech ownership only to mech trait conditions', () => {
+  const { result, burning } = simulateMechanistTraitConditions();
+  const playerBurn = burning.find((event) => event.actorType === 'effect');
+  const mechBurn = burning.find((event) => event.actorType === 'summon');
+  assert.equal(playerBurn?.ownerActorType, 'player');
+  assert.equal(playerBurn.summonOwner, undefined);
+  const vulnerability = result.resolvedEvents.find(
+    (event) => event.type === 'condition' && event.sourceId === TRAIT.MECH_ARMS_JADE_CANNONS
+  );
+  for (const application of [mechBurn, vulnerability]) {
+    assert.equal(application?.summonOwner, 'engineer.mech');
+    assert.equal(application.independentConditionOwner, true);
+    assert.equal(application.summonInheritsAttributes, true);
+  }
 });
 
 // Optimized Activation responds to skills that occupy a tool-belt slot.

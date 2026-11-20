@@ -519,7 +519,7 @@ type FirearmsConditionOwner =
   | { readonly actorType: typeof ACTOR.EFFECT; readonly ownerActorType: typeof ACTOR.PLAYER }
   | { readonly actorType: typeof ACTOR.SUMMON; readonly metadata: { readonly engineerMech: true } };
 
-/** Share trait tuning and emission order while callers explicitly retain player or companion ownership. */
+/** The trait identifies the triggering actor so Mechanist can assign ownership to mech conditions. */
 function emitFirearmsCondition(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
@@ -545,24 +545,14 @@ function emitFirearmsCondition(
       skillName: name,
       ...owner,
       offTarget: event.offTarget,
-      triggeredBy: event.skillName,
-      metadata: {
-        ...(owner.actorType === ACTOR.SUMMON ? { engineerMech: true } : {})
-      }
+      triggeredBy: event.skillName
     },
     transform: (packet) => ({
       ...packet,
       applicationIndex: undefined,
       totalApplications: undefined,
       name: name + ' - ' + packet.condition,
-      stacks: Number(packet.stacks) * quantity,
-      ...(owner.actorType === ACTOR.SUMMON
-        ? {
-            summonOwner: event.summonOwner,
-            independentConditionOwner: event.independentConditionOwner,
-            summonInheritsAttributes: true
-          }
-        : {})
+      stacks: Number(packet.stacks) * quantity
     })
   });
   context.effects.emit({

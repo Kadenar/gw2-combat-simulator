@@ -274,10 +274,7 @@ function applySingleEdgeCutters(context: EngineerRuntime, { cause: event }: Mech
       totalApplications: undefined,
       name: 'Mech Arms: Single-Edge Cutters' + ' - ' + packet.condition,
       stacks: Number(packet.stacks),
-      duration: Number(packet.duration),
-      summonOwner: event.summonOwner,
-      independentConditionOwner: event.independentConditionOwner,
-      summonInheritsAttributes: true
+      duration: Number(packet.duration)
     })
   });
 
@@ -367,10 +364,7 @@ function applyJadeCannonsVulnerability(context: EngineerRuntime, { cause: event 
         totalApplications: undefined,
         name: 'Mech Arms: Jade Cannons' + ' - ' + packet.condition,
         stacks: Number(vulnerability.stacks),
-        duration: Number(vulnerability.duration),
-        summonOwner: event.summonOwner,
-        independentConditionOwner: event.independentConditionOwner,
-        summonInheritsAttributes: true
+        duration: Number(vulnerability.duration)
       })
     });
 }

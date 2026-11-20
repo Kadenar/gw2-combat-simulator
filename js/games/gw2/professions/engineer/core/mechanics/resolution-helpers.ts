@@ -31,13 +31,11 @@ interface ApplyConditionOptions {
   readonly condition: string;
   readonly stacks: number;
   readonly duration: number;
-  readonly actorType?: SimulationActorType;
+  /** Summon conditions receive companion ownership from their specialization, so this builder excludes them. */
+  readonly actorType?: typeof ACTOR.PLAYER | typeof ACTOR.EFFECT;
   readonly ownerActorType?: SimulationActorType;
-  /** Derived conditions retain fixed-duration behavior and nested companion ownership metadata. */
-  readonly metadata?: {
-    readonly fixedDuration?: boolean;
-    readonly engineerMech?: boolean;
-  };
+  /** Some derived conditions ignore condition duration. */
+  readonly fixedDuration?: boolean;
 }
 
 /** Resolves an event's skill ID to Engineer-specific catalog metadata. */
@@ -99,12 +97,12 @@ export function buildEngineerStrike(
   });
 }
 
-/** Builds a fresh condition while preserving explicit companion ownership and rejecting inherited hit annotations. */
+/** Builds a fresh player or effect condition without inheriting the triggering hit's annotations. */
 export function buildEngineerCondition(
   event: EngineerResolverEvent,
-  { name, condition, stacks, duration, actorType = ACTOR.PLAYER, ownerActorType, metadata = {} }: ApplyConditionOptions
+  { name, condition, stacks, duration, actorType = ACTOR.PLAYER, ownerActorType, fixedDuration }: ApplyConditionOptions
 ): SimulationEventBase {
-  const application = buildResolverCondition({
+  return buildResolverCondition({
     at: event.at,
 
     skillName: name,
@@ -116,21 +114,11 @@ export function buildEngineerCondition(
     sourceId: event.skillId ?? event.sourceId,
     actorType,
     offTarget: event.offTarget,
-    // Derived summon conditions retain the triggering companion's concrete identity.
-    ...(actorType === ACTOR.SUMMON
-      ? { summonOwner: event.summonOwner, independentConditionOwner: event.independentConditionOwner }
-      : {}),
     // Effect-owned conditions can inherit player modifiers without becoming player actors for proc eligibility.
     ...(ownerActorType == null ? {} : { ownerActorType }),
     triggeredBy: event.skillName,
-    ...(metadata.fixedDuration == null ? {} : { fixedDuration: metadata.fixedDuration }),
-    // Companion identity must remain in event metadata so derived conditions use the mech's attributes.
-    metadata: {
-      ...(metadata.engineerMech == null ? {} : { engineerMech: metadata.engineerMech })
-    },
-    ...(actorType === ACTOR.SUMMON && metadata.engineerMech ? { summonInheritsAttributes: true } : {})
+    ...(fixedDuration == null ? {} : { fixedDuration })
   });
-  return application;
 }
 
 /** Read player boon stacks at the explicit event time, including permanent and accepted timed grants. */

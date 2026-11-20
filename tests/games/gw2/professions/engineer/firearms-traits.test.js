@@ -54,13 +54,7 @@ function fixture(traits, catalog = engineerCatalog, mode = 'stochastic') {
       skillName: 'Trigger',
       coefficient: 1,
       actorType: actor === 'mech' ? 'summon' : actor,
-      ...(actor === 'mech'
-        ? {
-            metadata: { engineerMech: true },
-            summonOwner: 'engineer.mech',
-            independentConditionOwner: true
-          }
-        : {}),
+      ...(actor === 'mech' ? { metadata: { engineerMech: true } } : {}),
       ...overrides
     };
     for (const react of reactions) react(context, event, details);
@@ -105,8 +99,8 @@ test('Incendiary Powder cooldowns remain independent and follow the selected pro
   assert.equal(hit('mech', 5.1).length, 1);
 });
 
-// Shared emissions retain profile values and actor ownership without inheriting hit annotations.
-test('Firearms emissions retain player and concrete mech ownership and announcement order', () => {
+// Trait emissions identify the actor before Mechanist prepares the condition.
+test('Firearms emissions identify the triggering actor and precede their announcements', () => {
   for (const [trait, name, condition] of [
     [TRAIT.SERRATED_STEEL, 'Serrated Steel', 'Bleeding'],
     [TRAIT.INCENDIARY_POWDER, 'Incendiary Powder', 'Burning']
@@ -124,8 +118,6 @@ test('Firearms emissions retain player and concrete mech ownership and announcem
       assert.equal(packet.duration, 7);
       assert.equal(packet.actorType, actor === 'player' ? 'effect' : 'summon');
       assert.equal(packet.ownerActorType, actor === 'player' ? 'player' : undefined);
-      assert.equal(packet.summonOwner, actor === 'mech' ? 'engineer.mech' : undefined);
-      assert.equal(packet.independentConditionOwner, actor === 'mech' ? true : undefined);
       assert.equal(packet.metadata?.engineerMech, actor === 'mech' ? true : undefined);
       // Multiple stacks still represent one accepted player or mech proc.
       assert.ok(packet.procActivation);
