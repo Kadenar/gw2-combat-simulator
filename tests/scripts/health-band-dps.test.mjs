@@ -53,6 +53,7 @@ test('optimizer snapshots match Analysis benchmark cumulative DPS without changi
 test('health-band DPS reports both cumulative and phase-local averages', () => {
   const result = {
     dpsStartTime: 10,
+    dpsWindow: 14,
     deathTime: 24,
     totalDamage: 1000,
     resolvedEvents: [12, 16, 18, 22, 24].map((at) => ({ type: 'damage', at, damage: 200 }))
@@ -71,16 +72,13 @@ test('health-band DPS reports both cumulative and phase-local averages', () => {
     '40-20': 800 / 12,
     '20-0': 1000 / 14
   });
-  assert.deepEqual(targetHealthBandDps({ ...result, deathTime: null, dps: 72 }, 1000)['20-0'], {
-    cumulative: 72,
-    phase: 72
-  });
   assert.deepEqual(phases(targetHealthBandDps(result, 0)), empty);
 });
 
 test('environment damage advances health while only player strikes and condition ticks contribute to band DPS', () => {
   const result = {
     dpsStartTime: 0,
+    dpsWindow: 4,
     deathTime: null,
     totalDamage: 300,
     resolvedEvents: [
@@ -90,12 +88,18 @@ test('environment damage advances health while only player strikes and condition
     environmentConditionBreakdown: [{ damageTicks: [{ at: 2, damage: 100 }] }]
   };
   assert.deepEqual(phases(targetHealthBandDps(result, 1000)), { ...empty, '100-80': 50, '80-60': 100 });
-  assert.deepEqual(cumulative(targetHealthBandDps(result, 1000)), { ...empty, '100-80': 50, '80-60': 75 });
+  assert.deepEqual(cumulative(targetHealthBandDps(result, 1000)), {
+    ...empty,
+    '100-80': 50,
+    '80-60': 75,
+    '20-0': 75
+  });
 });
 
 test('unreached, skipped-start, and zero-duration bands remain unavailable', () => {
   const result = {
     dpsStartTime: 0,
+    dpsWindow: 6,
     deathTime: 6,
     totalDamage: 600,
     resolvedEvents: [2, 4, 6].map((at) => ({ type: 'damage', at, damage: 200 }))
@@ -108,6 +112,7 @@ test('unreached, skipped-start, and zero-duration bands remain unavailable', () 
   });
   const burst = {
     dpsStartTime: 0,
+    dpsWindow: 2,
     deathTime: null,
     totalDamage: 800,
     resolvedEvents: [
@@ -119,17 +124,29 @@ test('unreached, skipped-start, and zero-duration bands remain unavailable', () 
   assert.deepEqual(targetHealthBandDps(burst, 1000)['80-60'], { cumulative: 600, phase: null });
 });
 
-// A simulation end is a useful final comparison even when the target survived above its last health band.
-test('non-killing runs use final overall DPS for both final-band measurements', () => {
+// A surviving target's final band starts at its 20% crossing and ends with combat, never repeating overall DPS.
+test('non-killing runs measure the final band from the 20% crossing to combat end', () => {
   const result = {
     dpsStartTime: 0,
+    dpsWindow: 10,
+    deathTime: null,
+    totalDamage: 900,
+    resolvedEvents: [
+      { type: 'damage', at: 2, damage: 400 },
+      { type: 'damage', at: 6, damage: 400 },
+      { type: 'damage', at: 9, damage: 100 }
+    ]
+  };
+  assert.deepEqual(targetHealthBandDps(result, 1000)['20-0'], { cumulative: 90, phase: 25 });
+
+  const unreached = {
+    dpsStartTime: 0,
+    dpsWindow: 8,
     deathTime: null,
     totalDamage: 200,
-    dps: 25,
     resolvedEvents: [{ type: 'damage', at: 2, damage: 200 }]
   };
-  const metrics = targetHealthBandDps(result, 1000);
-  assert.deepEqual(metrics['20-0'], { cumulative: 25, phase: 25 });
+  const metrics = targetHealthBandDps(unreached, 1000);
+  assert.deepEqual(metrics['20-0'], { cumulative: 25, phase: null });
   assert.deepEqual(metrics['80-60'], { cumulative: null, phase: null });
-  assert.deepEqual(targetHealthBandDps({ ...result, dps: 0 }, 1000)['20-0'], { cumulative: 0, phase: 0 });
 });

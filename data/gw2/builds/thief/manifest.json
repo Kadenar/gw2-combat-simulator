@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/thief/b-power-deadeye-axe-pistol-dagger-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-deadeye-axe-pistol-dagger-pistol-bench.json",
         "benchmarkDps": 44574,
-        "upToDate": false,
+        "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-deadeye-axe-pistol-dagger",
         "benchmarkApm": 90.6,
         "benchmarkDpsByHealth": {
@@ -46,7 +46,7 @@
           "80-60": { "cumulative": 40918, "phase": 39904 },
           "60-40": { "cumulative": 41812, "phase": 43736 },
           "40-20": { "cumulative": 42724, "phase": 45551 },
-          "20-0": { "cumulative": 44018, "phase": 44018 }
+          "20-0": { "cumulative": 44018, "phase": 50825 }
         },
         "benchmarkApm": 96.1
       },
@@ -55,7 +55,7 @@
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-axe-pistol-dagger-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-axe-pistol-dagger-pistol-bench.json",
         "benchmarkDps": 41199,
-        "upToDate": false,
+        "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-axe-pistol-dagger",
         "benchmarkApm": 88.9,
         "benchmarkDpsByHealth": {
@@ -180,7 +180,7 @@
           "80-60": { "cumulative": 39356, "phase": 40703 },
           "60-40": { "cumulative": 39079, "phase": 38513 },
           "40-20": { "cumulative": 38953, "phase": 38585 },
-          "20-0": { "cumulative": 38993, "phase": 38993 }
+          "20-0": { "cumulative": 38993, "phase": 39168 }
         }
       },
       {
@@ -228,7 +228,7 @@
           "80-60": { "cumulative": 19461, "phase": 13800 },
           "60-40": { "cumulative": 22925, "phase": 35127 },
           "40-20": { "cumulative": 23640, "phase": 26119 },
-          "20-0": { "cumulative": 23714, "phase": 23714 }
+          "20-0": { "cumulative": 23714, "phase": 24105 }
         }
       }
     ]
@@ -249,7 +249,7 @@
           "80-60": { "cumulative": 36119, "phase": 35222 },
           "60-40": { "cumulative": 37156, "phase": 39322 },
           "40-20": { "cumulative": 36952, "phase": 36320 },
-          "20-0": { "cumulative": 36790, "phase": 36790 }
+          "20-0": { "cumulative": 36790, "phase": 36142 }
         }
       },
       {
@@ -265,7 +265,7 @@
           "80-60": { "cumulative": 36173, "phase": 36271 },
           "60-40": { "cumulative": 36269, "phase": 36461 },
           "40-20": { "cumulative": 35890, "phase": 34804 },
-          "20-0": { "cumulative": 35876, "phase": 35876 }
+          "20-0": { "cumulative": 35876, "phase": 35804 }
         }
       }
     ]
@@ -286,7 +286,7 @@
           "80-60": { "cumulative": 40458, "phase": 37516 },
           "60-40": { "cumulative": 40342, "phase": 40110 },
           "40-20": { "cumulative": 41221, "phase": 44151 },
-          "20-0": { "cumulative": 42043, "phase": 42043 }
+          "20-0": { "cumulative": 42043, "phase": 45874 }
         }
       },
       {
@@ -302,7 +302,7 @@
           "80-60": { "cumulative": 37610, "phase": 38471 },
           "60-40": { "cumulative": 37645, "phase": 37717 },
           "40-20": { "cumulative": 37615, "phase": 37524 },
-          "20-0": { "cumulative": 37676, "phase": 37676 }
+          "20-0": { "cumulative": 37676, "phase": 37940 }
         }
       }
     ]
@@ -322,7 +322,7 @@
           "80-60": { "cumulative": 37195, "phase": 37322 },
           "60-40": { "cumulative": 37255, "phase": 37376 },
           "40-20": { "cumulative": 37629, "phase": 38765 },
-          "20-0": { "cumulative": 37767, "phase": 37767 }
+          "20-0": { "cumulative": 37767, "phase": 38483 }
         }
       }
     ]

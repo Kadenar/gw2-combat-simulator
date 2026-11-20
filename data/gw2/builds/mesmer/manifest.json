@@ -31,7 +31,7 @@
           "80-60": { "cumulative": 41950, "phase": 36639 },
           "60-40": { "cumulative": 41010, "phase": 39234 },
           "40-20": { "cumulative": 42690, "phase": 48504 },
-          "20-0": { "cumulative": 42714, "phase": 42714 }
+          "20-0": { "cumulative": 42714, "phase": 42816 }
         }
       },
       {
@@ -47,7 +47,7 @@
           "80-60": { "cumulative": 39406, "phase": 36741 },
           "60-40": { "cumulative": 39797, "phase": 40640 },
           "40-20": { "cumulative": 40283, "phase": 41820 },
-          "20-0": { "cumulative": 41744, "phase": 41744 }
+          "20-0": { "cumulative": 41744, "phase": 56099 }
         }
       }
     ]
@@ -98,7 +98,7 @@
           "80-60": { "cumulative": 40931, "phase": 42075 },
           "60-40": { "cumulative": 40097, "phase": 38548 },
           "40-20": { "cumulative": 39803, "phase": 38919 },
-          "20-0": { "cumulative": 40463, "phase": 40463 }
+          "20-0": { "cumulative": 40463, "phase": 43622 }
         }
       }
     ]
@@ -156,7 +156,7 @@
           "80-60": { "cumulative": 39246, "phase": 36706 },
           "60-40": { "cumulative": 40690, "phase": 43888 },
           "40-20": { "cumulative": 39968, "phase": 37943 },
-          "20-0": { "cumulative": 41612, "phase": 41612 }
+          "20-0": { "cumulative": 41612, "phase": 50790 }
         }
       },
       {
@@ -171,7 +171,7 @@
           "80-60": { "cumulative": 30475, "phase": 31124 },
           "60-40": { "cumulative": 31067, "phase": 32319 },
           "40-20": { "cumulative": 31618, "phase": 33384 },
-          "20-0": { "cumulative": 32438, "phase": 32438 }
+          "20-0": { "cumulative": 32438, "phase": 36555 }
         },
         "benchmarkApm": 74.2
       },
@@ -187,7 +187,7 @@
           "80-60": { "cumulative": 31009, "phase": 30426 },
           "60-40": { "cumulative": 30997, "phase": 30974 },
           "40-20": { "cumulative": 31668, "phase": 33908 },
-          "20-0": { "cumulative": 31786, "phase": 31786 }
+          "20-0": { "cumulative": 31786, "phase": 32280 }
         },
         "benchmarkApm": 75.5
       }

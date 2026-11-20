@@ -15,7 +15,7 @@
           "80-60": { "cumulative": 41326, "phase": 35819 },
           "60-40": { "cumulative": 40124, "phase": 37873 },
           "40-20": { "cumulative": 41431, "phase": 45906 },
-          "20-0": { "cumulative": 42645, "phase": 42645 }
+          "20-0": { "cumulative": 42645, "phase": 49396 }
         }
       },
       {
@@ -31,7 +31,7 @@
           "80-60": { "cumulative": 40902, "phase": 35508 },
           "60-40": { "cumulative": 40352, "phase": 39310 },
           "40-20": { "cumulative": 41292, "phase": 44478 },
-          "20-0": { "cumulative": 42390, "phase": 42390 }
+          "20-0": { "cumulative": 42390, "phase": 47485 }
         }
       },
       {
@@ -47,7 +47,7 @@
           "80-60": { "cumulative": 43242, "phase": 42703 },
           "60-40": { "cumulative": 41229, "phase": 37745 },
           "40-20": { "cumulative": 41286, "phase": 41460 },
-          "20-0": { "cumulative": 42506, "phase": 42506 }
+          "20-0": { "cumulative": 42506, "phase": 51646 }
         }
       },
       {
@@ -63,7 +63,7 @@
           "80-60": { "cumulative": 41916, "phase": 41292 },
           "60-40": { "cumulative": 41648, "phase": 41139 },
           "40-20": { "cumulative": 41269, "phase": 40110 },
-          "20-0": { "cumulative": 42644, "phase": 42644 }
+          "20-0": { "cumulative": 42644, "phase": 49858 }
         }
       },
       {
@@ -115,7 +115,7 @@
           "80-60": { "cumulative": 43913, "phase": 42028 },
           "60-40": { "cumulative": 42130, "phase": 38988 },
           "40-20": { "cumulative": 42593, "phase": 44076 },
-          "20-0": { "cumulative": 42218, "phase": 42218 }
+          "20-0": { "cumulative": 42218, "phase": 40750 }
         }
       },
       {
@@ -211,7 +211,7 @@
           "80-60": { "cumulative": 28800, "phase": 26917 },
           "60-40": { "cumulative": 29439, "phase": 30802 },
           "40-20": { "cumulative": 29348, "phase": 29080 },
-          "20-0": { "cumulative": 29841, "phase": 29841 }
+          "20-0": { "cumulative": 29841, "phase": 32721 }
         }
       },
       {
@@ -227,7 +227,7 @@
           "80-60": { "cumulative": 40161, "phase": 46699 },
           "60-40": { "cumulative": 39982, "phase": 39625 },
           "40-20": { "cumulative": 39785, "phase": 39190 },
-          "20-0": { "cumulative": 40783, "phase": 40783 }
+          "20-0": { "cumulative": 40783, "phase": 45950 }
         }
       },
       {
@@ -243,7 +243,7 @@
           "80-60": { "cumulative": 40999, "phase": 43880 },
           "60-40": { "cumulative": 39842, "phase": 37659 },
           "40-20": { "cumulative": 39898, "phase": 40062 },
-          "20-0": { "cumulative": 39251, "phase": 39251 }
+          "20-0": { "cumulative": 39251, "phase": 36488 }
         }
       },
       {
@@ -259,7 +259,7 @@
           "80-60": { "cumulative": 31522, "phase": 32699 },
           "60-40": { "cumulative": 31944, "phase": 32805 },
           "40-20": { "cumulative": 31989, "phase": 32132 },
-          "20-0": { "cumulative": 31638, "phase": 31638 }
+          "20-0": { "cumulative": 31638, "phase": 30068 }
         }
       },
       {
@@ -275,7 +275,7 @@
           "80-60": { "cumulative": 31050, "phase": 34707 },
           "60-40": { "cumulative": 31610, "phase": 32802 },
           "40-20": { "cumulative": null, "phase": null },
-          "20-0": { "cumulative": 32576, "phase": 32576 }
+          "20-0": { "cumulative": 32576, "phase": null }
         }
       },
       {
@@ -321,7 +321,7 @@
           "80-60": { "cumulative": 34694, "phase": 36382 },
           "60-40": { "cumulative": 35432, "phase": 37048 },
           "40-20": { "cumulative": 35329, "phase": 35031 },
-          "20-0": { "cumulative": 35717, "phase": 35717 }
+          "20-0": { "cumulative": 35717, "phase": 37448 }
         }
       }
     ]
@@ -373,7 +373,7 @@
           "80-60": { "cumulative": 38149, "phase": 35918 },
           "60-40": { "cumulative": 39416, "phase": 42111 },
           "40-20": { "cumulative": 40852, "phase": 46141 },
-          "20-0": { "cumulative": 41391, "phase": 41391 }
+          "20-0": { "cumulative": 41391, "phase": 43778 }
         }
       },
       {
@@ -437,7 +437,7 @@
           "80-60": { "cumulative": 34616, "phase": 36985 },
           "60-40": { "cumulative": 35921, "phase": 38782 },
           "40-20": { "cumulative": 36972, "phase": 40678 },
-          "20-0": { "cumulative": 37673, "phase": 37673 }
+          "20-0": { "cumulative": 37673, "phase": 40820 }
         }
       },
       {
@@ -453,7 +453,7 @@
           "80-60": { "cumulative": 32631, "phase": 35540 },
           "60-40": { "cumulative": 33204, "phase": 34423 },
           "40-20": { "cumulative": 33593, "phase": 34811 },
-          "20-0": { "cumulative": 33250, "phase": 33250 }
+          "20-0": { "cumulative": 33250, "phase": 31284 }
         }
       },
       {
@@ -469,7 +469,7 @@
           "80-60": { "cumulative": 32125, "phase": 33663 },
           "60-40": { "cumulative": 32523, "phase": 33352 },
           "40-20": { "cumulative": 32855, "phase": 33925 },
-          "20-0": { "cumulative": 32816, "phase": 32816 }
+          "20-0": { "cumulative": 32816, "phase": 32654 }
         }
       },
       {
@@ -484,7 +484,7 @@
           "80-60": { "cumulative": 38536, "phase": 36745 },
           "60-40": { "cumulative": 39144, "phase": 40417 },
           "40-20": { "cumulative": 40745, "phase": 46583 },
-          "20-0": { "cumulative": 40745, "phase": 40745 }
+          "20-0": { "cumulative": 40745, "phase": 40751 }
         }
       }
     ]
@@ -536,7 +536,7 @@
           "80-60": { "cumulative": 32421, "phase": 30636 },
           "60-40": { "cumulative": 32606, "phase": 32982 },
           "40-20": { "cumulative": 32685, "phase": 32926 },
-          "20-0": { "cumulative": 32987, "phase": 32987 }
+          "20-0": { "cumulative": 32987, "phase": 35793 }
         }
       },
       {
@@ -583,7 +583,7 @@
           "80-60": { "cumulative": 40334, "phase": 42892 },
           "60-40": { "cumulative": 40697, "phase": 41461 },
           "40-20": { "cumulative": 40819, "phase": 41199 },
-          "20-0": { "cumulative": 41142, "phase": 41142 }
+          "20-0": { "cumulative": 41142, "phase": 42786 }
         }
       },
       {
@@ -646,7 +646,7 @@
           "80-60": { "cumulative": 35322, "phase": 39469 },
           "60-40": { "cumulative": 35670, "phase": 36390 },
           "40-20": { "cumulative": 36402, "phase": 38703 },
-          "20-0": { "cumulative": 36683, "phase": 36683 }
+          "20-0": { "cumulative": 36683, "phase": 38131 }
         }
       },
       {
@@ -662,7 +662,7 @@
           "80-60": { "cumulative": 35301, "phase": 39473 },
           "60-40": { "cumulative": 36657, "phase": 39774 },
           "40-20": { "cumulative": 36678, "phase": 36745 },
-          "20-0": { "cumulative": 37413, "phase": 37413 }
+          "20-0": { "cumulative": 37413, "phase": 42342 }
         }
       },
       {

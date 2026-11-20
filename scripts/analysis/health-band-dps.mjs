@@ -17,20 +17,13 @@ export function targetHealthBandDps(result, targetHealth, startingHealthPercent 
       boundaries.set(point.healthPercent, point);
     }
 
-    // A recorded kill supplies an exact final boundary; surviving targets use final overall DPS below.
-    if (result.deathTime != null) {
-      boundaries.set(0, { elapsed: Math.max(0, result.deathTime - result.dpsStartTime), damage: result.totalDamage });
-    }
+    // The final band ends at the DPS clock's end: the kill, or combat end for a surviving target. A surviving
+    // target therefore measures its final phase from the 20% crossing to combat end.
+    boundaries.set(0, { elapsed: Math.max(0, result.dpsWindow), damage: result.totalDamage });
   }
 
   return Object.fromEntries(
     TARGET_HEALTH_BANDS.map(({ id, startHealth, endHealth }) => {
-      if (endHealth === 0 && result.deathTime == null && Number.isFinite(targetHealth) && targetHealth > 0) {
-        // Non-killing runs still get a final chart value in both modes, using the simulation's reported DPS.
-        const finalDps = Number.isFinite(result.dps) && result.dps >= 0 ? result.dps : null;
-        return [id, { cumulative: finalDps, phase: finalDps }];
-      }
-
       const start = boundaries.get(startHealth);
       const end = boundaries.get(endHealth);
       const phase =

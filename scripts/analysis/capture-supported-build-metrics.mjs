@@ -5,7 +5,7 @@
  * For each requested profession it loads the build manifest, simulates each preset
  * that has a rotation through the profession's build context, and records duration,
  * DPS, APM, cumulative and phase DPS by target health, total/strike/condition damage, the final damaging packet,
- * and any warnings. Non-killing runs use final overall DPS for both final-band measurements.
+ * and any warnings. The final band ends at combat end, so non-killing runs measure it from the 20% crossing.
  * Benchmark comparison consumes these metrics to report drift and update manifests.
  *
  * Also exported as `captureSupportedBuildMetrics(professions?)` for reuse without
