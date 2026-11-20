@@ -43,7 +43,7 @@ export const fluidStrikes = defineTrait({
   ],
   triggers: [
     onTriggerPoint(thiefCastCompleted, {
-      when: (_runtime, { cast }: ThiefCastCompletion) => Boolean(cast.skill.movementSkill),
+      when: (_runtime, { movementSkill }: ThiefCastCompletion) => movementSkill,
       run: applyFluidStrikes
     })
   ]

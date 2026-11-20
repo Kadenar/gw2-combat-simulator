@@ -17,13 +17,13 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
 import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { selectedDodgeProfile } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodges.js';
 import type {
   DaredevilCast,
   DaredevilStrike,
@@ -65,14 +65,7 @@ const boundingDodger = defineTrait({
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'bounding-dodger')
     }
   ],
-  // The configured dodge choice owns eligibility; new damage-window rewards still obey isolation.
-  triggers: [
-    onTriggerPoint(daredevilDodged, {
-      requiresSelection: false,
-      when: (runtime) => daredevilState.from(runtime.profession).selectedDodge === 'Bounding Dodger',
-      run: (runtime) => openDodgeWindow(runtime)
-    })
-  ]
+  triggers: [dodgeDamageWindow(TRAIT.BOUNDING_DODGER, 'bounding-dodger')]
 });
 
 /** Owns Lotus Training tuning and behavior at the existing execution boundaries. */
@@ -107,14 +100,7 @@ const lotusTraining = defineTrait({
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'lotus-training')
     }
   ],
-  // The configured dodge choice owns eligibility; new damage-window rewards still obey isolation.
-  triggers: [
-    onTriggerPoint(daredevilDodged, {
-      requiresSelection: false,
-      when: (runtime) => daredevilState.from(runtime.profession).selectedDodge === 'Lotus Training',
-      run: (runtime) => openDodgeWindow(runtime)
-    })
-  ]
+  triggers: [dodgeDamageWindow(TRAIT.LOTUS_TRAINING, 'lotus-training')]
 });
 
 /** Owns Unhindered Combatant tuning and behavior at the existing execution boundaries. */
@@ -349,33 +335,14 @@ function weakeningStrike(runtime: ThiefRuntime, { cause: event }: DaredevilStrik
   });
 }
 
-/**
- * A committed dodge opens its damage window after the dodge's own same-instant packets, so its landing strike (Bound)
- * resolves before the window it grants.
- */
-function openDodgeWindow(runtime: ThiefRuntime): void {
-  const state = daredevilState.from(runtime.profession);
-  const profile = selectedDodgeProfile(runtime);
-
-  if (!profile) return;
-
-  if (state.selectedDodge === 'Bounding Dodger')
-    replaceThiefBuff(
-      runtime,
-      'bounding-dodger',
-      balanceProfileNumber(profile, 'duration'),
-      TRAIT.BOUNDING_DODGER,
-      'Bounding Dodger',
-      'Trait'
-    );
-
-  if (state.selectedDodge === 'Lotus Training')
-    replaceThiefBuff(
-      runtime,
-      'lotus-training',
-      balanceProfileNumber(profile, 'duration'),
-      TRAIT.LOTUS_TRAINING,
-      'Lotus Training',
-      'Trait'
-    );
+/** The selected replacement opens its damage window after its own landing packets resolve. */
+function dodgeDamageWindow(traitId: SkillId, kind: string) {
+  return onTriggerPoint(daredevilDodged, {
+    requiresSelection: false,
+    when: (runtime) => daredevilState.from(runtime.profession).selectedDodge?.traitId === traitId,
+    run(runtime: ThiefRuntime) {
+      const profile = requireBalanceProfile(runtime.helpers, traitId);
+      replaceThiefBuff(runtime, kind, balanceProfileNumber(profile, 'duration'), traitId, profile.name, 'Trait');
+    }
+  });
 }

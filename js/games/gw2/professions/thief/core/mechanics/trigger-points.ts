@@ -10,13 +10,13 @@ import type { ThiefSkill } from '#gw2/professions/thief/types.js';
  * and trait files must be able to name a point without importing those mechanics.
  */
 
-/** An accepted steal, or a specialization replacement accepted at its own boundary. */
-export interface StealAcceptance {
+/** The committed cast supplies the source for on-steal traits. */
+export interface StealCommitment {
   readonly cast: RuntimeCast<ThiefSkill>;
 }
 
-/** Every steal variant applies the on-steal traits in this cross-line order, before stolen-skill acquisition. */
-export const stealAccepted = defineTriggerPoint<StealAcceptance>('thief.steal-accepted', [
+/** Every committed steal runs these on-steal traits before the skill applies its own effect. */
+export const stealCommitted = defineTriggerPoint<StealCommitment>('thief.steal-committed', [
   TRAIT.SERPENTS_TOUCH,
   TRAIT.MUG,
   TRAIT.EVEN_THE_ODDS,
@@ -33,18 +33,19 @@ export interface StealCompletion {
 }
 
 /**
- * Antiquary fires this Core point after Swipe's pilfer, where Improvisation reduces utility recharge before
- * Kleptomaniac's initiative; specializations add their own rewards afterwards.
+ * Fires after every committed steal applies its effect. On Skritt Swipe, Improvisation reduces utility recharge
+ * after the pilfer and before Kleptomaniac grants initiative.
  */
 export const stealCompleted = defineTriggerPoint<StealCompletion>('thief.steal-completed', [
   TRAIT.IMPROVISATION,
   TRAIT.KLEPTOMANIAC
 ]);
 
-/** A committed cast at the deferred completion owner, with the initiative cost captured from its accepted skill. */
+/** Preserve the accepted initiative cost and movement classification when completion reloads the catalog skill. */
 export interface ThiefCastCompletion {
   readonly cast: RuntimeCast<ThiefSkill>;
   readonly initiativeCost: number;
+  readonly movementSkill: boolean;
 }
 
 /**

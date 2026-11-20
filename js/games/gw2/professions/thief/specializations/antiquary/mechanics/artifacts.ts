@@ -7,7 +7,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { stealAccepted, stealCompleted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
+import { commitThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { improvisationArtifactUses } from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
 import {
   THIEF_SKILL_IDS as ID,
@@ -93,14 +93,6 @@ function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast<Thief
   if (prodigiousPincherReady(runtime)) pilferArtifacts(runtime, 'initiative');
 }
 
-/** Swipe alone grants its steal package and swipe-only pilfer policies. */
-function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  runtime.fireTrigger(stealAccepted, { cast });
-  pilferArtifacts(runtime, 'swipe');
-  // Swipe's pilfer also reaches Core Improvisation before Kleptomaniac.
-  runtime.fireTrigger(stealCompleted, { swipe: true });
-}
-
 /** Artifacts require a held slot; backfire variants are internal; Reshuffle rerolls only an existing pool. */
 function antiquaryAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
   const state = antiquaryState.from(runtime.profession);
@@ -176,7 +168,8 @@ export const antiquaryArtifactLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSk
       if (context.kind === 'cast') runtime.fireTrigger(artifactCompleted);
     },
     'thief.skritt-swipe'(runtime, context) {
-      if (context.kind === 'cast') completeSkrittSwipe(runtime, context.cast);
+      if (context.kind === 'cast')
+        commitThiefSteal(runtime, context.cast, () => pilferArtifacts(runtime, 'swipe'), { swipe: true });
     },
     'thief.reshuffle'(runtime) {
       // Reroll choices without restoring uses or triggering a pilfer.

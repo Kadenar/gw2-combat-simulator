@@ -83,6 +83,37 @@ test('trait conditions carry their own attribution instead of the triggering ski
   }
 });
 
+// Double Strike consumes the reward that a replacement dodge rearms after its own strike.
+for (const [trait, selectedDodge, dodgeStrike] of [
+  [TRAIT.BOUNDING_DODGER, 'Lotus Training', 'Bound'],
+  [TRAIT.LOTUS_TRAINING, 'Bounding Dodger', 'Impaling Lotus'],
+  [TRAIT.UNHINDERED_COMBATANT, 'Bounding Dodger', null],
+  [null, 'Lotus Training', 'Impaling Lotus'],
+  [null, 'Dodge', null]
+]) {
+  test(`Dodge grants the expected movement and strike rewards with ${trait ?? 'no trait'} and ${selectedDodge}`, () => {
+    const result = runThief(['Dodge', 'Double Strike'], {
+      specialization: 'Daredevil',
+      selectedDodge,
+      selectedTraitIds: [TRAIT.DEFT_INITIATION, TRAIT.FELINE_GRACE, TRAIT.FLUID_STRIKES, ...(trait ? [trait] : [])]
+    });
+    assert.deepEqual(result.warnings, []);
+    const grants = result.resolvedEvents.filter((event) => event.type === 'buff');
+    const movementUses = selectedDodge === 'Dodge' ? 0 : 1;
+    for (const [sourceId, kind] of [
+      [TRAIT.FELINE_GRACE, 'swiftness'],
+      [TRAIT.FLUID_STRIKES, 'fluid-strikes']
+    ])
+      assert.equal(grants.filter((event) => event.sourceId === sourceId && event.kind === kind).length, movementUses);
+
+    const attacks = grants.filter((event) => event.sourceId === TRAIT.DEFT_INITIATION && event.kind === 'might');
+    assert.deepEqual(
+      attacks.map((event) => event.triggeredBy),
+      dodgeStrike ? [dodgeStrike, 'Double Strike'] : ['Double Strike']
+    );
+  });
+}
+
 test('Daredevil emits only current profile effects, including patched condition offsets', () => {
   for (const effects of [
     [],

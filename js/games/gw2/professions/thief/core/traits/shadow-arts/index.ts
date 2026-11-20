@@ -9,9 +9,9 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import type { StealAcceptance, StealthTransition } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
+import type { StealCommitment, StealthTransition } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import {
-  stealAccepted,
+  stealCommitted,
   stealthEntered,
   stealthExited,
   thiefConditionApplied,
@@ -70,7 +70,7 @@ export const hiddenThief = defineTrait({
       { type: 'condition', name: CONDITION.WEAKNESS, condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 }
     ]
   },
-  triggers: [onTriggerPoint(stealAccepted, { run: applyHiddenThief })]
+  triggers: [onTriggerPoint(stealCommitted, { run: applyHiddenThief })]
 });
 
 /** Owns Leeching Venoms tuning and behavior at the existing execution boundaries. */
@@ -192,7 +192,7 @@ function exitShadowsRejuvenation(runtime: ThiefRuntime): void {
 }
 
 /** Hidden Thief claims its cooldown before either condition so a removed packet cannot re-arm it. */
-function applyHiddenThief(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
+function applyHiddenThief(runtime: ThiefRuntime, { cast }: StealCommitment): void {
   // Admission is independent of either removable condition.
   if (
     !runtime.procs.claimCooldown(

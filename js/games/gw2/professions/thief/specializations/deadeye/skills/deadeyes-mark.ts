@@ -6,8 +6,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { completeThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
-import { stealAccepted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
+import { commitThiefSteal, storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import {
@@ -40,13 +39,9 @@ export const DEADEYE_MARK_SKILLS: Readonly<Record<number, SkillDefinition<ThiefS
 };
 
 const DEADEYE_MARK_EXPIRY = 'thief.deadeye-mark-expire';
-/**
- * Marking a target refreshes the mark; re-marking the same live target adds to its malice instead of resetting it.
- * The mark also grants Deadeye's stolen skills and schedules its own expiry.
- */
-function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+/** Re-marking a live target adds malice before Deadeye stores the new stolen choices. */
+function applyDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const state = deadeyeState.from(runtime.profession);
-  runtime.fireTrigger(stealAccepted, { cast });
   const remarking = state.markedTargetId === 'primary-target' && buffDeadlineActive(state.markExpiresAt, runtime.time);
   const duration = skillNumber(requireSkill(runtime.helpers, ID.DEADEYES_MARK), 'duration');
   state.markedTargetId = duration > 0 ? 'primary-target' : null;
@@ -58,10 +53,7 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   if (remarking) refreshDeadeyeMarkMalice(runtime, cast);
   else startDeadeyeMarkMalice(runtime, cast);
 
-  completeThiefSteal(runtime, stolenSkillGrant(runtime));
-  runtime.fireTrigger(markCompleted, { cast });
-
-  runtime.scheduleExpiry(DEADEYE_MARK_EXPIRY, state.markExpiresAt, { generation: state.markGeneration });
+  storeThiefStolenSkillChoices(runtime, stolenSkillGrant(runtime));
 }
 
 /** Mark expiry resets malice; a stale expiry from an earlier mark is ignored. */
@@ -88,7 +80,13 @@ export function markedTarget(context: Gw2ModifierContext): boolean {
 /** Register actions beside the skills whose accepted casts select them. */
 const deadeyesMarkActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> = {
   'thief.deadeyes-mark'(runtime, context) {
-    if (context.kind === 'cast') completeDeadeyesMark(runtime, context.cast);
+    if (context.kind !== 'cast') return;
+
+    const { cast } = context;
+    commitThiefSteal(runtime, cast, () => applyDeadeyesMark(runtime, cast));
+    runtime.fireTrigger(markCompleted, { cast });
+    const state = deadeyeState.from(runtime.profession);
+    runtime.scheduleExpiry(DEADEYE_MARK_EXPIRY, state.markExpiresAt, { generation: state.markGeneration });
   }
 };
 

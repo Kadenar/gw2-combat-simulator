@@ -2,7 +2,6 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { WEAPON } from '#gw2/platform/constants.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -36,7 +35,7 @@ import {
   updateSpearChain
 } from '#gw2/professions/thief/core/mechanics/spear.js';
 import {
-  completeThiefSteal,
+  commitThiefSteal,
   consumeThiefStolenSkill,
   storeThiefStolenSkillChoices
 } from '#gw2/professions/thief/core/mechanics/steal.js';
@@ -48,7 +47,6 @@ import {
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import {
   signetCompleted,
-  stealAccepted,
   stealthAttackCompleted,
   thiefCastCompleted,
   thiefConditionApplied,
@@ -57,7 +55,8 @@ import {
   thiefPostVenomStruck,
   thiefStruck,
   thiefWeaponSwapped,
-  venomsConsumed
+  venomsConsumed,
+  type ThiefCastCompletion
 } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { activateVenom, applyActiveVenoms, emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { infiltratorsSignetLifecycle } from '#gw2/professions/thief/core/skills/slot-skills.js';
@@ -79,7 +78,8 @@ function thiefRechargeWork(runtime: MechanicQueriesOf<ThiefRuntime>, skill: Thie
 const THIEF_CORE_COMPLETE = 'thief.core-complete';
 
 /** Shared swap and completion traits retain their post-packet order after intrinsic skill actions commit. */
-function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, initiativeCost: number): void {
+function completeThiefCast(runtime: ThiefRuntime, completion: ThiefCastCompletion): void {
+  const { cast, movementSkill } = completion;
   const skill = cast.skill;
   const committed = !cast.cancelledBeforeCommit;
 
@@ -99,10 +99,10 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>,
   }
 
   if (committed) {
-    runtime.fireTrigger(thiefCastCompleted, { cast, initiativeCost });
+    runtime.fireTrigger(thiefCastCompleted, completion);
 
     // Dual movement/shadowstep classification still admits only one mobility refresh.
-    if (skill.movementSkill || skill.shadowstepSkill) runtime.fireTrigger(thiefMobilityUsed, { cast, initiativeCost });
+    if (movementSkill || skill.shadowstepSkill) runtime.fireTrigger(thiefMobilityUsed, completion);
   }
 }
 
@@ -159,9 +159,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     'thief.steal'(runtime, context) {
       if (context.kind !== 'cast') return;
 
-      // Preserve the shared trait notification before acquisition and Kleptomaniac.
-      runtime.fireTrigger(stealAccepted, { cast: context.cast });
-      completeThiefSteal(runtime, THIEF_STOLEN_SKILL_IDS);
+      commitThiefSteal(runtime, context.cast, () => storeThiefStolenSkillChoices(runtime, THIEF_STOLEN_SKILL_IDS));
     },
     'thief.prepare-trap'(runtime, context) {
       if (context.kind === 'cast') prepareTrap(runtime, context.cast);
@@ -193,9 +191,10 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   },
   modifyEffects: selectThiefStealth,
   onCastCommit(runtime, cast) {
-    // Capture the accepted cost before the deferred task resolves its skill from the live catalog.
+    // The deferred task reloads the catalog skill, so carry the accepted cast's cost and movement flag.
     deferThiefCompletion(runtime, THIEF_CORE_COMPLETE, cast, {
-      initiativeCost: thiefInitiativeCost(cast.skill)
+      initiativeCost: thiefInitiativeCost(cast.skill),
+      movementSkill: Boolean(cast.skill.movementSkill)
     });
   },
   onAutoattackChainTransition: transitionThiefScepterChain,
@@ -216,8 +215,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   tasks: {
     'thief.distracting-throw-window': grantDistractingThrowWindow,
     [THIEF_CORE_COMPLETE](runtime, data) {
-      const { cast, initiativeCost } = data as { cast: RuntimeCast<ThiefSkill>; initiativeCost: number };
-      completeThiefCast(runtime, cast, initiativeCost);
+      completeThiefCast(runtime, data as ThiefCastCompletion);
     },
     [THIEF_SCEPTER_CHAIN_EXPIRY]: expireThiefScepterChain
   }

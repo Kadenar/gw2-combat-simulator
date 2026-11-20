@@ -18,6 +18,7 @@ import {
   daredevilStruck,
   physicalSkillStarted
 } from '#gw2/professions/thief/specializations/daredevil/mechanics/trigger-points.js';
+import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 const DAREDEVIL_COMPLETE = 'thief.daredevil-complete';
@@ -42,6 +43,12 @@ export const daredevilHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       storeThiefStolenSkillChoices(runtime, THIEF_STOLEN_SKILL_IDS);
   },
   buffPolicies: daredevilBuffPolicies,
+  // Keep the shared Dodge input and endurance cost while classifying the selected replacement as movement.
+  resolveCastSkill(runtime, skill) {
+    return skill.id === SHARED_SKILL_IDS.DODGE && daredevilState.from(runtime.profession).selectedDodge
+      ? { ...skill, movementSkill: true }
+      : skill;
+  },
   sideEffectHandlers: {
     'thief.physical-skill'(runtime, context) {
       runtime.fireTrigger(physicalSkillStarted, { context });

@@ -18,12 +18,12 @@ import {
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefBuff, buildThiefControl } from '#gw2/professions/thief/core/events.js';
 import type {
-  StealAcceptance,
+  StealCommitment,
   ThiefCastCompletion,
   ThiefDodge
 } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import {
-  stealAccepted,
+  stealCommitted,
   stealCompleted,
   thiefCastCompleted,
   thiefDodgeStarted,
@@ -57,7 +57,7 @@ export const bountifulTheft = defineTrait({
       { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 5, duration: 10 }
     ]
   },
-  triggers: [onTriggerPoint(stealAccepted, { run: applyBountifulTheft })]
+  triggers: [onTriggerPoint(stealCommitted, { run: applyBountifulTheft })]
 });
 
 /** Owns Deadly Ambush tuning and behavior at the existing execution boundaries. */
@@ -77,7 +77,7 @@ export const deadlyAmbush = defineTrait({
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === CONDITION.BLEEDING
     }
   ],
-  triggers: [onTriggerPoint(stealAccepted, { run: applyDeadlyAmbush })]
+  triggers: [onTriggerPoint(stealCommitted, { run: applyDeadlyAmbush })]
 });
 
 /** Owns Kleptomaniac tuning and behavior at the existing execution boundaries. */
@@ -172,7 +172,7 @@ export const sleightOfHand = defineTrait({
       multiplier: { profile: TRAIT.SLEIGHT_OF_HAND, field: 'rechargeMultiplier' }
     }
   ],
-  triggers: [onTriggerPoint(stealAccepted, { run: applySleightOfHand })]
+  triggers: [onTriggerPoint(stealCommitted, { run: applySleightOfHand })]
 });
 
 /** Owns Thrill of the Crime tuning and behavior at the existing execution boundaries. */
@@ -185,7 +185,7 @@ export const thrillOfTheCrime = defineTrait({
       { type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 10 }
     ]
   },
-  triggers: [onTriggerPoint(stealAccepted, { run: applyThrillOfTheCrime })]
+  triggers: [onTriggerPoint(stealCommitted, { run: applyThrillOfTheCrime })]
 });
 
 /** Owns Uncatchable tuning and behavior at the existing execution boundaries. */
@@ -194,7 +194,7 @@ export const uncatchable = defineTrait({
   triggers: [onTriggerPoint(thiefDodgeStarted, { run: startUncatchable })]
 });
 /** Selected steal boons retain skill lineage while shared profile delivery owns their packets. */
-function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
+function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealCommitment): void {
   for (const name of [BOON.VIGOR, BOON.MIGHT]) {
     emitTraitProfile(runtime, TRAIT.BOUNTIFUL_THEFT, TRAIT.BOUNTIFUL_THEFT, undefined, {
       effect: { type: 'boon', name },
@@ -214,7 +214,7 @@ function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealAcceptance): 
   }
 }
 
-function applyDeadlyAmbush(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
+function applyDeadlyAmbush(runtime: ThiefRuntime, { cast }: StealCommitment): void {
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.DEADLY_AMBUSH);
   const bleeding = requireEffect(profile, 'condition', CONDITION.BLEEDING);
 
@@ -244,7 +244,7 @@ function applyKleptomaniac(runtime: ThiefRuntime): void {
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }
 
-function applySleightOfHand(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
+function applySleightOfHand(runtime: ThiefRuntime, { cast }: StealCommitment): void {
   const control = requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.SLEIGHT_OF_HAND), 'control', CONTROL.DAZE);
 
   if (!control) return;
@@ -263,7 +263,7 @@ function applySleightOfHand(runtime: ThiefRuntime, { cast }: StealAcceptance): v
 }
 
 /** Selected steal boons retain skill lineage while shared profile delivery owns their packets. */
-function applyThrillOfTheCrime(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
+function applyThrillOfTheCrime(runtime: ThiefRuntime, { cast }: StealCommitment): void {
   emitTraitProfile(runtime, TRAIT.THRILL_OF_THE_CRIME, TRAIT.THRILL_OF_THE_CRIME, undefined, {
     effects: (effect) => effect.type === 'boon',
     skillId: cast.skill.id,

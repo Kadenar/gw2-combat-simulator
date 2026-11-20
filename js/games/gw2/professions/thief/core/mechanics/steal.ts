@@ -1,7 +1,12 @@
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { stealCompleted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
+import {
+  stealCommitted,
+  stealCompleted,
+  type StealCompletion
+} from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { improvisationStolenUses } from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -23,10 +28,16 @@ export function storeThiefStolenSkillChoices(runtime: ThiefRuntime, skillIds: re
   core.storedStolenSkillCount = choices.length === 0 ? 0 : improvisationStolenUses(runtime.helpers, runtime);
 }
 
-/** Stores the steal's choices and grants Core's on-steal initiative; specializations add theirs afterwards. */
-export function completeThiefSteal(runtime: ThiefRuntime, skillIds: readonly SkillId[]): void {
-  storeThiefStolenSkillChoices(runtime, skillIds);
-  runtime.fireTrigger(stealCompleted, {});
+/** Run the committed skill's effect after on-steal traits and before completion rewards. */
+export function commitThiefSteal(
+  runtime: ThiefRuntime,
+  cast: RuntimeCast<ThiefSkill>,
+  applySkillEffect: () => void,
+  completion: StealCompletion = {}
+): void {
+  runtime.fireTrigger(stealCommitted, { cast });
+  applySkillEffect();
+  runtime.fireTrigger(stealCompleted, completion);
 }
 
 /** Using a stored skill spends one use; a remaining Improvisation use stays locked to the same skill. */

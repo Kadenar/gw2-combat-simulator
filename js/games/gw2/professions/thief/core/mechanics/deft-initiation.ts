@@ -4,22 +4,16 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { emitTraitProfile, isTraitEffect } from '#gw2/platform/profession-definition/trait-emission.js';
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefStrike } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Direct landed player attacks qualify without requiring a critical hit; proc and summon damage cannot consume. */
 export function initiatingStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): boolean {
-  // These traits replace the player's dodge attack; their attribution does not make that attack a triggered proc.
-  const dodgeAttack =
-    event.skillId === SHARED_SKILL_IDS.DODGE &&
-    (event.traitId === TRAIT.BOUNDING_DODGER || event.traitId === TRAIT.LOTUS_TRAINING);
-
   return (
     event.type === 'damage' &&
     event.actorType === ACTOR.PLAYER &&
-    (!isTraitEffect(event) || dodgeAttack) &&
+    (!isTraitEffect(event) || event.metadata?.thiefDirectAttack === true) &&
     event.source !== 'Relic' &&
     event.source !== 'Sigil' &&
     !event.cancelled &&

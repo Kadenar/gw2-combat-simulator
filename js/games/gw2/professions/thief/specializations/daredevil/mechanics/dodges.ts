@@ -1,41 +1,22 @@
 import { ACTOR, BOON_NAMES } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
-import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
-import type { ThiefDodge, ThiefSkill } from '#gw2/professions/thief/types.js';
-
-// The dodge choice retains trait attribution while its balance profile owns every emitted packet.
-const DODGE_PROFILES: Readonly<Partial<Record<ThiefDodge, SkillId>>> = Object.freeze({
-  'Bounding Dodger': TRAIT.BOUNDING_DODGER,
-  'Lotus Training': TRAIT.LOTUS_TRAINING,
-  'Unhindered Combatant': TRAIT.UNHINDERED_COMBATANT
-});
-
-export function selectedDodgeProfile(runtime: ThiefRuntime): BalanceProfile | undefined {
-  const profileId = DODGE_PROFILES[daredevilState.from(runtime.profession).selectedDodge];
-  return profileId == null ? undefined : requireBalanceProfile(runtime.helpers, profileId);
-}
-
-/** Dodge packets use the in-game skill name of the selected dodge. */
-function dodgeSkillName(runtime: ThiefRuntime): string {
-  const selected = daredevilState.from(runtime.profession).selectedDodge;
-  return selected === 'Bounding Dodger' ? 'Bound' : selected === 'Lotus Training' ? 'Impaling Lotus' : selected;
-}
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /**
  * A committed dodge queues its selected profile's packets at acceptance, at their authored offsets or at completion,
  * so a strike before the dodge finishes still lands at its own instant.
  */
 export function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  const profile = selectedDodgeProfile(runtime);
+  const dodge = daredevilState.from(runtime.profession).selectedDodge;
 
-  if (!profile) return;
+  if (!dodge) return;
 
   const skill = cast.skill;
-  const name = dodgeSkillName(runtime);
+  const { name } = dodge;
+  const profile = requireBalanceProfile(runtime.helpers, dodge.traitId);
   runtime.effects.emit({
     kind: 'profile',
     profile: profile,
@@ -51,17 +32,14 @@ export function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast<Thief
       skillName: name,
       activationId: cast.id
     }),
-    // The trait replaces the dodge, so every packet it supplies, including the landing strike, is trait-owned.
+    // The player's dodge strike retains trait attribution for reporting and damage modifiers.
     transform: (event, effect) => ({
       ...event,
       traitId: profile.id,
-      icon: runtime.helpers.skillsById.get(
-        profile.id === TRAIT.BOUNDING_DODGER
-          ? ID.BOUND
-          : profile.id === TRAIT.LOTUS_TRAINING
-            ? ID.IMPALING_LOTUS
-            : skill.id
-      )?.icon,
+      ...(effect.type === 'strike' && dodge.directStrike
+        ? { metadata: { ...event.metadata, thiefDirectAttack: true } }
+        : {}),
+      icon: runtime.helpers.skillsById.get(dodge.iconSkillId)?.icon,
       name:
         effect.type === 'condition'
           ? `${name} - ${effect.condition}`

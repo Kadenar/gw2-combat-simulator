@@ -2,6 +2,8 @@
 import type { MetadataFields, MetadataFromFields } from '#gw2/platform/events/metadata.js';
 
 export const THIEF_METADATA_FIELDS = Object.freeze({
+  /** A trait-supplied strike made directly by the player can consume on-attack rewards. */
+  thiefDirectAttack: 'boolean',
   venomProcEffectIndex: 'number',
   /** Recall owns malice and dual-wield procs while each axe keeps its projectile attribution. */
   recallSkillId: 'skillId'

@@ -26,13 +26,13 @@ import {
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type {
-  StealAcceptance,
+  StealCommitment,
   ThiefConditionApplication,
   ThiefStrike,
   VenomConsumption
 } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import {
-  stealAccepted,
+  stealCommitted,
   stealCompleted,
   thiefConditionApplied,
   thiefStruck,
@@ -121,7 +121,7 @@ export const evenTheOdds = defineTrait({
     ]
   },
   triggers: [
-    onTriggerPoint(stealAccepted, {
+    onTriggerPoint(stealCommitted, {
       run: thiefCastCondition(TRAIT.EVEN_THE_ODDS, CONDITION.VULNERABILITY, 'Even the Odds - Vulnerability')
     })
   ]
@@ -216,7 +216,7 @@ export const mug = defineTrait({
   balance: {
     effects: [{ type: 'strike', name: 'Mug', canCrit: false, coefficient: 1.5, hits: 1 }]
   },
-  triggers: [onTriggerPoint(stealAccepted, { run: applyMug })]
+  triggers: [onTriggerPoint(stealCommitted, { run: applyMug })]
 });
 
 /** Owns Panic Strike tuning and behavior at the existing execution boundaries. */
@@ -310,7 +310,7 @@ export const serpentsTouch = defineTrait({
     playerStacks: 3,
     effects: [{ type: 'condition', name: CONDITION.POISONED, condition: CONDITION.POISONED, stacks: 2, duration: 10 }]
   },
-  triggers: [onTriggerPoint(stealAccepted, { run: applySerpentsTouch })]
+  triggers: [onTriggerPoint(stealCommitted, { run: applySerpentsTouch })]
 });
 
 /** Improvisation shortens every selected, still-recharging utility once per internal cooldown. */
@@ -328,7 +328,7 @@ function reduceUtilityRecharges(runtime: ThiefRuntime): void {
 }
 
 /** Mug is an uncritical strike owned by the steal skill. */
-function applyMug(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
+function applyMug(runtime: ThiefRuntime, { cast }: StealCommitment): void {
   // The steal supplies identity; the authored noncritical strike supplies all damage fields.
   emitTraitProfile(runtime, TRAIT.MUG, TRAIT.MUG, undefined, {
     at: runtime.time,
@@ -339,7 +339,7 @@ function applyMug(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
 }
 
 /** Serpent's Touch Poison is attributed to its trait while retaining the triggering steal. */
-function applySerpentsTouch(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
+function applySerpentsTouch(runtime: ThiefRuntime, { cast }: StealCommitment): void {
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.SERPENTS_TOUCH);
   const poison = requireEffect(profile, 'condition', CONDITION.POISONED);
 
