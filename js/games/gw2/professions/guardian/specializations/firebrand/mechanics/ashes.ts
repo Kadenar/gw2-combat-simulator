@@ -17,7 +17,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
   resolveAshes,
   type AshesSelection,
@@ -84,7 +84,14 @@ export function grantAshes(runtime: GuardianRuntime, request: AshesGrantRequest)
   const source =
     request.source === 'epilogue'
       ? { priority: 0, skillName: 'Epilogue: Ashes of the Just', name: 'Ashes of the Just' }
-      : { priority: 5, skillName: 'Fervid Conviction', name: 'Fervid Conviction' };
+      : {
+          priority: 5,
+          skillName: 'Fervid Conviction',
+          name: 'Fervid Conviction',
+          traitId: TRAIT.FERVID_CONVICTION,
+          // All allied burns from this grant count as one trait activation in the damage report.
+          proc: runtime.effects.createProcActivation()
+        };
   const event = request.cause;
   // The controller only offers strikes; the native grant answers liveness. Each new grant replaces the ally's
   // registration, so later procs carry the latest source's attribution.
@@ -106,6 +113,7 @@ export function grantAshes(runtime: GuardianRuntime, request: AshesGrantRequest)
 
           runtime.effects.emit({
             kind: 'packet',
+            proc: source.proc,
             event: buildAshesBurningPacket(resolved, {
               kind: 'ally',
               grantCause: event,
@@ -146,7 +154,7 @@ type AshesTrigger =
       readonly grantCause: Gw2ResolverEvent;
       readonly opportunity: AlliedStrikeOpportunity;
       readonly priority: number;
-      readonly source: { readonly skillName: string; readonly name: string };
+      readonly source: { readonly skillName: string; readonly name: string; readonly traitId?: string };
     }
   | { readonly kind: 'inspection'; readonly cause: Gw2ResolverEvent; readonly icon?: string };
 
@@ -173,6 +181,7 @@ function ashesTriggerAttribution(trigger: AshesTrigger) {
       priority: trigger.priority,
       triggeredBy: event.skillName,
       skillName: source.skillName,
+      traitId: source.traitId,
       activationId: `${event.activationId}:ally:${proc.allyIndex}:${proc.activationId}`,
       name: `${source.name} - Ally ${proc.allyIndex} Burning`,
       metadata: { triggeredByAlly: proc.allyIndex }

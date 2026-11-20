@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { grantAshes } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
+import { wait } from '#tests/helpers/commands.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // A Fervid Conviction-sized grant isolates allied charge retention from the player's tome and strike activity.
@@ -46,6 +50,30 @@ function run({ duration = 5, charges = 1, combatStartTime = 3, output, secondGra
 
 const burns = (result) =>
   result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === ashesBurningSkill.id);
+
+test('allies spending one Fervid grant report one proc while Epilogue keeps its cast', () => {
+  const result = runGuardian(
+    [ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST, ID.SEARING_SPELL, ID.SEARING_SPELL, wait(3000)],
+    {
+      specialization: 'Firebrand',
+      selectedTraitIds: [TRAIT.FERVID_CONVICTION],
+      allies: { count: 2, strikesPerSecond: 2 }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const recipients = new Set(
+    burns(result)
+      .filter((event) => event.traitId === TRAIT.FERVID_CONVICTION)
+      .map((event) => event.metadata.triggeredByAlly)
+  );
+  assert.equal(recipients.size, 2);
+  const rows = skillBreakdownRows(result);
+  const fervid = rows.find((row) => row.name === 'Fervid Conviction');
+  assert.equal(fervid.hits, 1);
+  assert.equal(fervid.casts, 0);
+  assert.equal(fervid.dct, null);
+  assert.equal(rows.find((row) => row.name === 'Epilogue: Ashes of the Just').casts, 1);
+});
 
 test('precast Ashes retains its charge for the first eligible allied strike and keeps recipient attribution', () => {
   const result = run();
