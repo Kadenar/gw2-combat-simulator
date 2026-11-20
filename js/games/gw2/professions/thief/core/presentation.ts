@@ -15,6 +15,7 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
+import { hasBonusStealthAttack } from '#gw2/professions/thief/core/mechanics/bonus-stealth-attacks.js';
 import { thiefInitiativeCapacity } from '#gw2/professions/thief/core/mechanics/resources.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
@@ -22,7 +23,6 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/data/stolen-skills.js';
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefPlanningState, ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
-import { activeBatchCount } from '#kernel/resources/batch.js';
 import { activeStackCount } from '#kernel/resources/timed-stacks.js';
 
 export function thiefUiState(context: Pick<ThiefUiContext, 'professionState'>): Partial<ThiefPlanningState> {
@@ -271,9 +271,7 @@ export const thiefCoreUi = Object.freeze({
             revealedUntil: state[STATE.REVEALED_UNTIL]
           },
           now
-        ) ||
-        activeBatchCount(state[STATE.BONUS_STEALTH_ATTACK], now) > 0 ||
-        (state[STATE.ANTIQUARY_GUITAR_CHARGES] || []).some((grant) => activeBatchCount(grant, now) > 0)
+        ) || hasBonusStealthAttack(state[STATE.BONUS_STEALTH_ATTACK_CHARGES], now)
     };
   },
   // Equal-duration grants replace oldest stacks, so capping their active sum matches the engine's stack count.

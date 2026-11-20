@@ -6,9 +6,13 @@ import {
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import {
+  projectBonusStealthAttackCharges,
+  type BonusStealthAttackCharges
+} from '#gw2/professions/thief/core/mechanics/bonus-stealth-attacks.js';
 import type { ThiefArtifactKind } from '#gw2/professions/thief/types.js';
-import { activeBatches } from '#kernel/resources/batch-list.js';
-import type { Batch } from '#kernel/resources/batch.js';
+import { activeBatches, consumeBatchFromList } from '#kernel/resources/batch-list.js';
+import { activeBatchCount, type Batch } from '#kernel/resources/batch.js';
 import { purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 export interface ThiefArtifactSlot {
@@ -60,14 +64,26 @@ export function createAntiquaryState(): AntiquaryState {
 
 export const antiquaryState = defineProfessionSpecializationState('Antiquary', createAntiquaryState);
 
+/** Every accepted stealth attack spends the newest live Guitar charge, even during ordinary stealth. */
+export const metalLegionGuitarCharges: BonusStealthAttackCharges = {
+  grants: (profession) => antiquaryState.from(profession).antiquaryGuitarCharges,
+  spend(profession, at) {
+    const grants = antiquaryState.from(profession).antiquaryGuitarCharges;
+    const newest = [...grants].reverse().find((grant) => activeBatchCount(grant, at) > 0);
+    consumeBatchFromList(grants, at, { eligible: (grant) => grant === newest });
+  }
+};
+
 /** Derive active public grants and stacks without consuming live entitlements; the observer detaches the result. */
 export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
   const state = antiquaryState.from(input.profession);
   const mistburnGrants = activeBatches(state.mistburn.grants, input.time, { order: 'insertion' });
   return {
-    [STATE.ANTIQUARY_GUITAR_CHARGES]: activeBatches(state.antiquaryGuitarCharges, input.time, {
-      order: 'insertion'
-    }),
+    [STATE.BONUS_STEALTH_ATTACK_CHARGES]: projectBonusStealthAttackCharges(
+      metalLegionGuitarCharges,
+      input.profession,
+      input.time
+    ),
     [STATE.ARTIFACT_SLOTS]: state.artifactSlots,
     [STATE.ARTIFACT_USES_REMAINING]: state.artifactUsesRemaining,
     [STATE.SCOUNDRELS_LUCK]: state.scoundrelsLuck,

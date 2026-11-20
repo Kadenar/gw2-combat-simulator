@@ -718,7 +718,7 @@ test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and ar
       {
         [STATE.COMBAT_HIGH_EXPIRATIONS]: [6, 8, 10, 12, 14, 16, 18, 20],
         [STATE.ANTIQUARY_DAMAGE_UNTIL]: 9,
-        [STATE.ANTIQUARY_GUITAR_CHARGES]: [
+        [STATE.BONUS_STEALTH_ATTACK_CHARGES]: [
           { count: 1, expiresAt: 8 },
           { count: 1, expiresAt: 10 }
         ],
@@ -737,6 +737,32 @@ test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and ar
   assert.equal(antiquary['antiquary-kryptis-turret'], '7.0s');
   assert.equal(antiquary['antiquary-chak-shield'], '3 charges · 8.0s');
   assert.equal(antiquary['antiquary-holo-dancer-decoy'], '2 uses · 9.0s');
+});
+
+test('Antiquary shows spendable artifact charges through their deadline', () => {
+  const state = {
+    [STATE.BONUS_STEALTH_ATTACK_CHARGES]: [
+      { count: 2, expiresAt: 8 },
+      { count: 1, expiresAt: 10 }
+    ],
+    [STATE.MISTBURN]: { count: 4, expiresAt: 8 },
+    [STATE.CHAK_INITIATIVE_REFUNDS]: [
+      { count: 1, expiresAt: 8 },
+      { count: 2, expiresAt: 10 }
+    ]
+  };
+  const rowsAt = (at) => valuesById(snapshot(thiefProfession, 'Antiquary', state, at));
+  const deadline = rowsAt(8);
+  assert.equal(deadline['antiquary-metal-legion-guitar'], '3 charges · 0.0s');
+  assert.equal(deadline['antiquary-mistburn-mortar'], '4 charges · 0.0s');
+  assert.equal(deadline['antiquary-chak-shield'], '3 charges · 0.0s');
+  const after = rowsAt(9);
+  assert.equal(after['antiquary-metal-legion-guitar'], '1 charge · 1.0s');
+  assert.equal(after['antiquary-mistburn-mortar'], undefined);
+  assert.equal(after['antiquary-chak-shield'], '2 charges · 1.0s');
+  const expired = rowsAt(11);
+  assert.equal(expired['antiquary-metal-legion-guitar'], undefined);
+  assert.equal(expired['antiquary-chak-shield'], undefined);
 });
 
 test('Warrior snapshots expose shared stacks, Bladesworn buffs, and Paragon refrain', () => {

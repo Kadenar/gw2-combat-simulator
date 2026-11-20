@@ -22,13 +22,13 @@ test('Antiquary projects its own charge fields and initialized empty grants', ()
     time: 0,
     profession: { core: {}, specialization: { kind: 'Antiquary', state } }
   });
-  assert.deepEqual(active[STATE.ANTIQUARY_GUITAR_CHARGES], [{ count: 2, expiresAt: 10 }]);
+  assert.deepEqual(active[STATE.BONUS_STEALTH_ATTACK_CHARGES], [{ count: 2, expiresAt: 10 }]);
 
   const inactive = projectAntiquaryPlanningState({
     time: 0,
     profession: { core: {}, specialization: { kind: 'Antiquary', state: createAntiquaryState() } }
   });
-  assert.deepEqual(inactive[STATE.ANTIQUARY_GUITAR_CHARGES], []);
+  assert.deepEqual(inactive[STATE.BONUS_STEALTH_ATTACK_CHARGES], []);
 });
 
 test('Daredevil projects its Weakening Strikes grant from a detached snapshot', () => {

@@ -12,7 +12,6 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { thiefBuffPolicies, thiefEffectStates } from '#gw2/professions/thief/core/effect-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
-import { thiefAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
 import { thiefAxeLifecycle } from '#gw2/professions/thief/core/mechanics/axes.js';
 import { landedChannelRefundLifecycle } from '#gw2/professions/thief/core/mechanics/channel-refund.js';
 import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
@@ -42,7 +41,6 @@ import {
   storeThiefStolenSkillChoices
 } from '#gw2/professions/thief/core/mechanics/steal.js';
 import {
-  beginThiefStealthAttack,
   commitThiefStealth,
   reactThiefStealthBreakingStrike,
   selectThiefStealth,
@@ -184,7 +182,6 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   },
   resources: { initiative: thiefInitiative },
   endurance: thiefEndurance,
-  availability: thiefAvailability,
   rechargeWork: thiefRechargeWork,
   // A Double Edge recast while recharging keeps the running recharge instead of reserving a new one.
   reserveRecharge: (runtime, skill, work) =>
@@ -192,11 +189,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       ? 0
       : work,
   onCastStart(runtime, cast) {
-    const skill = cast.skill;
-
-    if (skill.id === SHARED_SKILL_IDS.DODGE) runtime.fireTrigger(thiefDodgeStarted, { cast });
-
-    if (skill.stealthAttack) beginThiefStealthAttack(runtime, cast);
+    if (cast.skill.id === SHARED_SKILL_IDS.DODGE) runtime.fireTrigger(thiefDodgeStarted, { cast });
   },
   modifyEffects: selectThiefStealth,
   onCastCommit(runtime, cast) {

@@ -99,22 +99,26 @@ function antiquaryStateSnapshot(
     });
   }
 
-  // Artifact charge displays read canonical grants without expiring the live owner.
+  // Guitar grants remain spendable through their own deadline, including when the next expiry reads 0.0s.
+  const guitarCharges = activeBatches(state[STATE.BONUS_STEALTH_ATTACK_CHARGES] || [], at, {
+    order: 'insertion'
+  });
+
+  if (guitarCharges.length) {
+    const count = guitarCharges.reduce((sum, grant) => sum + grant.count, 0);
+    const remaining = Math.max(0, Math.min(...guitarCharges.map((grant) => grant.expiresAt)) - at);
+    items.push({
+      id: 'antiquary-metal-legion-guitar',
+      label: 'Metal Legion Guitar',
+      value: `${count} ${count === 1 ? 'charge' : 'charges'} · ${remaining.toFixed(1)}s`,
+      title: 'Stealth attacks available outside stealth and time until the next grant expires'
+    });
+  }
+
   const chakRefunds = activeBatches(state[STATE.CHAK_INITIATIVE_REFUNDS] || [], at, {
     order: 'earliest-expiry'
   });
-  const guitarCharges = activeBatches(state[STATE.ANTIQUARY_GUITAR_CHARGES] || [], at, {
-    order: 'insertion'
-  });
   for (const [id, label, grant] of [
-    [
-      'antiquary-metal-legion-guitar',
-      'Metal Legion Guitar',
-      {
-        count: guitarCharges.reduce((sum, entry) => sum + entry.count, 0),
-        expiresAt: Math.min(...guitarCharges.map((entry) => entry.expiresAt))
-      }
-    ],
     ['antiquary-mistburn-mortar', 'Mistburn Mortar', state[STATE.MISTBURN]],
     [
       'antiquary-chak-shield',
@@ -125,19 +129,17 @@ function antiquaryStateSnapshot(
       }
     ]
   ] as const) {
-    const remaining = (grant?.expiresAt || 0) - at;
     const charges = Math.trunc(activeBatchCount(grant, at));
 
-    if (remaining <= 0 || charges <= 0) continue;
+    // A live grant can still be spent when the displayed time reaches zero.
+    if (charges <= 0) continue;
 
+    const remaining = Math.max(0, (grant?.expiresAt ?? 0) - at);
     items.push({
       id,
       label,
       value: `${charges} ${charges === 1 ? 'charge' : 'charges'} · ${remaining.toFixed(1)}s`,
-      title:
-        id === 'antiquary-metal-legion-guitar'
-          ? 'Stealth attacks remaining without entering Stealth, and time until they expire'
-          : `${label} charges and time remaining`
+      title: `${label} charges and time remaining`
     });
   }
 

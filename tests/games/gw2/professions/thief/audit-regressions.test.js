@@ -6,13 +6,11 @@ import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
-import {
-  beginThiefStealthAttack,
-  reactThiefStealthBreakingStrike
-} from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { reactThiefStealthBreakingStrike } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { thiefFamilyRuntimeHooks } from '#gw2/professions/thief/family-state.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -290,7 +288,7 @@ test('THF-001: Hidden Killer requires stealth and lingers after either natural e
                 [
                   2,
                   (runtime) => {
-                    beginThiefStealthAttack(runtime, { skill, id: 'test-attack' });
+                    thiefFamilyRuntimeHooks('Core').onCastStart(runtime, { skill, id: 'test-attack' });
                     // A landed strike starts the linger; accepting the cast does not end stealth.
                     reactThiefStealthBreakingStrike(runtime, {
                       type: 'damage',

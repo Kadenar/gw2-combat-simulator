@@ -3,7 +3,6 @@ import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-defini
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { TRAIT_LINES } from '#gw2/professions/thief/data/trait-lines.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -17,7 +16,8 @@ type NotKey<T, K extends PropertyKey> = K extends keyof T ? false : true;
 
 const antiquary = thiefProfession.runtimeFor({ specialization: 'Antiquary' });
 const specter = thiefProfession.resolveProfession({ specialization: 'Specter' });
-type CoreAvailability = NonNullable<typeof thiefCoreHooks.availability>;
+const core = thiefProfession.runtimeFor({ specialization: 'Core' });
+type CoreAvailability = NonNullable<typeof core.availability>;
 type AntiquaryCastStart = NonNullable<typeof antiquaryHooks.onCastStart>;
 type SpecterCastStart = NonNullable<typeof specterHooks.onCastStart>;
 

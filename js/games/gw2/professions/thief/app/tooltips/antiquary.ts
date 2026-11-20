@@ -219,7 +219,8 @@ const guitarTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
       { label: 'Base attacks', facts: attacks },
       {
         label: 'Stealth-attack charges',
-        description: 'Newest charges are spent first. Reusing does not refresh older charges.',
+        description:
+          'Starting a stealth attack spends the newest charge, even while stealthed. Older grants keep their original expiry.',
         facts: [
           skillFact(balanceContext, entity.id, 'antiquaryStealthAttackCharges', 'Charges per use'),
           skillFact(balanceContext, entity.id, 'maximumStacks', 'Maximum charges'),

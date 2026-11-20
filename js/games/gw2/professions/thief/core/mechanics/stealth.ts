@@ -1,7 +1,6 @@
 // Private deadlines use the same 40 ms clock as scheduled events.
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
-import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import {
   createStealthLifecycle,
   endStealth,
@@ -17,26 +16,13 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefSkill } from '#gw2/professions/thief/core/events.js';
+import type { BonusStealthAttackCharges } from '#gw2/professions/thief/core/mechanics/bonus-stealth-attacks.js';
 import { stealthEntered, stealthExited } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { hiddenKillerLinger } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { DEADEYE_STOLEN_SKILL_ID_SET } from '#gw2/professions/thief/data/stolen-skills.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { claimActivation } from '#kernel/execution/activation-claims.js';
-import { consumeBatchFromList } from '#kernel/resources/batch-list.js';
-import { activeBatchCount } from '#kernel/resources/batch.js';
-
-/** A specialization-granted stealth-attack charge is usable outside stealth until it expires at the live clock. */
-export function thiefBonusStealthAttack(runtime: MechanicQueriesOf<ThiefRuntime>): boolean {
-  const at = runtime.time;
-  const elite = runtime.profession.specialization;
-
-  if (elite.kind === 'Deadeye') return activeBatchCount(elite.state.bonusStealthAttack, at) > 0;
-
-  return (
-    elite.kind === 'Antiquary' && elite.state.antiquaryGuitarCharges.some((grant) => activeBatchCount(grant, at) > 0)
-  );
-}
 
 /** Accepted native, combo, and external grants share entry rewards and the concurrent-strike policy. */
 function reactToStealthGrant(runtime: ThiefRuntime, event: Gw2ResolverEvent, entering: boolean): void {
@@ -141,24 +127,16 @@ export function thiefSameInstantStealthBreak(runtime: MechanicQueriesOf<ThiefRun
  * Claims any required bonus attack charge at cast start. Only Death's Judgment exits stealth here;
  * every other stealth attack defers its exit and any Revealed application until its first landed strike.
  */
-export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+export function beginThiefStealthAttack(
+  runtime: ThiefRuntime,
+  cast: RuntimeCast<ThiefSkill>,
+  charges: BonusStealthAttackCharges | undefined
+): void {
   const core = runtime.profession.core;
   const skill = cast.skill;
-  const elite = runtime.profession.specialization;
 
-  // Actual stealth supplies the attack first; only the active owner can spend a bonus entitlement.
-  if (!stealthActive(core, runtime.time)) {
-    if (elite.kind === 'Deadeye') consumeCharge(elite.state.bonusStealthAttack, runtime.time);
-
-    if (elite.kind === 'Antiquary') {
-      // Spend the newest live Guitar grant first, preserving older grants and their expiry.
-      const grants = elite.state.antiquaryGuitarCharges;
-      const newest = [...grants].reverse().find((grant) => activeBatchCount(grant, runtime.time) > 0);
-      consumeBatchFromList(grants, runtime.time, {
-        eligible: (grant) => grant === newest
-      });
-    }
-  }
+  // Check stealth before Death's Judgment can reveal the player.
+  charges?.spend(runtime.profession, runtime.time, stealthActive(core, runtime.time));
 
   core.strikeBrokeStealthAt = null;
 

@@ -6,13 +6,14 @@ import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import {
+  hasBonusStealthAttack,
+  type BonusStealthAttackCharges
+} from '#gw2/professions/thief/core/mechanics/bonus-stealth-attacks.js';
 import { thiefTrapAvailability } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { thiefSpearAvailability } from '#gw2/professions/thief/core/mechanics/spear.js';
 import { storedStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
-import {
-  thiefBonusStealthAttack,
-  thiefSameInstantStealthBreak
-} from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { thiefSameInstantStealthBreak } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { isThiefStolenSkill } from '#gw2/professions/thief/data/stolen-skills.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -51,10 +52,14 @@ function activeFollowUpAvailability(
 }
 
 /** Stealth replaces weapon slot one while retaining weapon and Shadow Shroud boundaries. */
-function stealthAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult | null {
+function stealthAvailability(
+  runtime: MechanicQueriesOf<ThiefRuntime>,
+  skill: ThiefSkill,
+  charges: BonusStealthAttackCharges | undefined
+): AvailabilityResult | null {
   const [mainHand] = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1);
   const stealthed = stealthActive(runtime.profession.core, runtime.time);
-  const bonusStealthAttack = thiefBonusStealthAttack(runtime);
+  const bonusStealthAttack = hasBonusStealthAttack(charges?.grants(runtime.profession), runtime.time);
 
   // Stealth replaces the equipped weapon's slot one, never the separate Shadow Shroud bar.
   if (skill.stealthAttack) {
@@ -115,13 +120,17 @@ function stolenSkillAvailability(
 }
 
 /** Keep the original gate order so the first restriction owns the reason and retry time. */
-export function thiefAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
+export function thiefAvailability(
+  runtime: MechanicQueriesOf<ThiefRuntime>,
+  skill: ThiefSkill,
+  charges: BonusStealthAttackCharges | undefined
+): AvailabilityResult {
   return (
     closedFollowUpAvailability(runtime, skill) ??
     thiefSpearAvailability(runtime, skill) ??
     thiefTrapAvailability(runtime, skill) ??
     activeFollowUpAvailability(runtime, skill) ??
-    stealthAvailability(runtime, skill) ??
+    stealthAvailability(runtime, skill, charges) ??
     rifleStanceAvailability(runtime, skill) ??
     stolenSkillAvailability(runtime, skill) ?? { ready: true }
   );

@@ -1,26 +1,46 @@
+import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { thiefAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
+import type { BonusStealthAttackCharges } from '#gw2/professions/thief/core/mechanics/bonus-stealth-attacks.js';
+import { beginThiefStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import type { ThiefGuildContribution } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
 import { createThievesGuildHooks } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
 import { ANTIQUARY_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/antiquary/mechanics/thieves-guild.js';
+import { metalLegionGuitarCharges } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { DAREDEVIL_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/daredevil/mechanics/thieves-guild.js';
 import { DEADEYE_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/deadeye/mechanics/thieves-guild.js';
+import { silentScopeCharges } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import {
   guildAttackConditions,
   SPECTER_THIEVES_GUILD_ACTOR
 } from '#gw2/professions/thief/specializations/specter/mechanics/thieves-guild.js';
+import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
-const guildContributions: Readonly<Record<string, ThiefGuildContribution | null>> = Object.freeze({
-  Core: null,
-  Antiquary: { actor: ANTIQUARY_THIEVES_GUILD_ACTOR },
-  Daredevil: { actor: DAREDEVIL_THIEVES_GUILD_ACTOR },
-  Deadeye: { actor: DEADEYE_THIEVES_GUILD_ACTOR },
-  Specter: { actor: SPECTER_THIEVES_GUILD_ACTOR, conditions: guildAttackConditions }
+interface ThiefFamilyContribution {
+  guild: ThiefGuildContribution | null;
+  charges?: BonusStealthAttackCharges;
+}
+
+const contributions: Readonly<Record<string, ThiefFamilyContribution>> = Object.freeze({
+  Core: { guild: null },
+  Antiquary: { guild: { actor: ANTIQUARY_THIEVES_GUILD_ACTOR }, charges: metalLegionGuitarCharges },
+  Daredevil: { guild: { actor: DAREDEVIL_THIEVES_GUILD_ACTOR } },
+  Deadeye: { guild: { actor: DEADEYE_THIEVES_GUILD_ACTOR }, charges: silentScopeCharges },
+  Specter: { guild: { actor: SPECTER_THIEVES_GUILD_ACTOR, conditions: guildAttackConditions } }
 });
 
-/** Select once at the family boundary; Core receives no inactive policies or static summon definitions. */
+/** Bind cast eligibility and spending to the same active elite for the lifetime of this runtime. */
 export function thiefFamilyRuntimeHooks(specialization: string) {
-  const contribution = guildContributions[specialization];
+  const contribution = contributions[specialization];
 
-  if (contribution === undefined) throw new Error(`Unknown Thief guild specialization: ${specialization}`);
+  if (contribution === undefined) throw new Error(`Unknown Thief specialization: ${specialization}`);
 
-  return createThievesGuildHooks(contribution);
+  return composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>([
+    createThievesGuildHooks(contribution.guild),
+    {
+      availability: (runtime, skill) => thiefAvailability(runtime, skill, contribution.charges),
+      onCastStart(runtime, cast) {
+        if (cast.skill.stealthAttack) beginThiefStealthAttack(runtime, cast, contribution.charges);
+      }
+    }
+  ]);
 }
