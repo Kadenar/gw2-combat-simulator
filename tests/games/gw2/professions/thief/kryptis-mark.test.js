@@ -21,7 +21,9 @@ for (const lands of [true, false]) {
           return withSkill(catalog, ID.SUMMON_KRYPTIS_TURRET, {
             castTimeMs: 0,
             duration: 3,
-            effects: lands ? [{ ...strike, ticks: [1000, 2000, 4000].map((atMs) => ({ atMs, coefficient: 1 })) }] : []
+            effects: lands
+              ? [{ ...strike, ticks: [1000, 2000, 3000, 4000].map((atMs) => ({ atMs, coefficient: 1 })) }]
+              : []
           });
         },
         probes: [0.5, 1.5, 4.5].map((at) => [
@@ -44,7 +46,8 @@ for (const lands of [true, false]) {
 
     if (lands) {
       assertFlooredDamageMultiplier(hits[1].damage, hits[0].damage, 1.15);
-      assert.equal(hits[2].damage, hits[0].damage);
+      assert.equal(hits[2].damage, hits[1].damage);
+      assert.equal(hits[3].damage, hits[0].damage);
     } else {
       assert.equal(hits.length, 0);
     }

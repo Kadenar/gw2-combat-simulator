@@ -6,6 +6,7 @@ import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
@@ -1630,8 +1631,8 @@ test('Meticulous Custodian upgrades artifact packets and effect durations', () =
       artifact('Mistburn Mortar').planningState.profession[STATE.MISTBURN].expiresAt
   );
   assert.ok(
-    turret.planningState.profession[STATE.KRYPTIS_DAMAGE_UNTIL] >
-      artifact('Summon Kryptis Turret').planningState.profession[STATE.KRYPTIS_DAMAGE_UNTIL]
+    planningBuffAt(turret.planningState, 'kryptis-turret').remaining >
+      planningBuffAt(artifact('Summon Kryptis Turret').planningState, 'kryptis-turret').remaining
   );
   assert.ok(sunCrystal.conditionDamage > artifact('Zephyrite Sun Crystal').conditionDamage * 1.8);
 });

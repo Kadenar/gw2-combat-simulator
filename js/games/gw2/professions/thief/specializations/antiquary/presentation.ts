@@ -1,9 +1,11 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
@@ -69,21 +71,28 @@ function antiquaryStateSnapshot(
     });
   }
 
-  // Kryptis Turret uses its summoning skill's artwork in the Active State bar.
-  const timedEffects: readonly [string, string, number, string?][] = [
-    ['antiquary-exhilarating-ephemera', 'Exhilarating Ephemera', state[STATE.ANTIQUARY_DAMAGE_UNTIL] || 0],
+  // The final bomb can drop at the deadline, when the countdown reads 0.0s.
+  const bombDeadline = state[STATE.FORGED_SURFER_BOMB_DROP_UNTIL] ?? 0;
+  const timedEffects: readonly [string, string, number | undefined, string?][] = [
+    [
+      'antiquary-exhilarating-ephemera',
+      'Exhilarating Ephemera',
+      planningBuffAt(context.planningState, 'exhilarating-ephemera')?.remaining
+    ],
     [
       'antiquary-kryptis-turret',
       'Kryptis Turret',
-      state[STATE.KRYPTIS_DAMAGE_UNTIL] || 0,
+      planningBuffAt(context.planningState, 'kryptis-turret')?.remaining,
       context.balanceContext.catalog.skillsById.get(ID.SUMMON_KRYPTIS_TURRET)?.icon
     ],
-    ['antiquary-forged-surfer-dash', 'Forged Surfer Dash', state[STATE.FORGED_SURFER_BOMB_DROP_UNTIL] || 0]
+    [
+      'antiquary-forged-surfer-dash',
+      'Forged Surfer Dash',
+      buffDeadlineActive(bombDeadline, at) ? Math.max(0, bombDeadline - at) : undefined
+    ]
   ];
-  for (const [id, label, expiresAt, icon] of timedEffects) {
-    const remaining = expiresAt - at;
-
-    if (remaining <= 0) continue;
+  for (const [id, label, remaining, icon] of timedEffects) {
+    if (remaining === undefined) continue;
 
     items.push({
       id,

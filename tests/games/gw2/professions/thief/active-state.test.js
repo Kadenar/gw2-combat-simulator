@@ -5,7 +5,9 @@ import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 const simulate = createObservedProfessionSimulator(thiefProfession, {
   primaryWeapon: 'Axe',
@@ -101,6 +103,37 @@ test('all recall variants consume axes and cancelled recalls preserve the pool',
   }
 });
 
+// The turret can be present before it marks the target. Only the active strike bonus gets a row.
+test('Kryptis Turret appears after a landed hit and stays visible through the bonus deadline', () => {
+  for (const lands of [true, false]) {
+    const turret = ID.SUMMON_KRYPTIS_TURRET;
+    const options = {
+      catalog(catalog) {
+        // Use a synthetic hit time so balance changes cannot shift these observations.
+        const strike = catalog.skillsById.get(turret).effects.find((effect) => effect.type === 'strike');
+        return withSkill(catalog, turret, {
+          castTimeMs: 0,
+          duration: 3,
+          effects: lands ? [{ ...strike, ticks: [{ atMs: 500, coefficient: 1 }] }] : []
+        });
+      }
+    };
+    for (const [waitMs, expected] of [
+      [0, undefined],
+      [1000, '2.0s'],
+      [3000, '0.0s'],
+      [3040, undefined]
+    ]) {
+      const rotation = [{ type: 'cast', skillId: turret }];
+
+      if (waitMs) rotation.push({ type: 'wait', durationMs: waitMs });
+
+      const result = runThief(rotation, { specialization: 'Antiquary', initialPreSteal: 1 }, options);
+      assert.equal(activeState(result, 'Antiquary')['antiquary-kryptis-turret'], lands ? expected : undefined);
+    }
+  }
+});
+
 test('Prodigious Pincher projects spending progress and resets on a pilfer', () => {
   const config = { selectedTraitIds: [TRAIT.PRODIGIOUS_PINCHER] };
   const progress = simulate('Antiquary', ['Skritt Swipe', 'Venomous Volley'], config);
@@ -124,17 +157,22 @@ test('Skritt Scuffle advances its next-pilfer countdown and clears it after the 
   assert.equal(activeState(ended, 'Antiquary')['antiquary-skritt-scuffle'], undefined);
 });
 
-test('Surfer exposes the selected buff window and hides it at expiry', () => {
+test('Forged Surfer and Ephemera show their bonuses through the final instant', () => {
   for (const [selectedTraitIds, duration] of [
     [[], 10],
     [[TRAIT.METICULOUS_CUSTODIAN], 13]
   ]) {
-    const config = { selectedTraitIds };
+    const config = { selectedTraitIds: [TRAIT.EXHILARATING_EPHEMERA, ...selectedTraitIds] };
     const rotation = ['Skritt Swipe', 'Forged Surfer Dash'];
     const active = simulate('Antiquary', rotation, config);
     assert.equal(activeState(active, 'Antiquary')['antiquary-forged-surfer-dash'], `${duration.toFixed(1)}s`);
-    const expired = simulate('Antiquary', [...rotation, { type: 'wait', durationMs: duration * 1000 }], config);
+    const deadline = simulate('Antiquary', [...rotation, { type: 'wait', durationMs: duration * 1000 }], config);
+    const rows = activeState(deadline, 'Antiquary');
+    assert.equal(rows['antiquary-forged-surfer-dash'], '0.0s');
+    assert.equal(rows['antiquary-exhilarating-ephemera'], duration === 10 ? '0.0s' : undefined);
+    const expired = simulate('Antiquary', [...rotation, { type: 'wait', durationMs: duration * 1000 + 40 }], config);
     assert.equal(activeState(expired, 'Antiquary')['antiquary-forged-surfer-dash'], undefined);
+    assert.equal(activeState(expired, 'Antiquary')['antiquary-exhilarating-ephemera'], undefined);
   }
 });
 

@@ -64,6 +64,11 @@ export function createAntiquaryState(): AntiquaryState {
 
 export const antiquaryState = defineProfessionSpecializationState('Antiquary', createAntiquaryState);
 
+/** The strike bonus ends at the earlier of the player buff and the landed turret mark. */
+export function kryptisDamageDeadline(state: Partial<AntiquaryState>): number {
+  return Math.min(state.kryptisDamageUntil ?? 0, state.antiquaryKryptisTargetUntil ?? 0);
+}
+
 /** Every accepted stealth attack spends the newest live Guitar charge, even during ordinary stealth. */
 export const metalLegionGuitarCharges: BonusStealthAttackCharges = {
   grants: (profession) => antiquaryState.from(profession).antiquaryGuitarCharges,
@@ -89,7 +94,6 @@ export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput<Speci
     [STATE.SCOUNDRELS_LUCK]: state.scoundrelsLuck,
     [STATE.INITIATIVE_SPENT_SINCE_PILFER]: state.initiativeSpentSincePilfer,
     [STATE.NEXT_SKRITT_SCUFFLE_PILFER_AT]: state.nextSkrittScufflePilferAt,
-    [STATE.ANTIQUARY_DAMAGE_UNTIL]: state.antiquaryDamageUntil,
     [STATE.COMBAT_HIGH_EXPIRATIONS]: purgeExpiredStacks(state.combatHighExpirations, input.time),
     [STATE.MISTBURN]: {
       // Show the combined balance and next expiry without changing any live grant.
@@ -97,7 +101,6 @@ export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput<Speci
       expiresAt: mistburnGrants.length ? Math.min(...mistburnGrants.map((grant) => grant.expiresAt)) : 0,
       readyAt: state.mistburn.readyAt
     },
-    [STATE.KRYPTIS_DAMAGE_UNTIL]: state.kryptisDamageUntil,
     [STATE.CHAK_INITIATIVE_REFUNDS]: activeBatches(state.chakInitiativeRefunds, input.time, {
       order: 'earliest-expiry'
     }),

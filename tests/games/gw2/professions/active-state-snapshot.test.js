@@ -717,17 +717,26 @@ test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and ar
       'Antiquary',
       {
         [STATE.COMBAT_HIGH_EXPIRATIONS]: [6, 8, 10, 12, 14, 16, 18, 20],
-        [STATE.ANTIQUARY_DAMAGE_UNTIL]: 9,
         [STATE.BONUS_STEALTH_ATTACK_CHARGES]: [
           { count: 1, expiresAt: 8 },
           { count: 1, expiresAt: 10 }
         ],
         [STATE.MISTBURN]: { count: 4, expiresAt: 10 },
-        [STATE.KRYPTIS_DAMAGE_UNTIL]: 11,
         [STATE.CHAK_INITIATIVE_REFUNDS]: [{ count: 3, expiresAt: 12 }],
         [STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS]: [3, 13, 14]
       },
-      4
+      4,
+      effectFields([], 11, {
+        frames: [
+          {
+            at: 0,
+            states: [
+              timedEffectState('exhilarating-ephemera', [{ stacks: 1, expiresAt: 9 }], 1),
+              timedEffectState('kryptis-turret', [{ stacks: 1, expiresAt: 11 }], 1)
+            ]
+          }
+        ]
+      })
     )
   );
   assert.equal(antiquary['antiquary-combat-high'], '8/10 · 16.0s');

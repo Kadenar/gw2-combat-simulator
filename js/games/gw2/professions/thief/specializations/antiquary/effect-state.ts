@@ -4,7 +4,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { balanceNumber, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
+import { antiquaryState, kryptisDamageDeadline } from '#gw2/professions/thief/specializations/antiquary/state.js';
 
 /** Report the same damage windows and unspent artifact charges that combat uses. */
 export function antiquaryEffectStates(runtime: MechanicQueriesOf<ThiefRuntime>): EffectState[] {
@@ -25,10 +25,9 @@ export function antiquaryEffectStates(runtime: MechanicQueriesOf<ThiefRuntime>):
     );
   }
 
-  // The turret bonus applies only while both the player buff and the target mark are active.
   for (const [kind, name, deadline] of [
     ['exhilarating-ephemera', 'Exhilarating Ephemera', state.antiquaryDamageUntil],
-    ['kryptis-turret', 'Kryptis Turret', Math.min(state.kryptisDamageUntil, state.antiquaryKryptisTargetUntil)]
+    ['kryptis-turret', 'Kryptis Turret', kryptisDamageDeadline(state)]
   ] as const) {
     if (deadline > 0)
       effects.push(

@@ -10,7 +10,7 @@ import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { ANTIQUARY_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/specializations/antiquary/skills/guild-attacks.js';
-import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
+import { antiquaryState, kryptisDamageDeadline } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // Artifact acceptance spends the old pool; traits surround the skill's intrinsic identity at commitment.
@@ -490,11 +490,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
           buffDeadlineActive(
-            thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').kryptisDamageUntil || 0,
-            context.time
-          ) &&
-          buffDeadlineActive(
-            thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').antiquaryKryptisTargetUntil || 0,
+            kryptisDamageDeadline(thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary')),
             context.time
           )
       }
