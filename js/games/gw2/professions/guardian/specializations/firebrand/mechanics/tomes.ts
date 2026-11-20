@@ -8,12 +8,11 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import {
   grantVirtueActivationRewards,
-  justiceActivated,
   reactToJusticeHitWithOptions
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { powerOfTheVirtuousRechargeMultiplier } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
@@ -51,8 +50,6 @@ export function reactToTomeJusticeHit(context: GuardianVirtueContext, event: Gua
 
 const COURAGE = 'guardian.firebrand.courage';
 
-const TOMES = { justice: ID.TOME_OF_JUSTICE, resolve: ID.TOME_OF_RESOLVE, courage: ID.TOME_OF_COURAGE };
-
 /** Tome reopening changes only the current bar; it cannot restart a dormant passive or duplicate its activation traits. */
 function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
   const state = firebrandState.from(runtime.profession);
@@ -61,13 +58,9 @@ function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, vi
 
   if (ready) {
     const multiplier = powerOfTheVirtuousRechargeMultiplier(runtime);
-    state.tomeDormantReadyAt[virtue] = gw2Time(
-      runtime.time + skillNumber(requireSkill(runtime.helpers, TOMES[virtue]), 'dormantCooldown') * multiplier
-    );
+    state.tomeDormantReadyAt[virtue] = gw2Time(runtime.time + skillNumber(cast.skill, 'dormantCooldown') * multiplier);
     // Ready tomes receive the same unconditional Resolve regeneration as the other virtue owners.
     grantVirtueActivationRewards(runtime, cast, virtue);
-
-    if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
   }
 
   runtime.fireTrigger(tomeOpened, { cast, virtue, ready });
@@ -112,15 +105,9 @@ const courage = createPassiveCourageTask({
 
 /** Declarations select these actions; their state transitions stay with the mechanic owner. */
 const firebrandTomeActions: NonNullable<RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers']> = {
-  // Declarations select the virtue; the controller retains dormancy and session invariants.
-  'guardian.open-justice'(runtime, context) {
-    if (context.kind === 'cast') openTome(runtime, context.cast, 'justice');
-  },
-  'guardian.open-resolve'(runtime, context) {
-    if (context.kind === 'cast') openTome(runtime, context.cast, 'resolve');
-  },
-  'guardian.open-courage'(runtime, context) {
-    if (context.kind === 'cast') openTome(runtime, context.cast, 'courage');
+  'guardian.open-tome'(runtime, context) {
+    if (context.kind === 'cast' && context.cast.skill.virtue)
+      openTome(runtime, context.cast, context.cast.skill.virtue);
   },
   'guardian.stow-tome'(runtime, context) {
     if (context.kind !== 'cast') return;

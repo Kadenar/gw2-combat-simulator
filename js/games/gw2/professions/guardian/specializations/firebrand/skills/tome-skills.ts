@@ -243,7 +243,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     canCastConcurrently: true,
     effects: [],
     // Reopening preserves the shared dormancy and session controller.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-resolve' } }]
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-tome' } }]
   },
   [ID.DESERT_BLOOM]: {
     name: 'Chapter 1: Desert Bloom',
@@ -327,7 +327,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     ],
     effectVariants: [triggeredVirtueEffects],
     // Reopening preserves the shared dormancy and session controller.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-courage' } }]
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-tome' } }]
   },
   [ID.SHINING_RIVER]: {
     name: 'Chapter 4: Shining River',
@@ -465,7 +465,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     canCastConcurrently: true,
     effects: [],
     // Reopening preserves the shared dormancy and session controller.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-justice' } }]
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-tome' } }]
   },
   [ID.VALIANT_BULWARK]: {
     name: 'Chapter 3: Valiant Bulwark',

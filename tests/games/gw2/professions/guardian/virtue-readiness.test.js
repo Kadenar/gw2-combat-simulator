@@ -2,11 +2,28 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianVirtueReadyAt } from '#gw2/professions/guardian/virtue-readiness.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { wait } from '#tests/helpers/commands.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+
+test('a replaced Core virtue is unavailable and only the active virtue grants activation rewards', () => {
+  const result = runGuardian([ID.JUSTICE, ID.SPEAR_OF_JUSTICE], {
+    specialization: 'Dragonhunter',
+    selectedTraitIds: [TRAIT.INSPIRED_VIRTUE]
+  });
+  assert.equal(result.warnings.length, 1);
+  assert.equal(result.warnings[0].rotationIndex, 0);
+  assert.match(result.warnings[0].message, /unavailable - Dragonhunter uses /);
+  const rewards = result.resolvedEvents.filter(
+    (event) => event.type === 'buff' && event.traitId === TRAIT.INSPIRED_VIRTUE
+  );
+  assert.deepEqual(
+    rewards.map((event) => event.skillId),
+    [ID.SPEAR_OF_JUSTICE]
+  );
+});
 
 // Queries observe controller mutations immediately and use the active specialization's virtue identities.
 for (const [specialization, ids] of [

@@ -35,9 +35,9 @@ import {
 import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntime, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import { activeGuardianVirtues } from '#gw2/professions/guardian/virtue-readiness.js';
 
 const AURA_DETONATE = 'guardian.luminary.aura-detonate';
-const VIRTUES: readonly number[] = [ID.RADIANT_JUSTICE, ID.RADIANT_RESOLVE, ID.RADIANT_COURAGE];
 
 /** Allied stances grant Protection on commit; offensive stances apply Blind only when their strike hits. */
 const shimmeringStances = defineTrait({
@@ -360,8 +360,8 @@ function extendEmpoweredArmaments(runtime: GuardianRuntime, { cast }: LuminaryCa
 /** Completed equips reduce real virtue recharge and refresh the shared readiness projection. */
 function reduceVirtueRecharge(runtime: GuardianRuntime, { cast }: LuminaryCast): void {
   const reduction = balanceNumber(runtime.helpers, TRAIT.ILLUMINATING_INSPIRATION, 'rechargeReduction');
-  for (const id of VIRTUES)
-    runtime.cooldownController.reduceSkillRecharge(runtime.helpers.skillsById.get(id)!, reduction, runtime.time);
+  for (const skill of activeGuardianVirtues(runtime).values())
+    runtime.cooldownController.reduceSkillRecharge(skill, reduction, runtime.time);
   runtime.effects.emit({
     kind: 'announcement',
     announcement: {

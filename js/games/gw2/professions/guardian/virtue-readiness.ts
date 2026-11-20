@@ -1,40 +1,58 @@
-/** Virtue eligibility reads its owning timer; Renewed Focus resets cooldowns, ammunition, and Firebrand dormancy. */
+/**
+ * Virtue eligibility reads the selected specialization's virtue skills. Renewed Focus resets their cooldowns,
+ * ammunition, and Firebrand dormancy.
+ */
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type {
+  GuardianRuntime,
   GuardianRuntimeState,
   GuardianSkill,
   GuardianVirtue,
   GuardianVirtueContext
 } from '#gw2/professions/guardian/types.js';
 
-/** Core hooks use the same virtue identities as readiness queries. */
-export const CORE_VIRTUES = [
-  [ID.JUSTICE, 'justice'],
-  [ID.RESOLVE, 'resolve'],
-  [ID.COURAGE, 'courage']
-] as const;
+type VirtueSelection = Pick<MechanicQueriesOf<GuardianRuntime>, 'helpers' | 'profession'>;
+type VirtueSkills = ReadonlyMap<GuardianVirtue, GuardianSkill>;
+const catalogVirtues = new WeakMap<readonly GuardianSkill[], Map<string, VirtueSkills>>();
 
-const VIRTUES = {
-  Core: CORE_VIRTUES,
-  Dragonhunter: [
-    [ID.SPEAR_OF_JUSTICE, 'justice'],
-    [ID.WINGS_OF_RESOLVE, 'resolve'],
-    [ID.SHIELD_OF_COURAGE, 'courage']
-  ],
-  Willbender: [
-    [ID.RUSHING_JUSTICE, 'justice'],
-    [ID.FLOWING_RESOLVE, 'resolve'],
-    [ID.CRASHING_COURAGE, 'courage']
-  ],
-  Luminary: [
-    [ID.RADIANT_JUSTICE, 'justice'],
-    [ID.RADIANT_RESOLVE, 'resolve'],
-    [ID.RADIANT_COURAGE, 'courage']
-  ]
-} as const;
+/** Index the selected owner's declarations once so passive hits and cast checks use the same patched skills. */
+export function activeGuardianVirtues({ helpers, profession }: VirtueSelection): VirtueSkills {
+  const owner = profession.specialization.kind;
+  let owners = catalogVirtues.get(helpers.skills);
+
+  if (!owners) {
+    owners = new Map();
+    catalogVirtues.set(helpers.skills, owners);
+  }
+
+  const existing = owners.get(owner);
+
+  if (existing) return existing;
+
+  const virtues = new Map<GuardianVirtue, GuardianSkill>();
+  for (const skill of helpers.skills) {
+    if (!skill.virtue || (skill.specialization ?? 'Core') !== owner) continue;
+
+    if (virtues.has(skill.virtue)) throw new Error(`Duplicate ${owner} virtue: ${skill.virtue}.`);
+
+    virtues.set(skill.virtue, skill);
+  }
+
+  owners.set(owner, virtues);
+  return virtues;
+}
+
+/** Core declarations remain in elite catalogs for their passive effects. Only the selected root accepts casts. */
+export function activeGuardianVirtueSkill(context: VirtueSelection, virtue: GuardianVirtue): GuardianSkill {
+  const skill = activeGuardianVirtues(context).get(virtue);
+
+  if (!skill) throw new Error(`Missing ${context.profession.specialization.kind} virtue: ${virtue}.`);
+
+  return skill;
+}
 
 /** Settle live recharge work before reading ammo availability or the tick-rounded ordinary deadline. */
 export function guardianVirtueReadyAt(context: GuardianVirtueContext, virtue: GuardianVirtue): number {
@@ -43,14 +61,15 @@ export function guardianVirtueReadyAt(context: GuardianVirtueContext, virtue: Gu
   if (specialization.kind === 'Firebrand') return specialization.state.tomeDormantReadyAt[virtue];
 
   context.cooldownController.refresh(context.time);
-  const [id] = VIRTUES[specialization.kind].find(([, candidate]) => candidate === virtue)!;
-  return gw2CooldownReadyAt(context.cooldownController.readyAt(id) ?? 0);
+  const skill = activeGuardianVirtueSkill(context, virtue);
+  return gw2CooldownReadyAt(context.cooldownController.readyAt(skill.id) ?? 0);
 }
 
 /** Ordinary cooldown resets leave dormancy alone; only the authored virtue reset restores both authorities. */
 export const guardianVirtueActions = {
   'guardian.refresh-virtues'(runtime, context) {
-    const virtues = runtime.helpers.skills.filter((skill) => skill.virtue);
+    // Replaced Core virtues cannot be cast, so only the selected specialization's virtues reset.
+    const virtues = [...activeGuardianVirtues(runtime).values()];
     applySideEffect(runtime, context, { type: 'rechargeReset', skillIds: virtues.map((skill) => skill.id) });
     for (const skill of virtues) runtime.cooldownController.restoreAmmo(skill, Infinity, runtime.time);
 

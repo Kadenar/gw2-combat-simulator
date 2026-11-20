@@ -32,7 +32,7 @@ import { writOfPersistenceFields } from '#gw2/professions/guardian/core/traits/h
 import { masterOfConsecrationsFields } from '#gw2/professions/guardian/core/traits/virtues/index.js';
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import { CORE_VIRTUES, guardianVirtueActions } from '#gw2/professions/guardian/virtue-readiness.js';
+import { activeGuardianVirtueSkill, guardianVirtueActions } from '#gw2/professions/guardian/virtue-readiness.js';
 import { grantTimedStacks } from '#kernel/resources/timed-stacks.js';
 
 /** Registers virtue, symbol, and follow-up callbacks with the actions from each Core skill. */
@@ -82,6 +82,18 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
       return writOfPersistenceFields(runtime, cast.skill, masterOfConsecrationsFields(runtime, cast, fields));
     },
     availability(runtime, skill) {
+      // Elite catalogs keep the replaced Core virtues for their passive effects, so rotations cannot cast them.
+      if (skill.virtue) {
+        const active = activeGuardianVirtueSkill(runtime, skill.virtue);
+
+        if (active.id !== skill.id)
+          return denySkillCast(
+            skill,
+            'guardian.virtue-replaced',
+            `${runtime.profession.specialization.kind} uses ${active.name}.`
+          );
+      }
+
       const flips = runtime.flips;
 
       if (
@@ -94,15 +106,12 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
       return { ready: true };
     },
     onCastStart(runtime, cast) {
-      const virtue = CORE_VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
-
-      if (virtue) admitVirtueActivation(runtime, cast, virtue);
+      if (runtime.profession.specialization.kind === 'Core') admitVirtueActivation(runtime, cast);
     },
     onCastCommit(runtime, cast) {
       runtime.fireTrigger(guardianCastCompleted, { cast });
-      const virtue = CORE_VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
 
-      if (virtue) completeVirtueActivation(runtime, cast, virtue);
+      if (runtime.profession.specialization.kind === 'Core') completeVirtueActivation(runtime, cast);
     },
     reactions: {
       'damage.resolved'(runtime, event, details) {

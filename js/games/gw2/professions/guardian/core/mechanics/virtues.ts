@@ -181,20 +181,18 @@ export function reactToJusticeHitWithOptions(
   });
 }
 
-const readyVirtueActivations = new WeakSet<RuntimeCast<GuardianSkill>>();
+const readyVirtueActivations = new WeakMap<RuntimeCast<GuardianSkill>, GuardianVirtue>();
 
 /**
  * Records at acceptance whether a virtue's recharge was ready, before the cast starts its own recharge. Only a ready
  * activation earns the shared rewards when it completes.
  */
-export function admitVirtueActivation(
-  runtime: GuardianRuntime,
-  cast: RuntimeCast<GuardianSkill>,
-  virtue: GuardianVirtue
-): boolean {
-  if (guardianVirtueReadyAt(runtime, virtue) > runtime.time) return false;
+export function admitVirtueActivation(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): boolean {
+  const virtue = cast.skill.virtue;
 
-  readyVirtueActivations.add(cast);
+  if (!virtue || cast.cancelledBeforeCommit || guardianVirtueReadyAt(runtime, virtue) > runtime.time) return false;
+
+  readyVirtueActivations.set(cast, virtue);
 
   return true;
 }
@@ -203,14 +201,14 @@ export function admitVirtueActivation(
 export function completeVirtueActivation(
   runtime: GuardianRuntime,
   cast: RuntimeCast<GuardianSkill>,
-  virtue: GuardianVirtue,
   { deferJustice = false }: { readonly deferJustice?: boolean } = {}
 ): void {
-  if (!readyVirtueActivations.has(cast)) return;
+  const virtue = readyVirtueActivations.get(cast);
 
-  grantVirtueActivationRewards(runtime, cast, virtue);
+  if (!virtue) return;
 
-  if (virtue === 'justice' && !deferJustice) runtime.fireTrigger(justiceActivated, { cast });
+  readyVirtueActivations.delete(cast);
+  grantVirtueActivationRewards(runtime, cast, virtue, { deferJustice });
 }
 
 /** Resolve grants its party boon intrinsically. Justice and Courage grant theirs through the selected trait. */
@@ -228,10 +226,13 @@ export function grantInspiredVirtueBoon(runtime: GuardianRuntime, { cast, virtue
 export function grantVirtueActivationRewards(
   runtime: GuardianRuntime,
   cast: RuntimeCast<GuardianSkill>,
-  virtue: GuardianVirtue
+  virtue: GuardianVirtue,
+  { deferJustice = false }: { readonly deferJustice?: boolean } = {}
 ): void {
   // In-game Resolve grants Inspired Virtue's regeneration even without the trait; emit it once for every owner.
   if (virtue === 'resolve') grantInspiredVirtueBoon(runtime, { cast, virtue });
 
   runtime.fireTrigger(virtueActivated, { cast, virtue });
+
+  if (virtue === 'justice' && !deferJustice) runtime.fireTrigger(justiceActivated, { cast });
 }

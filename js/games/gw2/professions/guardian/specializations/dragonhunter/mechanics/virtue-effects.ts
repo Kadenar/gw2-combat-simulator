@@ -199,11 +199,9 @@ export const dragonhunterVirtueLifecycle: RuntimeHooks<GuardianRuntimeState, Gua
     runtime.schedule(COURAGE, runtime.time, undefined, undefined, -200);
   },
   onCastStart(runtime, cast) {
-    const virtue = cast.skill.virtue;
+    if (!admitVirtueActivation(runtime, cast)) return;
 
-    if (!virtue || !admitVirtueActivation(runtime, cast, virtue)) return;
-
-    if (cast.skill.id === ID.SPEAR_OF_JUSTICE && !cast.cancelledBeforeCommit) {
+    if (cast.skill.virtue === 'justice') {
       const at = gw2Time(
         cast.start + projectCastRelativeEffectTimingMs(cast.skill, (cast.fullEnd - cast.start) * 1000, 480) / 1000
       );
@@ -214,10 +212,8 @@ export const dragonhunterVirtueLifecycle: RuntimeHooks<GuardianRuntimeState, Gua
     }
   },
   onCastCommit(runtime, cast) {
-    const virtue = cast.skill.virtue;
-
     // Furious Focus waits for the spear's impact, so Justice's own point fires from that task instead.
-    if (virtue) completeVirtueActivation(runtime, cast, virtue, { deferJustice: true });
+    completeVirtueActivation(runtime, cast, { deferJustice: true });
 
     runtime.fireTrigger(dragonhunterCastCompleted, { cast });
   },

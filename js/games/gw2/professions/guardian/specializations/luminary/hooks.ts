@@ -32,8 +32,6 @@ import { luminaryVirtueLifecycle } from '#gw2/professions/guardian/specializatio
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-const VIRTUES: readonly number[] = [ID.RADIANT_JUSTICE, ID.RADIANT_RESOLVE, ID.RADIANT_COURAGE];
-
 /** Luminary owns its live form, virtue entitlements, finite stance work, and actual combo-derived auras. */
 export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianSkill>([
   luminaryHammerLifecycle,
@@ -87,12 +85,12 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
       // Sovereign admits detonation before replacement auras from the cast or shared virtue rewards.
       runtime.fireTrigger(luminaryCastStarted, { cast });
 
-      if (VIRTUES.includes(Number(cast.skill.id))) admitVirtueActivation(runtime, cast, cast.skill.virtue!);
+      admitVirtueActivation(runtime, cast);
     },
     onCastCommit(runtime, cast) {
-      if (!VIRTUES.includes(Number(cast.skill.id))) return;
+      if (!cast.skill.virtue) return;
 
-      completeVirtueActivation(runtime, cast, cast.skill.virtue!);
+      completeVirtueActivation(runtime, cast);
       runtime.fireTrigger(luminaryVirtueCompleted, { cast });
     },
     reactions: {

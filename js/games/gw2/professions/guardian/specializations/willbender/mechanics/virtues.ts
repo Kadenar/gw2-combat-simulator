@@ -30,12 +30,6 @@ import { advanceCounter } from '#kernel/resources/counters.js';
 
 const PULSE = 'guardian.willbender.pulse';
 
-const VIRTUES = [
-  [ID.RUSHING_JUSTICE, 'justice'],
-  [ID.FLOWING_RESOLVE, 'resolve'],
-  [ID.CRASHING_COURAGE, 'courage']
-] as const;
-
 const FLAME_IDS = {
   justice: ID.WILLBENDER_FLAMES_ID_62618,
   resolve: ID.WILLBENDER_FLAMES,
@@ -232,22 +226,6 @@ const willbenderVirtueActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>
     ])
   );
 
-/** Capture virtue readiness at acceptance before the skill changes its window. */
-function prepareWillbenderVirtue(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
-  if (cast.cancelledBeforeCommit) return;
-
-  const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
-
-  if (virtue) admitVirtueActivation(runtime, cast, virtue);
-}
-
-/** Committed virtues publish shared activation rewards only for their accepted readiness. */
-function completeWillbenderVirtue(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
-  const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
-
-  if (virtue) completeVirtueActivation(runtime, cast, virtue);
-}
-
 /** Keep scheduled work with the state and generation that own its lifetime. */
 const willbenderVirtueTasks: NonNullable<RuntimeHooks<GuardianRuntimeState, GuardianSkill>['tasks']> = {
   [ACTIVATE]: activate,
@@ -264,8 +242,13 @@ const willbenderVirtueTasks: NonNullable<RuntimeHooks<GuardianRuntimeState, Guar
 /** Virtue readiness, activation recipes, active windows, hit counters, and flame tasks share one owner. */
 export const willbenderVirtueLifecycle = {
   sideEffectHandlers: willbenderVirtueActions,
-  onCastStart: prepareWillbenderVirtue,
-  onCastCommit: completeWillbenderVirtue,
+  onCastStart(runtime, cast) {
+    admitVirtueActivation(runtime, cast);
+  },
+  // Willbender has no deferred virtue point, so completion keeps the default options.
+  onCastCommit(runtime, cast) {
+    completeVirtueActivation(runtime, cast);
+  },
   tasks: willbenderVirtueTasks,
   reactions: { 'damage.resolved': reactToWillbenderHit }
 } satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;
