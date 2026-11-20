@@ -20,8 +20,7 @@ import {
 import { radiantForgeLifecycle } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
 import {
   luminaryCastStarted,
-  luminaryVirtueCompleted,
-  radiantWeaponDrawn
+  luminaryVirtueCompleted
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import { luminaryHammerLifecycle } from '#gw2/professions/guardian/specializations/luminary/skills/hammer-impact.js';
 import {
@@ -89,9 +88,6 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
       runtime.fireTrigger(luminaryCastStarted, { cast });
 
       if (VIRTUES.includes(Number(cast.skill.id))) admitVirtueActivation(runtime, cast, cast.skill.virtue!);
-
-      if (cast.skill.radiantWeapon && cast.skill.flipParentId == null)
-        runtime.fireTrigger(radiantWeaponDrawn, { cast });
     },
     onCastCommit(runtime, cast) {
       if (!VIRTUES.includes(Number(cast.skill.id))) return;

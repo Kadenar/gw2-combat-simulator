@@ -9,3 +9,12 @@ export const GUARDIAN_LUMINARY_SKILL_FLIPS: SkillFlips = Object.freeze([
   { parentId: ID.GLEAMING_BLADE, followUpId: ID.LUCENT_THRUST },
   { parentId: ID.RADIANT_BULWARK, followUpId: ID.BRILLIANT_SLAM }
 ]);
+
+const FOLLOW_UP_IDS: ReadonlySet<number> = new Set(
+  GUARDIAN_LUMINARY_SKILL_FLIPS.map(({ followUpId }) => Number(followUpId))
+);
+
+/** Catalog binding and forge equips share one rule: a follow-up reuses its parent's form or weapon. */
+export function luminaryFollowUp(id: unknown): boolean {
+  return FOLLOW_UP_IDS.has(Number(id));
+}

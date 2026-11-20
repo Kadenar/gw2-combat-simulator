@@ -11,7 +11,11 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { radiantWeaponEquipped } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
+import {
+  radiantWeaponDrawn,
+  radiantWeaponEquipped
+} from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
+import { luminaryFollowUp } from '#gw2/professions/guardian/specializations/luminary/skills/skill-flips.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
@@ -114,8 +118,12 @@ const radiantForgeActions: NonNullable<RuntimeHooks<GuardianRuntimeState, Guardi
   'guardian.exit-forge'(runtime, context) {
     if (context.kind === 'cast') exitForge(runtime, context.cast);
   },
-  'guardian.snapshot-forge'(runtime, context) {
-    if (context.kind === 'cast') equipForge.set(context.cast, luminaryState.from(runtime.profession).forgeActivationId);
+  'guardian.draw-radiant-weapon'(runtime, context) {
+    if (context.kind !== 'cast') return;
+
+    runtime.fireTrigger(radiantWeaponDrawn, { cast: context.cast });
+    // A delayed commit equips only into the forge entry that accepted its draw; an exit or re-entry voids it.
+    equipForge.set(context.cast, luminaryState.from(runtime.profession).forgeActivationId);
   },
   'guardian.equip-forge'(runtime, context) {
     if (context.kind !== 'cast') return;
@@ -133,7 +141,7 @@ const radiantForgeActions: NonNullable<RuntimeHooks<GuardianRuntimeState, Guardi
       for (const id of Object.keys(flips)) {
         const skill = runtime.helpers.skillsById.get(Number(id));
 
-        if (skill?.radiantWeapon && skill.flipParentId != null) runtime.consumeFlip(id);
+        if (skill?.radiantWeapon && luminaryFollowUp(skill.id)) runtime.consumeFlip(id);
       }
 
       if (cast.skill.flipSkillId != null) runtime.armFlip(cast.skill.flipSkillId);

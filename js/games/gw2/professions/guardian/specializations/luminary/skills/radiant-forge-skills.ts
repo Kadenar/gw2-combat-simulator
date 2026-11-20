@@ -20,6 +20,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { CastDetailContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { luminaryFollowUp } from '#gw2/professions/guardian/specializations/luminary/skills/skill-flips.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
@@ -28,7 +29,7 @@ import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/
  * Persistent forge resources and weapon behavior remain under `mechanics/`.
  */
 
-export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<GuardianSkill>>> = {
+const radiantForgeSkills: Readonly<Record<number, SkillDefinition<GuardianSkill>>> = {
   // Slot 1: autoattack.
   [ID.GLARING_BURST]: {
     name: 'Glaring Burst',
@@ -186,14 +187,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
           effects.filter((effect) => effect.metadata?.trigger !== 'radiant-justice' && effect.type !== 'aura')
       }
     ],
-    // An accepted equip belongs to its captured forge entry, including delayed commitment.
     sideEffects: [
-      {
-        on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
-        do: { type: 'guardian.snapshot-forge' }
-      },
-      { on: 'castCommit', do: { type: 'guardian.equip-forge' } },
       {
         on: 'castStart',
         when: (_runtime, cast) => !cast.cancelledBeforeCommit,
@@ -308,15 +302,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
         transform: (_runtime, _cast, effects) =>
           effects.filter((effect) => effect.metadata?.trigger !== 'radiant-resolve')
       }
-    ],
-    // An accepted equip belongs to its captured forge entry, including delayed commitment.
-    sideEffects: [
-      {
-        on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
-        do: { type: 'guardian.snapshot-forge' }
-      },
-      { on: 'castCommit', do: { type: 'guardian.equip-forge' } }
     ]
   },
   [ID.RESTORATIVE_GLOW]: {
@@ -393,15 +378,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
         transform: (_runtime, _cast, effects) =>
           effects.filter((effect) => effect.metadata?.trigger !== 'radiant-courage')
       }
-    ],
-    // An accepted equip belongs to its captured forge entry, including delayed commitment.
-    sideEffects: [
-      {
-        on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
-        do: { type: 'guardian.snapshot-forge' }
-      },
-      { on: 'castCommit', do: { type: 'guardian.equip-forge' } }
     ]
   },
   [ID.LUCENT_THRUST]: {
@@ -466,15 +442,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingScale: 'fixed',
         audience: { recipients: RECIPIENT.PARTY }
       }
-    ],
-    // An accepted equip belongs to its captured forge entry, including delayed commitment.
-    sideEffects: [
-      {
-        on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
-        do: { type: 'guardian.snapshot-forge' }
-      },
-      { on: 'castCommit', do: { type: 'guardian.equip-forge' } }
     ]
   },
   [ID.BRILLIANT_SLAM]: {
@@ -529,6 +496,38 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.exit-forge' } }]
   }
 };
+
+export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS = bindRadiantWeaponDraws(radiantForgeSkills);
+
+/**
+ * Only a radiant weapon's initial skill draws it; its follow-up reuses the equipped weapon.
+ * Draw and equip precede weapon-specific actions, so Dazzling Hammer empowers after the draw.
+ */
+function bindRadiantWeaponDraws(
+  definitions: Readonly<Record<number, SkillDefinition<GuardianSkill>>>
+): Readonly<Record<number, SkillDefinition<GuardianSkill>>> {
+  return Object.fromEntries(
+    Object.entries(definitions).map(([id, skill]): [string, SkillDefinition<GuardianSkill>] => {
+      if (!skill.radiantWeapon || luminaryFollowUp(id)) return [id, skill];
+
+      return [
+        id,
+        {
+          ...skill,
+          sideEffects: [
+            {
+              on: 'castStart',
+              when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+              do: { type: 'guardian.draw-radiant-weapon' }
+            },
+            { on: 'castCommit', do: { type: 'guardian.equip-forge' } },
+            ...(skill.sideEffects ?? [])
+          ]
+        }
+      ];
+    })
+  );
+}
 
 /** Duration and label inspect the same cadence that selection advances only after acceptance. */
 export function glaringBurstDuration(
