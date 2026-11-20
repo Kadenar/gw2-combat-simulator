@@ -47,7 +47,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     dualWieldEffectOffsetsMs: { 280: 240 },
     castTimeMs: 520,
     dualWieldCastTimeMs: 360,
-    interruptCommitMs: 360,
+    interruptCommitMs: 320,
     retainsCastLockoutAfterInterrupt: true,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
