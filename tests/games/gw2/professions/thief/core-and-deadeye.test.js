@@ -1508,10 +1508,11 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
   const mercyEvent = maliciousEvent(mercyShot);
   const mercyStep = mercyShot.steps.find((step) => step.skillName === 'Mercy');
 
-  // A Mercy cast during the attack cannot change the malice the attack snapshotted at its start.
+  // Mercy converts the stacks before impact, leaving Judgment without its damage bonus.
   assert.ok(mercyStep.start / 1000 < mercyEvent.at);
-  assert.equal(mercyEvent.deadeyeMaliceSnapshot, 4);
-  assert.equal(mercyEvent.damage, ordinaryEvent.damage);
+  assert.equal(ordinaryEvent.deadeyeMaliceSnapshot, 4);
+  assert.equal(mercyEvent.deadeyeMaliceSnapshot, 0);
+  assert.ok(mercyEvent.damage < ordinaryEvent.damage);
   // The attack's impact then grants Malicious Intent's malice.
   const afterImpact = [];
   runThief(
@@ -1623,8 +1624,8 @@ test('initiative availability includes signet grants alongside ordinary recovery
   assert.equal(result.steps[0].start, 10000);
 });
 
-// Every stolen skill snapshots eligibility before malice changes; party packets do not replace canonical stealth entry.
-test('Deadeye stolen effects capture malice and preserve party audience and Revealed gating', () => {
+// Malice gained or spent during the stolen skill changes its stealth grant independently of its party boons.
+test('Deadeye stolen skills check live malice and Revealed when granting stealth', () => {
   for (const skillId of DEADEYE_STOLEN_SKILL_IDS) {
     for (const malice of [2, 3]) {
       for (const revealed of [false, true]) {
@@ -1651,9 +1652,9 @@ test('Deadeye stolen effects capture malice and preserve party audience and Reve
         const packets = result.events.filter((event) => event.skillId === skillId);
         assert.equal(
           packets.some((event) => event.type === 'buff' && event.kind === 'stealth'),
-          malice === 3 && !revealed
+          malice === 2 && !revealed
         );
-        assert.equal(result.planningState.profession[STATE.STEALTH_UNTIL] > 0, malice === 3 && !revealed);
+        assert.equal(result.planningState.profession[STATE.STEALTH_UNTIL] > 0, malice === 2 && !revealed);
         assert.equal(result.planningState.profession[STATE.STORED_STOLEN_SKILL_COUNT], 0);
         const authored = thiefCatalog.skillsById.get(skillId).effects.filter((effect) => effect.type === 'boon');
         for (const effect of authored) {
@@ -1703,7 +1704,7 @@ test('Deadly Ambition uses explicit dual-attack eligibility across weapon varian
   }
 });
 
-test('Malicious Sneak Attack uses captured marked malice only for completion Torment', () => {
+test('Malicious Sneak Attack applies Torment on first impact even when interrupted afterward', () => {
   for (const marked of [false, true])
     for (const interrupted of [false, true]) {
       const result = runThief(
@@ -1715,7 +1716,7 @@ test('Malicious Sneak Attack uses captured marked malice only for completion Tor
         {
           initialize(runtime) {
             runtime.profession.core.stealthUntil = 10;
-            runtime.resourceController.replace('malice', 4);
+            runtime.resourceController.replace('malice', 1);
 
             if (marked)
               Object.assign(runtime.profession.specialization.state, {
@@ -1723,7 +1724,7 @@ test('Malicious Sneak Attack uses captured marked malice only for completion Tor
                 markExpiresAt: 10
               });
           },
-          probes: [[0.1, (runtime) => runtime.resourceController.replace('malice', 0)]]
+          probes: [[0.1, (runtime) => runtime.resourceController.replace('malice', 4)]]
         }
       );
       assert.deepEqual(result.warnings, []);
@@ -1731,12 +1732,13 @@ test('Malicious Sneak Attack uses captured marked malice only for completion Tor
         (event) => event.type === 'condition' && event.condition === 'Torment'
       );
 
-      if (marked && !interrupted) {
+      if (marked) {
         assert.equal(torment.length, 1);
-        // Malice spent after capture cannot shrink the factor applied at completion.
-        const factor = torment[0].metadata.thiefMaliciousSneakDurationFactor;
-        assert.ok(factor > 1);
-        assert.equal(torment[0].effectiveDuration, torment[0].duration * factor);
+        const firstHit = result.resolvedEvents.find(
+          (event) => event.type === 'damage' && event.skillId === ID.MALICIOUS_SNEAK_ATTACK
+        );
+        assert.equal(torment[0].at, firstHit.at);
+        assert.equal(torment[0].effectiveDuration, 8);
       } else assert.deepEqual(torment, []);
 
       if (!interrupted) assert.ok(result.events.some((event) => event.condition === 'Bleeding'));

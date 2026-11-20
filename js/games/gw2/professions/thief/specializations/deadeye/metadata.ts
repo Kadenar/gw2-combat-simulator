@@ -2,9 +2,6 @@
 import type { MetadataFields, MetadataFromFields } from '#gw2/platform/events/metadata.js';
 
 export const DEADEYE_METADATA_FIELDS = Object.freeze({
-  /** Malicious Ashen Assault's final strike retains its accepted marked-malice factor. */
-  thiefMaliciousAshenDamageFactor: 'number',
-  thiefMaliciousPoisonDurationFactor: 'number',
   thiefMaliciousSneakDurationFactor: 'number'
 } as const satisfies MetadataFields);
 

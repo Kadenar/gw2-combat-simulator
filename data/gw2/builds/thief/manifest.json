@@ -6,16 +6,16 @@
         "label": "Power (Axe / Pistol + Dagger / Pistol)",
         "build": "data/gw2/builds/thief/b-power-deadeye-axe-pistol-dagger-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-deadeye-axe-pistol-dagger-pistol-bench.json",
-        "benchmarkDps": 44574,
+        "benchmarkDps": 44363,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-deadeye-axe-pistol-dagger",
         "benchmarkApm": 90.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43600, "phase": 43600 },
-          "80-60": { "cumulative": 42210, "phase": 40785 },
-          "60-40": { "cumulative": 41392, "phase": 39841 },
-          "40-20": { "cumulative": 43260, "phase": 49936 },
-          "20-0": { "cumulative": 44574, "phase": 50543 }
+          "100-80": { "cumulative": 43532, "phase": 43532 },
+          "80-60": { "cumulative": 42152, "phase": 40736 },
+          "60-40": { "cumulative": 41345, "phase": 39815 },
+          "40-20": { "cumulative": 43212, "phase": 49887 },
+          "20-0": { "cumulative": 44363, "phase": 49588 }
         }
       },
       {
@@ -54,16 +54,16 @@
         "label": "Power Quickness (Axe / Pistol + Dagger / Pistol)",
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-axe-pistol-dagger-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-axe-pistol-dagger-pistol-bench.json",
-        "benchmarkDps": 41199,
+        "benchmarkDps": 41021,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-axe-pistol-dagger",
         "benchmarkApm": 88.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40845, "phase": 40845 },
-          "80-60": { "cumulative": 40273, "phase": 39715 },
-          "60-40": { "cumulative": 39941, "phase": 39283 },
-          "40-20": { "cumulative": 40689, "phase": 42987 },
-          "20-0": { "cumulative": 41199, "phase": 43437 }
+          "100-80": { "cumulative": 40778, "phase": 40778 },
+          "80-60": { "cumulative": 40217, "phase": 39668 },
+          "60-40": { "cumulative": 39726, "phase": 38780 },
+          "40-20": { "cumulative": 40642, "phase": 43558 },
+          "20-0": { "cumulative": 41021, "phase": 42687 }
         }
       },
       {
@@ -71,15 +71,15 @@
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-sword-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-sword-pistol",
-        "benchmarkDps": 35152,
+        "benchmarkDps": 35120,
         "upToDate": false,
         "benchmarkApm": 65.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35754, "phase": 35754 },
-          "80-60": { "cumulative": 33904, "phase": 32184 },
-          "60-40": { "cumulative": 34155, "phase": 34674 },
-          "40-20": { "cumulative": 34683, "phase": 36353 },
-          "20-0": { "cumulative": 35152, "phase": 37182 }
+          "100-80": { "cumulative": 35737, "phase": 35737 },
+          "80-60": { "cumulative": 33874, "phase": 32144 },
+          "60-40": { "cumulative": 33989, "phase": 34222 },
+          "40-20": { "cumulative": 34652, "phase": 36786 },
+          "20-0": { "cumulative": 35120, "phase": 37142 }
         }
       },
       {
@@ -87,15 +87,15 @@
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-rifle.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-rifle-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-rifle-only",
-        "benchmarkDps": 38176,
+        "benchmarkDps": 37631,
         "upToDate": false,
         "benchmarkApm": 76.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39200, "phase": 39200 },
-          "80-60": { "cumulative": 38248, "phase": 37334 },
-          "60-40": { "cumulative": 37407, "phase": 35815 },
-          "40-20": { "cumulative": 37569, "phase": 38048 },
-          "20-0": { "cumulative": 38176, "phase": 40867 }
+          "100-80": { "cumulative": 38084, "phase": 38084 },
+          "80-60": { "cumulative": 37074, "phase": 36120 },
+          "60-40": { "cumulative": 36314, "phase": 34867 },
+          "40-20": { "cumulative": 36816, "phase": 38429 },
+          "20-0": { "cumulative": 37631, "phase": 41241 }
         }
       }
     ]
@@ -109,14 +109,14 @@
         "rotation": "data/gw2/rotations/thief/r-power-antiquary-spear-axe-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-antiquary-spear-axe-pistol",
         "upToDate": true,
-        "benchmarkDps": 44058,
+        "benchmarkDps": 44057,
         "benchmarkApm": 111.9,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 49664, "phase": 49664 },
-          "80-60": { "cumulative": 45517, "phase": 41782 },
+          "80-60": { "cumulative": 45517, "phase": 41783 },
           "60-40": { "cumulative": 43555, "phase": 40039 },
-          "40-20": { "cumulative": 45329, "phase": 51335 },
-          "20-0": { "cumulative": 44058, "phase": 39382 }
+          "40-20": { "cumulative": 45330, "phase": 51335 },
+          "20-0": { "cumulative": 44057, "phase": 39380 }
         }
       },
       {
@@ -172,15 +172,15 @@
         "build": "data/gw2/builds/thief/b-condi-antiquary-spear.json",
         "rotation": "data/gw2/rotations/thief/r-condi-antiquary-spear-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-antiquary-spear-only",
-        "benchmarkDps": 38993,
+        "benchmarkDps": 39001,
         "upToDate": true,
         "benchmarkApm": 119.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38073, "phase": 38073 },
-          "80-60": { "cumulative": 39356, "phase": 40703 },
-          "60-40": { "cumulative": 39079, "phase": 38513 },
-          "40-20": { "cumulative": 38953, "phase": 38585 },
-          "20-0": { "cumulative": 38993, "phase": 39168 }
+          "100-80": { "cumulative": 38090, "phase": 38090 },
+          "80-60": { "cumulative": 39385, "phase": 40745 },
+          "60-40": { "cumulative": 39076, "phase": 38442 },
+          "40-20": { "cumulative": 38973, "phase": 38675 },
+          "20-0": { "cumulative": 39001, "phase": 39123 }
         }
       },
       {
@@ -258,14 +258,14 @@
         "rotation": "data/gw2/rotations/thief/r-condi-specter-spear-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-specter-spear-only",
         "upToDate": true,
-        "benchmarkDps": 35876,
+        "benchmarkDps": 35886,
         "benchmarkApm": 111.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 36074, "phase": 36074 },
-          "80-60": { "cumulative": 36173, "phase": 36271 },
-          "60-40": { "cumulative": 36269, "phase": 36461 },
-          "40-20": { "cumulative": 35890, "phase": 34804 },
-          "20-0": { "cumulative": 35876, "phase": 35804 }
+          "100-80": { "cumulative": 36121, "phase": 36121 },
+          "80-60": { "cumulative": 36197, "phase": 36272 },
+          "60-40": { "cumulative": 36285, "phase": 36463 },
+          "40-20": { "cumulative": 35901, "phase": 34797 },
+          "20-0": { "cumulative": 35886, "phase": 35814 }
         }
       }
     ]

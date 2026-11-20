@@ -30,17 +30,14 @@ export const thiefModifierDescriptions: ModifierDescriptions = {
       "Malicious Backstab receives its rear-position damage bonus when the simulator's defiant-target assumption is enabled.",
     facts: [['factor', 'Positional strike damage bonus', tooltipFactorChange]]
   }),
-  // Skill-owned rules keep independent patch values while sharing their eligibility descriptions.
-  ...Object.fromEntries(
-    ['malicious-backstab-malice', 'malicious-deaths-judgment-malice'].map((skill) => [
-      `thief.${skill}`,
-      modifierDescription({
-        description:
-          'Against your active mark, the attack gains strike damage per malice held when the cast starts. Consuming malice does not change this bonus for an attack already launched.',
-        facts: [['damagePerMalice', 'Strike damage per captured malice']]
-      })
-    ])
-  ),
+  'thief.malicious-backstab-malice': modifierDescription({
+    description: 'Backstab gains strike damage for each stack of malice you have when it hits your mark.',
+    facts: [['damagePerMalice', 'Strike damage per malice at impact']]
+  }),
+  'thief.malicious-deaths-judgment-malice': modifierDescription({
+    description: 'The shot gains strike damage per malice held when it hits.',
+    facts: [['damagePerMalice', 'Strike damage per malice at impact']]
+  }),
   ...Object.fromEntries(
     ['shadow-flare-marked', 'shadow-swap-marked'].map((skill) => [
       `thief.${skill}`,

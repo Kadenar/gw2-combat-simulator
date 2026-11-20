@@ -365,8 +365,8 @@ test('selected stealth respects acceptance predicates, Revealed, extension and c
   );
 });
 
-// Accepted malice must survive live changes and the first-hit spend, while only the authored final strike scales.
-test('Malicious Ashen declarations retain accepted malice and refund a fully landed activation', () => {
+// The last strike uses live malice and the selected damage tuning.
+test('Malicious Ashen scales its final strike on impact and refunds a fully landed activation', () => {
   const result = runThief(
     [ID.MALICIOUS_ASHEN_ASSAULT],
     { specialization: 'Deadeye', primaryWeapon: 'Spear', secondaryWeapon: '', initialInitiative: 0 },
@@ -410,9 +410,7 @@ test('Malicious Ashen declarations retain accepted malice and refund a fully lan
   const final = result.resolvedEvents.find((event) => event.name === 'Malicious Ashen Assault - Final Strike');
   assert.equal(ordinary.coefficient, 1);
   assert.equal(final.coefficient, 2);
-  assert.equal(ordinary.metadata?.thiefMaliciousAshenDamageFactor, undefined);
-  assert.equal(final.metadata.thiefMaliciousAshenDamageFactor, 2.5);
-  assertFlooredDamageMultiplier(final.damage, ordinary.damage, 5);
+  assertFlooredDamageMultiplier(final.damage, ordinary.damage, 2.6);
   const runtime = observedRuntime(result);
   assert.ok(Math.abs(runtime.resourceController.value('initiative') - runtime.time - 7) < 1e-9);
   assert.equal(observedRuntime(result).profession.specialization.state.malice.value, 0);
@@ -493,8 +491,8 @@ test('Backstab and Larcenous Strike use selected modifiers without changing thei
   }
 });
 
-// Eligibility belongs to acceptance: a later mark cannot create malice damage or its separate Torment application.
-test('Malicious Ashen keeps marked-malice eligibility after the live mark changes', () => {
+// Gaining or losing the mark during the channel changes the final torment application.
+test('Malicious Ashen checks the live mark on the final hit', () => {
   for (const marked of [false, true]) {
     const result = runThief(
       [ID.MALICIOUS_ASHEN_ASSAULT],
@@ -520,19 +518,16 @@ test('Malicious Ashen keeps marked-malice eligibility after the live mark change
     assert.deepEqual(result.warnings, []);
     const final = result.resolvedEvents.find((event) => event.name === 'Malicious Ashen Assault - Final Strike');
     assert.equal(final.coefficient, 0.3);
-    assert.equal(final.metadata.thiefMaliciousAshenDamageFactor, marked ? 1.1 : 1);
-    const torment = result.events.find((event) => event.type === 'condition' && event.condition === 'Torment');
-    assert.equal(Boolean(torment), marked);
-
-    if (marked) assert.equal(torment.duration, 3);
+    const torment = result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Torment');
+    assert.equal(torment?.effectiveDuration, marked ? undefined : 0.5);
   }
 });
 
-// Base-duration rules retain accepted malice through spending and compose with expertise without affecting other conditions.
-test('malicious Poison modifiers preserve selected tick durations and accepted marked malice', () => {
+// Weapon-specific malice rules scale the selected poison duration before expertise.
+test('Salvo uses the malice spent on its hit and Shadowsquall reads malice at each application', () => {
   for (const [skillId, weapon, factor] of [
-    [ID.MALICIOUS_SHADOWSQUALL, 'Scepter', 1.8],
-    [ID.MALICIOUS_CUNNING_SALVO, 'Axe', 4]
+    [ID.MALICIOUS_SHADOWSQUALL, 'Scepter', 1.4],
+    [ID.MALICIOUS_CUNNING_SALVO, 'Axe', 2]
   ]) {
     const result = runThief(
       [skillId, { type: 'wait', durationMs: 1000 }],
@@ -555,8 +550,7 @@ test('malicious Poison modifiers preserve selected tick durations and accepted m
           [
             0.1,
             (runtime) => {
-              runtime.resourceController.replace('malice', 0);
-              runtime.profession.specialization.state.markExpiresAt = 0;
+              runtime.resourceController.replace('malice', 2);
             }
           ]
         ],
@@ -582,7 +576,6 @@ test('malicious Poison modifiers preserve selected tick durations and accepted m
       (event) => event.type === 'condition' && event.condition === 'Bleeding'
     );
     assert.equal(poison.duration, 2);
-    assert.equal(poison.metadata.thiefMaliciousPoisonDurationFactor, factor);
     assert.equal(poison.effectiveDuration, 2 * factor * 2);
     assert.equal(bleeding.duration, 2);
     assert.equal(bleeding.effectiveDuration, 4);

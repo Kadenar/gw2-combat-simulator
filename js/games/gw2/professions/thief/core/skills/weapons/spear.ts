@@ -4,11 +4,44 @@ import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/ru
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, CONDITION, CONTROL, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { fallingSpiderTargetControlled } from '#gw2/professions/thief/core/mechanics/spear.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+
+/** Each strike carries one alternating condition. Only the final strike applies vulnerability. */
+export function ashenAssaultEffects(name: string): SkillEffect[] {
+  const openingHits = [320, 480, 560, 640, 760];
+  return [
+    {
+      type: 'strike',
+      name,
+      ticks: openingHits.map((atMs) => ({ atMs, coefficient: 0.3 })),
+      actorType: ACTOR.PLAYER,
+      timingAnchor: 'castStart',
+      timingScale: 'cast'
+    },
+    {
+      type: 'condition',
+      actorType: ACTOR.PLAYER,
+      timingAnchor: 'castStart',
+      timingScale: 'cast',
+      ticks: openingHits.map((atMs, index) => ({
+        atMs,
+        condition: index % 2 === 0 ? CONDITION.BLEEDING : CONDITION.POISONED,
+        stacks: 1,
+        duration: 4
+      }))
+    },
+    ...impactEffects({ atMs: 1080, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 0.3, hits: 1, name: `${name} - Final Strike`, actorType: ACTOR.PLAYER },
+      { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 8, actorType: ACTOR.PLAYER },
+      { type: 'condition', condition: CONDITION.POISONED, stacks: 1, duration: 4, actorType: ACTOR.PLAYER }
+    ])
+  ];
+}
 
 // EVTC-measured Quickness timings keep spear casts aligned with their observed cast-lane occupancy.
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
@@ -29,49 +62,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
     castTimeMs: 1200,
     // Cancelling keeps earlier packets and removes the remainder of the channel.
     interruptMode: 'per-packet',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [320, 480, 560, 640, 760].map((atMs) => ({
-          atMs,
-          coefficient: 1.5 / 5
-        })),
-        name: 'Ashen Assault',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      ...impactEffects({ atMs: 1080, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-        {
-          type: 'strike',
-          coefficient: 0.3,
-          hits: 1,
-          name: 'Ashen Assault - Final Strike',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.VULNERABILITY,
-          stacks: 5,
-          duration: 8,
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.BLEEDING,
-          stacks: 3,
-          duration: 4,
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.POISONED,
-          stacks: 3,
-          duration: 4,
-          actorType: ACTOR.PLAYER
-        }
-      ])
-    ],
+    effects: ashenAssaultEffects('Ashen Assault'),
     // The chain resets on completion; the channel's landed-hit observer owns the all-strikes initiative refund.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }]
   },

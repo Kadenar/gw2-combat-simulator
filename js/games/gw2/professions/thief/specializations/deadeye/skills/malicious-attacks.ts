@@ -1,36 +1,36 @@
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition } from '#gw2/professions/thief/core/events.js';
+import { ashenAssaultEffects } from '#gw2/professions/thief/core/skills/weapons/spear.js';
+import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { acceptedDeadeyeMarkedMalice } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
+import { deadeyeMarked, outgoingSalvoMalice } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
 import { markedTarget } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
 import type { ThiefRuntimeState, ThiefSimulationEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
 
-/** Accepted malice travels with condition packets; only outgoing Poison consumes this captured duration factor. */
-function capturePoisonDuration(effects: readonly SkillEffect[], factor: number): SkillEffect[] {
-  // Tag condition groups without rewriting mixed-condition ticks; the modifier applies this factor only to Poison.
-  return effects.map((effect) =>
-    effect.type === 'condition'
-      ? {
-          ...effect,
-          metadata: { ...effect.metadata, thiefMaliciousPoisonDurationFactor: factor }
-        }
-      : effect
-  );
+// Each pistol bullet has its own release. Projectile travel starts at that release.
+const sneakAttackReleases = [160, 280, 400, 520, 600];
+
+// Each Shadowsquall hit applies its own poison before the channel spends malice.
+const shadowsquallImpacts = [400, 680, 880, 1160, 1320, 1600, 1800, 2080];
+
+/** Both finisher bonuses use the malice held when they reach the marked target. */
+function ashenFinisherMalice(context: Gw2ModifierContext): number {
+  const state = thiefRuntimeSpecializationState(context.runtime?.profession, 'Deadeye');
+  return state.markedTargetId && buffDeadlineActive(state.markExpiresAt ?? 0, context.time)
+    ? (state.malice?.value ?? 0)
+    : 0;
 }
 
-/** Malicious stealth attacks keep their accepted-malice transforms beside their weapon effects. */
+/** Malicious stealth attacks own their weapon effects and malice scaling. */
 export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<ThiefSkill>>> = {
   [ID.MALICIOUS_DEATHS_JUDGMENT]: {
     name: "Malicious Death's Judgment",
@@ -44,7 +44,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     malicious: true,
     castTimeMs: 680,
     interruptCommitMs: 520,
-    // The launched strike retains its captured malice after the resource is consumed.
+    // Mercy during the windup or projectile flight reduces the malice available on impact.
     modifiers: [
       {
         order: 202,
@@ -52,7 +52,6 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'multiply',
         // Full malice scaling applies to marked and unmarked hits; spending still requires a marked hit.
-        // Snapshotting preserves the consumed value for the launched hit after the resource is spent.
         parameters: { damagePerMalice: 0.1 },
         factor: (context, _target, parameters) =>
           1 +
@@ -85,31 +84,36 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     requiredMainHand: WEAPON.SHORTBOW,
     stealthAttack: true,
     malicious: true,
-    castTimeMs: 200,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd' as const, timingScale: 'fixed' as const }, [
-      {
-        type: 'strike' as const,
-        coefficient: 0.6,
-        hits: 1,
-        name: 'Malicious Surprise Shot',
-        actorType: ACTOR.PLAYER,
-        comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.PROJECTILE }]
-      },
-      {
-        type: 'condition' as const,
-        condition: CONDITION.BLEEDING,
-        stacks: 3,
-        duration: 5,
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition' as const,
-        condition: CONDITION.IMMOBILIZED,
-        stacks: 1,
-        duration: 2,
-        actorType: ACTOR.PLAYER
-      }
-    ])
+    // The arrow launches before the aftercast ends. Its impact delay depends on distance.
+    castTimeMs: 640,
+    interruptCommitMs: 200,
+    effects: impactEffects(
+      { atMs: 200, timingAnchor: 'castStart' as const, timingScale: 'fixed' as const, persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike' as const,
+          coefficient: 0.6,
+          hits: 1,
+          name: 'Malicious Surprise Shot',
+          actorType: ACTOR.PLAYER,
+          comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.PROJECTILE }]
+        },
+        {
+          type: 'condition' as const,
+          condition: CONDITION.BLEEDING,
+          stacks: 3,
+          duration: 5,
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition' as const,
+          condition: CONDITION.IMMOBILIZED,
+          stacks: 1,
+          duration: 2,
+          actorType: ACTOR.PLAYER
+        }
+      ]
+    )
   },
   [ID.MALICIOUS_SNEAK_ATTACK]: {
     name: 'Malicious Sneak Attack',
@@ -118,14 +122,14 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     slot: 'Weapon_1',
     weapon: 'Pistol',
 
-    // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     durationPerMalice: 2,
     cooldown: 1,
     requiredMainHand: WEAPON.PISTOL,
     stealthAttack: true,
     malicious: true,
-    castTimeMs: 680,
-    // Only the completed channel's Torment carries its accepted marked-malice factor; Bleeding stays unchanged.
+    castTimeMs: 760,
+    interruptMode: 'per-packet',
+    // Only the first bullet applies Torment. Its duration uses malice at impact.
     modifiers: [
       {
         id: 'thief.malicious-sneak-attack-torment',
@@ -141,7 +145,29 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     effects: [
       {
         type: 'strike' as const,
-        ticks: [120, 280, 400, 560, 680].map((atMs) => ({ atMs, coefficient: 1.8 / 5 })),
+        ticks: sneakAttackReleases.map((atMs) => ({ atMs, coefficient: 1.8 / 5 })),
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: ACTOR.PLAYER,
+            packets: 'first',
+            do: [
+              {
+                type: 'thief.sneak-torment',
+                id: 'malice',
+                effects: [
+                  {
+                    type: 'condition',
+                    name: CONDITION.TORMENT,
+                    condition: CONDITION.TORMENT,
+                    stacks: 1,
+                    duration: 1
+                  }
+                ]
+              }
+            ]
+          }
+        ],
         name: 'Malicious Sneak Attack',
         actorType: ACTOR.PLAYER,
         comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.PROJECTILE }],
@@ -151,7 +177,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
       ...impactEffects({ timingAnchor: 'castStart' as const, timingScale: 'cast' as const }, [
         {
           type: 'condition' as const,
-          ticks: [120, 280, 400, 560, 680].map((atMs) => ({
+          ticks: sneakAttackReleases.map((atMs) => ({
             atMs,
             condition: CONDITION.BLEEDING,
             stacks: 1,
@@ -159,28 +185,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
           })),
           actorType: ACTOR.PLAYER
         }
-        // Malice-scaled Torment is emitted from its removable action component at completion.
       ])
-    ],
-    // Only a completed channel emits the Torment using its accepted malice.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        when: (_runtime, cast) => !castWasInterrupted(cast) && acceptedDeadeyeMarkedMalice(cast) > 0,
-        do: {
-          type: 'thief.sneak-torment' as const,
-          id: 'malice',
-          effects: [
-            {
-              type: 'condition' as const,
-              name: CONDITION.TORMENT,
-              condition: CONDITION.TORMENT,
-              stacks: 1,
-              duration: 1
-            }
-          ]
-        }
-      }
     ]
   },
   [ID.MALICIOUS_BACKSTAB]: {
@@ -199,16 +204,14 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     interruptCommitMs: 320,
     retainsCastLockoutAfterInterrupt: true,
     interruptLockoutReleaseMs: 400,
-    // Preserve player ownership and the defiant-target proxy for the rear-position bonus.
+    // Backstab scales with the malice available on impact, before the hit spends it.
     modifiers: [
-      // The launched strike retains its captured malice after the resource is consumed.
       {
         order: 202,
         id: 'thief.malicious-backstab-malice',
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'multiply',
         // Malice scales the attack itself; additive equipment bonuses must not dilute its ten percent per stack.
-        // Snapshotting preserves the consumed value for the launched hit after the resource is spent.
         parameters: { damagePerMalice: 0.1 },
         factor: (context, _target, parameters) =>
           1 +
@@ -250,19 +253,28 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     stealthAttack: true,
     malicious: true,
     castTimeMs: 440,
-    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd' as const, timingScale: 'fixed' as const }, [
-      { type: 'strike' as const, coefficient: 2, hits: 1, name: 'Malicious Tactical Strike', actorType: ACTOR.PLAYER },
-      { type: 'control' as const, actorType: ACTOR.PLAYER, controlKind: CONTROL.DAZE },
-      { type: 'control' as const, actorType: ACTOR.PLAYER, controlKind: CONTROL.DAZE },
-      {
-        type: 'condition' as const,
-        condition: CONDITION.VULNERABILITY,
-        stacks: 10,
-        duration: 5,
-        actorType: ACTOR.PLAYER
-      }
-    ])
+    interruptCommitMs: 200,
+    effects: impactEffects(
+      { atMs: 200, timingAnchor: 'castStart' as const, timingScale: 'fixed' as const, persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike' as const,
+          coefficient: 2,
+          hits: 1,
+          name: 'Malicious Tactical Strike',
+          actorType: ACTOR.PLAYER
+        },
+        { type: 'control' as const, actorType: ACTOR.PLAYER, controlKind: CONTROL.DAZE },
+        { type: 'control' as const, actorType: ACTOR.PLAYER, controlKind: CONTROL.DAZE },
+        {
+          type: 'condition' as const,
+          condition: CONDITION.VULNERABILITY,
+          stacks: 10,
+          duration: 5,
+          actorType: ACTOR.PLAYER
+        }
+      ]
+    )
   },
   [ID.MALICIOUS_SHADOWSQUALL]: {
     name: 'Malicious Shadowsquall',
@@ -275,25 +287,30 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     requiredMainHand: WEAPON.SCEPTER,
     stealthAttack: true,
     malicious: true,
-    castTimeMs: 1680,
-    // Only accepted outgoing Poison scales; recalled axes use the original base declaration.
+    castTimeMs: 2320,
+    interruptMode: 'per-packet',
+    // Each application keeps the duration it earned, even if Mercy clears malice during the channel.
     modifiers: [
       {
         id: 'thief.malicious-shadowsquall-poison',
         target: 'conditionBaseDuration',
         operation: 'multiply',
-        factor: (context) => context.event?.metadata?.thiefMaliciousPoisonDurationFactor ?? 1,
+        parameters: { durationPerMalice: 0.2 },
+        factor: (context, _target, parameters) =>
+          1 +
+          (thiefRuntimeSpecializationState(context.runtime?.profession, 'Deadeye').malice?.value ?? 0) *
+            parameters.durationPerMalice,
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
           context.condition === CONDITION.POISONED &&
-          context.event?.metadata?.recallSkillId == null &&
-          context.event?.metadata?.thiefMaliciousPoisonDurationFactor != null
+          !context.event?.procType &&
+          markedTarget(context)
       }
     ],
     effects: [
       {
         type: 'strike' as const,
-        ticks: [200, 440, 640, 840, 1040, 1280, 1480, 1680].map((atMs) => ({ atMs, coefficient: 1.6 / 8 })),
+        ticks: shadowsquallImpacts.map((atMs) => ({ atMs, coefficient: 1.6 / 8 })),
         name: 'Malicious Shadowsquall',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart' as const,
@@ -301,26 +318,15 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
       },
       {
         type: 'condition' as const,
-        ticks: [200, 440, 640, 840, 1040, 1280, 1480, 1680].map((atMs) => ({
+        ticks: shadowsquallImpacts.map((atMs) => ({
           atMs,
           condition: CONDITION.POISONED,
           stacks: 1,
-          duration: 3
+          duration: 6
         })),
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart' as const,
         timingScale: 'cast' as const
-      }
-    ],
-    // This combat variant targets enemies; regeneration belongs only to the unsupported ally-target variant.
-    // Capture the accepted factor while keeping patched base durations authoritative.
-    effectVariants: [
-      {
-        when: () => true,
-        transform: (_runtime, cast, effects) => {
-          const malice = acceptedDeadeyeMarkedMalice(cast);
-          return capturePoisonDuration(effects, 1 + 0.2 * malice);
-        }
       }
     ]
   },
@@ -335,43 +341,44 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     requiredMainHand: WEAPON.STAFF,
     stealthAttack: true,
     malicious: true,
-    castTimeMs: 0,
-    effects: [
-      {
-        type: 'strike' as const,
-        ticks: [{ atMs: 0, coefficient: 0.65 }],
-        name: 'Malicious Hook Strike',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd' as const,
-        timingScale: 'fixed' as const
-      },
-      {
-        type: 'boon' as const,
-        boon: BOON.QUICKNESS,
-        duration: 0.75,
-        stacks: 1
-      },
-      {
-        type: 'control' as const,
-        actorType: ACTOR.PLAYER,
-        controlKind: CONTROL.KNOCKDOWN
-      }
-    ],
-    // Zero accepted marked malice suppresses Quickness; later malice changes cannot change this payload.
-    effectVariants: [
-      {
-        when: () => true,
-        transform: (_runtime, cast, effects) => {
-          const malice = acceptedDeadeyeMarkedMalice(cast);
-          return effects.flatMap((effect): SkillEffect[] => {
-            const quickness =
-              (effect.type === 'boon' && effect.boon === BOON.QUICKNESS) ||
-              (effect.type === 'buff' && effect.kind === BOON.QUICKNESS);
-            return !quickness ? [effect] : malice > 0 ? [{ ...effect, duration: (effect.duration || 0) * malice }] : [];
-          });
-        }
-      }
-    ]
+    castTimeMs: 640,
+    interruptCommitMs: 520,
+    // The marked staff hit spends malice and grants Quickness before the aftercast ends.
+    effects: impactEffects(
+      { atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 0.65,
+          hits: 1,
+          actorType: ACTOR.PLAYER,
+          name: 'Malicious Hook Strike',
+          reactions: [
+            {
+              on: 'damage.resolved',
+              actor: ACTOR.PLAYER,
+              packets: 'first',
+              do: [
+                {
+                  type: 'thief.hook-quickness',
+                  id: 'malice',
+                  effects: [
+                    {
+                      type: 'boon',
+                      name: BOON.QUICKNESS,
+                      boon: BOON.QUICKNESS,
+                      duration: 0.75,
+                      stacks: 1
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        { type: 'control', actorType: ACTOR.PLAYER, controlKind: CONTROL.KNOCKDOWN }
+      ]
+    )
   },
   [ID.MALICIOUS_CUNNING_SALVO]: {
     name: 'Malicious Cunning Salvo',
@@ -390,18 +397,23 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     // A committed axe preserves its impact and the remaining cast lockout after interruption.
     interruptCommitMs: 400,
     retainsCastLockoutAfterInterrupt: true,
-    // Only accepted outgoing Poison scales; recalled axes use the original base declaration.
+    // Only the outgoing axe poisons, once per marked hit and in proportion to the malice it spends.
     modifiers: [
       {
         id: 'thief.malicious-cunning-salvo-poison',
         target: 'conditionBaseDuration',
         operation: 'multiply',
-        factor: (context) => context.event?.metadata?.thiefMaliciousPoisonDurationFactor ?? 1,
+        factor: (context) =>
+          context.event?.metadata?.recallSkillId == null
+            ? outgoingSalvoMalice(
+                thiefRuntimeSpecializationState(context.runtime?.profession, 'Deadeye'),
+                context.event?.activationId
+              )
+            : 0,
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
           context.condition === CONDITION.POISONED &&
-          context.event?.metadata?.recallSkillId == null &&
-          context.event?.metadata?.thiefMaliciousPoisonDurationFactor != null
+          !context.event?.procType
       }
     ],
     // The outgoing axe lands before the aftercast ends, so its hit owns the earlier Revealed and refund.
@@ -457,21 +469,6 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
         }
       ]
     ),
-    // Capture the accepted factor while keeping patched base durations authoritative.
-    effectVariants: [
-      {
-        when: () => true,
-        transform: (_runtime, cast, effects) => {
-          const malice = acceptedDeadeyeMarkedMalice(cast);
-
-          // Without consumed malice the outgoing axe has no poison application; recall uses the base packet.
-          if (malice === 0)
-            return effects.filter((effect) => effect.type !== 'condition' || effect.condition !== CONDITION.POISONED);
-
-          return capturePoisonDuration(effects, malice);
-        }
-      }
-    ],
     // The axe exists after a committed throw even when its outgoing strike misses.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.ground-axe' as const } }]
   },
@@ -484,7 +481,6 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     initiativeRefund: 4,
     coefficientPerMalice: 0.02,
-    durationPerMalice: 0.5,
     spearStealthAttack: true,
     cooldown: 0,
     requiredMainHand: WEAPON.SPEAR,
@@ -493,106 +489,45 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     // Malicious Ashen Assault shares the measured spear channel and finishes its damage before aftercast.
     castTimeMs: 1200,
     interruptMode: 'per-packet',
-    // Only the final strike carries the marked-malice factor captured at acceptance.
     modifiers: [
       {
         id: 'thief.malicious-ashen-assault-malice',
         label: 'Malicious Ashen Assault',
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'multiply',
-        factor: (context) => context.event?.metadata?.thiefMaliciousAshenDamageFactor ?? 1,
+        factor: (context) =>
+          1 +
+          ashenFinisherMalice(context) *
+            skillNumber(requireSkill(context.catalog, ID.MALICIOUS_ASHEN_ASSAULT), 'coefficientPerMalice'),
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
-          context.event?.metadata?.thiefMaliciousAshenDamageFactor != null
+          context.event?.name === 'Malicious Ashen Assault - Final Strike'
       }
     ],
     effects: [
+      ...ashenAssaultEffects('Malicious Ashen Assault'),
       {
-        type: 'strike' as const,
-        ticks: [320, 480, 560, 640, 760].map((atMs) => ({
-          atMs,
-          coefficient: 1.5 / 5
-        })),
-        name: 'Malicious Ashen Assault',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castStart' as const,
-        timingScale: 'cast' as const
-      },
-      ...impactEffects({ atMs: 1080, timingAnchor: 'castStart' as const, timingScale: 'fixed' as const }, [
-        {
-          type: 'strike' as const,
-          coefficient: 0.3,
-          hits: 1,
-          name: 'Malicious Ashen Assault - Final Strike',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition' as const,
-          condition: CONDITION.VULNERABILITY,
-          stacks: 5,
-          duration: 8,
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition' as const,
-          condition: CONDITION.BLEEDING,
-          stacks: 3,
-          duration: 4,
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition' as const,
-          condition: CONDITION.POISONED,
-          stacks: 3,
-          duration: 4,
-          actorType: ACTOR.PLAYER
-        }
-      ]),
-
-      {
-        type: 'condition' as const,
-        name: CONDITION.TORMENT,
+        type: 'condition',
+        name: 'Malicious Ashen Assault - Torment',
         packetLabel: 'malice',
         atMs: 1080,
-        timingAnchor: 'castStart' as const,
-        timingScale: 'fixed' as const,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         actorType: ACTOR.PLAYER,
         source: 'Trait',
         condition: CONDITION.TORMENT,
         stacks: 1,
-        duration: 0.5
+        duration: 0.5,
+        modifiers: [
+          {
+            id: 'thief.malicious-ashen-assault-torment',
+            target: 'conditionBaseDuration',
+            operation: 'multiply',
+            factor: ashenFinisherMalice
+          }
+        ]
       }
     ],
-    effectVariants: [
-      {
-        when: () => true,
-        transform: (_runtime, cast, effects) => {
-          const profile = cast.skill;
-          const malice = acceptedDeadeyeMarkedMalice(cast);
-          const factor =
-            1 +
-            // An unmarked or missed attack cannot receive a bonus from malice it does not consume.
-            malice * skillNumber(profile, 'coefficientPerMalice');
-          const scaled = effects
-            .filter((effect) => effect.packetLabel !== 'malice' || malice > 0)
-            .map((effect) =>
-              effect.packetLabel === 'malice'
-                ? {
-                    ...effect,
-                    name: 'Malicious Ashen Assault - Torment',
-                    duration:
-                      effectNumber(profile, effect, 'duration') + malice * skillNumber(profile, 'durationPerMalice')
-                  }
-                : effect.type !== 'strike' || effect.name !== 'Malicious Ashen Assault - Final Strike'
-                  ? effect
-                  : { ...effect, metadata: { ...effect.metadata, thiefMaliciousAshenDamageFactor: factor } }
-            );
-          // Independent finisher templates survive strike removal and retain partial-channel cancellation.
-          return scaled;
-        }
-      }
-    ],
-    // Landed strikes own the initiative refund; the final packet owns accepted-malice Torment.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' as const } }]
   }
 };
@@ -606,33 +541,64 @@ export function refundMaliciousTacticalStrike(runtime: ThiefRuntime, event: Gw2R
   }
 }
 
-/** Pistol Torment scales with the malice the channel was cast with. */
-function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, malice: number) {
-  const profile = requireSkill(runtime.helpers, ID.MALICIOUS_SNEAK_ATTACK);
-  const torment = requireEffect(profile, 'condition', CONDITION.TORMENT, requireSkillAction(profile, 'malice'));
-
-  if (!torment) return;
-
-  const baseDuration = effectNumber(profile, torment, 'duration');
-  const maliceDuration = malice * skillNumber(profile, 'durationPerMalice');
-  runtime.effects.emit({
-    kind: 'packet',
-    event: buildThiefCondition(cast.skill, {
-      at: runtime.time,
-      activationId: cast.id,
-      condition: String(torment.condition),
-      duration: baseDuration,
-      metadata: { ...torment.metadata, thiefMaliciousSneakDurationFactor: maliceDuration },
-      stacks: effectNumber(profile, torment, 'stacks')
-    })
-  });
-}
-
-/** Register actions beside the skills whose accepted casts select them. */
+/** Marked hits use the balance recorded before spending or Malicious Intent. */
 const maliciousAttackActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> = {
-  'thief.sneak-torment'(runtime, context) {
-    // Earlier channel hits may already have spent malice; completion uses the facts captured for this exact cast.
-    if (context.kind === 'cast') maliceTorment(runtime, context.cast, acceptedDeadeyeMarkedMalice(context.cast));
+  'thief.sneak-torment'(runtime, context, action) {
+    if (context.kind !== 'effect' || !deadeyeMarked(runtime)) return;
+
+    const { event } = context.trigger;
+    const malice = Number(event.deadeyeMaliceSnapshot ?? 0);
+
+    if (event.offTarget || !malice) return;
+
+    const skill = context.skill;
+    const torment = requireEffect(skill, 'condition', CONDITION.TORMENT, action);
+
+    if (!torment) return;
+
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildThiefCondition(skill, {
+        at: event.at,
+        activationId: event.activationId,
+        condition: String(torment.condition),
+        duration: effectNumber(skill, torment, 'duration'),
+        stacks: effectNumber(skill, torment, 'stacks'),
+        metadata: {
+          ...torment.metadata,
+          thiefMaliciousSneakDurationFactor: malice * skillNumber(skill, 'durationPerMalice')
+        }
+      })
+    });
+  },
+  'thief.hook-quickness'(runtime, context, action) {
+    if (context.kind !== 'effect' || !deadeyeMarked(runtime)) return;
+
+    const { event } = context.trigger;
+    const malice = Number(event.deadeyeMaliceSnapshot ?? 0);
+
+    if (event.offTarget || !malice) return;
+
+    const skill = context.skill;
+    const boon = requireEffect(skill, 'boon', BOON.QUICKNESS, action);
+
+    if (!boon) return;
+
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: skill,
+      at: event.at,
+      durationContext: event,
+      effects: [{ ...boon, duration: effectNumber(skill, boon, 'duration') * malice }],
+      attribution: {
+        actorType: ACTOR.PLAYER,
+        source: 'thief',
+        sourceId: skill.id,
+        skillId: skill.id,
+        skillName: skill.name,
+        activationId: event.activationId
+      }
+    });
   }
 };
 

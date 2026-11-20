@@ -7,7 +7,7 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import { balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import {
   deadeyeMaliceStateHooks,
   deadeyeMarked,
@@ -20,7 +20,25 @@ import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/sta
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { claimActivation } from '#kernel/execution/activation-claims.js';
 
-/** First marked hits spend once; initiative hits and critical hits claim their separate activation rewards. */
+// Keep each open channel eligible until its final same-time hits and poison applications settle.
+const channelHits = new WeakMap<ThiefRuntime, Map<string, { landed: boolean; ended: boolean; expiresAt: number }>>();
+const expireChannel = 'thief.expire-malice-channel';
+const finishChannel = 'thief.finish-malice-channel';
+
+function spendsMaliceAtChannelEnd(skillId: ThiefSkill['id']): boolean {
+  return (
+    skillId === ID.MALICIOUS_SNEAK_ATTACK ||
+    skillId === ID.MALICIOUS_SHADOWSQUALL ||
+    skillId === ID.MALICIOUS_ASHEN_ASSAULT
+  );
+}
+
+function spendAttackMalice(runtime: ThiefRuntime): void {
+  resetDeadeyeMalice(runtime);
+  runtime.fireTrigger(maliceSpent);
+}
+
+/** Marked hits qualify a malicious attack for spending and award initiative attacks their malice. */
 function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit: Gw2HitResolutionContext): void {
   if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0) || typeof event.activationId !== 'string')
     return;
@@ -41,11 +59,25 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit:
   const state = deadeyeState.from(runtime.profession);
 
   if (skill.malicious) {
+    if (spendsMaliceAtChannelEnd(skill.id)) {
+      const channels = channelHits.get(runtime);
+
+      const channel = channels?.get(event.activationId);
+
+      if (!channels || !channel) return;
+
+      if (channel.ended) {
+        channels.delete(event.activationId);
+        spendAttackMalice(runtime);
+      } else channel.landed = true;
+
+      return;
+    }
+
     if (!claimActivation(state.deadeyeActivationClaims, 'thief.deadeye.malice-spend', event.activationId)) return;
 
     refundMaliciousTacticalStrike(runtime, event);
-    resetDeadeyeMalice(runtime);
-    runtime.fireTrigger(maliceSpent);
+    spendAttackMalice(runtime);
     return;
   }
 
@@ -72,6 +104,41 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit:
 export const deadeyeMaliceLifecycle = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>([
   deadeyeMaliceStateHooks,
   {
+    onCastStart(runtime, cast) {
+      if (!spendsMaliceAtChannelEnd(cast.skill.id)) return;
+
+      let channels = channelHits.get(runtime);
+
+      if (!channels) channelHits.set(runtime, (channels = new Map()));
+
+      const expiresAt = cast.effectiveEnd + (cast.command.impactDelayMs ?? 0) / 1000;
+      channels.set(cast.id, { landed: false, ended: false, expiresAt });
+      // effectiveEnd includes interruptions. A strike on that boundary receives its malice bonus before the spend.
+      runtime.schedule(finishChannel, cast.effectiveEnd, cast.id, undefined, 20);
+    },
+    tasks: {
+      [finishChannel](runtime, payload) {
+        const channels = channelHits.get(runtime);
+        const id = String(payload);
+        const channel = channels?.get(id);
+
+        if (!channels || !channel) return;
+
+        // A fired bullet can reach the mark after the channel has ended.
+        if (!channel.landed && channel.expiresAt > runtime.time) {
+          channel.ended = true;
+          runtime.schedule(expireChannel, channel.expiresAt, id, undefined, 20);
+          return;
+        }
+
+        channels.delete(id);
+
+        if (channel.landed && deadeyeMarked(runtime)) spendAttackMalice(runtime);
+      },
+      [expireChannel](runtime, payload) {
+        channelHits.get(runtime)?.delete(String(payload));
+      }
+    },
     reactions: {
       'damage.resolved'(runtime, event, details) {
         reactDeadeyeMalice(runtime, event, details.hitContext);

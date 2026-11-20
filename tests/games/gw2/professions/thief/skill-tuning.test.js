@@ -89,7 +89,7 @@ for (const removal of ['grant', 'payload']) {
 }
 
 // Finisher removal cannot delete an independently authored condition or prevent the surviving channel's refund.
-test('Malicious Ashen Torment survives final-strike removal and still spends accepted malice', () => {
+test('Malicious Ashen Torment survives final-strike removal and the landed channel spends malice', () => {
   const result = runThief(
     [ID.MALICIOUS_ASHEN_ASSAULT],
     {
@@ -115,12 +115,12 @@ test('Malicious Ashen Torment survives final-strike removal and still spends acc
     }
   );
   assert.deepEqual(result.warnings, []);
-  const torment = result.events.find(
+  const torment = result.resolvedEvents.find(
     (event) =>
       event.type === 'condition' && event.skillId === ID.MALICIOUS_ASHEN_ASSAULT && event.condition === 'Torment'
   );
   assert.ok(torment);
-  assert.equal(torment.duration, 3);
+  assert.equal(torment.effectiveDuration, 2.5);
   assert.equal(observedRuntime(result).resourceController.value('malice'), 0);
   assert.ok(observedRuntime(result).resourceController.value('initiative') >= 4);
 });

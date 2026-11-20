@@ -399,7 +399,7 @@ test('recall excludes expired axes, preserves axe identity, and immobilizes once
   assert.equal(empty.events.filter((event) => ['damage', 'condition'].includes(event.type)).length, 0);
 });
 
-test('Salvo refunds on impact and recalled malicious axes use base poison without consuming malice', () => {
+test('Salvo refunds on impact and its return applies bleeding without poisoning or spending malice', () => {
   for (const [specialization, skillId] of [
     ['Core', ID.CUNNING_SALVO],
     ['Deadeye', ID.MALICIOUS_CUNNING_SALVO]
@@ -445,7 +445,15 @@ test('Salvo refunds on impact and recalled malicious axes use base poison withou
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(returned(result, 'condition').find((event) => event.condition === 'Poisoned').duration, 1);
+  const applied = result.resolvedEvents.filter(
+    (event) =>
+      event.type === 'condition' && event.skillId === ID.MALICIOUS_CUNNING_SALVO && event.metadata?.recallSkillId
+  );
+  assert.ok(applied.some((event) => event.condition === 'Bleeding'));
+  assert.equal(
+    applied.some((event) => event.condition === 'Poisoned'),
+    false
+  );
   assert.equal(observedRuntime(result).profession.specialization.state.malice.value, 5);
   assert.ok(observedRuntime(result).resourceController.value('initiative') >= 2);
 });

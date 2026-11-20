@@ -7,7 +7,7 @@ import {
   tooltipSeconds,
   type DescribeSimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { skillActionEffects } from '#gw2/platform/effects/actions.js';
 import type { TooltipFact } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -27,9 +27,33 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
 
   if (selected.spearStealthAttack) description += ' Using a charge without stealth does not apply Revealed.';
 
-  if (selected.malicious)
+  if (selected.id === ID.MALICIOUS_SHADOWSQUALL) {
     description +=
-      ' Uses your malice at the start of the cast. The first hit against your active mark consumes malice. Malicious Intent can then grant new malice.';
+      ' Each poison application checks your current malice when it hits your mark. The channel spends malice when it ends or is interrupted after a marked hit.';
+    facts.push(
+      modifierFact(
+        balanceContext,
+        'thief.malicious-shadowsquall-poison',
+        'durationPerMalice',
+        'Bonus poison duration per malice',
+        tooltipPercent
+      )
+    );
+  } else if (selected.id === ID.MALICIOUS_BACKSTAB)
+    description += ' Backstab reads and spends your malice when it hits your mark.';
+  else if (selected.id === ID.MALICIOUS_DEATHS_JUDGMENT)
+    description += ' The shot gains damage from your malice on impact. Hitting your mark spends it.';
+  else if (selected.id === ID.MALICIOUS_TACTICAL_STRIKE)
+    description += ' Hitting your mark spends your current malice and restores endurance for each stack spent.';
+  else if (selected.id === ID.MALICIOUS_CUNNING_SALVO)
+    description += ' Only the outgoing axe poisons your mark, for one second per malice spent on impact.';
+  else if (selected.id === ID.MALICIOUS_SURPRISE_SHOT)
+    description += ' The arrow spends malice when it hits your mark.';
+  else if (selected.id === ID.MALICIOUS_SNEAK_ATTACK)
+    description +=
+      ' The first bullet applies torment based on your malice when it hits your mark. The channel spends malice when it ends after a marked hit.';
+  else if (selected.id === ID.MALICIOUS_HOOK_STRIKE)
+    description += ' Hitting your mark spends your current malice and grants quickness for each stack spent.';
 
   // Each Backstab owns an independent selected positional modifier.
   if (selected.id === ID.BACKSTAB)
@@ -69,9 +93,7 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
   }
 
   if (selected.id === ID.MALICIOUS_SNEAK_ATTACK) {
-    const profile = requireSkillAction(selected, 'malice');
-    // The selected action owns the independent Torment packet.
-    effects = [...effects, ...profile.effects];
+    effects = [...effects, ...skillActionEffects(selected)];
     facts.push(
       skillFact(
         balanceContext,
@@ -84,26 +106,13 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
   }
 
   if (selected.id === ID.MALICIOUS_HOOK_STRIKE) {
-    description +=
-      ' Quickness duration scales with your malice at the start of the cast. Zero malice grants no quickness.';
-    effects = effects.filter((effect) => effect.type !== 'boon');
     facts.push(
       ...simulationEffectFacts(
-        selected.effects?.filter((effect) => effect.type === 'boon'),
+        skillActionEffects(selected).filter((effect) => effect.type === 'boon'),
         'duration per malice'
       ).facts
     );
   }
-
-  if (selected.id === ID.MALICIOUS_TACTICAL_STRIKE)
-    description += ' Its first marked hit also restores endurance in proportion to consumed malice.';
-
-  if (selected.id === ID.MALICIOUS_CUNNING_SALVO)
-    description +=
-      ' Outgoing poison lasts one second per consumed malice; recalled poison uses the base duration without consuming malice.';
-
-  if (selected.id === ID.MALICIOUS_SHADOWSQUALL)
-    description += " Malice extends this attack's poison duration; the values below are before malice scaling.";
 
   if (selected.id === ID.CUNNING_SALVO || selected.id === ID.MALICIOUS_CUNNING_SALVO)
     description += ' Its landed axe enters the shared ground-axe pool.';
@@ -114,7 +123,7 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
 
     if (selected.malicious) {
       description +=
-        ' Malice increases only the final strike coefficient. Positive malice also adds torment on completion.';
+        ' The final hit checks your current malice for bonus damage and torment against your mark. The channel spends malice when it ends after a marked hit.';
       facts.push(
         skillFact(
           balanceContext,
@@ -123,16 +132,9 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
           'Final strike damage increase per malice',
           tooltipPercent
         ),
-        skillFact(
-          balanceContext,
-          ID.MALICIOUS_ASHEN_ASSAULT,
-          'durationPerMalice',
-          'Additional torment duration per malice',
-          tooltipSeconds
-        ),
         ...simulationEffectFacts(
           selected.effects?.filter((effect) => effect.packetLabel === 'malice'),
-          'requires positive malice; base duration before malice'
+          'torment duration per malice on the final hit'
         ).facts
       );
     }

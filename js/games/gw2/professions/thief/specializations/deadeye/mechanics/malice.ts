@@ -1,19 +1,34 @@
-/** Own malice changes and accepted values so skills cannot change snapshot lifetimes or cycle rules. */
+/** Own the malice pool and capture its value when a strike resolves. */
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { DEADEYE_STOLEN_SKILL_ID_SET } from '#gw2/professions/thief/data/stolen-skills.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { maliceGained } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
-import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import { deadeyeState, type DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { initialMalice, maximumDeadeyeMalice } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
-// Commitment actions read the original cast; delayed hits retain their activation's value for the whole run.
-const markedMaliceByCast = new WeakMap<RuntimeCast<ThiefSkill>, number>();
-const maliceSnapshots = new WeakMap<ThiefRuntime, Map<string, number>>();
+const maliceSnapshots = new WeakMap<Partial<DeadeyeState>, Map<string, number>>();
+
+/** Salvo's poison uses the malice from its own outgoing strike, even after Malicious Intent grants new stacks. */
+export function outgoingSalvoMalice(
+  state: Partial<DeadeyeState>,
+  activationId: Gw2ResolverEvent['activationId']
+): number {
+  return maliceSnapshots.get(state)?.get(String(activationId)) ?? 0;
+}
+
+function recordAttackMalice(runtime: ThiefRuntime, activationId: string, malice: number): void {
+  const state = deadeyeState.from(runtime.profession);
+  let snapshots = maliceSnapshots.get(state);
+
+  if (!snapshots) maliceSnapshots.set(state, (snapshots = new Map()));
+
+  snapshots.set(activationId, malice);
+}
 
 /** Malice is earned through marks and accepted hits, with no passive recovery. */
 const deadeyeMalice: ResourcePolicy<ThiefRuntime> = {
@@ -75,37 +90,35 @@ export function claimDeadeyeMaliceCycle(runtime: ThiefRuntime): boolean {
   return true;
 }
 
-/** Skills read mark-qualified acceptance facts without owning their storage or cleanup. */
-export function acceptedDeadeyeMarkedMalice(cast: RuntimeCast<ThiefSkill>): number {
-  return markedMaliceByCast.get(cast) ?? 0;
+function readsMaliceOnStrike(skillId: Gw2ResolverEvent['skillId']): boolean {
+  return (
+    skillId === ID.MALICIOUS_HOOK_STRIKE ||
+    skillId === ID.MALICIOUS_SNEAK_ATTACK ||
+    skillId === ID.MALICIOUS_BACKSTAB ||
+    skillId === ID.MALICIOUS_DEATHS_JUDGMENT ||
+    skillId === ID.MALICIOUS_TACTICAL_STRIKE
+  );
 }
 
-/** Capture accepted malice before commitment and preserve it for later impacts. */
-function captureDeadeyeMalice(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  const skill = cast.skill;
-
-  if (!skill.malicious && !DEADEYE_STOLEN_SKILL_ID_SET.has(skill.id)) return;
-
-  const malice = runtime.resourceController.value('malice');
-  // Poison, quickness, and duration scaling apply only against a live mark and a hit target.
-  markedMaliceByCast.set(cast, cast.command.offTarget !== true && deadeyeMarked(runtime) ? malice : 0);
-
-  if (skill.malicious) {
-    let snapshots = maliceSnapshots.get(runtime);
-
-    if (!snapshots) maliceSnapshots.set(runtime, (snapshots = new Map()));
-
-    snapshots.set(cast.id, malice);
-  }
-}
-
-/** Attach the original cast's malice after its resource has been spent by an earlier hit. */
+/** Sample live strike bonuses before hit reactions spend malice or grant Malicious Intent. */
 function deadeyeMaliceSnapshot(runtime: ThiefRuntime, event: Gw2ResolverEvent) {
-  const snapshot = maliceSnapshots.get(runtime)?.get(String(event.activationId));
-  return snapshot == null ? undefined : { deadeyeMaliceSnapshot: snapshot };
+  if (
+    event.skillId === ID.MALICIOUS_CUNNING_SALVO &&
+    event.actorType === 'player' &&
+    !event.procType &&
+    event.metadata?.recallSkillId == null &&
+    typeof event.activationId === 'string'
+  ) {
+    const malice = deadeyeMarked(runtime) && !event.offTarget ? runtime.resourceController.value('malice') : 0;
+    recordAttackMalice(runtime, event.activationId, malice);
+    return { deadeyeMaliceSnapshot: malice };
+  }
+
+  if (readsMaliceOnStrike(event.skillId) && event.actorType === 'player')
+    return { deadeyeMaliceSnapshot: runtime.resourceController.value('malice') };
 }
 
-/** Register resource and snapshot lifetimes together; commitment cleanup never retires delayed-hit snapshots. */
+/** Sample malice at strike resolution for both rotation and isolated damage calculations. */
 export const deadeyeMaliceStateHooks = {
   resources: { malice: deadeyeMalice },
   prepareDamageState(runtime, _skill, inputs) {
@@ -119,11 +132,6 @@ export const deadeyeMaliceStateHooks = {
     runtime.resourceController.replace('malice', malice);
     state.markedTargetId = 'target';
     state.markExpiresAt = Infinity;
-  },
-  onCastStart: captureDeadeyeMalice,
-  onCastCommit(_runtime, cast) {
-    // Authored commitment actions have already read the original cast's accepted facts.
-    markedMaliceByCast.delete(cast);
   },
   reactions: { 'damage.resolving': deadeyeMaliceSnapshot }
 } satisfies RuntimeHooks<ThiefRuntimeState, ThiefSkill>;
