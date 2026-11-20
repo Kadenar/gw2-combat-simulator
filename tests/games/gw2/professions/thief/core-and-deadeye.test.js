@@ -68,7 +68,7 @@ test('Thief weapon matching keeps hand requirements behind profession variant ga
     [{ requiredMainHand: 'Dagger', requiredOffHand: 'Pistol' }, ['Dagger', 'Dagger'], false],
     [{ requiredMainHand: 'Dagger', requiredOffHand: false }, ['Dagger', ''], true],
     [{ requiredMainHand: 'Dagger', requiredOffHand: false }, ['Dagger', 'Pistol'], false],
-    [{ requiredMainHand: 'Dagger', stealthAttack: true, malicious: true }, ['Dagger', ''], false]
+    [{ requiredMainHand: 'Dagger', stealthAttack: true, malicious: { spend: 'impact' } }, ['Dagger', ''], false]
   ]) {
     assert.equal(thiefWeaponSkillMatchesSet({ id: -1, type: 'Weapon', ...fields }, hands, context), expected);
   }

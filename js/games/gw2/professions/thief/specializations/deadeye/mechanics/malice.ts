@@ -5,30 +5,10 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { maliceGained } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
-import { deadeyeState, type DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { initialMalice, maximumDeadeyeMalice } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
-
-const maliceSnapshots = new WeakMap<Partial<DeadeyeState>, Map<string, number>>();
-
-/** Salvo's poison uses the malice from its own outgoing strike, even after Malicious Intent grants new stacks. */
-export function outgoingSalvoMalice(
-  state: Partial<DeadeyeState>,
-  activationId: Gw2ResolverEvent['activationId']
-): number {
-  return maliceSnapshots.get(state)?.get(String(activationId)) ?? 0;
-}
-
-function recordAttackMalice(runtime: ThiefRuntime, activationId: string, malice: number): void {
-  const state = deadeyeState.from(runtime.profession);
-  let snapshots = maliceSnapshots.get(state);
-
-  if (!snapshots) maliceSnapshots.set(state, (snapshots = new Map()));
-
-  snapshots.set(activationId, malice);
-}
 
 /** Malice is earned through marks and accepted hits, with no passive recovery. */
 const deadeyeMalice: ResourcePolicy<ThiefRuntime> = {
@@ -73,7 +53,7 @@ export function resetDeadeyeMalice(runtime: ThiefRuntime): void {
   deadeyeState.from(runtime.profession).maleficentSevenTriggered = false;
 }
 
-/** Return Mercy's live balance for its refund after clearing the cycle, without firing maliceSpent. */
+/** Return Mercy's live balance for its refund after clearing the cycle, without awarding Malicious Intent. */
 export function consumeDeadeyeMalice(runtime: ThiefRuntime): number {
   const malice = runtime.resourceController.value('malice');
   resetDeadeyeMalice(runtime);
@@ -90,31 +70,11 @@ export function claimDeadeyeMaliceCycle(runtime: ThiefRuntime): boolean {
   return true;
 }
 
-function readsMaliceOnStrike(skillId: Gw2ResolverEvent['skillId']): boolean {
-  return (
-    skillId === ID.MALICIOUS_HOOK_STRIKE ||
-    skillId === ID.MALICIOUS_SNEAK_ATTACK ||
-    skillId === ID.MALICIOUS_BACKSTAB ||
-    skillId === ID.MALICIOUS_DEATHS_JUDGMENT ||
-    skillId === ID.MALICIOUS_TACTICAL_STRIKE
-  );
-}
-
-/** Sample live strike bonuses before hit reactions spend malice or grant Malicious Intent. */
+/** Every direct malicious strike exposes its live balance before hit rewards or spending. */
 function deadeyeMaliceSnapshot(runtime: ThiefRuntime, event: Gw2ResolverEvent) {
-  if (
-    event.skillId === ID.MALICIOUS_CUNNING_SALVO &&
-    event.actorType === 'player' &&
-    !event.procType &&
-    event.metadata?.recallSkillId == null &&
-    typeof event.activationId === 'string'
-  ) {
-    const malice = deadeyeMarked(runtime) && !event.offTarget ? runtime.resourceController.value('malice') : 0;
-    recordAttackMalice(runtime, event.activationId, malice);
-    return { deadeyeMaliceSnapshot: malice };
-  }
+  if (event.actorType !== 'player' || event.procType || event.metadata?.recallSkillId != null) return;
 
-  if (readsMaliceOnStrike(event.skillId) && event.actorType === 'player')
+  if (runtime.helpers.skillsById.get(Number(event.skillId))?.malicious)
     return { deadeyeMaliceSnapshot: runtime.resourceController.value('malice') };
 }
 

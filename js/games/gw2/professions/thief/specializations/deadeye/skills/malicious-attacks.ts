@@ -1,19 +1,17 @@
-import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
-import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition } from '#gw2/professions/thief/core/events.js';
 import { ashenAssaultEffects } from '#gw2/professions/thief/core/skills/weapons/spear.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { deadeyeMarked, outgoingSalvoMalice } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
+import { deadeyeMarked } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
 import { markedTarget } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
+import { deadeyeState, type DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { ThiefRuntimeState, ThiefSimulationEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // Each pistol bullet has its own release. Projectile travel starts at that release.
@@ -24,11 +22,13 @@ const shadowsquallImpacts = [400, 680, 880, 1160, 1320, 1600, 1800, 2080];
 
 /** Both finisher bonuses use the malice held when they reach the marked target. */
 function ashenFinisherMalice(context: Gw2ModifierContext): number {
-  const state = thiefRuntimeSpecializationState(context.runtime?.profession, 'Deadeye');
-  return state.markedTargetId && buffDeadlineActive(state.markExpiresAt ?? 0, context.time)
-    ? (state.malice?.value ?? 0)
+  return markedTarget(context)
+    ? (thiefRuntimeSpecializationState(context.runtime?.profession, 'Deadeye').malice?.value ?? 0)
     : 0;
 }
+
+// Salvo's poison belongs to the outgoing axe even after the strike has spent its malice.
+const salvoMalice = new WeakMap<Partial<DeadeyeState>, Map<string, number>>();
 
 /** Malicious stealth attacks own their weapon effects and malice scaling. */
 export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<ThiefSkill>>> = {
@@ -41,7 +41,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     cooldown: 1,
     requiredMainHand: WEAPON.RIFLE,
     stealthAttack: true,
-    malicious: true,
+    malicious: { spend: 'impact' },
     castTimeMs: 680,
     interruptCommitMs: 520,
     // Mercy during the windup or projectile flight reduces the malice available on impact.
@@ -83,7 +83,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     cooldown: 1,
     requiredMainHand: WEAPON.SHORTBOW,
     stealthAttack: true,
-    malicious: true,
+    malicious: { spend: 'impact' },
     // The arrow launches before the aftercast ends. Its impact delay depends on distance.
     castTimeMs: 640,
     interruptCommitMs: 200,
@@ -126,7 +126,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     cooldown: 1,
     requiredMainHand: WEAPON.PISTOL,
     stealthAttack: true,
-    malicious: true,
+    malicious: { spend: 'channel-end' },
     castTimeMs: 760,
     interruptMode: 'per-packet',
     // Only the first bullet applies Torment. Its duration uses malice at impact.
@@ -198,7 +198,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     cooldown: 1,
     requiredMainHand: WEAPON.DAGGER,
     stealthAttack: true,
-    malicious: true,
+    malicious: { spend: 'impact' },
     castTimeMs: 440,
     // Preserve the committed strike; late aftercast cuts release the next action before the full animation ends.
     interruptCommitMs: 320,
@@ -247,11 +247,19 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Sword',
-
+    endurancePerMalice: 10,
     cooldown: 1,
     requiredMainHand: WEAPON.SWORD,
     stealthAttack: true,
-    malicious: true,
+    malicious: {
+      spend: 'impact',
+      onMarkedImpact(runtime, _activationId, malice) {
+        const skill = requireSkill(runtime.helpers, ID.MALICIOUS_TACTICAL_STRIKE);
+        const endurance = malice * skillNumber(skill, 'endurancePerMalice');
+
+        if (endurance > 0) runtime.endurance.grant(endurance);
+      }
+    },
     castTimeMs: 440,
     interruptCommitMs: 200,
     effects: impactEffects(
@@ -286,7 +294,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     cooldown: 0,
     requiredMainHand: WEAPON.SCEPTER,
     stealthAttack: true,
-    malicious: true,
+    malicious: { spend: 'channel-end' },
     castTimeMs: 2320,
     interruptMode: 'per-packet',
     // Each application keeps the duration it earned, even if Mercy clears malice during the channel.
@@ -340,7 +348,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     cooldown: 1,
     requiredMainHand: WEAPON.STAFF,
     stealthAttack: true,
-    malicious: true,
+    malicious: { spend: 'impact' },
     castTimeMs: 640,
     interruptCommitMs: 520,
     // The marked staff hit spends malice and grants Quickness before the aftercast ends.
@@ -392,7 +400,17 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     cooldown: 1,
     requiredMainHand: WEAPON.AXE,
     stealthAttack: true,
-    malicious: true,
+    malicious: {
+      spend: 'impact',
+      onMarkedImpact(runtime, activationId, malice) {
+        const state = deadeyeState.from(runtime.profession);
+        let strikes = salvoMalice.get(state);
+
+        if (!strikes) salvoMalice.set(state, (strikes = new Map()));
+
+        strikes.set(activationId, malice);
+      }
+    },
     castTimeMs: 440,
     // A committed axe preserves its impact and the remaining cast lockout after interruption.
     interruptCommitMs: 400,
@@ -405,10 +423,9 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
         operation: 'multiply',
         factor: (context) =>
           context.event?.metadata?.recallSkillId == null
-            ? outgoingSalvoMalice(
-                thiefRuntimeSpecializationState(context.runtime?.profession, 'Deadeye'),
-                context.event?.activationId
-              )
+            ? (salvoMalice
+                .get(thiefRuntimeSpecializationState(context.runtime?.profession, 'Deadeye'))
+                ?.get(String(context.event?.activationId)) ?? 0)
             : 0,
         when: (context) =>
           isGw2PlayerModifierOwnedEvent(context.event) &&
@@ -485,7 +502,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     cooldown: 0,
     requiredMainHand: WEAPON.SPEAR,
     stealthAttack: true,
-    malicious: true,
+    malicious: { spend: 'channel-end' },
     // Malicious Ashen Assault shares the measured spear channel and finishes its damage before aftercast.
     castTimeMs: 1200,
     interruptMode: 'per-packet',
@@ -531,15 +548,6 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' as const } }]
   }
 };
-
-/** Called after Core observers and the shared first-landed latch, before malice consumption. */
-export function refundMaliciousTacticalStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
-  if (event.skillId === ID.MALICIOUS_TACTICAL_STRIKE) {
-    const enduranceGain = Number(event.deadeyeMaliceSnapshot || 0) * 10;
-
-    if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
-  }
-}
 
 /** Marked hits use the balance recorded before spending or Malicious Intent. */
 const maliciousAttackActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> = {

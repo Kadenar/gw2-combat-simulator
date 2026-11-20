@@ -7,15 +7,14 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import { balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import {
   deadeyeMaliceStateHooks,
   deadeyeMarked,
   grantDeadeyeMalice,
   resetDeadeyeMalice
 } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
-import { maliceSpent } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
-import { refundMaliciousTacticalStrike } from '#gw2/professions/thief/specializations/deadeye/skills/malicious-attacks.js';
+import { markedStealthAttackResolved } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { claimActivation } from '#kernel/execution/activation-claims.js';
@@ -25,17 +24,9 @@ const channelHits = new WeakMap<ThiefRuntime, Map<string, { landed: boolean; end
 const expireChannel = 'thief.expire-malice-channel';
 const finishChannel = 'thief.finish-malice-channel';
 
-function spendsMaliceAtChannelEnd(skillId: ThiefSkill['id']): boolean {
-  return (
-    skillId === ID.MALICIOUS_SNEAK_ATTACK ||
-    skillId === ID.MALICIOUS_SHADOWSQUALL ||
-    skillId === ID.MALICIOUS_ASHEN_ASSAULT
-  );
-}
-
 function spendAttackMalice(runtime: ThiefRuntime): void {
   resetDeadeyeMalice(runtime);
-  runtime.fireTrigger(maliceSpent);
+  runtime.fireTrigger(markedStealthAttackResolved);
 }
 
 /** Marked hits qualify a malicious attack for spending and award initiative attacks their malice. */
@@ -59,9 +50,8 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit:
   const state = deadeyeState.from(runtime.profession);
 
   if (skill.malicious) {
-    if (spendsMaliceAtChannelEnd(skill.id)) {
+    if (skill.malicious.spend === 'channel-end') {
       const channels = channelHits.get(runtime);
-
       const channel = channels?.get(event.activationId);
 
       if (!channels || !channel) return;
@@ -76,7 +66,7 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit:
 
     if (!claimActivation(state.deadeyeActivationClaims, 'thief.deadeye.malice-spend', event.activationId)) return;
 
-    refundMaliciousTacticalStrike(runtime, event);
+    skill.malicious.onMarkedImpact?.(runtime, event.activationId, Number(event.deadeyeMaliceSnapshot ?? 0));
     spendAttackMalice(runtime);
     return;
   }
@@ -100,12 +90,12 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit:
   );
 }
 
-/** One contribution installs capture, resource policy, commitment cleanup, and ordered hit reactions. */
+/** One contribution installs the resource policy, strike-time malice reads, channel-end spending, and hit reactions. */
 export const deadeyeMaliceLifecycle = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>([
   deadeyeMaliceStateHooks,
   {
     onCastStart(runtime, cast) {
-      if (!spendsMaliceAtChannelEnd(cast.skill.id)) return;
+      if (cast.skill.malicious?.spend !== 'channel-end') return;
 
       let channels = channelHits.get(runtime);
 

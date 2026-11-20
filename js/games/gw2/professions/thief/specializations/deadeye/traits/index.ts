@@ -28,8 +28,8 @@ import {
 import {
   deadeyeCastCompleted,
   maliceGained,
-  maliceSpent,
   markCompleted,
+  markedStealthAttackResolved,
   type DeadeyeCast,
   type DeadeyeMalice
 } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
@@ -124,7 +124,7 @@ const maliciousIntent = defineTrait({
   balance: {
     resourceGain: 2
   },
-  triggers: [onTriggerPoint(maliceSpent, { run: restoreMaliciousIntent })]
+  triggers: [onTriggerPoint(markedStealthAttackResolved, { run: restoreMaliciousIntent })]
 });
 
 /** Owns this trait's modifier eligibility. */

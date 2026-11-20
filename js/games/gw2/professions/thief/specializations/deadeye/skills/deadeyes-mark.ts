@@ -79,10 +79,10 @@ function expireDeadeyesMark(runtime: ThiefRuntime, data: unknown): void {
   resetDeadeyeMalice(runtime);
 }
 
-/** Modifier eligibility reads the active specialization mark, including detached previews. */
+/** A detached preview may omit expiry while a live zero deadline denotes an inactive mark. */
 export function markedTarget(context: Gw2ModifierContext): boolean {
   const state = thiefRuntimeSpecializationState(context.runtime?.profession, 'Deadeye');
-  return Boolean(state.markedTargetId) && buffDeadlineActive(state.markExpiresAt || Infinity, context.time);
+  return Boolean(state.markedTargetId) && buffDeadlineActive(state.markExpiresAt ?? Infinity, context.time);
 }
 
 /** Register actions beside the skills whose accepted casts select them. */

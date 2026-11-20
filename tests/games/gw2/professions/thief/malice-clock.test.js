@@ -86,7 +86,7 @@ test('marks replace or add malice and ignore stale expiry generations', () => {
   ]);
 });
 
-// Mercy clears an earned cycle without Malicious Intent reseeding it through maliceSpent.
+// Mercy clears an earned cycle without Malicious Intent reseeding it through the marked stealth attack trigger.
 test('Mercy clears malice and rearms the cycle without Malicious Intent reseeding', () => {
   const result = runThief(
     [ID.MERCY],

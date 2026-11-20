@@ -14,6 +14,7 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { THIEF_CORE_SKILL_FIELDS } from '#gw2/professions/thief/core/catalog-fields.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { ANTIQUARY_SKILL_FIELDS } from '#gw2/professions/thief/specializations/antiquary/catalog-fields.js';
 import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
@@ -112,8 +113,13 @@ export interface ThiefSkill
   readonly dualWieldAttack?: boolean;
   /** Available only while kneeling. */
   readonly kneelSkill?: boolean;
-  /** Spends malice for its enhanced variant. */
-  readonly malicious?: boolean;
+  /** The skill owns its spend timing and any reward that must see the marked hit's original balance. */
+  readonly malicious?:
+    | { readonly spend: 'channel-end' }
+    | {
+        readonly spend: 'impact';
+        readonly onMarkedImpact?: (runtime: ThiefRuntime, activationId: string, malice: number) => void;
+      };
   readonly movementSkill?: boolean;
   readonly shadowShroudSkill?: boolean;
   /** Marks the two Shadow Shroud bar transitions so replay and live owners can order and select them. */

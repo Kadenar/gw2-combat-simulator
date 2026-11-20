@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
@@ -445,7 +446,8 @@ function markedDeadeye(malice, marked) {
   };
 }
 
-test('THF-009: malicious sword, staff, axe, and scepter use the consumed malice snapshot', () => {
+// Malicious Intent's new stacks belong to the next attack, including after a zero-malice hit.
+test('THF-009: Malicious Intent preserves the benefit earned with the previous balance', () => {
   for (const [name, weapon] of [
     ['Malicious Tactical Strike', 'Sword'],
     ['Malicious Hook Strike', 'Staff'],
@@ -453,35 +455,39 @@ test('THF-009: malicious sword, staff, axe, and scepter use the consumed malice 
     ['Malicious Shadowsquall', 'Scepter']
   ]) {
     for (const malice of [0, 4]) {
-      const result = live(
-        'Deadeye',
-        [name],
-        {
-          primaryWeapon: weapon,
-          secondaryWeapon: '',
-          selectedTraitIds: [TRAIT.MALICIOUS_INTENT],
-          initialEndurance: 0,
-          boons: { vigor: false }
-        },
-        { initialize: markedDeadeye(malice, true) }
-      );
-      assert.deepEqual(result.warnings, []);
-      const runtime = observedRuntime(result);
-      assert.equal(runtime.profession.specialization.state.malice.value, 2);
-
-      if (weapon === 'Sword') {
-        near(runtime.profession.core.endurance.value, runtime.time * 5 + malice * 10);
-      } else if (weapon === 'Staff') {
-        const boon = result.events.find((event) => event.type === 'buff' && event.kind === 'quickness');
-        near(Number(boon?.duration || 0), malice * 0.75);
-        assert.equal(boon != null, malice > 0);
-      } else {
-        const poison = result.resolvedEvents.find(
-          (event) => event.type === 'condition' && event.condition === 'Poisoned'
+      const run = (selectedTraitIds) =>
+        live(
+          'Deadeye',
+          [name],
+          {
+            primaryWeapon: weapon,
+            secondaryWeapon: '',
+            selectedTraitIds,
+            initialEndurance: 0,
+            boons: { vigor: false }
+          },
+          { initialize: markedDeadeye(malice, true) }
         );
-        // Salvo's outgoing poison is exactly the consumed malice; zero malice emits no poison.
-        near(poison?.effectiveDuration ?? 0, weapon === 'Axe' ? malice : 6 * (1 + 0.2 * malice));
-      }
+      const control = run([]);
+      const traited = run([TRAIT.MALICIOUS_INTENT]);
+      assert.deepEqual(control.warnings, []);
+      assert.deepEqual(traited.warnings, []);
+      const runtime = observedRuntime(traited);
+      assert.equal(observedRuntime(control).resourceController.value('malice'), 0);
+      assert.equal(
+        runtime.resourceController.value('malice'),
+        balanceNumber(runtime.helpers, TRAIT.MALICIOUS_INTENT, 'resourceGain')
+      );
+
+      const benefit = (result) => {
+        if (weapon === 'Sword') return observedRuntime(result).profession.core.endurance.value;
+
+        if (weapon === 'Staff') return result.events.find((e) => e.kind === 'quickness')?.duration ?? 0;
+
+        return result.resolvedEvents.find((e) => e.condition === 'Poisoned')?.effectiveDuration ?? 0;
+      };
+
+      near(benefit(traited), benefit(control));
     }
   }
 });

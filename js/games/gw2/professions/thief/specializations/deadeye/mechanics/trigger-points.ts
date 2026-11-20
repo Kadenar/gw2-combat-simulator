@@ -14,8 +14,11 @@ export interface DeadeyeMalice {
 /** Accepted malice gains resolve the once-per-cycle reward before later mark rewards. */
 export const maliceGained = defineTriggerPoint<DeadeyeMalice>('thief.malice-gained', [TRAIT.MALEFICENT_SEVEN]);
 
-/** Spending malice rearms the cycle before Malicious Intent can seed its next reward. */
-export const maliceSpent = defineTriggerPoint<Record<string, never>>('thief.malice-spent', [TRAIT.MALICIOUS_INTENT]);
+/** A marked stealth attack qualifies for Malicious Intent even when Mercy has already cleared its malice. */
+export const markedStealthAttackResolved = defineTriggerPoint<Record<string, never>>(
+  'thief.marked-stealth-attack-resolved',
+  [TRAIT.MALICIOUS_INTENT]
+);
 
 /** Mark rewards follow stolen-skill acquisition, preserving the accepted mark's ordering. */
 export const markCompleted = defineTriggerPoint<DeadeyeCast>('thief.mark-completed', [TRAIT.BE_QUICK_OR_BE_KILLED]);

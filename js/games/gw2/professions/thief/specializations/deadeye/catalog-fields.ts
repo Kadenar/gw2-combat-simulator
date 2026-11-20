@@ -5,6 +5,7 @@ export const DEADEYE_SKILL_FIELDS = defineFields(
   {
     // Skill-owned tuning remains independently patchable from shared execution policy.
     initiativePerMalice: numberField({ label: 'initiative restored per malice', patch: 'primary' }),
+    endurancePerMalice: numberField({ label: 'endurance restored per malice', patch: 'primary' }),
     durationPerMalice: numberField({
       label: 'condition duration per malice',
       patch: 'primary',

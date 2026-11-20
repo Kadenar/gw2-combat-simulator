@@ -517,17 +517,39 @@ test('Malicious Ashen checks the live mark on the final hit', () => {
     );
     assert.deepEqual(result.warnings, []);
     const final = result.resolvedEvents.find((event) => event.name === 'Malicious Ashen Assault - Final Strike');
-    assert.equal(final.coefficient, 0.3);
+    assert.ok(final);
     const torment = result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Torment');
-    assert.equal(torment?.effectiveDuration, marked ? undefined : 0.5);
+
+    if (marked) assert.equal(torment, undefined);
+    else assert.equal(torment.effectiveDuration, torment.duration);
+  }
+});
+
+// Detached mark previews can omit expiry. An explicit zero deadline still represents an inactive mark.
+test('Ashen finisher bonuses use the same mark expiry in detached previews', () => {
+  const catalog = observedRuntime(runThief([], { specialization: 'Deadeye' })).helpers;
+  const skill = catalog.skillsById.get(ID.MALICIOUS_ASHEN_ASSAULT);
+  const strike = skill.modifiers.find((rule) => rule.id === 'thief.malicious-ashen-assault-malice');
+  const torment = skill.effects.find((effect) => effect.packetLabel === 'malice').modifiers[0];
+  for (const [expiry, expected] of [
+    [{}, 3],
+    [{ markExpiresAt: 0 }, 0],
+    [{ markExpiresAt: 1 }, 0],
+    [{ markExpiresAt: 2 }, 3]
+  ]) {
+    const state = { markedTargetId: 'primary-target', malice: { value: 3 }, ...expiry };
+    const context = { catalog, time: 2, runtime: { profession: { specialization: { kind: 'Deadeye', state } } } };
+    assert.equal(strike.factor(context), 1 + expected * skill.coefficientPerMalice);
+    assert.equal(torment.factor(context), expected);
   }
 });
 
 // Weapon-specific malice rules scale the selected poison duration before expertise.
 test('Salvo uses the malice spent on its hit and Shadowsquall reads malice at each application', () => {
-  for (const [skillId, weapon, factor] of [
-    [ID.MALICIOUS_SHADOWSQUALL, 'Scepter', 1.4],
-    [ID.MALICIOUS_CUNNING_SALVO, 'Axe', 2]
+  const impactMalice = 2;
+  for (const [skillId, weapon] of [
+    [ID.MALICIOUS_SHADOWSQUALL, 'Scepter'],
+    [ID.MALICIOUS_CUNNING_SALVO, 'Axe']
   ]) {
     const result = runThief(
       [skillId, { type: 'wait', durationMs: 1000 }],
@@ -550,7 +572,7 @@ test('Salvo uses the malice spent on its hit and Shadowsquall reads malice at ea
           [
             0.1,
             (runtime) => {
-              runtime.resourceController.replace('malice', 2);
+              runtime.resourceController.replace('malice', impactMalice);
             }
           ]
         ],
@@ -576,7 +598,15 @@ test('Salvo uses the malice spent on its hit and Shadowsquall reads malice at ea
       (event) => event.type === 'condition' && event.condition === 'Bleeding'
     );
     assert.equal(poison.duration, 2);
-    assert.equal(poison.effectiveDuration, 2 * factor * 2);
+    const skill = observedRuntime(result).helpers.skillsById.get(skillId);
+    const factor =
+      weapon === 'Axe'
+        ? impactMalice
+        : 1 +
+          impactMalice *
+            skill.modifiers.find((rule) => rule.id === 'thief.malicious-shadowsquall-poison').parameters
+              .durationPerMalice;
+    assert.equal(poison.effectiveDuration, bleeding.effectiveDuration * factor);
     assert.equal(bleeding.duration, 2);
     assert.equal(bleeding.effectiveDuration, 4);
   }

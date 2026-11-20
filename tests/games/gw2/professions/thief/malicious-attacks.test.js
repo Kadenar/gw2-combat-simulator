@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { skillActionEffects } from '#gw2/platform/effects/actions.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -60,6 +61,15 @@ function maliciousAttack(
   );
 }
 
+function selectedSkill(result, skillId) {
+  return observedRuntime(result).helpers.skillsById.get(skillId);
+}
+
+function damagePerMalice(result, skillId) {
+  return selectedSkill(result, skillId).modifiers.find((rule) => rule.parameters?.damagePerMalice != null).parameters
+    .damagePerMalice;
+}
+
 for (const [skillId, weapon] of weapons) {
   test(`${weapon} malicious attack spends malice once if it hits the mark and preserves it on other targets`, () => {
     for (const [marked, offTarget] of [
@@ -100,9 +110,14 @@ test('Mercy during Backstab trades its damage bonus for initiative', () => {
   assert.deepEqual(after.warnings, []);
   assert.equal(strike(before).deadeyeMaliceSnapshot, 0);
   assert.equal(strike(after).deadeyeMaliceSnapshot, 4);
-  assertFlooredDamageMultiplier(strike(after).damage, strike(before).damage, 1.4);
+  assertFlooredDamageMultiplier(
+    strike(after).damage,
+    strike(before).damage,
+    1 + strike(after).deadeyeMaliceSnapshot * damagePerMalice(after, ID.MALICIOUS_BACKSTAB)
+  );
   const initiative = (result) => observedRuntime(result).resourceController.value('initiative');
-  assert.ok(Math.abs(initiative(before) - initiative(after) - 4) < 1e-9);
+  const refundPerMalice = selectedSkill(after, ID.MERCY).initiativePerMalice;
+  assert.ok(Math.abs(initiative(before) - initiative(after) - 4 * refundPerMalice) < 1e-9);
 });
 
 test('pistol and spear Torment require marked malice and keep their own duration formulas', () => {
@@ -114,23 +129,26 @@ test('pistol and spear Torment require marked malice and keep their own duration
     }
 
     assert.equal(torment(maliciousAttack(0, { skillId })), undefined);
-    assert.equal(
-      torment(maliciousAttack(5, { skillId })).effectiveDuration,
-      skillId === ID.MALICIOUS_SNEAK_ATTACK ? 10 : 2.5
-    );
+    const result = maliciousAttack(5, { skillId });
+    const skill = selectedSkill(result, skillId);
+    const perStack =
+      skillId === ID.MALICIOUS_SNEAK_ATTACK
+        ? skill.durationPerMalice
+        : skill.effects.find((effect) => effect.packetLabel === 'malice').duration;
+    assert.equal(torment(result).effectiveDuration, 5 * perStack);
   }
 });
 
 // Mercy can claim the same stacks as the sword's endurance refund, even within a single animation.
 test('Tactical Strike refunds endurance for the malice still held when the sword hits', () => {
   const skillId = ID.MALICIOUS_TACTICAL_STRIKE;
-  const simulate = (offset) =>
+  const simulate = (offset, malice = 4) =>
     runThief(
       [skillId, { type: 'cast', skillId: ID.MERCY, concurrentOffsetMs: offset }],
       { specialization: 'Deadeye', primaryWeapon: 'Sword', initialEndurance: 0, selectedSkillIds: [ID.MERCY] },
       {
         initialize(runtime) {
-          runtime.resourceController.replace('malice', 4);
+          runtime.resourceController.replace('malice', malice);
           Object.assign(runtime.profession.specialization.state, {
             markedTargetId: 'primary-target',
             markExpiresAt: 30
@@ -144,7 +162,9 @@ test('Tactical Strike refunds endurance for the malice still held when the sword
   assert.deepEqual(before.warnings, []);
   assert.deepEqual(after.warnings, []);
   const endurance = (result) => observedRuntime(result).profession.core.endurance.value;
-  assert.ok(Math.abs(endurance(after) - endurance(before) - 40) < 1e-8);
+  const perStack = endurance(simulate(320, 1)) - endurance(simulate(80, 1));
+  assert.ok(perStack > 0);
+  assert.ok(Math.abs(endurance(after) - endurance(before) - 4 * perStack) < 1e-8);
 });
 
 test('spear scales only its final strike and only with marked malice', () => {
@@ -153,7 +173,8 @@ test('spear scales only its final strike and only with marked malice', () => {
     maliciousAttack(malice, { skillId, marked }).resolvedEvents.find(
       (event) => event.name === 'Malicious Ashen Assault - Final Strike'
     ).damage;
-  assertFlooredDamageMultiplier(final(5, true), final(0, true), 1.1);
+  const skill = selectedSkill(maliciousAttack(0, { skillId }), skillId);
+  assertFlooredDamageMultiplier(final(5, true), final(0, true), 1 + 5 * skill.coefficientPerMalice);
   assert.equal(final(5, false), final(0, false));
 });
 
@@ -197,26 +218,31 @@ for (const [weapon, skillId, impactDelayMs, before, after] of [
     if (weapon === 'Spear') {
       const torment = (r) => r.resolvedEvents.find((e) => e.skillId === skillId && e.condition === 'Torment');
       assert.equal(torment(early), undefined);
-      assert.equal(torment(late).effectiveDuration, 1.5);
+      const skill = selectedSkill(late, skillId);
+      assert.equal(
+        torment(late).effectiveDuration,
+        3 * skill.effects.find((effect) => effect.packetLabel === 'malice').duration
+      );
       const final = (r) => r.resolvedEvents.find((e) => e.name === 'Malicious Ashen Assault - Final Strike');
-      assertFlooredDamageMultiplier(final(late).damage, final(early).damage, 1.06);
+      assertFlooredDamageMultiplier(final(late).damage, final(early).damage, 1 + 3 * skill.coefficientPerMalice);
     } else if (weapon === 'Pistol') {
       const torment = (r) => r.resolvedEvents.filter((e) => e.skillId === skillId && e.condition === 'Torment');
+      const duration = 3 * selectedSkill(late, skillId).durationPerMalice;
       assert.equal(torment(run(240)).length, 0);
       assert.deepEqual(
         torment(early).map((e) => e.effectiveDuration),
-        [6]
+        [duration]
       );
       assert.deepEqual(
         torment(late).map((e) => e.effectiveDuration),
-        [6]
+        [duration]
       );
     } else if (weapon === 'Staff') {
       const quickness = (r) => r.events.filter((e) => e.skillId === skillId && e.kind === 'quickness');
       assert.equal(quickness(early).length, 0);
       assert.deepEqual(
         quickness(late).map((e) => e.duration),
-        [2.25]
+        [3 * skillActionEffects(selectedSkill(late, skillId)).find((effect) => effect.boon === 'quickness').duration]
       );
     } else {
       const hit = early.resolvedEvents.find((e) => e.skillId === skillId && e.type === 'damage');
@@ -254,7 +280,7 @@ test('pistol interruption spends malice only if a released bullet hits', () => {
     const torment = result.resolvedEvents.filter((e) => e.skillId === skillId && e.condition === 'Torment');
     assert.deepEqual(
       torment.map((e) => e.effectiveDuration),
-      landed ? [8] : []
+      landed ? [4 * selectedSkill(result, skillId).durationPerMalice] : []
     );
     assert.equal(observedRuntime(result).resourceController.value('malice'), landed ? 0 : 4);
   }
@@ -275,14 +301,18 @@ test('pistol bleeding and scepter poison accompany landed channel strikes', () =
       applications.map((event) => event.at),
       hits.map((event) => event.at)
     );
-    assert.ok(applications.every((event) => event.effectiveDuration === (condition === 'Poisoned' ? 12 : 5)));
+    const skill = selectedSkill(result, skillId);
+    const perStack =
+      skill.modifiers.find((rule) => rule.id === 'thief.malicious-shadowsquall-poison')?.parameters.durationPerMalice ??
+      0;
+    for (const event of applications) assert.equal(event.effectiveDuration, event.duration * (1 + 5 * perStack));
   }
 });
 
 // Move Mercy around actual impacts to distinguish live reads, channel spending, and already-applied poison.
 test('Shadowsquall keeps malice available to Mercy through the last hit', () => {
   const skillId = ID.MALICIOUS_SHADOWSQUALL;
-  const run = ({ mercy, interruptAfterMs } = {}) =>
+  const run = ({ mercy, interruptAfterMs, malice = 5 } = {}) =>
     runThief(
       [
         { type: 'cast', skillId, interruptAfterMs },
@@ -291,7 +321,7 @@ test('Shadowsquall keeps malice available to Mercy through the last hit', () => 
       { specialization: 'Deadeye', primaryWeapon: 'Scepter', initialInitiative: 0, selectedSkillIds: [ID.MERCY] },
       {
         initialize(runtime) {
-          runtime.resourceController.replace('malice', 5);
+          runtime.resourceController.replace('malice', malice);
           Object.assign(runtime.profession.specialization.state, {
             markedTargetId: 'primary-target',
             markExpiresAt: 30
@@ -306,6 +336,8 @@ test('Shadowsquall keeps malice available to Mercy through the last hit', () => 
     );
   const baseline = run();
   const hits = poisons(baseline);
+  const unboosted = poisons(run({ malice: 0 }));
+  assert.ok(hits[0].effectiveDuration > unboosted[0].effectiveDuration);
   const end = baseline.steps[0].end / 1000;
   const between = (a, b) => Math.round(500 * (a + b));
   const middle = between(hits[3].at, hits[4].at);
@@ -316,7 +348,7 @@ test('Shadowsquall keeps malice available to Mercy through the last hit', () => 
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(
       poisons(result).map((event) => event.effectiveDuration),
-      hits.map((event) => (event.at < mercy / 1000 ? 12 : 6))
+      hits.map((event, index) => (event.at < mercy / 1000 ? event : unboosted[index]).effectiveDuration)
     );
     assert.equal(observedRuntime(result).resourceController.value('malice'), 0);
   }
@@ -324,7 +356,8 @@ test('Shadowsquall keeps malice available to Mercy through the last hit', () => 
   const after = run({ mercy: Math.round(end * 1000) });
   assert.deepEqual(after.warnings, []);
   const initiative = (result) => observedRuntime(result).resourceController.value('initiative');
-  assert.ok(Math.abs(initiative(run({ mercy: late })) - initiative(after) - 5) < 1e-8);
+  const refundPerMalice = selectedSkill(after, ID.MERCY).initiativePerMalice;
+  assert.ok(Math.abs(initiative(run({ mercy: late })) - initiative(after) - 5 * refundPerMalice) < 1e-8);
   assert.equal(observedRuntime(run({ interruptAfterMs: middle })).resourceController.value('malice'), 0);
   assert.equal(
     observedRuntime(run({ interruptAfterMs: between(0, hits[0].at) })).resourceController.value('malice'),
@@ -350,7 +383,7 @@ for (const skillId of [ID.MALICIOUS_DEATHS_JUDGMENT, ID.MALICIOUS_BACKSTAB]) {
       const result = maliciousAttack(malice, { skillId });
       assert.deepEqual(result.warnings, []);
       assert.equal(observedRuntime(result).resourceController.value('malice'), 0);
-      assert.ok(Math.abs(damage(result) - damage(base) * (1 + malice * 0.1)) < 2);
+      assert.ok(Math.abs(damage(result) - damage(base) * (1 + malice * damagePerMalice(result, skillId))) < 2);
     }
 
     const unmarked = maliciousAttack(5, { marked: false, skillId });
