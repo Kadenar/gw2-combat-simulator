@@ -6,6 +6,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { balanceProfileNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
+import { virtueBoonEffects } from '#gw2/professions/guardian/core/mechanics/virtue-boons.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
@@ -100,9 +101,9 @@ export const legendaryLore = defineTrait<GuardianSkill>({
   id: TRAIT.LEGENDARY_LORE,
   balance: {
     effects: [
-      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 2, duration: 10 },
-      { type: 'boon', name: BOON.REGENERATION, boon: BOON.REGENERATION, stacks: 1, duration: 6 },
-      { type: 'boon', name: BOON.PROTECTION, boon: BOON.PROTECTION, stacks: 1, duration: 4 }
+      { ...virtueBoonEffects.justice, boon: BOON.MIGHT, stacks: 2, duration: 10 },
+      { ...virtueBoonEffects.resolve, boon: BOON.REGENERATION, stacks: 1, duration: 6 },
+      { ...virtueBoonEffects.courage, boon: BOON.PROTECTION, stacks: 1, duration: 4 }
     ]
   },
   triggers: [
@@ -113,26 +114,18 @@ export const legendaryLore = defineTrait<GuardianSkill>({
 
         if (!skill.tome) return;
 
-        const boonProfile = requireBalanceProfile(runtime.helpers, TRAIT.LEGENDARY_LORE);
-        const selectedBoon = requireEffect(
-          boonProfile,
-          'boon',
-          skill.tome === 'justice' ? BOON.MIGHT : skill.tome === 'resolve' ? BOON.REGENERATION : BOON.PROTECTION
-        );
         const boonCause = {
           ...guardianCastCause(runtime, cast),
           sourceId: TRAIT.LEGENDARY_LORE,
           name: 'Legendary Lore'
         };
 
-        if (selectedBoon) {
-          emitTraitProfile(runtime, boonProfile.id, boonProfile.id, boonCause, {
-            preserveName: true,
-            effects: (effect) => effect === selectedBoon,
-            attribution: boonCause,
-            transform: (event) => ({ ...boonCause, ...event, audience: { recipients: RECIPIENT.SELF } })
-          });
-        }
+        emitTraitProfile(runtime, TRAIT.LEGENDARY_LORE, TRAIT.LEGENDARY_LORE, boonCause, {
+          effect: virtueBoonEffects[skill.tome],
+          preserveName: true,
+          attribution: boonCause,
+          transform: (event) => ({ ...boonCause, ...event, audience: { recipients: RECIPIENT.SELF } })
+        });
       }
     }
   ]

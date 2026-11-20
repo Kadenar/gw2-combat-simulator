@@ -12,6 +12,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { virtueBoonEffects } from '#gw2/professions/guardian/core/mechanics/virtue-boons.js';
 import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type {
@@ -212,6 +213,17 @@ export function completeVirtueActivation(
   if (virtue === 'justice' && !deferJustice) runtime.fireTrigger(justiceActivated, { cast });
 }
 
+/** Resolve grants its party boon intrinsically. Justice and Courage grant theirs through the selected trait. */
+export function grantInspiredVirtueBoon(runtime: GuardianRuntime, { cast, virtue }: VirtueActivation): void {
+  emitTraitProfile(runtime, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, undefined, {
+    effect: virtueBoonEffects[virtue],
+    skillId: cast.skill.id,
+    skillName: cast.skill.name,
+    activationId: cast.id,
+    attribution: { actorType: ACTOR.PLAYER, audience: { recipients: RECIPIENT.PARTY } }
+  });
+}
+
 /** Share intrinsic and selected-trait rewards after each owner's readiness check, including Firebrand dormancy. */
 export function grantVirtueActivationRewards(
   runtime: GuardianRuntime,
@@ -219,14 +231,7 @@ export function grantVirtueActivationRewards(
   virtue: GuardianVirtue
 ): void {
   // In-game Resolve grants Inspired Virtue's regeneration even without the trait; emit it once for every owner.
-  if (virtue === 'resolve')
-    emitTraitProfile(runtime, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, undefined, {
-      effect: { type: 'boon', name: 'regeneration' },
-      skillId: cast.skill.id,
-      skillName: cast.skill.name,
-      activationId: cast.id,
-      attribution: { actorType: ACTOR.PLAYER, audience: { recipients: RECIPIENT.PARTY } }
-    });
+  if (virtue === 'resolve') grantInspiredVirtueBoon(runtime, { cast, virtue });
 
   runtime.fireTrigger(virtueActivated, { cast, virtue });
 }

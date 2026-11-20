@@ -94,7 +94,7 @@ export interface GuardianSkill
   /** The Radiant Forge weapon this skill belongs to. */
   readonly radiantWeapon?: string;
   /** The tome whose pages this skill spends. */
-  readonly tome?: string;
+  readonly tome?: GuardianVirtue;
   /** Rework-specific trait that can replace the shared Ashes Burning payload. */
   readonly burningOverrideTrait?: SkillId;
 }

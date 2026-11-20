@@ -3,6 +3,9 @@ import test from 'node:test';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { skillEffectKey } from '#gw2/platform/effects/validation.js';
+import { createCatalogNormalizer } from '#gw2/platform/skills/validation.js';
+import { virtueBoons } from '#gw2/professions/guardian/app/tooltips/shared.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -38,6 +41,51 @@ function run(balanceProfiles, specialization, rotation, selectedTraitIds = [], e
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const has = (result, type, field, value) =>
   result.events.some((event) => event.type === type && event[field] === value);
+
+test('a virtue tooltip keeps the trigger attached to its surviving or replaced boon', () => {
+  const describe = virtueBoons('Fixture');
+  const { normalizeSkillEffects } = createCatalogNormalizer(guardianCatalog);
+  const effect = (name, boon) => ({ type: 'boon', name, boon, duration: 3, stacks: 1 });
+  // The unrelated boon and reversed survivors make positional labeling observable.
+  const survivors = [effect('unrelated', 'swiftness'), effect('protection', 'aegis'), effect('regeneration', 'vigor')];
+  for (const replaced of [false, true]) {
+    const profile = {
+      id: 'fixture',
+      effects: normalizeSkillEffects(replaced ? [...survivors, effect('might', 'fury')] : survivors),
+      removedEffectKeys: replaced ? [] : [skillEffectKey('boon', 'might')]
+    };
+    const catalog = { balanceProfilesById: new Map([[profile.id, profile]]) };
+    const { facts } = describe({ catalog }, profile);
+    // Match only the trigger label so the check survives changes to the duration format.
+    const labelled = (name, virtue) => facts.some((fact) => fact.name === name && fact.detail?.endsWith(virtue));
+    assert.equal(facts.length, replaced ? 3 : 2);
+    assert.equal(labelled('Fury', 'Justice'), replaced);
+    assert.ok(labelled('Vigor', 'Resolve'));
+    assert.ok(labelled('Aegis', 'Courage'));
+  }
+});
+
+test("opening Justice and using its page grant each trait's replacement boon", () => {
+  // A same-name replacement shows both traits deliver the patched payload rather than a fixed boon.
+  const edit = {
+    ...remove('boon', 'might'),
+    addEffects: [{ type: 'boon', name: 'might', boon: 'fury', stacks: 1, duration: 3 }]
+  };
+  const traits = [TRAIT.INSPIRED_VIRTUE, TRAIT.LEGENDARY_LORE];
+  const result = run(
+    { [TRAIT.INSPIRED_VIRTUE]: edit, [TRAIT.LEGENDARY_LORE]: edit },
+    'Firebrand',
+    [SKILL.TOME_OF_JUSTICE, SKILL.SEARING_SPELL],
+    traits
+  );
+  for (const trait of traits) {
+    const grants = result.resolvedEvents.filter((event) => event.type === 'buff' && event.traitId === trait);
+    assert.deepEqual(
+      grants.map((event) => event.kind),
+      ['fury']
+    );
+  }
+});
 
 test('Willbender window removal preserves sibling durations, flames, and activation boons', () => {
   const result = run(

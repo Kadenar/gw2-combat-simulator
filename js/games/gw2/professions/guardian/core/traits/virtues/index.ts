@@ -16,7 +16,12 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
-import { virtueActivated, type VirtueActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import { virtueBoonEffects } from '#gw2/professions/guardian/core/mechanics/virtue-boons.js';
+import {
+  grantInspiredVirtueBoon,
+  virtueActivated,
+  type VirtueActivation
+} from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianResolutionMultiplier } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntime, GuardianSkill } from '#gw2/professions/guardian/types.js';
@@ -34,9 +39,9 @@ export const inspiredVirtue = defineTrait({
     damagePerBoon: 0.015,
     maximumBoons: 5,
     effects: [
-      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 3, duration: 5 },
-      { type: 'boon', name: BOON.REGENERATION, boon: BOON.REGENERATION, stacks: 1, duration: 5 },
-      { type: 'boon', name: BOON.PROTECTION, boon: BOON.PROTECTION, stacks: 1, duration: 5 }
+      { ...virtueBoonEffects.justice, boon: BOON.MIGHT, stacks: 3, duration: 5 },
+      { ...virtueBoonEffects.resolve, boon: BOON.REGENERATION, stacks: 1, duration: 5 },
+      { ...virtueBoonEffects.courage, boon: BOON.PROTECTION, stacks: 1, duration: 5 }
     ]
   },
   modifierRules: [
@@ -60,14 +65,7 @@ export const inspiredVirtue = defineTrait({
   triggers: [
     onTriggerPoint(virtueActivated, {
       when: (_runtime, { virtue }) => virtue !== 'resolve',
-      run: (runtime: GuardianRuntime, { cast, virtue }: VirtueActivation) =>
-        virtueBuff(
-          runtime,
-          cast,
-          GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
-          virtue === 'justice' ? BOON.MIGHT : BOON.PROTECTION,
-          true
-        )
+      run: grantInspiredVirtueBoon
     })
   ]
 });
