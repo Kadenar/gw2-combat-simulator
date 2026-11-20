@@ -59,30 +59,33 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     slot: 'Weapon_2',
     cooldown: 6,
     castTimeMs: 600,
-    // The throw commits before recovery, but interrupting it retains the remaining cast lockout.
-    interruptCommitMs: 480,
+    // Once thrown, the axes still hit and apply bleeding if recovery is interrupted.
+    interruptCommitMs: 440,
     retainsCastLockoutAfterInterrupt: true,
-    effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        projectile: true,
-        coefficient: 2.5,
-        hits: 5,
-        comboFinishers: [
-          {
-            ownerId: 'ranger',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2
-          }
-        ]
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BLEEDING,
-        stacks: 5,
-        duration: 6
-      }
-    ])
+    effects: impactEffects(
+      { atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          projectile: true,
+          coefficient: 2.5,
+          hits: 5,
+          comboFinishers: [
+            {
+              ownerId: 'ranger',
+              finisherType: COMBO_FINISHER.PROJECTILE,
+              chance: 0.2
+            }
+          ]
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.BLEEDING,
+          stacks: 5,
+          duration: 6
+        }
+      ]
+    )
   },
   [ID.WINTERS_BITE]: {
     name: "Winter's Bite",

@@ -59,15 +59,15 @@
         "build": "data/gw2/builds/ranger/b-power-soulbeast-hammer-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-hammer-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-axe-axe",
-        "benchmarkDps": 42700,
+        "benchmarkDps": 42737,
         "upToDate": true,
-        "benchmarkApm": 60.7,
+        "benchmarkApm": 62,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 53207, "phase": 53207 },
-          "80-60": { "cumulative": 46800, "phase": 41669 },
-          "60-40": { "cumulative": 43714, "phase": 38669 },
-          "40-20": { "cumulative": 41902, "phase": 37226 },
-          "20-0": { "cumulative": 42700, "phase": 47113 }
+          "100-80": { "cumulative": 53700, "phase": 53700 },
+          "80-60": { "cumulative": 47448, "phase": 42385 },
+          "60-40": { "cumulative": 43606, "phase": 37576 },
+          "40-20": { "cumulative": 41771, "phase": 37049 },
+          "20-0": { "cumulative": 42737, "phase": 47180 }
         }
       },
       {
