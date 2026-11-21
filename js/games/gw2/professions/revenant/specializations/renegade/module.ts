@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { orderEliteCastRewards } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
 import { REVENANT_RENEGADE_PROFILE_FIELDS } from '#gw2/professions/revenant/specializations/renegade/catalog-fields.js';
 import { renegadeHooks } from '#gw2/professions/revenant/specializations/renegade/hooks.js';
@@ -25,6 +26,6 @@ export const renegadeModule = defineNativeModule({
   }),
   state: { create: renegadeState.create, project: projectRenegadePlanningState },
   traitDefinitions,
-  hooks: renegadeHooks,
+  hooks: orderEliteCastRewards(renegadeHooks),
   presentation: renegadeUi
 });

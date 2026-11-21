@@ -2,7 +2,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
+import { revenantCastCompleted } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
+import {
+  REVENANT_SKILL_IDS as ID,
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_TRAIT_IDS as TRAIT
+} from '#gw2/professions/revenant/data/ids.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -16,6 +21,40 @@ const config = {
 };
 const haze = ID.BEGUILING_HAZE;
 const reset = { type: 'cooldown-reset' };
+
+// Observe what a Core completion listener sees before Haze puts follow-ups on the button.
+test('Haze grants Shared Wisdom Fury before Core rewards and opens follow-ups afterward', () => {
+  const chargesAtReward = [];
+  const result = runRevenant(
+    ['__combat_start', haze],
+    {
+      ...config,
+      selectedTraitIds: [TRAIT.SHARED_WISDOM, TRAIT.NOTORIETY]
+    },
+    {
+      extend(native) {
+        const triggerListeners = new Map(native.triggerListeners);
+        triggerListeners.set(revenantCastCompleted.id, [
+          ...triggerListeners.get(revenantCastCompleted.id),
+          (runtime) => chargesAtReward.push(runtime.profession.specialization.state.beguilingHazeCharges)
+        ]);
+        return { triggerListeners };
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const rewards = result.events.filter(
+    (event) =>
+      (event.sourceId === TRAIT.SHARED_WISDOM && event.kind === 'fury') ||
+      (event.sourceId === TRAIT.NOTORIETY && event.kind === 'might')
+  );
+  assert.deepEqual(
+    rewards.map((event) => event.kind),
+    ['fury', 'might']
+  );
+  assert.deepEqual(chargesAtReward, [0]);
+  assert.ok(result.planningState.profession[STATE.BEGUILING_HAZE_CHARGES] > 0);
+});
 
 function run(rotation) {
   const result = runRevenant(rotation, config);

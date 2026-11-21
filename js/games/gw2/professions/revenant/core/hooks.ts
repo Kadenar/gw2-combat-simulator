@@ -67,7 +67,6 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
 
   buffPolicies: revenantBuffPolicies,
   observeEffects: revenantEffectStates,
-  // Upkeep registers its own actions; these actions belong to legends and their opening payloads.
   sideEffectHandlers: {
     'revenant.embrace-opening'(runtime, context) {
       if (context.kind === 'cast') startRevenantEmbrace(runtime, context.cast);

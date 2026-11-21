@@ -27,6 +27,8 @@ export const lifeAttunement = defineTrait({
   ])
 });
 
+// In 20261120-195519.zevtc, Harmony's Vigor and Expulsion's Resistance follow activation by 1,000 to 1,004 ms.
+// Essence grants Regeneration and Solace grants Swiftness on activation.
 export const sereneRejuvenation = defineTrait({
   id: TRAIT.SERENE_REJUVENATION,
   balance: {
@@ -34,6 +36,8 @@ export const sereneRejuvenation = defineTrait({
       {
         type: 'boon',
         boon: BOON.VIGOR,
+        atMs: 1000,
+        timingScale: 'fixed',
         duration: 2,
         stacks: 1,
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
@@ -58,6 +62,8 @@ export const sereneRejuvenation = defineTrait({
       {
         type: 'boon',
         boon: BOON.RESISTANCE,
+        atMs: 1000,
+        timingScale: 'fixed',
         duration: 4,
         stacks: 1,
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
@@ -68,30 +74,20 @@ export const sereneRejuvenation = defineTrait({
   triggers: [onTriggerPoint(revenantCastCompleted, { run: completeSereneRejuvenation })]
 });
 
-/** Runs the trait at its original ordered mechanic boundary. */
+/** Each Centaur cast owns its trait boon through delivery, including boons queued after commitment. */
 function completeSereneRejuvenation(runtime: RevenantRuntime, { cast }: RevenantCastCompletion): void {
-  const skill = cast.skill;
-  const skillId = skill.id;
+  const skillId = cast.skill.id;
 
-  if (skillId === ID.PROTECTIVE_SOLACE && !activeRevenantUpkeep(runtime, skill.id)) return;
+  if (skillId === ID.PROTECTIVE_SOLACE && !activeRevenantUpkeep(runtime, skillId)) return;
 
-  {
-    const invocationProfile = requireBalanceProfile(runtime.helpers, TRAIT.SERENE_REJUVENATION);
-    emitTraitProfile(runtime, TRAIT.SERENE_REJUVENATION, invocationProfile.id, undefined, {
-      preserveName: true,
-      effects: (effect) =>
-        (invocationProfile.effects?.filter((effect) => effect.metadata?.trigger === String(skillId)) ?? []).includes(
-          effect
-        ),
-      attribution: (effect) => ({
-        activationId: `legend-invocation:${TRAIT.SERENE_REJUVENATION}:${runtime.time}`,
-        source: 'Trait',
-        sourceId: TRAIT.SERENE_REJUVENATION,
-        actorType: effect.actorType || ACTOR.PLAYER,
-        skillId: invocationProfile.id,
-        skillName: invocationProfile.name
-      }),
-      skillWeaponFallback: 'Unequipped'
-    });
-  }
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.SERENE_REJUVENATION);
+  emitTraitProfile(runtime, TRAIT.SERENE_REJUVENATION, profile.id, undefined, {
+    preserveName: true,
+    effects: (effect) => effect.metadata?.trigger === String(skillId),
+    activationId: cast.id,
+    skillId: profile.id,
+    skillName: profile.name,
+    attribution: (effect) => ({ actorType: effect.actorType || ACTOR.PLAYER }),
+    skillWeaponFallback: 'Unequipped'
+  });
 }

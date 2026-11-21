@@ -61,7 +61,7 @@ function fixture(traits = []) {
     cancelledBeforeCommit: false,
     command: {}
   });
-  const apply = (accepted, phase) => applySkillSideEffects(runtime, accepted, phase, renegadeHooks.sideEffectHandlers);
+  const apply = (accepted, phase) => applySkillSideEffects(runtime, accepted, phase, native.sideEffectHandlers);
   const grant = (expiresAt) =>
     acceptBuff({
       type: 'buff',

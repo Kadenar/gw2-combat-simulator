@@ -1,8 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
+import {
+  REVENANT_SKILL_IDS as ID,
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_TRAIT_IDS as TRAIT
+} from '#gw2/professions/revenant/data/ids.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 const config = {
@@ -36,6 +41,46 @@ test('Energy Expulsion grants Stability only from existing Tranquil', () => {
   assert.ok(stability(empowered).length > 0);
   assert.equal(stability(unempowered).length, 0);
   assert.equal(unempowered.planningState.profession[STATE.TRANQUIL], true);
+});
+
+// Holding the shield past Swiftness expiry distinguishes the opening boon from an upkeep pulse.
+test('Solace grants Swiftness on opening and adds Protection only when it spends Tranquil', () => {
+  const result = runRevenant([ID.PROTECTIVE_SOLACE, wait(6000), ID.DIMINISH_SOLACE, ID.PROTECTIVE_SOLACE, wait(6000)], {
+    ...config,
+    selectedTraitIds: [TRAIT.SERENE_REJUVENATION]
+  });
+  assert.deepEqual(result.warnings, []);
+  const openings = result.steps.filter((step) => step.skillId === ID.PROTECTIVE_SOLACE);
+  const grants = (kind) => result.events.filter((event) => event.kind === kind).map((event) => event.at);
+  assert.equal(openings.length, 2);
+  assert.deepEqual(
+    grants('swiftness'),
+    openings.map((step) => step.end / 1000)
+  );
+  assert.deepEqual(grants('protection'), [openings[0].end / 1000]);
+  assert.equal(result.planningState.profession[STATE.TRANQUIL], false);
+});
+
+// A later cast can deliver its boon first. Each application still belongs to the cast that selected it.
+test('Serene Rejuvenation keeps the originating cast when Centaur boons arrive out of order', () => {
+  for (const [skill, boon] of [
+    [ID.NATURAL_HARMONY, 'vigor'],
+    [ID.ENERGY_EXPULSION, 'resistance']
+  ]) {
+    const result = runRevenant([skill, ID.PURIFYING_ESSENCE, wait(2000)], {
+      ...config,
+      selectedTraitIds: [TRAIT.SERENE_REJUVENATION]
+    });
+    assert.deepEqual(result.warnings, []);
+    const grants = result.events.filter((event) => event.sourceId === TRAIT.SERENE_REJUVENATION);
+    assert.deepEqual(
+      grants.map((event) => [event.kind, event.activationId]),
+      [
+        ['regeneration', result.steps.find((step) => step.skillId === ID.PURIFYING_ESSENCE).activationId],
+        [boon, result.steps.find((step) => step.skillId === skill).activationId]
+      ]
+    );
+  }
 });
 
 test('invoking another legend clears Tranquil and returning to Centaur restores it', () => {

@@ -1,6 +1,7 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
+import { orderEliteCastRewards } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
 import {
   CONDUIT_SKILL_FIELDS,
@@ -27,7 +28,7 @@ export const conduitModule = defineNativeModule({
   }),
   state: { create: conduitState.create, project: projectConduitPlanningState },
   traitDefinitions,
-  // Copy the entity declarations at registration so module composition owns its rule list.
-  hooks: conduitHooks,
+  // Entity skills cleanse and grant Shared Wisdom before Core traits sample the cast.
+  hooks: orderEliteCastRewards(conduitHooks, ['revenant.hex-eater-cleanse', 'revenant.entity-boon-completed']),
   presentation: conduitUi
 });

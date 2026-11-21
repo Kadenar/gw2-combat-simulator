@@ -1,6 +1,7 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
+import { orderEliteCastRewards } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
@@ -48,6 +49,6 @@ export const heraldModule = defineNativeModule({
       }
     ];
   },
-  hooks: heraldHooks,
+  hooks: orderEliteCastRewards(heraldHooks),
   presentation: heraldUi
 });

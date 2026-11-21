@@ -62,7 +62,12 @@ export type SideEffectAction =
 
 /** Actions receive their actual trigger; impact work never fabricates a cast reservation. */
 export type ActionContext<TSkill extends Skill = Skill> =
-  | { readonly kind: 'cast'; readonly skill: TSkill; readonly cast: RuntimeCast<TSkill> }
+  | {
+      readonly kind: 'cast';
+      readonly on: SkillSideEffect['on'];
+      readonly skill: TSkill;
+      readonly cast: RuntimeCast<TSkill>;
+    }
   | { readonly kind: 'effect'; readonly skill: TSkill; readonly trigger: ResolvedEffectTrigger };
 
 export interface SkillSideEffect {

@@ -1,7 +1,6 @@
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import {
@@ -51,11 +50,7 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
   modifyEffects: (_runtime, cast, effects) => (bandTogether.get(cast)?.enhanced ? [] : effects),
   sideEffectHandlers: {
     'revenant.heroic-command'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      // Keep Core rewards ahead of elite completion state and packets.
-      completeRevenantCast(runtime, context.cast);
-      heroicCommand(runtime, context.cast);
+      if (context.kind === 'cast') heroicCommand(runtime, context.cast);
     },
     'revenant.begin-band-together'(runtime, context) {
       if (context.kind === 'cast') beginBandTogether(runtime, context.cast);
@@ -63,8 +58,6 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
     'revenant.arm-razorclaw'(runtime, context) {
       if (context.kind !== 'cast') return;
 
-      // Elite completion follows Core trait publication, including any immediate boon reactions.
-      completeRevenantCast(runtime, context.cast);
       const selected = bandTogether.get(context.cast);
 
       if (!selected) return;
@@ -72,17 +65,11 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
       razorclawsRage(runtime, context.cast, runtime.helpers.skillsById.get(selected.profileSkillId) ?? context.skill);
     },
     'revenant.complete-band-together'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      // Keep Core rewards ahead of elite completion state and packets.
-      completeRevenantCast(runtime, context.cast);
-      completeBandTogether(runtime, context.cast);
+      if (context.kind === 'cast') completeBandTogether(runtime, context.cast);
     },
     'revenant.soulcleave-allies'(runtime, context) {
       if (context.kind !== 'cast') return;
 
-      // Keep Core rewards ahead of elite completion state and packets.
-      completeRevenantCast(runtime, context.cast);
       grantSoulcleaveAllies(runtime);
     }
   },

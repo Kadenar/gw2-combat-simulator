@@ -227,7 +227,17 @@ export const revenantCoreTooltips = {
     [ID.SWAP_LEGENDS]: legendSwapTooltip,
     [SHARED_SKILL_IDS.DODGE]: dodgeTooltip,
     [ID.ANCIENT_ECHO]: ancientEchoTooltip,
-    ...Object.fromEntries([ID.VENGEFUL_HAMMERS, ID.PROTECTIVE_SOLACE].map((id) => [id, upkeepTooltip])),
+    [ID.VENGEFUL_HAMMERS]: upkeepTooltip,
+    [ID.PROTECTIVE_SOLACE]: skillTooltip(
+      'Maintain the shield by spending Energy. Opening an empowered shield consumes Tranquil and grants Protection to nearby allies.',
+      (context, skill) => [
+        ...upkeepTooltip(context, skill).facts,
+        ...simulationEffectFacts(
+          requireSkillAction(context.catalog.skillsById.get(skill.id)!, 'empowered').effects,
+          'on empowered opening'
+        ).facts
+      ]
+    ),
     ...Object.fromEntries(
       [ID.RESIST_THE_DARKNESS, ID.RELEASE_HAMMERS, ID.DIMINISH_SOLACE, ID.RELINQUISH_POWER].map((id) => [
         id,

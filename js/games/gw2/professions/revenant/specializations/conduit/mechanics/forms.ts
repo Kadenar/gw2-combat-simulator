@@ -6,7 +6,6 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_CONDUIT_FORM_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { validateConduitMesmerEnergyCosts } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
@@ -100,11 +99,7 @@ export const conduitFormLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSk
   },
   sideEffectHandlers: {
     'revenant.cosmic-wisdom'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      // Core cast traits observe the old form before Cosmic Wisdom opens its replacement.
-      completeRevenantCast(runtime, context.cast);
-      cosmicWisdom(runtime, context.cast);
+      if (context.kind === 'cast') cosmicWisdom(runtime, context.cast);
     }
   },
   tasks: { [FORM_EXPIRY]: formExpiry }

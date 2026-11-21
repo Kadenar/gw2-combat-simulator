@@ -322,6 +322,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
       }
     ],
     effectVariants: beguilingHazeVariants,
+    // Shared Wisdom grants Fury before Core rewards, while Core traits still see the old ammo.
     sideEffects: [
       { on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } },
       { on: 'castCommit', do: { type: 'revenant.complete-haze' } }

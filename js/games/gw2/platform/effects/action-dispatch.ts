@@ -154,6 +154,6 @@ export function applySkillSideEffects<T extends object>(
 ): void {
   for (const effect of cast.skill.sideEffects ?? []) {
     if (effect.on === on && (!effect.when || effect.when(runtime.queries, cast)))
-      applySideEffect(runtime, { kind: 'cast', skill: cast.skill, cast }, effect.do, handlers);
+      applySideEffect(runtime, { kind: 'cast', on, skill: cast.skill, cast }, effect.do, handlers);
   }
 }

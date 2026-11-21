@@ -9,7 +9,6 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { activeRevenantUpkeep, removeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { revenantFacetParents, revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
@@ -185,19 +184,13 @@ export const heraldFacetLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSk
   availability: heraldFacetAvailability,
   sideEffectHandlers: {
     'revenant.start-facet'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      completeRevenantCast(runtime, context.cast);
-      startFacet(runtime, context.skill);
+      if (context.kind === 'cast') startFacet(runtime, context.skill);
     },
     'revenant.start-consume'(runtime, context) {
       if (context.kind === 'cast') startConsume(runtime, context.cast);
     },
     'revenant.complete-consume'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      completeRevenantCast(runtime, context.cast);
-      completeConsume(runtime, context.cast);
+      if (context.kind === 'cast') completeConsume(runtime, context.cast);
     }
   },
   // Sustained boon pulses are ambient; consumes and their damage keep their own queued effects.

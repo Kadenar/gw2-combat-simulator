@@ -7,7 +7,6 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { conduitState, type ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
@@ -125,11 +124,7 @@ export const beguilingHazeLifecycle: RuntimeHooks<RevenantRuntimeState, Revenant
   },
   sideEffectHandlers: {
     'revenant.complete-haze'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      // Shared Wisdom is already published; Core rewards must observe the state before the ammo transition.
-      completeRevenantCast(runtime, context.cast);
-      completeHaze(runtime, context.cast);
+      if (context.kind === 'cast') completeHaze(runtime, context.cast);
     }
   },
   onCooldownReset(runtime) {

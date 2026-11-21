@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { orderEliteCastRewards } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
 import { vindicatorHooks } from '#gw2/professions/revenant/specializations/vindicator/hooks.js';
@@ -25,6 +26,7 @@ export const vindicatorModule = defineNativeModule({
   }),
   state: { create: vindicatorState.create, project: projectVindicatorPlanningState },
   traitDefinitions,
-  hooks: vindicatorHooks,
+  // Core traits see the new Alliance faction and Energy Meld's endurance reward.
+  hooks: orderEliteCastRewards(vindicatorHooks, ['revenant.alliance-tactics', 'revenant.energy-meld-endurance']),
   presentation: vindicatorUi
 });

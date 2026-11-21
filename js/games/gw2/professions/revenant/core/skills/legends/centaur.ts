@@ -20,13 +20,29 @@ export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     upkeepCost: 8,
     pulseInterval: 1,
     legendId: 'LegendaryCentaur',
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     effects: [],
-    // The declaration owns this activation; shared mechanics retain its live state.
+    // Opening the shield spends Tranquil once. The empowered boon uses the in-game skill facts.
+    // https://wiki.guildwars2.com/wiki/Protective_Solace
     sideEffects: [
       { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
+      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
+      {
+        on: 'castCommit',
+        do: {
+          type: 'revenant.empowered-tablet-boon',
+          id: 'empowered',
+          effects: [
+            {
+              type: 'boon',
+              audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+              boon: BOON.PROTECTION,
+              duration: 4,
+              stacks: 1
+            }
+          ]
+        }
+      }
     ]
   },
   [ID.NATURAL_HARMONY]: {
@@ -61,7 +77,7 @@ export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       {
         on: 'castCommit',
         do: {
-          type: 'revenant.expel-energy',
+          type: 'revenant.empowered-tablet-boon',
           id: 'empowered',
           effects: [
             {
@@ -135,12 +151,14 @@ export function invokeCentaur(runtime: RevenantRuntime): void {
 export const centaurLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   initialize: invokeCentaur,
   sideEffectHandlers: {
-    'revenant.expel-energy'(runtime, context) {
+    'revenant.empowered-tablet-boon'(runtime, context) {
       if (context.kind !== 'cast') return;
 
       const cast = context.cast;
+      const state = runtime.profession.core;
+      const empowered = state.tranquil;
 
-      if (runtime.profession.core.tranquil) {
+      if (empowered) {
         const action = requireSkillAction(cast.skill, 'empowered');
         runtime.effects.emit({
           kind: 'profile',
@@ -158,7 +176,8 @@ export const centaurLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill>
         });
       }
 
-      runtime.profession.core.tranquil = !runtime.profession.core.tranquil;
+      // Only an unempowered Expulsion rearms Tranquil. Solace always leaves it spent.
+      state.tranquil = !empowered && cast.skill.id === ID.ENERGY_EXPULSION;
     }
   },
   onCastCommit(runtime, cast) {
@@ -169,8 +188,6 @@ export const centaurLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill>
       runtime.armFlip(ID.VENTARIS_WILL);
     } else if (cast.skill.id === ID.NATURAL_HARMONY || cast.skill.id === ID.PURIFYING_ESSENCE) {
       state.tranquil = !state.tranquil;
-    } else if (cast.skill.id === ID.PROTECTIVE_SOLACE) {
-      state.tranquil = false;
     }
   }
 };
