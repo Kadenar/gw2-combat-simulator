@@ -14,7 +14,10 @@ interface CriticalProcRequest {
   readonly chanceOnCriticalHit?: number;
   readonly internalCooldown?: number;
   readonly randomStream?: string;
+  /** Supplied for declared chances; it also rolls 0% and 100%, which consume no random values. */
   readonly roll?: (chance: number, stream: string) => boolean;
+  /** Reporting hook for sampled critical hits that an active internal cooldown kept from rolling. */
+  readonly onCooldownBlocked?: (opportunities: number) => void;
 }
 
 export interface CriticalProcApplication {
@@ -70,20 +73,27 @@ export function advanceCriticalProc(
       throw new TypeError(`${request.id} internal cooldown requires a numeric deadline.`);
     }
 
-    if (!isInternalCooldownReady(request.at, state.readyAt)) return null;
+    if (!isInternalCooldownReady(request.at, state.readyAt)) {
+      if (criticals) request.onCooldownBlocked?.(criticals);
+
+      return null;
+    }
   }
 
-  if (!criticals || !chance) return null;
+  if (!criticals) return null;
 
   let quantity = criticals;
 
-  if (chance < 1) {
-    if (!request.roll) throw new TypeError(`${request.id} secondary chance requires a roll function.`);
-
+  // Rolling every eligible critical, including certain and impossible chances, keeps override triggers countable.
+  if (request.roll) {
     quantity = 0;
     for (let hit = 0; hit < criticals; hit += 1) {
       if (request.roll(chance, request.randomStream || request.id)) quantity += 1;
     }
+  } else if (chance < 1) {
+    if (chance > 0) throw new TypeError(`${request.id} secondary chance requires a roll function.`);
+
+    return null;
   }
 
   if (!quantity) return null;

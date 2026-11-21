@@ -2927,6 +2927,88 @@ body[data-rotation-focus] .perma-section {
   filter: brightness(1.2);
 }
 
+/* ─── Proc Rates ─── */
+/* Proc rates use the breakdown and chart panel frame; the table stays compact like the owner-condition table
+   so each number stays next to its label instead of spreading across a wide panel. */
+.res-proc-rates {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.proc-rate-scroll {
+  overflow-x: auto;
+}
+
+.proc-rate-scroll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.proc-rate-table {
+  width: 100%;
+  max-width: 720px;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.proc-rate-table th,
+.proc-rate-table td {
+  padding: 5px 8px;
+  text-align: right;
+  white-space: nowrap;
+  /* Two-line proc and chance cells keep the counts level with their first line. */
+  vertical-align: baseline;
+}
+
+.proc-rate-table th:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.proc-rate-table thead {
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.proc-rate-table th {
+  font-weight: 400;
+}
+
+.proc-rate-table thead th,
+.proc-rate-table tbody tr:not(:last-child) > * {
+  border-bottom: 1px solid var(--border);
+}
+
+/* Each trigger definition and custom-chance default sits under its value so touch and keyboard readers see it. */
+.proc-rate-detail {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-dim);
+  font-size: 10px;
+  white-space: normal;
+}
+
+.proc-rate-custom {
+  margin-left: 5px;
+  padding: 1px 5px;
+  color: var(--text-bright);
+  font-size: 9px;
+  background: color-mix(in srgb, var(--health) 18%, transparent);
+  border-radius: 3px;
+}
+
+.proc-rate-note {
+  max-width: 720px;
+  margin: 8px 0 0;
+  color: var(--text-dim);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
 /* ─── Modifier Contributions ─── */
 .res-contributions {
   container: modifier-contributions / inline-size;

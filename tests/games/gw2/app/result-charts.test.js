@@ -220,6 +220,7 @@ for (const [startingHealthPercent, targetDied] of [
             deathTime: targetDied ? 10 : null,
             totalDamage: startingHealthPercent - (targetDied ? 0 : 10),
             conditionDamage: 0,
+            procRates: [],
             ...effectFields(
               [
                 { type: 'damage', at: 8, damage: startingHealthPercent - 20 },

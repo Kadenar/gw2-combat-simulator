@@ -19,6 +19,7 @@ import type { DamageReportObserver } from '#gw2/platform/results/damage-report.j
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
 import { createHealthCheckpointRecorder } from '#gw2/platform/results/health-checkpoints.js';
+import type { ProcRollObserver } from '#gw2/platform/results/proc-rate-observations.js';
 import type { ProcStepObserver } from '#gw2/platform/results/proc-steps.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
@@ -49,6 +50,7 @@ export function createGw2ResolverRuntimeState({
   conditions,
   liveEffects,
   combo,
+  procRollRecorder = null,
   random = createSimulationRandom(config.randomness)
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const criticalDamageMode = normalizeCriticalDamageMode(config.criticalDamageMode);
@@ -98,7 +100,9 @@ export function createGw2ResolverRuntimeState({
     relic: createRelicRuntime(config.relic, config.precastRelics),
     profession: professionState,
     sigil: createSigilRuntime(),
-    random,
+    procRollRecorder,
+    // Every scheduler and resolver roll passes through the observer when Analysis requests proc rates.
+    random: procRollRecorder ? procRollRecorder.observe(random) : random,
     weaponStrengthRolls: new Map(),
     weaponStrengthActivationOrder: 0,
 
@@ -163,6 +167,7 @@ export interface Gw2ResolverRuntime {
   relic: Gw2RelicRuntime;
   profession: object;
   readonly sigil: Readonly<SigilRuntime>;
+  readonly procRollRecorder: ProcRollObserver | null;
   random: Readonly<SimulationRandom>;
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;
@@ -178,6 +183,7 @@ interface CreateGw2ResolverRuntimeStateOptions {
   readonly boonGeneration?: ReturnType<typeof createBoonGenerationCollector> | null;
   readonly effectRecorder?: EffectReportObserver | null;
   readonly procRecorder?: ProcStepObserver | null;
+  readonly procRollRecorder?: ProcRollObserver | null;
   readonly damageRecorder?: DamageReportObserver | null;
   readonly damageDiagnostics?: boolean;
   readonly output?: Gw2ResolverRuntime['output'];

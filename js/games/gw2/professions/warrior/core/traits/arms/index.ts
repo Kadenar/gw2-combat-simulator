@@ -120,13 +120,16 @@ export const burstPrecision = defineTrait<WarriorSkill>({
   ]
 });
 
+/** Override key and random stream; Analysis proc rates find this trait's rolls by it. */
+const BLOODLUST_PROC_RATE_ID = 'warrior.bloodlust';
+
 /** Owns this trait's tuning and selected contributions. */
 export const bloodlust = defineTrait({
   id: TRAIT.BLOODLUST,
   balance: {
     conditionDurationBonus: 0.33,
     procRate: {
-      id: 'warrior.bloodlust',
+      id: BLOODLUST_PROC_RATE_ID,
       traitId: TRAIT.BLOODLUST,
       field: 'procChance',
       opportunity: 'eligible critical hit'
@@ -466,7 +469,7 @@ function bloodlustCritical(
     id: 'warrior.core.bloodlust',
     at: runtime.time,
     chanceOnCriticalHit: procChance(runtime.helpers, TRAIT.BLOODLUST, runtime.config.procRateOverrides),
-    randomStream: 'warrior.bloodlust',
+    randomStream: BLOODLUST_PROC_RATE_ID,
     roll: (chance, stream) => runtime.random.roll(chance, stream)
   });
 

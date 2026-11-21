@@ -96,11 +96,14 @@ export const inferno = defineTrait({
   })
 });
 
+/** Override key and random stream; Analysis proc rates find this trait's rolls by it. */
+const BURNING_PRECISION_PROC_RATE_ID = 'elementalist.burning-precision';
+
 export const burningPrecision = defineTrait({
   id: TRAIT.BURNING_PRECISION,
   balance: {
     procRate: {
-      id: 'elementalist.burning-precision',
+      id: BURNING_PRECISION_PROC_RATE_ID,
       traitId: TRAIT.BURNING_PRECISION,
       field: 'procChance',
       opportunity: 'eligible critical hit'
@@ -383,7 +386,7 @@ const burningPrecisionCritical = criticalProcHandler<
     duration: (context) => balanceNumber(context.helpers, TRAIT.BURNING_PRECISION, 'internalCooldown'),
     key: 'burningPrecision'
   },
-  randomStream: 'elementalist.burning-precision',
+  randomStream: BURNING_PRECISION_PROC_RATE_ID,
   handler: applyBurningPrecision
 });
 

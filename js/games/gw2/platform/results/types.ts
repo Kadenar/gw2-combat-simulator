@@ -164,6 +164,8 @@ export interface Gw2ResolverResult {
   readonly events: readonly SimulationEvent[];
   readonly resolvedEvents: Gw2ResolverEvent[];
   readonly procSteps: Gw2ProcStep[];
+  /** Overridable procs the build could trigger, with this run's triggers and procs beside their chance. */
+  readonly procRates: readonly import('#gw2/platform/results/proc-rate-observations.js').Gw2ProcRateObservation[];
   readonly warnings: Gw2SimulationDiagnostic[];
   readonly randomness: {
     mode: SimulationRandom['mode'];

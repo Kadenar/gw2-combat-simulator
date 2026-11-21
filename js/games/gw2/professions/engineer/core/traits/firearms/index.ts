@@ -26,11 +26,14 @@ import {
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 
+/** Override key and random stream; Analysis proc rates also count the mech stream namespaced beneath it. */
+const SERRATED_STEEL_PROC_RATE_ID = 'engineer.serrated-steel';
+
 export const serratedSteel = defineTrait({
   id: TRAIT.SERRATED_STEEL,
   balance: {
     procRate: {
-      id: 'engineer.serrated-steel',
+      id: SERRATED_STEEL_PROC_RATE_ID,
       traitId: TRAIT.SERRATED_STEEL,
       field: 'procChance',
       opportunity: 'eligible critical hit'
@@ -54,7 +57,7 @@ export const serratedSteel = defineTrait({
         when: (_context, event) => Number(event.coefficient) > 0,
         chanceOnCriticalHit: (context) =>
           procChance(context.helpers, TRAIT.SERRATED_STEEL, context.config.procRateOverrides),
-        randomStream: 'engineer.serrated-steel',
+        randomStream: SERRATED_STEEL_PROC_RATE_ID,
         handler(context, event, _details, application) {
           emitSerratedSteel(context, event, application.quantity, {
             actorType: ACTOR.EFFECT,
@@ -490,7 +493,7 @@ const mechSerratedSteel = criticalProcHandler<
   id: 'engineer.mechanist.serrated-steel-mech',
   actorTypes: [ACTOR.SUMMON],
   chanceOnCriticalHit: (context) => procChance(context.helpers, TRAIT.SERRATED_STEEL, context.config.procRateOverrides),
-  randomStream: 'engineer.serrated-steel.mech',
+  randomStream: `${SERRATED_STEEL_PROC_RATE_ID}.mech`,
   handler(context, event, _details, application) {
     emitSerratedSteel(context, event, application.quantity, {
       actorType: ACTOR.SUMMON,

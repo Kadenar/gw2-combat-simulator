@@ -10,6 +10,11 @@ import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { projectWorkCompletion, type RateInterval } from '#kernel/core/rate-intervals.js';
 
+/** Receives cooldown-blocked proc triggers; declared here so combat code does not depend on result reporting. */
+export interface ProcCooldownBlockObserver {
+  cooldownBlocked(stream: string, opportunities: number): void;
+}
+
 /** Proc deadlines read only the live clock, selected balance data, and received recharge rates. */
 export interface ProcRegistryContext {
   readonly time?: number;
@@ -19,6 +24,8 @@ export interface ProcRegistryContext {
       rechargeIntervals(skill: Skill, start: number, end: number, companionId?: string): Iterable<RateInterval>;
     };
   };
+  /** Optional Analysis observer; gameplay never reads it. */
+  readonly procRollRecorder?: ProcCooldownBlockObserver | null;
 }
 
 /** Per-run proc deadlines shared by traits, sigils, relics, and food; callers query only their owned keys. */
@@ -29,6 +36,8 @@ export interface ProcRegistry {
   /** Claims the profile's cooldown policy; summon recharges require their actual companion incarnation. */
   claim(profileId: SkillId, key?: SkillId, at?: number, companionId?: string): boolean;
   claimCooldown(key: SkillId, at: number, duration: number): boolean;
+  /** Reporting only: an eligible proc roll on this random stream arrived while its cooldown was active. */
+  reportCooldownBlocked(stream: string, opportunities?: number): void;
 }
 
 /** Fixed proc deadlines and summon recharge work are mutually exclusive authorities for a key. */
@@ -118,6 +127,10 @@ export function createProcRegistry(context: () => ProcRegistryContext): ProcRegi
       if (!isInternalCooldownReady(at, deadline(key))) return false;
 
       return reserveCooldown(key, at, duration);
+    },
+    // Blocked attempts explain why a higher proc chance adds few procs; runs without an observer skip the count.
+    reportCooldownBlocked(stream: string, opportunities = 1): void {
+      context().procRollRecorder?.cooldownBlocked(stream, opportunities);
     }
   };
 }

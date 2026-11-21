@@ -26,11 +26,11 @@ export function normalizeProcRateOverrides(value: unknown): Record<string, numbe
 
 /** Active runtime composition scopes elite procs; selected traits scope the controls within that runtime. */
 export function availableProcRateProfiles(
-  catalog: Pick<CanonicalCatalog, 'balanceProfiles'>,
+  catalog: Pick<CanonicalCatalog, 'balanceProfilesById'>,
   selectedTraitIds: readonly SkillId[]
 ): BalanceProfile[] {
   const selected = new Set(selectedTraitIds.map(String));
-  return catalog.balanceProfiles.filter(
+  return [...catalog.balanceProfilesById.values()].filter(
     (profile) => profile.procRate && selected.has(String(profile.procRate.traitId))
   );
 }

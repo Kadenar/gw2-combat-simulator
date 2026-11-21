@@ -120,11 +120,14 @@ export const explosiveTemper = defineTrait({
   triggers: [{ on: 'damage.resolved', run: applyExplosiveTemper }]
 });
 
+/** Override key and random stream; Analysis proc rates find this trait's rolls by it. */
+const SHRAPNEL_PROC_RATE_ID = 'engineer.shrapnel';
+
 export const shrapnel = defineTrait({
   id: TRAIT.SHRAPNEL,
   balance: {
     procRate: {
-      id: 'engineer.shrapnel',
+      id: SHRAPNEL_PROC_RATE_ID,
       traitId: TRAIT.SHRAPNEL,
       field: 'procChance',
       opportunity: 'eligible explosion hit'
@@ -393,7 +396,7 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
 
   const chance = procChance(context.helpers, TRAIT.SHRAPNEL, context.config.procRateOverrides);
 
-  if (!context.random.roll(chance, 'engineer.shrapnel')) return;
+  if (!context.random.roll(chance, SHRAPNEL_PROC_RATE_ID)) return;
 
   const shrapnelProfile = requireBalanceProfile(context.helpers, TRAIT.SHRAPNEL);
   const shrapnelBleeding = requireEffect(shrapnelProfile, 'condition', CONDITION.BLEEDING);

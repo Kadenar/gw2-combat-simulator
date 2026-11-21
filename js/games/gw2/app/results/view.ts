@@ -11,6 +11,7 @@ import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import type { ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { mountAnalysisLoading } from '#gw2/app/results/loading-view.js';
 import { modifierContributionsHtml, mountModifierContributions } from '#gw2/app/results/modifier-contributions-view.js';
+import { mountProcRates } from '#gw2/app/results/proc-rates-view.js';
 import { mountRandomDistribution } from '#gw2/app/results/random-distribution-view.js';
 import {
   ownerConditionBreakdown,
@@ -241,6 +242,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
       ...presentation.analysisPanels.map((panel) => (container: HTMLElement) => panel.mount(container)),
       (container) => mountRandomDistribution(container, rng, rngOptions),
       (container) => mountDamageBreakdown(container, breakdown, breakdownOptions),
+      (container) => mountProcRates(container, result.procRates),
       (container) => mountResultCharts(container, charts, chartOptions),
       (container) => mountModifierContributions(container, modifiers)
     ),

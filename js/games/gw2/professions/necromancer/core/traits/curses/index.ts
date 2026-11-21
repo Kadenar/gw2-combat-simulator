@@ -40,13 +40,16 @@ import type {
   NecromancerRuntime
 } from '#gw2/professions/necromancer/types.js';
 
+/** Override key and random stream; Analysis proc rates find this trait's rolls by it. */
+const BARBED_PRECISION_PROC_RATE_ID = 'necromancer.barbed-precision';
+
 /** Owns Barbed Precision tuning and behavior at its existing execution boundaries. */
 export const barbedPrecision = defineTrait({
   id: TRAIT.BARBED_PRECISION,
   balance: {
     conditionDurationMultiplier: 1.2,
     procRate: {
-      id: 'necromancer.barbed-precision',
+      id: BARBED_PRECISION_PROC_RATE_ID,
       traitId: TRAIT.BARBED_PRECISION,
       field: 'criticalChance',
       opportunity: 'eligible critical hit'
@@ -346,7 +349,7 @@ const necromancerBarbedPrecisionReaction = criticalProcHandler<
   actorTypes: [ACTOR.PLAYER, ACTOR.SUMMON, ACTOR.UNKNOWN, ACTOR.EFFECT],
   chanceOnCriticalHit: (context) =>
     procChance(context.helpers, TRAIT.BARBED_PRECISION, context.config.procRateOverrides),
-  randomStream: 'necromancer.barbed-precision',
+  randomStream: BARBED_PRECISION_PROC_RATE_ID,
   when: (_context, event) =>
     Number(event.coefficient) > 0 &&
     (event.actorType !== ACTOR.EFFECT || event.ownerActorType === ACTOR.PLAYER) &&

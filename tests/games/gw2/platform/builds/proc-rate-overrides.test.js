@@ -56,19 +56,26 @@ test('proc overrides control every opted-in trait without bypassing selection or
       return result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === profile.id);
     };
 
+    // Analysis proc rates find each trait's rolls by its override key, including 0% and 100% rolls.
+    const procRate = (result) => result.procRates.find((row) => row.id === key);
+
     for (const mode of ['deterministic', 'stochastic']) {
-      assert.equal(applications(run(0, true, 3000, mode)).length, 0, name);
+      const zeroRate = run(0, true, 3000, mode);
+      assert.equal(applications(zeroRate).length, 0, name);
+      assert.ok(procRate(zeroRate).triggers > 0, name);
+      assert.equal(procRate(zeroRate).procs, 0, name);
       const fullRate = run(1, true, 3000, mode);
       assert.ok(applications(fullRate).length > 0, name);
       // One minimal trigger produces one proc; Grenade's three explosions produce three, regardless of ticks.
-      assert.equal(
-        skillBreakdownRows(fullRate).find((row) => row.name === name)?.hits,
-        name === 'Shrapnel' ? 3 : 1,
-        name
-      );
+      const hits = skillBreakdownRows(fullRate).find((row) => row.name === name)?.hits;
+      assert.equal(hits, name === 'Shrapnel' ? 3 : 1, name);
+      assert.equal(procRate(fullRate).procs, hits, name);
+      assert.equal(procRate(fullRate).triggers, hits, name);
     }
 
-    assert.equal(applications(run(1, false)).length, 0, name);
+    const unselected = run(1, false);
+    assert.equal(applications(unselected).length, 0, name);
+    assert.equal(procRate(unselected), undefined, name);
     // Player critical eligibility excludes autonomous mech procs; Shrapnel does not require a critical hit.
     assert.equal(
       applications(run(1, true, 0)).some((event) => event.actorType !== 'summon'),

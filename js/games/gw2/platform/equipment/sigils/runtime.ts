@@ -11,7 +11,7 @@ import {
   createSigilConditionEvent,
   createSigilDamagePayload
 } from '#gw2/platform/equipment/sigils/proc-events.js';
-import { SEVERANCE_BUFF_POLICY } from '#gw2/platform/equipment/sigils/severance.js';
+import { SEVERANCE_BUFF_POLICY, SEVERANCE_PROC_RATE } from '#gw2/platform/equipment/sigils/severance.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -22,7 +22,7 @@ interface SigilRuntimeContext extends Pick<
   'config' | 'effects' | 'engagement' | 'activeWeaponSet' | 'random'
 > {
   readonly firstHitTime: number | null;
-  readonly procs: Pick<MechanicContext['procs'], 'claimCooldown' | 'deadline'>;
+  readonly procs: Pick<MechanicContext['procs'], 'claimCooldown' | 'deadline' | 'reportCooldownBlocked'>;
   readonly endurance: Pick<MechanicContext['endurance'], 'grant'>;
 }
 
@@ -107,11 +107,14 @@ export function createSigilRuntime(): Readonly<SigilRuntime> {
 
       if (id === SIGIL_IDS.SEVERANCE) {
         // Blocked controls never advance the stream; failed rolls leave the cooldown available.
-        if (!isInternalCooldownReady(event.at, context.procs.deadline(cooldownKey))) continue;
+        if (!isInternalCooldownReady(event.at, context.procs.deadline(cooldownKey))) {
+          context.procs.reportCooldownBlocked(SEVERANCE_PROC_RATE.id);
+          continue;
+        }
 
-        const chance = context.config.procRateOverrides?.['sigil.severance'] ?? 1;
+        const chance = context.config.procRateOverrides?.[SEVERANCE_PROC_RATE.id] ?? SEVERANCE_PROC_RATE.defaultChance;
 
-        if (!context.random.roll(chance, 'sigil.severance')) continue;
+        if (!context.random.roll(chance, SEVERANCE_PROC_RATE.id)) continue;
       }
 
       if (!context.procs.claimCooldown(cooldownKey, event.at, proc.cooldown)) continue;

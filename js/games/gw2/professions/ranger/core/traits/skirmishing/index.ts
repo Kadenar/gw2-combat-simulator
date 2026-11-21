@@ -168,13 +168,16 @@ export const furiousGrip = defineTrait({
   ]
 });
 
+/** Override key and random stream; Analysis proc rates find this trait's rolls by it. */
+const SHARPENED_EDGES_PROC_RATE_ID = 'ranger.sharpened-edges';
+
 /** Owns Sharpened Edges's live tuning and trait behavior. */
 export const sharpenedEdges = defineTrait({
   id: TRAIT.SHARPENED_EDGES,
   balance: {
     // One saved override tunes player and pet proc rolls without changing their critical-hit eligibility.
     procRate: {
-      id: 'ranger.sharpened-edges',
+      id: SHARPENED_EDGES_PROC_RATE_ID,
       traitId: TRAIT.SHARPENED_EDGES,
       field: 'criticalChance',
       opportunity: 'eligible player or pet critical hit'
@@ -367,6 +370,7 @@ type RangerCriticalHitDefinition = ResolvedCriticalHitOptions<
 
 const rangerCoreCriticalReactions = Object.freeze({
   id: 'ranger.sharpened-edges',
+  randomStream: SHARPENED_EDGES_PROC_RATE_ID,
   chanceOnCriticalHit: (context: RangerResolverContext) =>
     procChance(context.helpers, TRAIT.SHARPENED_EDGES, context.config.procRateOverrides),
   actorTypes: [ACTOR.PLAYER, ACTOR.SUMMON, ACTOR.EFFECT] as const,

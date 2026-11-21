@@ -10,6 +10,7 @@ import {
 import { projectCombatObservations } from '#gw2/platform/results/combat-observations.js';
 import type { DamageReportProjection } from '#gw2/platform/results/damage-report.js';
 import { uniqueDiagnostics } from '#gw2/platform/results/diagnostics.js';
+import { projectProcRateObservations } from '#gw2/platform/results/proc-rate-observations.js';
 import type { ScheduledBoonApplication } from '#gw2/platform/results/sustained-boon-generation.js';
 import type { Gw2ResolverResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { cloneData } from '#kernel/core/clone.js';
@@ -103,6 +104,7 @@ export function buildCombatResult(
     ...damageReport,
     events: cloneData(effectiveEvents),
     ...projectCombatObservations(ctx, effectiveEnd),
+    procRates: projectProcRateObservations(ctx),
     randomness: {
       mode: ctx.random.mode,
       seed: ctx.random.seed

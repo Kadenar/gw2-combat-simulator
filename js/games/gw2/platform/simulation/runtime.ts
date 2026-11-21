@@ -55,6 +55,7 @@ import { createBoonGenerationCollector } from '#gw2/platform/results/boon-genera
 import { createDamageReportRecorder } from '#gw2/platform/results/damage-report.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { captureRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
+import { createProcRollRecorder } from '#gw2/platform/results/proc-rate-observations.js';
 import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
 import { projectRuntimeResult } from '#gw2/platform/results/project-runtime.js';
 import type {
@@ -275,6 +276,8 @@ export function runRuntime<T extends object>(
     damageRecorder: damageReport?.observer ?? null,
     // Batch explanations retain proc observations without enabling damage breakdowns or chart histories.
     procRecorder: output === 'detailed' || output === 'observations' ? new ProcStepRecorder(effectRecorder) : null,
+    // Isolated executions supply their own roll policy, so only configured combat rolls are counted.
+    procRollRecorder: output === 'detailed' && !execution.random ? createProcRollRecorder() : null,
     damageDiagnostics: output === 'damage' || damageDiagnostics,
     horizon: policy.kind === 'absolute' ? gw2Time(policy.endTimeMs / 1000) : null,
     query,

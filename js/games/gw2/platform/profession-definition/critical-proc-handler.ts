@@ -56,6 +56,9 @@ export function criticalProcHandler<
     throw new TypeError('Critical proc internal cooldown requires a key.');
 
   const actorTypes = new Set(options.actorTypes || [ACTOR.PLAYER]);
+  const stream = options.randomStream || options.id;
+  // Only declarations with a chance roll; certain procs keep their critical hits off the random source.
+  const rollsChance = options.chanceOnCriticalHit !== undefined;
 
   return (context, event, details) => {
     // Reject ineligible actors and profession predicates before
@@ -85,9 +88,14 @@ export function criticalProcHandler<
         id: options.id,
         at: event.at,
         chanceOnCriticalHit,
-        ...(cooldown ? { internalCooldown: internalCooldownDuration } : {}),
-        randomStream: options.randomStream,
-        roll: (chance, stream) => context.random.roll(chance, stream)
+        ...(cooldown
+          ? {
+              internalCooldown: internalCooldownDuration,
+              onCooldownBlocked: (opportunities: number) => context.procs.reportCooldownBlocked(stream, opportunities)
+            }
+          : {}),
+        randomStream: stream,
+        ...(rollsChance ? { roll: (chance: number, rolled: string) => context.random.roll(chance, rolled) } : {})
       },
       state
     );

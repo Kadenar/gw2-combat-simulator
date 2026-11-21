@@ -31,6 +31,7 @@ import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.j
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { canEquipWeaponSigil, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
+import { SEVERANCE_PROC_RATE } from '#gw2/platform/equipment/sigils/severance.js';
 import { getProfessionEntry } from '#gw2/profession-registry.js';
 import { boundedInteger, clamp } from '#kernel/core/numeric.js';
 import { requiredElement, requiredSelect } from '#ui/shared/dom.js';
@@ -180,11 +181,11 @@ export function renderGear(app: ProfessionAppState): void {
   document.querySelectorAll<HTMLElement>('[data-severance-proc-input]').forEach((host) => {
     host.append(
       createProcRateControl(app, {
-        id: 'sigil.severance',
+        id: SEVERANCE_PROC_RATE.id,
         inputId: host.dataset.severanceProcInput!,
         label: 'Proc chance',
-        defaultChance: 1,
-        opportunity: 'eligible control trigger while Severance is off cooldown'
+        defaultChance: SEVERANCE_PROC_RATE.defaultChance,
+        opportunity: SEVERANCE_PROC_RATE.opportunity
       })
     );
   });

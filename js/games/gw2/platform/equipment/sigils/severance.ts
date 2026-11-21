@@ -10,6 +10,15 @@ import type { Gw2CriticalChanceContributor } from '#gw2/platform/events/resolver
 /** Keep the observation schema available after a swap while an accepted Severance grant survives. */
 export const SEVERANCE_BUFF_POLICY: BuffStatePolicy = Object.freeze({ kind: 'sigil-severance', maximumStacks: 1 });
 
+/** The gear control, sigil runtime, and Analysis proc-rate table share Severance's overridable trigger chance. */
+export const SEVERANCE_PROC_RATE = Object.freeze({
+  /** Override key and random stream. */
+  id: 'sigil.severance',
+  name: 'Sigil of Severance',
+  defaultChance: 1,
+  opportunity: 'eligible control trigger while Severance is off cooldown'
+});
+
 interface SeveranceCriticalContribution {
   readonly chance: number;
   readonly damage: number;
