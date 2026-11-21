@@ -122,16 +122,16 @@
         "label": "Condition (Longbow + Sword/Torch)",
         "build": "data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json",
         "rotation": "data/gw2/rotations/warrior/r-condi-berserker-longbow-sword-torch-bench.json",
-        "benchmarkDps": 44313,
+        "benchmarkDps": 44205,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-berserker-longbow-sword-torch",
-        "benchmarkApm": 93.6,
+        "benchmarkApm": 98.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 41094, "phase": 41094 },
-          "80-60": { "cumulative": 43572, "phase": 46487 },
-          "60-40": { "cumulative": 43740, "phase": 44087 },
-          "40-20": { "cumulative": 43769, "phase": 43859 },
-          "20-0": { "cumulative": 44313, "phase": 46736 }
+          "100-80": { "cumulative": 40908, "phase": 40908 },
+          "80-60": { "cumulative": 43561, "phase": 46683 },
+          "60-40": { "cumulative": 43988, "phase": 44905 },
+          "40-20": { "cumulative": 44617, "phase": 46539 },
+          "20-0": { "cumulative": 44205, "phase": 42457 }
         }
       }
     ]

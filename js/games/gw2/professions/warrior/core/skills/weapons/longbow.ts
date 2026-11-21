@@ -121,16 +121,17 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     slot: 'Weapon_4',
     cooldown: 16,
     ammo: 3,
-
     ammoCastLockout: 0.5,
-    castTimeMs: 160,
+    castTimeMs: 640,
+    // The arrow hits during the animation and survives a cancel at 320 ms.
+    interruptCommitMs: 320,
     comboFinishers: [
       {
         ownerId: 'warrior',
         finisherType: COMBO_FINISHER.PROJECTILE
       }
     ],
-    effects: [
+    effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 0.2,
@@ -155,7 +156,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
         type: 'control',
         controlKind: CONTROL.DAZE
       }
-    ]
+    ])
   },
   [ID.PIN_DOWN]: {
     name: 'Pin Down',
