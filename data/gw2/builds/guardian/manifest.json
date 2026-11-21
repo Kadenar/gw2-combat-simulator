@@ -197,15 +197,15 @@
         "build": "data/gw2/builds/guardian/b-power-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-spear-greatsword",
-        "benchmarkDps": 41990,
+        "benchmarkDps": 42206,
         "upToDate": true,
-        "benchmarkApm": 95.9,
+        "benchmarkApm": 96.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 47144, "phase": 47144 },
-          "80-60": { "cumulative": 43570, "phase": 40450 },
-          "60-40": { "cumulative": 42587, "phase": 40762 },
-          "40-20": { "cumulative": 43134, "phase": 44891 },
-          "20-0": { "cumulative": 41990, "phase": 37959 }
+          "100-80": { "cumulative": 47137, "phase": 47137 },
+          "80-60": { "cumulative": 43574, "phase": 40492 },
+          "60-40": { "cumulative": 42585, "phase": 40743 },
+          "40-20": { "cumulative": 43284, "phase": 45511 },
+          "20-0": { "cumulative": 42206, "phase": 38295 }
         }
       },
       {

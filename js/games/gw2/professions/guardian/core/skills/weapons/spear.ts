@@ -369,6 +369,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     tags: ['symbol'],
     cooldown: 20,
     castTimeMs: 440,
+    interruptCommitMs: 360,
     // The Light field begins on the initial impact and lasts four seconds.
     comboFields: [
       { ownerId: 'guardian', fieldType: COMBO_FIELD.LIGHT, duration: 4, startMs: 360, startAnchor: 'castStart' }
@@ -388,6 +389,8 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         atMs: 360,
         applications: 5,
         intervalMs: 1000,
+        // Once placed, the symbol keeps pulsing when the guardian cancels the aftercast.
+        persistsAfterInterrupt: true,
         name: 'Symbol of Luminance'
       },
       {
