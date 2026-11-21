@@ -37,15 +37,15 @@
         "label": "Power Alacrity (Sword / Pistol)",
         "build": "data/gw2/builds/warrior/b-power-alac-bladesworn-sword-pistol.json",
         "rotation": "data/gw2/rotations/warrior/r-power-alac-bladesworn-sword-pistol-bench.json",
-        "benchmarkDps": 34967,
+        "benchmarkDps": 35023,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-alacrity-bladesworn-overcharged-cartridges-sword-pistol",
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 45828, "phase": 45828 },
           "80-60": { "cumulative": 37842, "phase": 32193 },
           "60-40": { "cumulative": 37841, "phase": 37840 },
-          "40-20": { "cumulative": 35909, "phase": 31158 },
-          "20-0": { "cumulative": 34967, "phase": 31827 }
+          "40-20": { "cumulative": 35981, "phase": 31408 },
+          "20-0": { "cumulative": 35023, "phase": 31827 }
         },
         "benchmarkApm": 76.8
       },

@@ -743,7 +743,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 240
+      "durationMs": 40
     },
     {
       "type": "cast",
