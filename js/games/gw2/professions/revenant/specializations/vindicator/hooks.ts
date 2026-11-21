@@ -8,7 +8,7 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
-import { allianceBarFaction } from '#gw2/professions/revenant/data/alliance.js';
+import { allianceSlots } from '#gw2/professions/revenant/data/alliance.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
   VINDICATOR_AIRBORNE_MS,
@@ -109,8 +109,8 @@ export const vindicatorHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> 
     if (skill.id === ID.ARCHEMORUS_STRIKE && !hasTrait(runtime, TRAIT.FRIEND_OF_THE_LUXONS))
       return denySkillCast(skill, 'revenant.friend-of-the-luxons-required', 'select Friend of the Luxons.');
 
-    // Both factions retain their own cooldowns, but only the selected bar accepts casts.
-    const faction = allianceBarFaction(skill.id);
+    // Faction gates apply to slots 6 through 10 and their flips. F4 is a trait skill available to either faction.
+    const faction = allianceSlots(runtime.helpers.skillsById).factionBySkill.get(skill.id);
 
     if (faction && faction !== vindicatorState.from(runtime.profession).allianceFaction)
       return denySkillCast(
