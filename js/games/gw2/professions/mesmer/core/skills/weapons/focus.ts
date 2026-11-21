@@ -13,7 +13,7 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_4',
     cooldown: 25,
     // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
-    flipArm: { skillId: ID.INTO_THE_VOID, duration: 5, delay: 1, anchor: 'castStart' },
+    flipArm: { skillId: ID.INTO_THE_VOID, duration: 5, initialCooldown: 1, anchor: 'castStart' },
     castTimeMs: 740,
     effects: [],
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }]

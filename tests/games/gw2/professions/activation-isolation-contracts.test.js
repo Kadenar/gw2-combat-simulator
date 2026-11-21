@@ -62,7 +62,7 @@ function run(
   return { result, runtime: observedRuntime(result) };
 }
 
-test('Mesmer heal and control producers respect selection and isolation', () => {
+test('Mesmer heal, Slow, and disable triggers respect selection and isolation', () => {
   for (const selected of [false, true])
     for (const traitTriggers of [false, true]) {
       const heal = run(mesmerProfession, 'Core', [combat, M.ETHER_FEAST, wait(100)], {
@@ -70,9 +70,14 @@ test('Mesmer heal and control producers respect selection and isolation', () => 
         selectedTraitIds: selected ? [MT.EGO_RESTORATION] : []
       });
       assert.equal(proc(heal.result, 'Ego Restoration'), selected && traitTriggers);
-      for (const [specialization, trait, name] of [
-        ['Chronomancer', MT.DANGER_TIME, 'Danger Time'],
-        ['Troubadour', MT.SYNCOPATE, 'Syncopate']
+      for (const [specialization, trait, name, trigger] of [
+        [
+          'Chronomancer',
+          MT.DANGER_TIME,
+          'Danger Time',
+          { type: 'condition', condition: 'Slow', stacks: 1, duration: 1 }
+        ],
+        ['Troubadour', MT.SYNCOPATE, 'Syncopate', { type: 'control', controlKind: 'daze' }]
       ]) {
         const { result } = run(
           mesmerProfession,
@@ -80,7 +85,7 @@ test('Mesmer heal and control producers respect selection and isolation', () => 
           undefined,
           { traitTriggers, selectedTraitIds: selected ? [trait] : [] },
           {
-            timeline: [packet(cause(1, { type: 'control', controlKind: 'daze', skillId: M.TIME_SINK }))]
+            timeline: [packet(cause(1, trigger))]
           }
         );
         assert.equal(proc(result, name), selected && traitTriggers);

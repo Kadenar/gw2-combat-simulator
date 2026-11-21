@@ -6,32 +6,62 @@
         "label": "Power (Greatsword-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-bench.json",
-        "benchmarkDps": 43523,
+        "benchmarkDps": 43923,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-greatsword-dagger-sword",
         "upToDate": true,
-        "benchmarkApm": 98.9,
+        "benchmarkApm": 100,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 51521, "phase": 51521 },
-          "80-60": { "cumulative": 44916, "phase": 39695 },
-          "60-40": { "cumulative": 42194, "phase": 37591 },
-          "40-20": { "cumulative": 41976, "phase": 41337 },
-          "20-0": { "cumulative": 43523, "phase": 51026 }
+          "100-80": { "cumulative": 51324, "phase": 51324 },
+          "80-60": { "cumulative": 44338, "phase": 38866 },
+          "60-40": { "cumulative": 42773, "phase": 39961 },
+          "40-20": { "cumulative": 42636, "phase": 42235 },
+          "20-0": { "cumulative": 43923, "phase": 50202 }
         }
       },
       {
         "label": "Power (Spear-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer-dagger-sword-spear.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-dagger-sword-spear-bench.json",
-        "benchmarkDps": 42714,
+        "benchmarkDps": 44041,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-spear-dagger-sword",
-        "upToDate": false,
-        "benchmarkApm": 97.6,
+        "upToDate": true,
+        "benchmarkApm": 99.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 49006, "phase": 49006 },
-          "80-60": { "cumulative": 41950, "phase": 36639 },
-          "60-40": { "cumulative": 41010, "phase": 39234 },
-          "40-20": { "cumulative": 42690, "phase": 48504 },
-          "20-0": { "cumulative": 42714, "phase": 42816 }
+          "100-80": { "cumulative": 47601, "phase": 47601 },
+          "80-60": { "cumulative": 42039, "phase": 37660 },
+          "60-40": { "cumulative": 42324, "phase": 42913 },
+          "40-20": { "cumulative": 43505, "phase": 47408 },
+          "20-0": { "cumulative": 44041, "phase": 46367 }
+        }
+      },
+      {
+        "label": "Power (Spear-Sword/Sword)",
+        "build": "data/gw2/builds/mesmer/b-power-chronomancer-sword-sword-spear.json",
+        "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-sword-sword-spear-bench.json",
+        "upToDate": true,
+        "benchmarkDps": 44653,
+        "benchmarkApm": 100.6,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 48456, "phase": 48456 },
+          "80-60": { "cumulative": 42572, "phase": 37907 },
+          "60-40": { "cumulative": 42585, "phase": 42610 },
+          "40-20": { "cumulative": 43869, "phase": 48211 },
+          "20-0": { "cumulative": 44653, "phase": 48116 }
+        }
+      },
+      {
+        "label": "Power (Greatsword-Sword/Sword)",
+        "build": "data/gw2/builds/mesmer/b-power-chronomancer-sword-sword-greatsword.json",
+        "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-sword-sword-greatsword-bench.json",
+        "upToDate": true,
+        "benchmarkDps": 44039,
+        "benchmarkApm": 98.4,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 50679, "phase": 50679 },
+          "80-60": { "cumulative": 45745, "phase": 41617 },
+          "60-40": { "cumulative": 42890, "phase": 38023 },
+          "40-20": { "cumulative": 42070, "phase": 39788 },
+          "20-0": { "cumulative": 44039, "phase": 54284 }
         }
       },
       {
@@ -110,16 +140,16 @@
         "label": "Power (Spear / Greatsword)",
         "build": "data/gw2/builds/mesmer/b-power-virtuoso-spear-greatsword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-virtuoso-spear-greatsword-bench.json",
-        "benchmarkDps": 42436,
+        "benchmarkDps": 42193,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-virtuoso-spear-greatsword",
-        "upToDate": false,
-        "benchmarkApm": 80.1,
+        "upToDate": true,
+        "benchmarkApm": 78.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 47017, "phase": 47017 },
-          "80-60": { "cumulative": 41505, "phase": 36997 },
-          "60-40": { "cumulative": 42772, "phase": 45538 },
-          "40-20": { "cumulative": 40707, "phase": 35519 },
-          "20-0": { "cumulative": 42436, "phase": 50896 }
+          "100-80": { "cumulative": 46265, "phase": 46265 },
+          "80-60": { "cumulative": 41571, "phase": 37717 },
+          "60-40": { "cumulative": 42261, "phase": 43715 },
+          "40-20": { "cumulative": 40960, "phase": 37607 },
+          "20-0": { "cumulative": 42193, "phase": 48408 }
         }
       },
       {

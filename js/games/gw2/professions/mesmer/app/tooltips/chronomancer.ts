@@ -37,16 +37,16 @@ export const chronomancerTooltips = {
     [TRAIT.TIME_MARCHES_ON]: traitTooltip(
       'Alacrity increases your recharge rate by 50% instead of 25%. Movement speed is not simulated.'
     ),
-    [TRAIT.DELAYED_REACTIONS]: traitTooltip(
-      'Control effects from other skills can activate Danger Time, in addition to Time Sink.'
-    ),
+    [TRAIT.DELAYED_REACTIONS]: traitTooltip('Disabling a foe inflicts Slow.', [
+      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
+    ]),
     [TRAIT.TIME_CATCHES_UP]: traitTooltip(
       'Eligible shatter hits deal increased damage against chilled, crippled, immobilized, or slowed targets.',
       [fromProfile(TRAIT.TIME_CATCHES_UP, 'damageMultiplier', 'Shatter strike damage', tooltipFactorChange)]
     ),
     [TRAIT.ALLS_WELL_THAT_ENDS_WELL]: outsideScopeTooltip,
     [TRAIT.DANGER_TIME]: traitTooltip(
-      'Time Sink control effects temporarily increase critical damage for you and your illusions. Delayed Reactions allows other control effects to activate the bonus.',
+      'When you inflict Slow, you, your clones, and your phantasms deal increased critical-strike damage. Applying Slow again refreshes the duration.',
       [
         ['criticalDamage', 'Critical damage', tooltipPercent],
         ['duration', 'Bonus duration', tooltipSeconds]

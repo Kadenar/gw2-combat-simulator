@@ -44,6 +44,8 @@ test("skill details group proc counts by trigger and disclose only that skill's 
             // Damage-only fixtures still provide the canonical reports consumed by analysis charts.
             effectReport: { start: 0, end: 10, tracks: [] },
             boonGeneration: { boons: {}, sustained: {} },
+            // No overridable or observed procs in this fixture; the Proc Rates section stays empty.
+            procRates: [],
             breakdown: [
               { name: 'Strength of Stone', conditionDamage: 425, actorType: 'effect' },
               { name: 'Earthen Rush', strikeDamage: 10, actorType: 'player' },

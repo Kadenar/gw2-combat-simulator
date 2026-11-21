@@ -250,7 +250,7 @@ function applyCastInterrupts(actions: readonly ResolvedLogAction[]): ResolvedLog
       const cast = replay[castIndex];
 
       // Weapon swaps cancel the player's lane, never an overlapping pet activation.
-      if (cast.skill?.independentCast || cast.independentTimeline || instantReplayAction(cast)) continue;
+      if (cast.skill?.independentCast || instantReplayAction(cast)) continue;
 
       if (cast.end <= boundary.start) break;
 

@@ -58,7 +58,7 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_3',
     cooldown: 12,
     // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
-    flipArm: { skillId: ID.ABSTRACTION, duration: 2, delay: 0, anchor: 'castCommit' },
+    flipArm: { skillId: ID.ABSTRACTION, duration: 2, anchor: 'castCommit' },
     tasks: [{ type: 'mesmer.core.imagery-expire', atMs: 2000, timingAnchor: 'castEnd' }],
     castTimeMs: 500,
     // The image grants boons after its field expires unless Abstraction detonates it first.
@@ -159,7 +159,7 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_5',
     cooldown: 20,
     // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
-    flipArm: { skillId: ID.DIMENSIONAL_APERTURE, duration: 3, delay: 0, anchor: 'castStart' },
+    flipArm: { skillId: ID.DIMENSIONAL_APERTURE, duration: 3, anchor: 'castStart' },
     castTimeMs: 333.333333333,
     effects: [],
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }]

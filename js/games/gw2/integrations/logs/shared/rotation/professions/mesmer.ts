@@ -29,7 +29,8 @@ export function normalizeMesmerLogActions(context: LogActionNormalizationContext
       return [{ ...action, canonicalSkillId: MESMER_SKILL_IDS.PHASE_RETREAT, canonicalName: 'Phase Retreat' }];
     }
 
-    if (action.rawSkillId === POWER_SPIKE_ID) return [{ ...action, independentTimeline: true }];
+    // Power Spike overlaps the current cast and anchors the next player input on the same timeline.
+    if (action.rawSkillId === POWER_SPIKE_ID) return [{ ...action, concurrentTimeline: true }];
 
     if (context.profile.specializationId !== 'mirage' || action.rawSkillId !== -17) return [action];
 

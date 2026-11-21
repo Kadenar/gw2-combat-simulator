@@ -28,7 +28,6 @@ export interface ReplayTimelineAction {
   readonly skill: ReplaySkill | null;
   readonly name: string;
   readonly skillId: string | number;
-  readonly independentTimeline?: boolean;
   /** Replays observed overlap while retaining this action as the scheduler's next relative-offset anchor. */
   readonly concurrentTimeline?: boolean;
   /** Runtime occupancy of a profession-resolved skill variant, including its built-in wind-up. */
@@ -297,7 +296,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     }
 
     const instant = actionReplayEnd <= at;
-    const independent = action.skill?.independentCast === true || action.independentTimeline === true;
+    const independent = action.skill?.independentCast === true;
     // An overlappable companion command animates beside the player, so a Wait placed during it idles only the player.
     const overlappingCompanion =
       action.skill?.independentCast === true && action.skill.independentCastCanOverlap === true;

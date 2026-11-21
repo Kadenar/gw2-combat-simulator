@@ -120,19 +120,19 @@ const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinit
     skillFamily: 'Well',
     cooldown: 60,
     castTimeMs: 1080,
-    // Once the well commits, its damage and control pulses survive cancellation of the remaining recovery.
-    interruptCommitMs: 1040,
-    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
+    // The first pulse creates the well during the cast. It collapses one second after the last control pulse.
+    interruptCommitMs: 720,
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [0, 1000, 2000].map((atMs) => ({ atMs, coefficient: 1.1 })),
+        ticks: [720, 1720, 2720].map((atMs) => ({ atMs, coefficient: 1.1 })),
         name: 'Pulse damage',
         actorType: ACTOR.PLAYER,
         weapon: 'utility'
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 2000, coefficient: 2.1 }],
+        ticks: [{ atMs: 3720, coefficient: 2.1 }],
         name: 'Final damage',
         actorType: ACTOR.PLAYER,
         weapon: 'utility'
@@ -140,19 +140,19 @@ const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinit
       {
         type: 'control',
         actorType: ACTOR.PLAYER,
-        atMs: 0,
+        atMs: 720,
         controlKind: CONTROL.KNOCKDOWN
       },
       {
         type: 'control',
         actorType: ACTOR.PLAYER,
-        atMs: 1000,
+        atMs: 1720,
         controlKind: CONTROL.PULL
       },
       {
         type: 'control',
         actorType: ACTOR.PLAYER,
-        atMs: 2000,
+        atMs: 2720,
         controlKind: CONTROL.FLOAT
       }
     ])

@@ -1,5 +1,5 @@
 /** Canonical Core mesmer skill definitions grouped by their GW2 owner. */
-import { ACTOR, COMBO_FINISHER, CONDITION, WEAPON } from '#gw2/platform/constants.js';
+import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -91,6 +91,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 10,
     castTimeMs: 960,
     interruptMode: 'per-packet',
+    defaultInterruptMs: 680,
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -119,8 +120,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_3',
 
     cooldown: 12,
-    // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
-    flipArm: { skillId: ID.SWAP, duration: 5, delay: 0, anchor: 'castStart' },
+    // Swap's five seconds begin when Illusionary Leap grants the flip during its animation.
+    flipArm: { skillId: ID.SWAP, duration: 5, windowStartOffset: 0.2, anchor: 'castStart' },
     resource: {
       mode: 'add',
       count: 1
@@ -149,7 +150,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
         persistsAfterInterrupt: true
       }
     ]),
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }]
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.arm-flip' } }]
   },
   // Flip actions share their parent's catalog so ordinary mechanics assembly owns both faces.
   [ID.SWAP]: {
@@ -168,7 +169,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ],
     // The logged Swap buff grants a fresh five-second Disenchant window.
-    flipArm: { skillId: ID.DISENCHANT, duration: 5, delay: 0, anchor: 'castCommit' },
+    flipArm: { skillId: ID.DISENCHANT, duration: 5, anchor: 'castCommit' },
     effects: [],
     sideEffects: [
       { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SWAP } },
@@ -182,14 +183,15 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     weapon: 'Sword',
     slot: 'Weapon_3',
     cooldown: 0,
-    castTimeMs: 720,
+    castTimeMs: 480,
+    interruptCommitMs: 360,
     // The simulated target has no boons, so the live 20% bonus applies to its base coefficient.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         coefficient: 2.17 * 1.2,
         hits: 1,
-        atMs: 520,
+        atMs: 360,
         name: 'Damage',
         actorType: ACTOR.PLAYER,
         weapon: WEAPON.SWORD.toLowerCase()
@@ -240,11 +242,11 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
 
     cooldown: 12,
     // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
-    flipArm: { skillId: ID.COUNTER_BLADE, duration: 3, delay: 0, anchor: 'castStart' },
+    flipArm: { skillId: ID.COUNTER_BLADE, duration: 3, anchor: 'castStart' },
     castTimeMs: 1480,
     defaultInterruptMs: 120,
-    // Commit the flip early so a later interruption still enables Counter Blade.
-    interruptCommitMs: 80,
+    // Counter Blade is available after the first 40 ms tick of the block.
+    interruptCommitMs: 40,
     // No incoming attacks are simulated, so blocking grants neither a clone nor a counterattack.
     effects: [],
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }]
@@ -258,13 +260,14 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 0,
     castTimeMs: 680,
     effects: [
-      // Preserve the flip's existing control timing at cast completion.
+      // Counter Blade dazes on impact, so disable traits resolve with the strike.
       {
         type: 'control',
+        controlKind: CONTROL.DAZE,
         source: 'Player',
         actorType: ACTOR.PLAYER,
-        atMs: 0,
-        timingAnchor: 'castEnd',
+        atMs: 480,
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {

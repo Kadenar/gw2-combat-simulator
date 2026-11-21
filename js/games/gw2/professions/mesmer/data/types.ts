@@ -113,11 +113,14 @@ export interface MesmerSkill
   readonly instrument?: import('#gw2/professions/mesmer/types.js').MesmerInstrument;
   /** Arms its follow-up flip when the cast starts rather than when it commits. */
   readonly armedAtStart?: boolean;
-  /** Intrinsic follow-up window this skill opens. */
+  /** Follow-up window in seconds. Cancelling before commit or ending before the window opens grants no flip. */
   readonly flipArm?: {
     readonly skillId: number;
     readonly duration: number;
-    readonly delay?: number;
+    /** Shift the whole window, including its expiry, relative to the anchor. */
+    readonly windowStartOffset?: number;
+    /** Time spent recharging within the open window. Expiry still runs from the window start. */
+    readonly initialCooldown?: number;
     readonly anchor?: 'castStart' | 'castCommit';
   };
   /** Hits whose damage this skill records for a later payout. */

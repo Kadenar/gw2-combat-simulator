@@ -135,7 +135,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
 
     cooldown: 6,
     // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
-    flipArm: { skillId: ID.COUNTERSPELL, duration: 2, delay: 0, anchor: 'castStart' },
+    flipArm: { skillId: ID.COUNTERSPELL, duration: 2, anchor: 'castStart' },
     castTimeMs: 1200,
     defaultInterruptMs: 120,
     interruptCommitMs: 80,

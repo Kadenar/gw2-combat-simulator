@@ -1,13 +1,14 @@
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import {
   gw2EventActorType,
   isGw2PhantasmEvent,
-  isGw2PlayerActorEvent
+  isGw2PlayerActorEvent,
+  isGw2PlayerModifierOwnedEvent
 } from '#gw2/platform/combat/state/event-ownership.js';
+import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -24,13 +25,13 @@ import {
 } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { mesmerShatterCompleted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/traits/time-bomb.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
-/** Danger Time retains its active profile, selection, and original execution boundary. */
+/** Inflicting Slow refreshes one critical-damage bonus for the mesmer, clones, and phantasms. */
 const dangerTime = defineTrait<MesmerSkill>({
   id: TRAIT.DANGER_TIME,
   balance: {
@@ -44,15 +45,46 @@ const dangerTime = defineTrait<MesmerSkill>({
       operation: 'multiply',
       factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.DANGER_TIME, 'criticalDamage'),
       when: (context) =>
-        [ACTOR.PLAYER, ACTOR.SUMMON].some((member) => member === gw2EventActorType(context.event)) &&
+        (isGw2PlayerActorEvent(context.event) ||
+          (context.event?.actorType === ACTOR.SUMMON &&
+            (context.event.summonKind === 'clone' || context.event.summonKind === 'phantasm'))) &&
         buffActive(context, 'danger-time')
     }
   ],
-  triggers: [{ on: 'control.resolved', run: observeChronomancerEvent }]
+  triggers: [
+    {
+      on: 'condition.applied',
+      when: (_runtime, event) => event.condition === CONDITION.SLOW && isGw2PlayerModifierOwnedEvent(event),
+      run: grantDangerTime
+    }
+  ]
 });
 
-/** Delayed Reactions retains its active profile, selection, and original execution boundary. */
-const delayedReactions = defineTrait<MesmerSkill>({ id: TRAIT.DELAYED_REACTIONS });
+/** A landed disable inflicts Slow when the trait's internal cooldown is ready. */
+const delayedReactions = defineTrait<MesmerSkill>({
+  id: TRAIT.DELAYED_REACTIONS,
+  balance: {
+    internalCooldown: 3,
+    effects: [{ type: 'condition', name: CONDITION.SLOW, condition: CONDITION.SLOW, stacks: 1, duration: 3 }]
+  },
+  triggers: [
+    {
+      on: 'control.resolved',
+      emit: TRAIT.DELAYED_REACTIONS,
+      cooldown: 'profile',
+      when: (runtime, event) =>
+        runtime.engagement.hostileEffectsAllowed(event.at) &&
+        !missesTarget(event) &&
+        (event.actorType === ACTOR.PLAYER || event.actorType === ACTOR.SUMMON),
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.DELAYED_REACTIONS,
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER
+      }
+    }
+  ]
+});
 
 /** Flow of Time retains its active profile, selection, and original execution boundary. */
 const flowOfTime = defineTrait<MesmerSkill>({
@@ -301,55 +333,37 @@ function resolveIllusionaryReversion(context: MesmerRuntime, resolution: MesmerS
   );
 }
 
-/** Arms Danger Time from Chronomancer control packets and Delayed Reactions. */
-function observeChronomancerEvent(context: MesmerRuntime, event: SimulationEvent): void {
-  if (event.type !== 'control') return;
-
-  const skillId = Number(event.skillId);
-
-  if (skillId !== ID.TIME_SINK && !hasTrait(context, TRAIT.DELAYED_REACTIONS)) {
-    return;
-  }
-
-  const skillName = event.skillName || event.name || 'Control effect';
-  {
-    const grants: readonly MesmerEventExtra[] = [
-      {
-        kind: 'danger-time',
-        stacks: 1,
-        duration: balanceNumber(context.helpers, TRAIT.DANGER_TIME, 'duration'),
-        sourceSkill: skillName
-      }
-    ];
-    const traitProfile = requireBalanceProfile(context.helpers, TRAIT.DANGER_TIME);
-    const traitSource = {
-      source: 'Trait',
-      sourceId: TRAIT.DANGER_TIME,
+/** Attribute the buff to the Slow application that refreshed it in the combat log. */
+function grantDangerTime(context: MesmerRuntime, event: Gw2ResolverEvent): void {
+  const profile = requireBalanceProfile(context.helpers, TRAIT.DANGER_TIME);
+  const sourceSkill = event.source === 'Trait' ? event.name : event.skillName || event.name;
+  const traitSource = {
+    source: 'Trait',
+    sourceId: TRAIT.DANGER_TIME,
+    skillId: TRAIT.DANGER_TIME,
+    skillName: profile.name
+  };
+  const proc = context.effects.emit({
+    kind: 'announcement',
+    receipt: true,
+    log: true,
+    cause: event,
+    attribution: { ...traitSource, actorType: ACTOR.EFFECT },
+    announcement: { type: 'trait', name: profile.name, at: event.at, sourceSkill, detail: '' }
+  });
+  context.effects.emit({
+    kind: 'packet',
+    cause: proc,
+    event: {
+      ...traitSource,
+      type: 'buff',
+      kind: 'danger-time',
       actorType: ACTOR.PLAYER,
-      skillId: TRAIT.DANGER_TIME,
-      skillName: traitProfile.name
-    };
-    {
-      const proc = context.effects.emit({
-        receipt: true,
-        kind: 'announcement',
-        log: true,
-        attribution: { ...traitSource, actorType: ACTOR.EFFECT },
-        announcement: { type: 'trait', name: traitProfile.name, at: event.at, sourceSkill: skillName, detail: '' }
-      });
-      for (const grant of grants)
-        context.effects.emit({
-          kind: 'packet',
-          cause: proc,
-          event: {
-            ...grant,
-            ...traitSource,
-            type: 'buff',
-            at: event.at,
-            name: traitProfile.name,
-            sourceSkill: skillName
-          }
-        });
+      at: event.at,
+      name: profile.name,
+      sourceSkill,
+      stacks: 1,
+      duration: balanceProfileNumber(profile, 'duration')
     }
-  }
+  });
 }

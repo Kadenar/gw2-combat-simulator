@@ -24,7 +24,6 @@ export interface RecordedRotationAction {
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
   readonly releaseAtCharges?: number;
   readonly releaseDelayMs?: number;
-  readonly independentTimeline?: boolean;
   readonly canonicalSkillId?: number;
   readonly canonicalName?: string;
 }

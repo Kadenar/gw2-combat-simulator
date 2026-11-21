@@ -12,18 +12,23 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Keep the parent's authored window while the shared runtime owns identity-safe expiry. */
 export function armMesmerSkillFlip(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
+  // Cast-start effects can run even when the queued interruption cancels the parent.
+  if (cast.cancelledBeforeCommit) return;
+
   const arm = cast.skill.flipArm!;
   const at = context.time;
-  const start = arm.anchor === 'castCommit' ? at : cast.start;
-  const availableAt = gw2Time(start + (arm.delay ?? 0));
+  const anchor = arm.anchor === 'castCommit' ? at : cast.start;
+  const start = anchor + (arm.windowStartOffset ?? 0);
+  const availableAt = gw2Time(start + (arm.initialCooldown ?? 0));
   const expiresAt = gw2Time(start + arm.duration);
 
-  if (expiresAt <= gw2Time(at)) return;
+  // An animation cut before the window opens cannot grant its follow-up.
+  if (cast.effectiveEnd < gw2Time(start) || expiresAt <= gw2Time(at)) return;
 
   context.armFlip(arm.skillId, {
     availableAt,
     expiresAt,
-    visibleAt: Math.min(at, availableAt),
+    visibleAt: Math.max(gw2Time(start), Math.min(at, availableAt)),
     identity: cast.id
   });
 }

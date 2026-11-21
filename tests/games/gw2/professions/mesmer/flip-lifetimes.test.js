@@ -22,14 +22,16 @@ function flipScenario(initialize, tasks = {}) {
   return observedRuntime(result);
 }
 
-function parentCast(id = 'parent', start = 0.1 + 0.2, arm = {}) {
+function parentCast(context, id = 'parent', start = 0.1 + 0.2, arm = {}) {
   return {
     id,
     start,
+    effectiveEnd: context.time,
+    cancelledBeforeCommit: false,
     skill: {
       id: ID.ILLUSIONARY_COUNTER,
       name: 'Illusionary Counter',
-      flipArm: { skillId: ID.COUNTERSPELL, delay: 0.1, duration: 0.2, ...arm }
+      flipArm: { skillId: ID.COUNTERSPELL, initialCooldown: 0.1, duration: 0.2, ...arm }
     }
   };
 }
@@ -52,7 +54,7 @@ test('Mesmer flip creation, availability, projection, and cleanup share exact bo
     },
     {
       'test.arm'(context) {
-        armMesmerSkillFlip(context, parentCast());
+        armMesmerSkillFlip(context, parentCast(context));
         assert.deepEqual(context.flips[ID.COUNTERSPELL], {
           identity: 'parent',
           remainingUses: 1,
@@ -98,7 +100,7 @@ test('Mesmer completion cannot arm an already expired flip and cleanup preserves
     },
     {
       'test.arm'(context) {
-        armMesmerSkillFlip(context, parentCast());
+        armMesmerSkillFlip(context, parentCast(context));
         assert.equal(context.flips[ID.COUNTERSPELL], undefined);
       }
     }
@@ -111,7 +113,7 @@ test('Mesmer flip endpoints canonicalize arithmetic residue on the GW2 tick grid
   let checked = false;
   flipScenario((context) => context.schedule('test.arm', 0.15), {
     'test.arm'(context) {
-      armMesmerSkillFlip(context, parentCast('parent', 0.1, { delay: 0.2, duration: 0.333333 }));
+      armMesmerSkillFlip(context, parentCast(context, 'parent', 0.1, { initialCooldown: 0.2, duration: 0.333333 }));
       assert.deepEqual(context.flips[ID.COUNTERSPELL], {
         identity: 'parent',
         remainingUses: 1,
@@ -131,13 +133,13 @@ test('a replaced Mesmer flip survives its predecessor expiry until its later dea
   const arm = { anchor: 'castCommit', duration: 0.5 };
   const runtime = flipScenario(
     (context) => {
-      armMesmerSkillFlip(context, parentCast('old', -1, arm));
+      armMesmerSkillFlip(context, parentCast(context, 'old', -1, arm));
       context.schedule('test.rearm', 0.25);
       context.schedule('test.after-old-expiry', 0.56);
     },
     {
       'test.rearm'(context) {
-        armMesmerSkillFlip(context, parentCast('new', -1, arm));
+        armMesmerSkillFlip(context, parentCast(context, 'new', -1, arm));
       },
       'test.after-old-expiry'(context) {
         assert.equal(context.flips[ID.COUNTERSPELL].identity, 'new');
@@ -155,7 +157,7 @@ test('consumed Mesmer flips remain closed when their pending expiry runs', () =>
   let consumed = false;
   const runtime = flipScenario(
     (context) => {
-      armMesmerSkillFlip(context, parentCast('parent', 0, { duration: 0.5 }));
+      armMesmerSkillFlip(context, parentCast(context, 'parent', 0, { duration: 0.5 }));
       context.schedule('test.consume', 0.2);
     },
     {
