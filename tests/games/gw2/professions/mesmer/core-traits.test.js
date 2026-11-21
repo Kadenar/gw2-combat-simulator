@@ -4,6 +4,7 @@ import test from 'node:test';
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { countProcActivations } from '#gw2/platform/results/proc-counts.js';
+import { isIllusionSummonKind } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { mesmerControlAccepted, mesmerCritical } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import { triggerMaimTheDisillusioned } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
@@ -317,6 +318,8 @@ test('canonical phantasm ownership triggers Sharper Images without Master Fencer
       return { type: 'proc', ...request.attribution, ...request.announcement };
     }
   }).effects;
+  // Illusion criticals report their Sharper Images outcome through the proc registry.
+  context.state.procs = createProcRegistry(() => context.state);
 
   // Canonical summon ownership prevents an illusion hit from also counting as a player hit.
   criticalOpportunity(
@@ -336,6 +339,38 @@ test('canonical phantasm ownership triggers Sharper Images without Master Fencer
   );
 
   assert.deepEqual(procs, ['Sharper Images']);
+});
+
+// Sharper Images has no override, so Analysis lists it as observed: illusion critical rolls are its only triggers.
+test('Sharper Images proc rates count illusion critical rolls and ignore player strikes', () => {
+  const { id } = mesmerCatalog.balanceProfilesById.get(TRAIT.SHARPER_IMAGES).procObservation;
+  const run = (selectedTraitIds) =>
+    simulateMesmer(['Phantasmal Mage', { type: 'wait', durationMs: 8000 }], {
+      specialization: 'Core',
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Torch',
+      initialResource: 0,
+      selectedTraitIds,
+      randomness: { mode: 'stochastic', seed: 3 }
+    });
+  const result = run([TRAIT.SHARPER_IMAGES]);
+  assert.deepEqual(result.warnings, []);
+  const row = result.procRates.find((entry) => entry.id === id);
+  const illusionStrikes = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && isIllusionSummonKind(event.summonKind)
+  );
+  const bleeds = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.traitId === TRAIT.SHARPER_IMAGES
+  );
+  assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.actorType === 'player'));
+  assert.equal(row.overridable, false);
+  assert.equal(row.triggers, illusionStrikes.length);
+  assert.ok(row.procs > 0);
+  assert.equal(row.procs, bleeds.length);
+  assert.equal(
+    run([]).procRates.find((entry) => entry.id === id),
+    undefined
+  );
 });
 
 // A summon can cause Dazzling, but downstream condition observers must still see a player-owned trait.

@@ -199,6 +199,24 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
       procRateIds.add(procRateId);
     }
 
+    // Observed procs share the reporting namespace, so their streams must not collide with an override key.
+    if (profile.procObservation) {
+      const { id: observationId, traitId, opportunity } = profile.procObservation;
+
+      if (
+        !/^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$/.test(observationId) ||
+        procRateIds.has(observationId) ||
+        !catalog.traits.some((trait) => trait.id === traitId) ||
+        !opportunity
+      ) {
+        throw new TypeError(
+          `Balance profile ${String(profile.id)} has an invalid or duplicate procObservation declaration.`
+        );
+      }
+
+      procRateIds.add(observationId);
+    }
+
     // Profiles obey their selected profession's declarations on authored and patched catalogs alike.
     for (const field of Object.keys(profile))
       if (!Object.hasOwn(catalog.profileFields, field))

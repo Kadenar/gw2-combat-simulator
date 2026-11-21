@@ -139,10 +139,18 @@ export const masterFencer = defineTrait<MesmerSkill>({
   ]
 });
 
+/** Reporting stream for Analysis proc rates; each illusion critical roll decides one Sharper Images trigger. */
+const SHARPER_IMAGES_PROC_OBSERVATION_ID = 'mesmer.sharper-images';
+
 /** Sharper Images shares active tuning with its ordered imperative reactions. */
 export const sharperImages = defineTrait<MesmerSkill>({
   id: TRAIT.SHARPER_IMAGES,
   balance: {
+    procObservation: {
+      id: SHARPER_IMAGES_PROC_OBSERVATION_ID,
+      traitId: TRAIT.SHARPER_IMAGES,
+      opportunity: 'illusion strike, at its critical chance'
+    },
     effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 5, stacks: 1 }]
   },
   triggers: [
@@ -425,6 +433,9 @@ function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, ch
       at: event.at
     }
   );
+
+  // The illusion's critical roll decides the proc, so report it; strikes that cannot crit are not triggers.
+  if (chance > 0) context.procs.reportOutcome(SHARPER_IMAGES_PROC_OBSERVATION_ID, chance, application !== null);
 
   if (!application) return;
 

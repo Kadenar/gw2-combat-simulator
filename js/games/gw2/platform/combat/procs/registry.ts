@@ -10,9 +10,11 @@ import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { projectWorkCompletion, type RateInterval } from '#kernel/core/rate-intervals.js';
 
-/** Receives cooldown-blocked proc triggers; declared here so combat code does not depend on result reporting. */
-export interface ProcCooldownBlockObserver {
+/** Receives proc reports that bypass the random source; declared here so combat code does not depend on results. */
+export interface ProcReportObserver {
   cooldownBlocked(stream: string, opportunities: number): void;
+  /** One trigger whose outcome was decided elsewhere, such as by the hit's critical roll. */
+  outcome(stream: string, chance: number, success: boolean): void;
 }
 
 /** Proc deadlines read only the live clock, selected balance data, and received recharge rates. */
@@ -25,7 +27,7 @@ export interface ProcRegistryContext {
     };
   };
   /** Optional Analysis observer; gameplay never reads it. */
-  readonly procRollRecorder?: ProcCooldownBlockObserver | null;
+  readonly procRollRecorder?: ProcReportObserver | null;
 }
 
 /** Per-run proc deadlines shared by traits, sigils, relics, and food; callers query only their owned keys. */
@@ -38,6 +40,8 @@ export interface ProcRegistry {
   claimCooldown(key: SkillId, at: number, duration: number): boolean;
   /** Reporting only: an eligible proc roll on this random stream arrived while its cooldown was active. */
   reportCooldownBlocked(stream: string, opportunities?: number): void;
+  /** Reporting only: a proc gated by a roll made elsewhere, such as the hit's critical, had this chance and result. */
+  reportOutcome(stream: string, chance: number, success: boolean): void;
 }
 
 /** Fixed proc deadlines and summon recharge work are mutually exclusive authorities for a key. */
@@ -131,6 +135,10 @@ export function createProcRegistry(context: () => ProcRegistryContext): ProcRegi
     // Blocked attempts explain why a higher proc chance adds few procs; runs without an observer skip the count.
     reportCooldownBlocked(stream: string, opportunities = 1): void {
       context().procRollRecorder?.cooldownBlocked(stream, opportunities);
+    },
+    // Critical-gated procs never call the random source themselves, so their owners report each outcome.
+    reportOutcome(stream: string, chance: number, success: boolean): void {
+      context().procRollRecorder?.outcome(stream, chance, success);
     }
   };
 }

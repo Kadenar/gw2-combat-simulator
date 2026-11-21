@@ -37,6 +37,38 @@ test('observed rolls keep the seeded sequence and count certain and impossible c
   });
 });
 
+// Procs decided by another roll report each outcome; their row shows the mean chance and ignores overrides.
+test('observed procs tally reported outcomes and show the mean chance their triggers rolled', () => {
+  const recorder = createProcRollRecorder();
+  const procs = createProcRegistry(() => ({ procRollRecorder: recorder }));
+  const profile = {
+    id: 'fixture.trait',
+    name: 'Fixture',
+    procObservation: { id: 'fixture.observed', traitId: 7, opportunity: 'fixture hit' }
+  };
+  const project = () =>
+    projectProcRateObservations({
+      config: { procRateOverrides: { 'fixture.observed': 1 } },
+      traits: new Set([7]),
+      helpers: { balanceProfilesById: new Map([[profile.id, profile]]) },
+      procRollRecorder: recorder
+    });
+  const summary = ([row]) => ({
+    overridable: row.overridable,
+    chance: row.chance,
+    defaultChance: row.defaultChance,
+    custom: row.custom,
+    triggers: row.triggers,
+    procs: row.procs,
+    expectedProcs: row.expectedProcs
+  });
+  const idle = { overridable: false, defaultChance: null, custom: false, procs: 0, expectedProcs: 0 };
+  assert.deepEqual(summary(project()), { ...idle, chance: 0, triggers: 0 });
+  procs.reportOutcome('fixture.observed', 0.5, true);
+  procs.reportOutcome('fixture.observed.illusion', 0.25, false);
+  assert.deepEqual(summary(project()), { ...idle, chance: 0.375, triggers: 2, procs: 1, expectedProcs: 0.75 });
+});
+
 // A 100% override still counts its triggers; critical hits during the ICD are reported instead of rolled.
 test('critical procs count declared-chance triggers and cooldown-blocked hits', () => {
   const recorder = createProcRollRecorder();

@@ -239,6 +239,13 @@ export interface BalanceProfile extends CatalogEntity {
     readonly field: string;
     readonly opportunity: string;
   };
+  /** Lists a proc decided by another roll, such as the hit's critical, in Analysis proc rates without an override. */
+  readonly procObservation?: {
+    /** Reporting stream; the owner reports each trigger's chance and outcome under it. */
+    readonly id: string;
+    readonly traitId: SkillId;
+    readonly opportunity: string;
+  };
   /** Trait-owned summon inheritance fractions and attribute caps. */
   readonly inheritanceRatio?: number;
   readonly secondaryAttributeCap?: number;

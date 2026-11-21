@@ -1,4 +1,7 @@
-/** Shows each overridable proc's chance beside this run's observed rate, so a changed override can be checked. */
+/**
+ * Shows each overridable proc's chance beside this run's observed rate, so a changed override can be checked,
+ * and lists procs decided by another roll, such as a critical hit, with the mean chance they rolled.
+ */
 import type { Gw2ProcRateObservation } from '#gw2/platform/results/proc-rate-observations.js';
 import { escapeHtml } from '#ui/shared/html.js';
 
@@ -20,11 +23,20 @@ function expectedProcs(observation: Gw2ProcRateObservation): string {
     : count(observation.expectedProcs);
 }
 
-/** A custom chance names its default beside it so the change is readable without opening the override control. */
-function customChance(observation: Gw2ProcRateObservation): string {
-  if (!observation.custom) return '';
+/**
+ * A custom chance names its default beside it so the change is readable without opening the override control.
+ * An observed proc has no configured chance; it shows the mean chance its triggers rolled.
+ */
+function chanceHtml(observation: Gw2ProcRateObservation): string {
+  if (!observation.overridable) {
+    return observation.triggers
+      ? `${percent(observation.chance)}<span class="proc-rate-detail">average</span>`
+      : '&ndash;';
+  }
 
-  return `<span class="proc-rate-custom">custom</span><span class="proc-rate-detail">default ${percent(observation.defaultChance)}</span>`;
+  if (!observation.custom || observation.defaultChance === null) return percent(observation.chance);
+
+  return `${percent(observation.chance)}<span class="proc-rate-custom">custom</span><span class="proc-rate-detail">default ${percent(observation.defaultChance)}</span>`;
 }
 
 export function procRatesHtml(observations: readonly Gw2ProcRateObservation[]): string {
@@ -50,7 +62,7 @@ export function procRatesHtml(observations: readonly Gw2ProcRateObservation[]): 
             .map(
               (observation) => `<tr>
             <th scope="row">${escapeHtml(observation.name)}<span class="proc-rate-detail">per ${escapeHtml(observation.opportunity)}</span></th>
-            <td>${percent(observation.chance)}${customChance(observation)}</td>
+            <td>${chanceHtml(observation)}</td>
             <td>${observation.triggers ? percent(observation.procs / observation.triggers) : '&ndash;'}</td>
             <td>${count(observation.procs)}</td>
             <td>${count(observation.triggers)}</td>

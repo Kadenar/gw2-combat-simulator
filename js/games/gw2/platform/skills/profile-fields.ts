@@ -21,6 +21,7 @@ export const SHARED_PROFILE_FIELDS: FieldSpecs = defineFields({
   effects: dataField,
   cooldownPolicy: dataField,
   procRate: dataField,
+  procObservation: dataField,
 
   // Recharge, resource costs, and regeneration.
   cooldown: numberField({ patch: 'primary', unit: 'seconds' }),
