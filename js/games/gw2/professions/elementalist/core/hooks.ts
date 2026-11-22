@@ -34,7 +34,11 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/pistol.js';
 import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
 import { elementalistRockBarrierLifecycle } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
-import { createElementalistSpearLifecycle } from '#gw2/professions/elementalist/core/mechanics/spear.js';
+import {
+  advanceElementalistEtchings,
+  beginElementalistSpearCast,
+  elementalistSpearLifecycle
+} from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import { elementalistStaffLifecycle } from '#gw2/professions/elementalist/core/mechanics/staff.js';
 import {
   auraAccepted,
@@ -52,14 +56,9 @@ import { OBSERVABLE_EVENT_HANDLER, RECORD_OBSERVATION_EVENT_HANDLER } from '#ker
 /** Registers cast, resource, and reaction callbacks with the callbacks from each Core mechanic. */
 export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeState, ElementalistSkill>([
   elementalistElementalLifecycle,
-  elementalistWeaponStateLifecycle,
-  elementalistRockBarrierLifecycle,
   elementalistAuraLifecycle,
   elementalistConjureLifecycle,
-  elementalistHammerOrbLifecycle,
-  elementalistPistolLifecycle,
-  elementalistStaffLifecycle,
-  createElementalistSpearLifecycle({
+  {
     buffPolicies: (runtime) => elementalistBuffPolicies(runtime.helpers),
     observeEffects: elementalistEffectStates,
     sideEffectHandlers: elementalistCoreSideEffectHandlers,
@@ -95,9 +94,14 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
       return prepareElementalistHitboxEvent(runtime, prepared);
     },
     onCastStart(runtime, cast) {
+      if (cast.cancelledBeforeCommit) return;
+
       ensureElementalistElemental(runtime, cast.skill);
+      beginElementalistSpearCast(runtime, cast);
     },
     onCastCommit(runtime, cast) {
+      // Core observers see the updated etching and can still use this cast's spear bonuses.
+      advanceElementalistEtchings(runtime, cast.skill, 1);
       elementalistOnCastCommit(runtime, cast, cast.skill);
     },
     onCooldownReset: resetElementalistAttunementCooldowns,
@@ -126,5 +130,12 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
         if (acceptElementalistAuraReaction(runtime, event)) runtime.fireTrigger(auraAccepted, { cause: event });
       }
     }
-  })
+  },
+  // Spear uses Core's filtered packets and clears cast bonuses after Core's commit observers run.
+  elementalistWeaponStateLifecycle,
+  elementalistRockBarrierLifecycle,
+  elementalistHammerOrbLifecycle,
+  elementalistPistolLifecycle,
+  elementalistStaffLifecycle,
+  elementalistSpearLifecycle
 ]);

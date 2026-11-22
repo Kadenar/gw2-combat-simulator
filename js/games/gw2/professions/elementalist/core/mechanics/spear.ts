@@ -7,7 +7,7 @@ import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
-import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { requireEffect, requireSkill, skillNumber, type SkillSource } from '#gw2/platform/skills/balance-profiles.js';
 import { elementalistControlRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
@@ -40,7 +40,7 @@ function finishElementalistSpearCast(context: ElementalistRuntime, cast: Runtime
 }
 
 /** Snapshots armed one-shot bonuses for the next eligible spear activation. */
-function beginElementalistSpearCast(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
+export function beginElementalistSpearCast(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const state = professionCoreState(context.profession);
   const skill = cast.skill;
 
@@ -204,8 +204,10 @@ const elementalistSpearMechanicHandlers = Object.freeze({
   }
 });
 
-/** Intrinsic spear work shares the same owner as the surrounding shared cast observers. */
-const spearActions = {
+/** Resolve spear bonuses, etchings, and Fulgor through Core's ordered hooks. */
+export const elementalistSpearLifecycle = {
+  prepareEvent: prepareElementalistSpearEvent,
+  onCastCommit: finishElementalistSpearCast,
   onCastCancel(context, cast) {
     // An activated, cancelled cast still earns etching credit; zero-length cancellations do not.
     if (cast.effectiveEnd > cast.start) advanceElementalistEtchings(context, cast.skill, 1);
@@ -251,33 +253,6 @@ const spearActions = {
     }
   }
 } satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;
-
-/** Keep spear sequencing behind the existing hook interface while Core supplies its shared observers. */
-export function createElementalistSpearLifecycle(
-  shared: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>
-): RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> {
-  return composeRuntimeHooks([
-    spearActions,
-    {
-      ...shared,
-      onCastStart(context, cast) {
-        if (cast.cancelledBeforeCommit) return;
-
-        shared.onCastStart?.(context, cast);
-        beginElementalistSpearCast(context, cast);
-      },
-      onCastCommit(context, cast) {
-        advanceElementalistEtchings(context, cast.skill, 1);
-        shared.onCastCommit?.(context, cast);
-        finishElementalistSpearCast(context, cast);
-      },
-      prepareEvent(context, event) {
-        const prepared = shared.prepareEvent ? shared.prepareEvent(context, event) : event;
-        return prepared === null ? null : prepareElementalistSpearEvent(context, prepared);
-      }
-    }
-  ]);
-}
 
 const FULGOR_OWNER = { id: 'elementalist.fulgor', generation: 0 };
 

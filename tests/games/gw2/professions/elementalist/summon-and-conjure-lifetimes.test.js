@@ -3,11 +3,8 @@ import test from 'node:test';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import {
-  createElementalistSpearLifecycle,
-  openElementalistEtching
-} from '#gw2/professions/elementalist/core/mechanics/spear.js';
-import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
+import { openElementalistEtching } from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -104,38 +101,36 @@ test('selected spear bonuses preserve one-shot acceptance while etchings always 
     [ID.SEETHE]: { nextSkillDamageMultiplier: 1.7 },
     [ID.RIPPLE]: { nextSkillRechargeMultiplier: 0.4 }
   });
-  const balance = profession.resolvePatch({ id: 'mechanic-ownership' }).balanceContext;
-  const core = createElementalistCoreState();
-  const context = { helpers: balance.catalog, profession: { core }, time: 0, schedule() {} };
-  const skill = balance.catalog.skillsById.get(ID.BLAZING_BARRAGE);
-  const lifecycle = createElementalistSpearLifecycle({});
+  const context = observedRuntime(runElementalist([], { patchId: 'mechanic-ownership' }, { profession })).mechanics;
+  const core = context.profession.core;
+  const skill = context.helpers.skillsById.get(ID.BLAZING_BARRAGE);
   core.spearNextDamageBonus = true;
   const first = { id: 'first', skill };
-  lifecycle.onCastStart(context, first);
-  lifecycle.onCastStart(context, { id: 'second', skill });
+  elementalistCoreHooks.onCastStart(context, first);
+  elementalistCoreHooks.onCastStart(context, { id: 'second', skill });
   assert.equal(core.spearNextDamageBonus, false);
   assert.equal(core.spearFollowups.second, undefined);
   // Preparation selects its activation's accepted bonus; retiring that cast cannot erase an already prepared packet.
   const packet = { type: 'damage', coefficient: 2, activationId: first.id };
-  const prepared = lifecycle.prepareEvent(context, packet);
+  const prepared = elementalistCoreHooks.prepareEvent(context, packet);
   assert.equal(prepared.coefficient, 2);
   assert.equal(prepared.metadata.elementalistSeetheDamageFactor, 1.7);
-  assert.equal(lifecycle.prepareEvent(context, { ...packet, activationId: 'second' }).metadata, undefined);
-  lifecycle.onCastCommit(context, first);
-  assert.equal(lifecycle.prepareEvent(context, packet).metadata, undefined);
+  assert.equal(elementalistCoreHooks.prepareEvent(context, { ...packet, activationId: 'second' }).metadata, undefined);
+  elementalistCoreHooks.onCastCommit(context, first);
+  assert.equal(elementalistCoreHooks.prepareEvent(context, packet).metadata, undefined);
   assert.equal(prepared.metadata.elementalistSeetheDamageFactor, 1.7);
   core.spearNextRechargeReduction = true;
-  assert.equal(lifecycle.reserveRecharge(context, balance.catalog.skillsById.get(ID.FLAME_SPEAR), 10), 10);
+  assert.equal(elementalistCoreHooks.reserveRecharge(context, context.helpers.skillsById.get(ID.FLAME_SPEAR), 10), 10);
   assert.equal(core.spearNextRechargeReduction, true);
-  assert.equal(lifecycle.reserveRecharge(context, skill, 10), 4);
-  assert.equal(lifecycle.reserveRecharge(context, skill, 10), 10);
+  assert.equal(elementalistCoreHooks.reserveRecharge(context, skill, 10), 4);
+  assert.equal(elementalistCoreHooks.reserveRecharge(context, skill, 10), 10);
   // Balance previews can change spear bonuses without changing etching progression.
   for (const entry of roots) {
-    const root = balance.catalog.skillsById.get(entry.id);
+    const root = context.helpers.skillsById.get(entry.id);
     openElementalistEtching(context, root);
-    for (let credit = 0; credit < 2; credit++) lifecycle.onCastCommit(context, { id: 'credit', skill });
+    for (let credit = 0; credit < 2; credit++) elementalistCoreHooks.onCastCommit(context, { id: 'credit', skill });
     assert.equal(core.etchings[root.name].stage, 'lesser');
-    lifecycle.onCastCommit(context, { id: 'credit', skill });
+    elementalistCoreHooks.onCastCommit(context, { id: 'credit', skill });
     assert.equal(core.etchings[root.name].stage, 'full');
   }
 });

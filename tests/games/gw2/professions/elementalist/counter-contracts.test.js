@@ -3,8 +3,8 @@ import test from 'node:test';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
+  advanceElementalistEtchings,
   consumeElementalistEtching,
-  createElementalistSpearLifecycle,
   openElementalistEtching
 } from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
@@ -164,8 +164,7 @@ test('etching counters retain independent crossing values and reset only with th
   const air = elementalistCatalog.skillsById.get(ID.ETCHING_DERECHO);
   const release = elementalistCatalog.skillsById.get(ID.VOLCANO);
   const ordinary = elementalistCatalog.skillsById.get(73137);
-  const lifecycle = createElementalistSpearLifecycle({});
-  const credit = (skill) => lifecycle.onCastCommit(context, { id: 'etching-credit', skill });
+  const credit = (skill) => advanceElementalistEtchings(context, skill, 1);
   openElementalistEtching(context, fire);
   credit(fire);
   assert.equal(core.etchings[fire.name].otherCasts, 0);
