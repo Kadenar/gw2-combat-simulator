@@ -708,6 +708,11 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
   })
 });
 
+/** A skill counts as a Mirage ambush only when it is the registered ambush for that weapon. */
+export function isMirageAmbush(skill: MesmerSkill, weapon: string): skill is MesmerAmbushAttack {
+  return skill.id === MESMER_MIRAGE_AMBUSH_SKILLS[weapon]?.id;
+}
+
 /** One complete module collection includes authored skills, generated attacks, and simulator actions. */
 export const MESMER_MIRAGE_SKILLS: readonly MesmerSkill[] = Object.freeze([
   ...materializeSkillDefinitions(MESMER_MIRAGE_SKILL_MECHANICS),

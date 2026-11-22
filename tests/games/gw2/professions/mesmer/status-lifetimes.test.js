@@ -13,7 +13,6 @@ import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
 import {
   createMirageMechanics,
-  mesmerAmbushAttacks,
   mirageAvailability
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import {
@@ -414,7 +413,7 @@ test('player ambush availability and projection preserve the last live tick and 
   const context = lifetimeContext();
   const controller = createMirageMechanics(context);
   const state = context.profession.specialization.state;
-  const skill = mesmerAmbushAttacks(context).Sword;
+  const skill = context.catalog.skillsById.get(ID.MIRAGE_THRUST);
   controller.grantMirageCloak(0.1 + 0.201, 'first');
   assert.equal(state.ambushUntil, 1.84);
   for (const at of [1.8, 1.84, 1.88]) {
@@ -442,7 +441,7 @@ test('player ambush availability and projection preserve the last live tick and 
 test('queued ambush admission uses accepted cast occupancy without consulting action history', () => {
   for (const castStart of [1.8, 1.84, 1.88]) {
     const context = lifetimeContext();
-    const skill = mesmerAmbushAttacks(context).Sword;
+    const skill = context.catalog.skillsById.get(ID.MIRAGE_THRUST);
     createMirageMechanics(context).grantMirageCloak(0.32, 'test');
     context.time = castStart;
     mirageHooks.onCastStart(context, {
@@ -476,7 +475,7 @@ test('cloak granted during an accepted cast preserves ambush admission without e
   });
   context.time = 1;
   createMirageMechanics(context).grantMirageCloak(1, 'test');
-  const ambush = mesmerAmbushAttacks(context).Sword;
+  const ambush = context.catalog.skillsById.get(ID.MIRAGE_THRUST);
   context.time = 3;
   assert.equal(mirageAvailability(context, ambush).ready, true);
   context.time = 3.1;

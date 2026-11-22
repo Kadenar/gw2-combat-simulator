@@ -39,31 +39,22 @@ import {
   mirageCloneAmbushRequested,
   mirageInitialized
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/trigger-points.js';
-import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
+import {
+  isMirageAmbush,
+  MESMER_MIRAGE_AMBUSH_SKILLS
+} from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type {
   MesmerMirageCloakOptions,
   MesmerMirageController
 } from '#gw2/professions/mesmer/specializations/mirage/types.js';
-import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
+import type { MesmerAmbushAttack, MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
-
-/** Selected catalog profiles supply player and clone ambushes without mutable runtime lookup tables. */
-export function mesmerAmbushAttacks(context: MesmerRuntime) {
-  return Object.fromEntries(
-    Object.entries(MESMER_MIRAGE_AMBUSH_SKILLS).map(([weapon, attack]) => [
-      weapon,
-      mesmerSelectedAmbush(context.helpers, attack.id)
-    ])
-  );
-}
 
 /**
  * Owns cloak, ambush, and shatter reactions for the registered Mirage module.
  */
 export function createMirageMechanics(state: MesmerRuntime): MesmerMirageController {
-  const ambushAttacks = mesmerAmbushAttacks(state);
-  const cloneAttacks = MESMER_CORE_CLONE_ATTACKS;
   const activePrimaryWeapon = () => gw2ActivePrimaryWeapon(state.config, state.activeWeaponSet === 1 ? 1 : 2) || '';
   // Ground mirrors use exact half-open pickup windows; skill metadata owns any creation delay.
   const createMirrors = (at: number, count: number) => {
@@ -92,12 +83,9 @@ export function createMirageMechanics(state: MesmerRuntime): MesmerMirageControl
   ) => {
     state.fireTrigger(mirageCloneAmbushRequested, {
       at,
-
       weapon: activePrimaryWeapon(),
       delivery,
-      clones: [...clones],
-      ambushAttacks,
-      cloneAttacks
+      clones: [...clones]
     });
   };
 
@@ -155,15 +143,14 @@ export function createMirageMechanics(state: MesmerRuntime): MesmerMirageControl
 
   // Accepted ambushes consume their window and schedule only trait-owned consequences.
   const acceptPlayerAmbush = (skill: MesmerSkill, at: number, castStart = at, delivery: EffectDelivery = {}) => {
-    // The ambush keeps the weapon selected when its cast began, even if the
-    // rotation swaps weapons before completion mechanics are dispatched.
+    // The accepted skill carries the selected weapon's timing across a weapon swap.
     const weapon = skill.weapon || activePrimaryWeapon();
-    const ambush = ambushAttacks[weapon];
 
-    if (!ambush || skill.id !== ambush.id) return;
+    if (!isMirageAmbush(skill, weapon)) return;
 
-    const impactAt = gw2Time(ambush.player.damageAtMs == null ? at : castStart + ambush.player.damageAtMs / 1000);
-    state.fireTrigger(mirageAmbushAccepted, { ambush, impactAt, delivery });
+    const { damageAtMs } = skill.player;
+    const impactAt = gw2Time(damageAtMs == null ? at : castStart + damageAtMs / 1000);
+    state.fireTrigger(mirageAmbushAccepted, { ambush: skill, impactAt, delivery });
 
     mirageState.from(state.profession).ambushUntil = 0;
     mirageState.from(state.profession).ambushSource = '';
@@ -294,22 +281,24 @@ export const mirageEndurance: EndurancePolicy<MesmerRuntime> = {
 /** Materialize admitted clone ambushes under their captured weapon and clone ownership. */
 export function executeMirageCloneAmbushPackets(
   state: MesmerRuntime,
-  {
-    at,
-    clones,
-    weapon: activeWeapon,
-    delivery,
-    ambushAttacks,
-    cloneAttacks
-  }: TriggerPointInput<typeof mirageCloneAmbushRequested>
+  { at, clones, weapon: activeWeapon, delivery }: TriggerPointInput<typeof mirageCloneAmbushRequested>
 ): void {
+  // Clones with the same weapon share a selected profile for this attack group. Each keeps its own packet owner.
+  const ambushes = new Map<string, MesmerAmbushAttack>();
   for (const clone of clones) {
     const weapon = clone.weapon || activeWeapon;
-    const ambush = ambushAttacks[weapon];
+    let ambush = ambushes.get(weapon);
 
-    if (!ambush) continue;
+    if (!ambush) {
+      const definition = MESMER_MIRAGE_AMBUSH_SKILLS[weapon];
 
-    const attack = cloneAttacks[weapon] || cloneAttacks.Sword;
+      if (!definition) continue;
+
+      ambush = mesmerSelectedAmbush(state.helpers, definition.id);
+      ambushes.set(weapon, ambush);
+    }
+
+    const attack = MESMER_CORE_CLONE_ATTACKS[weapon] || MESMER_CORE_CLONE_ATTACKS.Sword;
     const attribution = mesmerCloneAttribution(clone.id);
     // Keep catalog identity on summon packets so ownership, rather than a synthetic skill ID, separates actors.
     const pseudo = {
@@ -321,12 +310,11 @@ export function executeMirageCloneAmbushPackets(
     // Explicit summon ownership keeps clone ambush packets independent of their display labels.
     const impactAt = gw2Time(at + (ambush.clone.castTimeMs || 0) / 1000);
     // Clone ambushes use the weapon's authored control and retain summon ownership.
-    const skill = state.helpers.skillsById.get(ambush.id);
-    for (const effect of skill?.effects || []) {
+    for (const effect of ambush.effects || []) {
       if (effect.type !== 'control') continue;
 
       for (const application of materializeSkillEffectApplications({
-        skill: skill!,
+        skill: ambush,
         effect,
         start: at,
         fullEnd: impactAt,
@@ -466,9 +454,7 @@ export const mirageActionLifecycle: RuntimeHooks<MesmerRuntimeState, MesmerSkill
         at: runtime.time,
         clones: [...professionCoreState(runtime.profession).clones],
         weapon: mesmerActivePrimaryWeapon(runtime),
-        delivery: mesmerCastDelivery(cast, cast.skill),
-        ambushAttacks: mesmerAmbushAttacks(runtime),
-        cloneAttacks: MESMER_CORE_CLONE_ATTACKS
+        delivery: mesmerCastDelivery(cast, cast.skill)
       });
     }
 
