@@ -57,6 +57,13 @@ export const OPTIMIZER_REQUIREMENTS = {
   ...OPTIMIZER_OVERCAP_REQUIREMENTS
 } as const;
 
+export type OptimizerSearchMode = 'fast' | 'two-pass' | 'exact';
+
+/** Both sampled modes refine their best setups in rounds. */
+export function isFastOptimizerSearch(mode: OptimizerSearchMode | undefined): boolean {
+  return mode === 'fast' || mode === 'two-pass';
+}
+
 export interface GearOptimizerRequest {
   readonly gameId: 'gw2';
   readonly contentId: string;
@@ -66,7 +73,7 @@ export interface GearOptimizerRequest {
   readonly patch: PatchSelection;
   readonly selections: GearOptimizerSelections;
   readonly limit: number;
-  readonly search?: 'exact' | 'fast';
+  readonly search?: OptimizerSearchMode;
 }
 
 export type OptimizerEquipment = Pick<
@@ -129,7 +136,7 @@ function freezeSnapshot<T>(value: T): T {
 export function captureGearOptimizerRequest(
   app: ProfessionAppState,
   selections: GearOptimizerSelections,
-  search: 'exact' | 'fast' = 'exact'
+  search: OptimizerSearchMode = 'exact'
 ): GearOptimizerRequest {
   // Encounter inputs cannot be represented by a Golem equipment-search request.
   if (app.workspace?.scenario) throw new Error('Gear Optimizer is available only in Golem.');
@@ -203,7 +210,7 @@ export function optimizerSlots(build: Gw2CanonicalBuild, adapter: OptimizerConte
 }
 
 export function createOptimizerSpace(request: GearOptimizerRequest, adapter: OptimizerContext): OptimizerSpace {
-  if (request.search !== undefined && !['exact', 'fast'].includes(request.search))
+  if (request.search !== undefined && request.search !== 'exact' && !isFastOptimizerSearch(request.search))
     throw new TypeError('Invalid optimizer search mode.');
 
   if (

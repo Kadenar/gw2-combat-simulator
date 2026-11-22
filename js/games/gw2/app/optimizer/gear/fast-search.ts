@@ -15,8 +15,8 @@ import {
   type OptimizerEquipment
 } from '#gw2/app/optimizer/gear/search.js';
 
-export const OPTIMIZER_SEARCH_BUDGET = 2048;
 const ROUND_SIZE = 256;
+const PASS_BUDGET = 2048;
 
 /** Sample legal builds, then expand promising neighbors without ever constructing the full stat index. */
 export function createFastOptimizer(request: GearOptimizerRequest, adapter: OptimizerContext) {
@@ -25,9 +25,11 @@ export function createFastOptimizer(request: GearOptimizerRequest, adapter: Opti
   const scoreRange = createOptimizerRangeScorer(ordinary, adapter, evaluator);
   const seen = new Set<string>();
   let candidates: OptimizerEquipment[] = [];
+  let searchBudget = PASS_BUDGET;
+  let secondPassAvailable = request.search === 'two-pass' && ordinary.rawCount > BigInt(ROUND_SIZE);
   const space = { ordinary, count: 0n };
   const add = (equipment: OptimizerEquipment): void => {
-    if (seen.size >= OPTIMIZER_SEARCH_BUDGET || candidates.length >= ROUND_SIZE) return;
+    if (seen.size >= searchBudget || candidates.length >= ROUND_SIZE) return;
 
     const key = optimizerEquivalenceKey(equipment, ordinary, adapter);
 
@@ -50,6 +52,21 @@ export function createFastOptimizer(request: GearOptimizerRequest, adapter: Opti
 
   add(current);
 
+  const sample = (seed: number): void => {
+    let random = seed;
+    for (let attempt = 0; attempt < ROUND_SIZE * 16 && candidates.length < ROUND_SIZE; attempt++) {
+      const equipment = optimizerEquipment(request.build);
+      for (const dimension of ordinary.dimensions) {
+        random ^= random << 13;
+        random ^= random >>> 17;
+        random ^= random << 5;
+        assignOptimizerChoice(equipment, dimension.key, dimension.choices[(random >>> 0) % dimension.choices.length]);
+      }
+
+      add(equipment);
+    }
+  };
+
   if (ordinary.rawCount <= BigInt(ROUND_SIZE)) {
     for (let ordinal = 0n; ordinal < ordinary.rawCount; ordinal++) add(ordinaryEquipmentAt(ordinary, ordinal));
   } else {
@@ -67,29 +84,18 @@ export function createFastOptimizer(request: GearOptimizerRequest, adapter: Opti
       add(equipment);
     }
 
-    let random = 0x9e3779b9;
-    for (let attempt = 0; attempt < ROUND_SIZE * 16 && candidates.length < ROUND_SIZE; attempt++) {
-      const equipment = optimizerEquipment(request.build);
-      for (const dimension of ordinary.dimensions) {
-        random ^= random << 13;
-        random ^= random >>> 17;
-        random ^= random << 5;
-        assignOptimizerChoice(equipment, dimension.key, dimension.choices[(random >>> 0) % dimension.choices.length]);
-      }
-
-      add(equipment);
-    }
+    sample(0x9e3779b9);
   }
 
   space.count = BigInt(candidates.length);
 
-  // ponytail: single-dimension neighborhoods can miss interacting improvements; diverse starts reduce, not remove, that risk.
-  const refine = (winners: readonly OptimizerCandidate[]): void => {
+  // Score each batch of single changes before choosing which setups to refine next.
+  const refine = (winners: readonly OptimizerCandidate[]): boolean => {
     candidates = [];
     outer: for (const winner of winners.slice(0, 8)) {
       for (const dimension of ordinary.dimensions) {
         for (const choice of dimension.choices) {
-          if (seen.size >= OPTIMIZER_SEARCH_BUDGET || candidates.length >= ROUND_SIZE) break outer;
+          if (seen.size >= searchBudget || candidates.length >= ROUND_SIZE) break outer;
 
           const equipment = structuredClone(winner.equipment);
           assignOptimizerChoice(equipment, dimension.key, choice);
@@ -98,7 +104,20 @@ export function createFastOptimizer(request: GearOptimizerRequest, adapter: Opti
       }
     }
 
+    // Give the second sample its own budget and winners while skipping setups scored by either pass.
+    // ponytail: pass 2 cannot refine through a pass-1 setup it skips, so it can stop at pass 1's explored area.
+    let startedSecondPass = false;
+
+    if (!candidates.length && secondPassAvailable) {
+      secondPassAvailable = false;
+      searchBudget = seen.size + PASS_BUDGET;
+      sample(0x243f6a88);
+      // Equivalent setups share a key, so only the sample itself shows whether unscored setups remain.
+      startedSecondPass = candidates.length > 0;
+    }
+
     space.count = BigInt(candidates.length);
+    return startedSecondPass;
   };
 
   const evaluateRange = (start: bigint, end: bigint, onProgress?: OptimizerRangeProgress) => {

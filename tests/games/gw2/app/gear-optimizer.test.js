@@ -6,7 +6,7 @@ import {
   optimizerEquipmentIdentity,
   retainOptimizerGroup
 } from '#gw2/app/optimizer/gear/candidate-results.js';
-import { createFastOptimizer, OPTIMIZER_SEARCH_BUDGET } from '#gw2/app/optimizer/gear/fast-search.js';
+import { createFastOptimizer } from '#gw2/app/optimizer/gear/fast-search.js';
 import { GearOptimizerRunner } from '#gw2/app/optimizer/gear/runner.js';
 import {
   createGroupedOptimizer,
@@ -20,6 +20,7 @@ import {
   compareOptimizerCandidates,
   createOptimizerEvaluator,
   createOptimizerSpace,
+  isFastOptimizerSearch,
   isOptimizerRequestCurrent,
   meetsOptimizerOvercapRequirements,
   optimizerCardinality,
@@ -369,10 +370,9 @@ class OptimizerTestWorker {
       let result;
 
       if (message.kind === 'init') {
-        this.job =
-          message.request.search === 'fast'
-            ? createFastOptimizer(message.request, adapter)
-            : createGroupedOptimizer(message.request, adapter);
+        this.job = isFastOptimizerSearch(message.request.search)
+          ? createFastOptimizer(message.request, adapter)
+          : createGroupedOptimizer(message.request, adapter);
         const score = this.job.evaluator.score;
         this.job.evaluator.score = (equipment) => {
           const key = optimizerEquivalenceKey(equipment, this.job.space.ordinary, adapter);
@@ -399,9 +399,20 @@ class OptimizerTestWorker {
           ...(baseline ? { baseline } : {})
         };
       } else if (message.kind === 'refine') {
-        this.job.refine(message.candidates);
+        if (this.firstPassKeys) {
+          assert.ok(
+            message.candidates.every(({ key }) => !this.firstPassKeys.has(key)),
+            'each pass refines its own winners'
+          );
+        }
+
+        const startedSecondPass = this.job.refine(message.candidates);
+
+        if (startedSecondPass) this.firstPassKeys = new Set(this.searchedKeys);
+
         result = {
           kind: 'ready',
+          startedSecondPass,
           count: this.job.space.count.toString(),
           rawCount: this.job.space.ordinary.rawCount.toString()
         };
@@ -538,7 +549,7 @@ test('bounded refinement stays deterministic across worker counts without rescor
     ),
     search: 'fast'
   };
-  const run = (count) =>
+  const run = (count, search) =>
     new Promise((resolve, reject) => {
       const searchedKeys = new Set();
       const runner = new GearOptimizerRunner(
@@ -560,7 +571,7 @@ test('bounded refinement stays deterministic across worker counts without rescor
           if (runner.state.status === 'complete') {
             assert.equal(BigInt(searchedKeys.size), runner.state.simulations);
             assert.ok(runner.state.simulations > 256n, 'refinement must add new candidates after sampling');
-            assert.ok(runner.state.simulations <= BigInt(OPTIMIZER_SEARCH_BUDGET));
+            assert.ok(runner.state.simulations <= (search === 'fast' ? 2048n : 4096n));
             assert.ok(
               runner.state.representedCombinationCount < runner.state.rawCount,
               'bounded completion must not imply exhaustive coverage'
@@ -571,10 +582,13 @@ test('bounded refinement stays deterministic across worker counts without rescor
         () => new OptimizerTestWorker(searchedKeys),
         count
       );
-      runner.run(captured);
+      runner.run({ ...captured, search });
     });
-  const single = await run(1);
-  const multiple = await run(4);
+  const fast = await run(1, 'fast');
+  const single = await run(1, 'two-pass');
+  const multiple = await run(4, 'two-pass');
+  assert.ok(single.simulations > fast.simulations);
+  assert.ok(single.winners[0].score.rankingDps >= fast.winners[0].score.rankingDps);
   assert.deepEqual(multiple.winners, single.winners);
   assert.deepEqual(multiple.groups, single.groups);
   assert.equal(multiple.simulations, single.simulations);
@@ -582,33 +596,48 @@ test('bounded refinement stays deterministic across worker counts without rescor
 
 test('bounded search covers a small space and preserves the equipped candidate when allowed', () => {
   const captured = request({ food: ['', request().build.food] });
-  const fast = createFastOptimizer(captured, adapter);
+  const fast = createFastOptimizer({ ...captured, search: 'two-pass' }, adapter);
   const exact = createGroupedOptimizer(captured, adapter);
   const scores = (result) => result.winners.map(({ key, score }) => ({ key, score }));
   const result = fast.evaluateRange(0n, fast.space.count);
   assert.deepEqual(scores(result), scores(exact.evaluateRange(0n, exact.space.count)));
-  fast.refine(result.winners);
+  assert.equal(fast.refine(result.winners), false);
   assert.equal(fast.space.count, 0n);
 });
 
-test('bounded search stops at its simulation budget even when promising neighbors remain', () => {
+test('two-pass search samples again when the first pass has no qualifying winners', () => {
+  const captured = request({ prefixes: ["Berserker's", "Assassin's", "Viper's"] });
+  const job = createFastOptimizer({ ...captured, search: 'two-pass' }, adapter);
+  assert.equal(job.refine([]), true);
+  assert.equal(job.space.count, 256n);
+  assert.equal(job.refine([]), false);
+  assert.equal(job.space.count, 0n);
+});
+
+test('two passes each start with 256 fresh setups and respect separate budgets', () => {
   const captured = request({
     prefixes: ["Berserker's", "Assassin's", "Viper's"],
     rune: RUNE_NAMES,
     sigils: [[SIGIL_NAMES, SIGIL_NAMES]]
   });
-  const job = createFastOptimizer(captured, adapter);
-  const winners = [];
+  const job = createFastOptimizer({ ...captured, search: 'two-pass' }, adapter);
+  assert.equal(job.space.count, 256n);
+  let winners;
   let checked = 0;
   while (job.space.count) {
     const result = job.evaluateRange(0n, job.space.count);
-    checked += Number(result.simulations);
-    assert.ok(checked <= OPTIMIZER_SEARCH_BUDGET);
-    for (const winner of result.winners) retainOptimizerCandidate(winners, winner);
-    job.refine(winners);
+    checked += Number(result.completed);
+    assert.ok(checked <= 4096);
+    // Fresh winners keep supplying neighbors until the search spends its budget.
+    winners = result.winners;
+
+    if (job.refine(winners)) {
+      assert.equal(checked, 2048);
+      assert.equal(job.space.count, 256n);
+    }
   }
 
-  assert.equal(checked, OPTIMIZER_SEARCH_BUDGET);
+  assert.equal(checked, 4096);
   job.refine(winners);
   assert.equal(job.space.count, 0n);
 });

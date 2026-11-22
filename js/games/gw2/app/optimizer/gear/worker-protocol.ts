@@ -23,6 +23,7 @@ export type GearOptimizerWorkerPayload =
           readonly kind: 'ready';
           readonly count: string;
           readonly rawCount: string;
+          readonly startedSecondPass?: boolean;
           readonly baseline?: OptimizerScore;
         }
       | ({ readonly kind: 'progress' } & ChunkProgress)

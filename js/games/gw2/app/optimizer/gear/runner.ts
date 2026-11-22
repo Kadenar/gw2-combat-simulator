@@ -6,6 +6,7 @@ import {
   type OptimizerResultGroups
 } from '#gw2/app/optimizer/gear/candidate-results.js';
 import {
+  isFastOptimizerSearch,
   retainOptimizerCandidate,
   type GearOptimizerRequest,
   type OptimizerCandidate,
@@ -108,11 +109,13 @@ export class GearOptimizerRunner {
     this.request = request;
     this.state = this.emptyState();
     this.state.status = 'preparing';
+    let passWinners = this.state.winners;
     let next = 0n;
     let chunkId = 0;
     let bootstrapped = false;
     let poolSize = 1;
     let roundStarted = false;
+    let roundStartedSecondPass = false;
     let roundOffset = 0n;
     let roundCount = 0n;
     let chunkSize = 1n;
@@ -170,7 +173,7 @@ export class GearOptimizerRunner {
       )
         return;
 
-      if (request.search === 'fast' && roundCount > 0n) {
+      if (isFastOptimizerSearch(request.search) && roundCount > 0n) {
         const workers = [...ready];
         ready.clear();
         roundStarted = false;
@@ -179,10 +182,10 @@ export class GearOptimizerRunner {
           worker.postMessage({
             kind: 'refine',
             requestId,
-            candidates: this.state.winners
+            candidates: passWinners
           } satisfies GearOptimizerWorkerRequest);
       } else {
-        if (request.search !== 'fast' && this.state.representedCombinationCount !== this.state.rawCount)
+        if (!isFastOptimizerSearch(request.search) && this.state.representedCombinationCount !== this.state.rawCount)
           throw new Error('Optimizer coverage does not match the legal search space.');
 
         this.state.status = 'verifying';
@@ -227,9 +230,18 @@ export class GearOptimizerRunner {
 
         if (!roundStarted) {
           roundStarted = true;
+
+          roundStartedSecondPass = message.startedSecondPass === true;
+
+          // Refine the second sample independently and keep the first pass in the overall rankings.
+          if (roundStartedSecondPass) passWinners = [];
+
           roundCount = BigInt(message.count);
           this.state.count = roundOffset + roundCount;
-        } else if (BigInt(message.count) !== roundCount) {
+        } else if (
+          BigInt(message.count) !== roundCount ||
+          (message.startedSecondPass === true) !== roundStartedSecondPass
+        ) {
           throw new Error('Optimizer workers disagree on the search space.');
         }
 
@@ -279,7 +291,14 @@ export class GearOptimizerRunner {
         }
 
         pending.delete(worker);
-        for (const candidate of message.winners) retainOptimizerCandidate(this.state.winners, candidate, request.limit);
+        for (const candidate of message.winners) {
+          retainOptimizerCandidate(this.state.winners, candidate, request.limit);
+
+          // Retaining merges equal keys in place, so each list gets its own record.
+          if (passWinners !== this.state.winners)
+            retainOptimizerCandidate(passWinners, { ...candidate }, request.limit);
+        }
+
         // Unusable sets stay fixed in the captured equipment, so including them here cannot split a group.
         for (const filter of Object.keys(this.state.groups) as OptimizerGroupedFilter[]) {
           for (const candidate of message.groups[filter])

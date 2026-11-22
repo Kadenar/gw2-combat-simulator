@@ -39,8 +39,13 @@ self.addEventListener(
       self.postMessage({ requestId: data.requestId, ...payload } satisfies GearOptimizerWorkerResponse);
     try {
       // Keep shared code out of the entry chunk so WebKit cannot reimport it and install an uninitialized listener.
-      const { optimizerEquipment, optimizerScore, verifyOptimizerScore, meetsOptimizerOvercapRequirements } =
-        await import('#gw2/app/optimizer/gear/search.js');
+      const {
+        optimizerEquipment,
+        optimizerScore,
+        verifyOptimizerScore,
+        meetsOptimizerOvercapRequirements,
+        isFastOptimizerSearch
+      } = await import('#gw2/app/optimizer/gear/search.js');
 
       if (data.kind === 'init') {
         activeId = data.requestId;
@@ -55,10 +60,9 @@ self.addEventListener(
 
         if (activeId !== data.requestId) return;
 
-        job =
-          data.request.search === 'fast'
-            ? createFastOptimizer(data.request, adapter)
-            : createGroupedOptimizer(data.request, adapter);
+        job = isFastOptimizerSearch(data.request.search)
+          ? createFastOptimizer(data.request, adapter)
+          : createGroupedOptimizer(data.request, adapter);
         // Every worker owns its evaluator; only bootstrap pays for the shared detailed baseline and validates its score.
         const baseline = data.bootstrap
           ? optimizerScore(job.evaluator.evaluate(optimizerEquipment(data.request.build)))
@@ -78,8 +82,13 @@ self.addEventListener(
       if (data.kind === 'refine') {
         if (!('refine' in job) || data.candidates.length > 20) throw new TypeError('Invalid optimizer refinement.');
 
-        job.refine(data.candidates);
-        post({ kind: 'ready', count: job.space.count.toString(), rawCount: job.space.ordinary.rawCount.toString() });
+        const startedSecondPass = job.refine(data.candidates);
+        post({
+          kind: 'ready',
+          count: job.space.count.toString(),
+          rawCount: job.space.ordinary.rawCount.toString(),
+          startedSecondPass
+        });
         return;
       }
 

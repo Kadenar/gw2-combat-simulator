@@ -12,6 +12,7 @@ import {
   applyOptimizerCandidate,
   captureGearOptimizerRequest,
   createOptimizerSpace,
+  isFastOptimizerSearch,
   isOptimizerRequestCurrent,
   OPTIMIZER_OVERCAP_REQUIREMENTS,
   OPTIMIZER_REQUIREMENTS,
@@ -23,7 +24,8 @@ import {
   type GearOptimizerSelections,
   type OptimizerCandidate,
   type OptimizerEquipment,
-  type OptimizerScore
+  type OptimizerScore,
+  type OptimizerSearchMode
 } from '#gw2/app/optimizer/gear/search.js';
 import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import {
@@ -404,7 +406,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     panel.id = 'gear-optimizer';
     panel.className = 'gear-optimizer';
     panel.innerHTML = `<form data-role="optimizer-form"><div data-role="optimizer-controls"></div>
-      <div class="optimizer-actions"><div class="optimizer-size"><p data-role="optimizer-total"></p><p id="optimizer-estimate" data-role="optimizer-estimate"></p></div><div class="optimizer-run-controls"><label class="optimizer-search-mode">Search<select name="search" aria-describedby="optimizer-estimate"><option value="fast">Fast</option><option value="exact">Exhaustive</option></select></label><label class="optimizer-worker-count">Workers<input name="workers" aria-label="Workers" type="number" min="1" max="${MAX_OPTIMIZER_WORKERS}" step="1" value="${runner.workerCount}"></label><button type="button" data-role="optimizer-cancel">Cancel</button><button type="submit">Run optimizer</button></div></div></form>
+      <div class="optimizer-actions"><div class="optimizer-size"><p data-role="optimizer-total"></p><p id="optimizer-estimate" data-role="optimizer-estimate"></p></div><div class="optimizer-run-controls"><label class="optimizer-search-mode">Search<select name="search" aria-describedby="optimizer-estimate"><option value="fast">Fast</option><option value="two-pass">Fast (two passes)</option><option value="exact">Exhaustive</option></select></label><label class="optimizer-worker-count">Workers<input name="workers" aria-label="Workers" type="number" min="1" max="${MAX_OPTIMIZER_WORKERS}" step="1" value="${runner.workerCount}"></label><button type="button" data-role="optimizer-cancel">Cancel</button><button type="submit">Run optimizer</button></div></div></form>
       <div class="optimizer-feedback">
       <div class="optimizer-status-row"><div class="optimizer-status-text"><p data-role="optimizer-status" role="status" aria-live="polite"></p><p data-role="optimizer-counts"></p></div>
       <div class="optimizer-view-controls" data-role="optimizer-view-controls" hidden><div class="optimizer-views" role="group" aria-label="Group results" data-role="optimizer-views"></div><label class="optimizer-changes-toggle"><input type="checkbox" data-role="optimizer-changes-only">Changes only</label></div></div>
@@ -691,14 +693,15 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
                 : 'Ready to run.';
   panel.querySelector('[data-role="optimizer-status"]')!.textContent =
     `${status}${stale ? ' Results are stale; run again to apply.' : ''}`;
-  (panel.querySelector('[data-role="optimizer-progress"]') as HTMLProgressElement).hidden =
-    runner.request?.search === 'fast';
+  (panel.querySelector('[data-role="optimizer-progress"]') as HTMLProgressElement).hidden = isFastOptimizerSearch(
+    runner.request?.search
+  );
   (panel.querySelector('[data-role="optimizer-progress"]') as HTMLProgressElement).value = state.count
     ? Number((state.completed * 10000n) / state.count) / 100
     : 0;
   // Rejections include illegal sigil combinations as well as unmet stat requirements.
   panel.querySelector('[data-role="optimizer-counts"]')!.textContent = state.count
-    ? runner.request?.search === 'fast'
+    ? isFastOptimizerSearch(runner.request?.search)
       ? `${state.completed.toLocaleString()} candidates checked.${state.completed !== state.simulations ? ` ${state.simulations.toLocaleString()} simulations; ${(state.completed - state.simulations).toLocaleString()} rejected by sigil rules or requirements.` : ''}`
       : `${state.completed.toLocaleString()} / ${state.count.toLocaleString()} candidates checked.${state.completed !== state.simulations ? ` ${(state.completed - state.simulations).toLocaleString()} rejected by sigil rules or requirements.` : ''}`
     : '';
@@ -760,10 +763,10 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
 }
 
 /** Keep search strategy separate from equipment and capture the selected mode for the entire worker job. */
-function readSearchMode(form: HTMLFormElement): 'fast' | 'exact' {
+function readSearchMode(form: HTMLFormElement): OptimizerSearchMode {
   const mode = form.querySelector<HTMLSelectElement>('select[name="search"]')!.value;
 
-  if (mode !== 'fast' && mode !== 'exact') throw new TypeError('Invalid optimizer search mode.');
+  if (mode !== 'fast' && mode !== 'two-pass' && mode !== 'exact') throw new TypeError('Invalid optimizer search mode.');
 
   return mode;
 }
@@ -824,7 +827,9 @@ function updateSearchSummary(app: ProfessionAppState, form: HTMLFormElement): vo
     estimate.textContent =
       request.search === 'exact'
         ? 'Exhaustive evaluates every distinct combination of your selected gear.'
-        : 'Fast samples and refines candidates. It may miss the best combination.';
+        : request.search === 'two-pass'
+          ? 'Refines two separate samples and keeps the best results from both.'
+          : 'Fast samples and refines candidates.';
   } catch (error) {
     estimate.textContent = String(error instanceof Error ? error.message : error);
   }
