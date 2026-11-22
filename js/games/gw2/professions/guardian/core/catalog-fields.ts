@@ -5,6 +5,8 @@ export const GUARDIAN_CORE_SKILL_FIELDS = defineFields(
   {
     // Number of qualifying hits required by the untraited Justice passive.
     threshold: numberField({ patch: 'primary' }),
+    // Replaces Justice's passive Burning duration for the virtue that declares it. Active Burning keeps Justice's value.
+    passiveBurnDuration: numberField({ patch: 'primary', unit: 'seconds' }),
     illuminatedDamageMultiplier: numberField({ patch: 'primary' }),
     passiveInterval: numberField({ patch: 'primary', unit: 'seconds' }),
     tetherInterval: numberField({ patch: 'primary', unit: 'seconds' })

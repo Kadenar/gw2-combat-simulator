@@ -5,7 +5,6 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianBuffPolicies, guardianEffectStates } from '#gw2/professions/guardian/core/effect-state.js';
 import { expireSpearIllumination, GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
@@ -16,7 +15,6 @@ import {
 } from '#gw2/professions/guardian/core/mechanics/trigger-points.js';
 import {
   admitVirtueActivation,
-  applyJusticeBurn,
   completeVirtueActivation,
   reactToJusticeHitWithOptions
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
@@ -42,16 +40,6 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
   guardianIgnitionLifecycle,
   guardianJusticeLifecycle,
   {
-    // Known damage payloads are invoked once without their activation requirements.
-    damageEffects: [false, true].map((active) => ({
-      id: `justice-${active ? 'active' : 'passive'}`,
-      name: `Justice (${active ? 'active' : 'passive'})`,
-      source: 'Profession' as const,
-      unit: 'occurrence' as const,
-      sourceIds: [`guardian.justice-${active ? 'active' : 'passive'}`],
-      emit: (runtime) => applyJusticeBurn(runtime, damageInputEvent(runtime), { active })
-    })),
-
     /** Initial effect assumptions seed the existing stack owner, which keeps normal expiry and grant behavior. */
     initialize(runtime) {
       for (const buff of runtime.config.initialBuffs ?? []) {

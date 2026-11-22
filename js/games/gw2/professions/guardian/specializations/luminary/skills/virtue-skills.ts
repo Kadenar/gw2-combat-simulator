@@ -53,6 +53,7 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     type: 'Profession',
     slot: 'Profession_1',
     virtue: 'justice',
+    passiveBurnDuration: 2,
     cooldown: 20,
     castTimeMs: 0,
     effects: [],

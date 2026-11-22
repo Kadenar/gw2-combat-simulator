@@ -40,11 +40,7 @@ import { guardianVirtueReadyAt } from '#gw2/professions/guardian/virtue-readines
 /** The tome passive tracks the shared Justice hit counter; Righteous Flames keeps it through dormancy. */
 export function reactToTomeJusticeHit(context: GuardianVirtueContext, event: GuardianResolverEvent): void {
   reactToJusticeHitWithOptions(context, event, {
-    retainsPassive: righteousFlamesRetainsTomePassive(context),
-    skillId: ID.TOME_OF_JUSTICE,
-    skillName: 'Tome of Justice',
-    // Tome passive Burning starts at one second; Amplified Wrath applies separately.
-    passiveBurnDuration: 1
+    retainsPassive: righteousFlamesRetainsTomePassive(context)
   });
 }
 

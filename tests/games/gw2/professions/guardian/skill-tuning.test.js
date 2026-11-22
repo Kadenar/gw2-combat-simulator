@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianPassiveAttributes } from '#gw2/professions/guardian/core/skills/attribute-passives.js';
@@ -17,6 +19,33 @@ function preview(skills = {}, balanceProfiles = {}) {
     id: 'guardian-ownership',
     label: 'Guardian ownership',
     professions: { guardian: { skills, balanceProfiles } }
+  });
+}
+
+// Compare one earned burn with the isolated occurrence under the same build.
+for (const specialization of ['Core', 'Dragonhunter', 'Firebrand', 'Luminary', 'Willbender']) {
+  test(`${specialization} passive Justice preview uses the combat payload and skill attribution`, () => {
+    const config = {
+      specialization,
+      primaryWeapon: 'Pistol',
+      secondaryWeapon: 'Pistol',
+      attributeInputs: baseAttributeInputs({ conditionDamage: 1000, expertise: 150 }),
+      selectedTraitIds: [TRAIT.AMPLIFIED_WRATH]
+    };
+    const rotation = specialization === 'Willbender' ? [ID.RUSHING_JUSTICE, ID.PEACEKEEPER] : [ID.PEACEKEEPER];
+    const combat = runGuardian([...rotation, { type: 'wait', durationMs: 3000 }], config);
+    assert.deepEqual(combat.warnings, []);
+    const occurrence = damageOccurrences(guardianProfession.runtimeFor(config), config).find(
+      (row) => row.id === 'profession:justice-passive'
+    );
+    const preview = executeDamageOccurrence(guardianProfession, config, occurrence);
+    const isBurn = (event) => event.type === 'condition' && event.sourceId === 'guardian.justice-passive';
+    const earned = combat.resolvedEvents.find(isBurn);
+    const isolated = preview.events.filter(isBurn);
+    assert.ok(earned);
+    assert.equal(isolated.length, 1);
+    for (const key of ['skillId', 'skillName', 'condition', 'stacks', 'effectiveDuration'])
+      assert.equal(isolated[0][key], earned[key], key);
   });
 }
 

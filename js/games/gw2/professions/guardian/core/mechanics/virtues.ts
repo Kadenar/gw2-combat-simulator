@@ -11,7 +11,6 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import { virtueBoonEffects } from '#gw2/professions/guardian/core/mechanics/virtue-boons.js';
 import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -23,7 +22,7 @@ import type {
   GuardianVirtue,
   GuardianVirtueContext
 } from '#gw2/professions/guardian/types.js';
-import { guardianVirtueReadyAt } from '#gw2/professions/guardian/virtue-readiness.js';
+import { activeGuardianVirtueSkill, guardianVirtueReadyAt } from '#gw2/professions/guardian/virtue-readiness.js';
 import { advanceCounter } from '#kernel/resources/counters.js';
 
 /** An accepted virtue activation; each owner has already admitted its own readiness and replacement rules. */
@@ -57,22 +56,14 @@ export const justiceActivated = defineTriggerPoint<JusticeActivation>('guardian.
 /** Describe this call's emission so specialization follow-ups need no cumulative observation state. */
 type JusticeBurnOutcome = 'active' | 'passive' | null;
 
-/** Emit one Justice burn and its announcement before reporting which follow-up is eligible. */
+/** The selected virtue owns attribution and can override the shared passive burn duration. */
 export function applyJusticeBurn(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
-  {
-    active,
-    skillId = GUARDIAN_SKILL_IDS.JUSTICE,
-    skillName = 'Virtue of Justice',
-    passiveBurnDuration
-  }: {
-    readonly active: boolean;
-    readonly skillId?: SkillId;
-    readonly skillName?: string;
-    readonly passiveBurnDuration?: number;
-  }
+  mode: 'active' | 'passive',
+  owner = activeGuardianVirtueSkill(context, 'justice')
 ): JusticeBurnOutcome {
+  const active = mode === 'active';
   const justiceSkill = requireSkill(context.helpers, GUARDIAN_SKILL_IDS.JUSTICE);
   const burn = requireEffect(
     justiceSkill,
@@ -94,18 +85,20 @@ export function applyJusticeBurn(
       source: 'guardian',
       sourceId,
       actorType: ACTOR.PLAYER,
-      skillId,
-      skillName,
+      skillId: owner.id,
+      skillName: owner.name,
       // Justice owns this proc; the activation still records which hit caused it for chronological reactions.
       procType: 'profession',
-      icon: context.helpers.skillsById.get(skillId)?.icon,
+      icon: owner.icon,
       activationId: event.activationId,
       causalOrder: event.causalOrder ?? event.eventOrder,
-      name: `${skillName} - ${active ? 'Active' : 'Passive'} Burning`,
+      name: `${owner.name} - ${active ? 'Active' : 'Passive'} Burning`,
       condition: String(burn.condition),
       stacks: effectNumber(justiceSkill, burn, 'stacks'),
       duration:
-        !active && passiveBurnDuration != null ? passiveBurnDuration : effectNumber(justiceSkill, burn, 'duration')
+        !active && owner.passiveBurnDuration != null
+          ? owner.passiveBurnDuration
+          : effectNumber(justiceSkill, burn, 'duration')
     })
   });
 
@@ -118,27 +111,17 @@ export function applyJusticeBurn(
       at: event.at,
       sourceSkill: event.skillName,
       detail: '',
-      icon: context.helpers.skillsById.get(skillId)?.icon || ''
+      icon: owner.icon || ''
     }
   });
-  return active ? 'active' : 'passive';
+  return mode;
 }
 
 /** Count accepted Guardian hits and report only the Justice burn emitted by this hit. */
 export function reactToJusticeHitWithOptions(
   context: GuardianVirtueContext,
   event: GuardianResolverEvent,
-  {
-    retainsPassive = false,
-    skillId = GUARDIAN_SKILL_IDS.JUSTICE,
-    skillName = 'Virtue of Justice',
-    passiveBurnDuration
-  }: {
-    readonly retainsPassive?: boolean;
-    readonly skillId?: SkillId;
-    readonly skillName?: string;
-    readonly passiveBurnDuration?: number;
-  } = {}
+  { retainsPassive = false }: { readonly retainsPassive?: boolean } = {}
 ): JusticeBurnOutcome {
   // Justice counts direct and symbol packets plus Guardian effects owned by
   // the player, such as Sovereign of Light, without admitting gear procs.
@@ -151,12 +134,7 @@ export function reactToJusticeHitWithOptions(
 
   if (state.justiceActiveArmed) {
     state.justiceActiveArmed = false;
-    return applyJusticeBurn(context, event, {
-      active: true,
-      skillId,
-      skillName,
-      passiveBurnDuration
-    });
+    return applyJusticeBurn(context, event, 'active');
   }
 
   if (!retainsPassive && event.at < guardianVirtueReadyAt(context, 'justice')) return null;
@@ -173,12 +151,7 @@ export function reactToJusticeHitWithOptions(
 
   if (!progress.reached) return null;
 
-  return applyJusticeBurn(context, event, {
-    active: false,
-    skillId,
-    skillName,
-    passiveBurnDuration
-  });
+  return applyJusticeBurn(context, event, 'passive');
 }
 
 const readyVirtueActivations = new WeakMap<RuntimeCast<GuardianSkill>, GuardianVirtue>();

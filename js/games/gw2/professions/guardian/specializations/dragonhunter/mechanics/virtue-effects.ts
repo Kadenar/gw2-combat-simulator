@@ -29,11 +29,7 @@ import { guardianVirtueReadyAt } from '#gw2/professions/guardian/virtue-readines
 
 /** Reuse Justice's hit counter and passive suppression, adding Dragonhunter's Crippled only when that hit procs Burning. */
 function reactToDragonhunterJusticeHit(context: GuardianVirtueContext, event: GuardianResolverEvent): void {
-  const outcome = reactToJusticeHitWithOptions(context, event, {
-    retainsPassive: false,
-    skillId: ID.SPEAR_OF_JUSTICE,
-    skillName: 'Spear of Justice'
-  });
+  const outcome = reactToJusticeHitWithOptions(context, event);
 
   // Only this hit's emitted passive Burning grants Crippled, after Burning's immediate reactions have settled.
   if (outcome === 'passive') {

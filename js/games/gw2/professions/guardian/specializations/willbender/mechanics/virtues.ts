@@ -102,6 +102,38 @@ function flames(runtime: GuardianRuntime, data: unknown): void {
     );
 }
 
+/** A completed Justice cycle uses the active burn recipe with Willbender's passive damage attribution. */
+export function emitWillbenderJusticeBurn(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
+  const profile = requireSkill(runtime.helpers, ID.JUSTICE);
+  const burn = requireEffect(profile, 'condition', 'Burning (active)', requireSkillAction(profile, 'justice'));
+
+  if (!burn) return;
+
+  runtime.effects.emit({
+    kind: 'packet',
+    // Completing Justice's hit counter earns one independent Burning proc.
+    proc: true,
+    cause: event,
+    event: buildResolverCondition({
+      at: runtime.time,
+      priority: 5,
+      source: 'guardian',
+      sourceId: 'guardian.justice-passive',
+      actorType: ACTOR.PLAYER,
+      skillId: ID.WILLBENDER_JUSTICE,
+      skillName: 'Justice',
+      // Keep virtue damage separate from the attack that satisfies its hit counter.
+      procType: 'profession',
+      name: 'Justice - Active Burning',
+      icon: runtime.helpers.skillsById.get(ID.RUSHING_JUSTICE)?.icon,
+      condition: String(burn.condition),
+      stacks: effectNumber(profile, burn, 'stacks'),
+      duration: effectNumber(profile, burn, 'duration'),
+      triggeredBy: event.skillName
+    })
+  });
+}
+
 /** Accepted player strikes and Air sigil procs advance each currently open virtue; no scheduler prediction is consulted. */
 function reactToWillbenderHit(
   runtime: GuardianRuntime,
@@ -134,36 +166,7 @@ function reactToWillbenderHit(
 
     runtime.fireTrigger(willbenderVirtueTriggered, { cause: event, virtue });
 
-    if (virtue === 'justice') {
-      const profile = requireSkill(runtime.helpers, ID.JUSTICE);
-      const burn = requireEffect(profile, 'condition', 'Burning (active)', requireSkillAction(profile, 'justice'));
-
-      if (burn) {
-        runtime.effects.emit({
-          kind: 'packet',
-          // Completing Justice's hit counter earns one independent Burning proc.
-          proc: true,
-          cause: event,
-          event: buildResolverCondition({
-            at: runtime.time,
-            priority: 5,
-            source: 'guardian',
-            sourceId: 'guardian.justice-passive',
-            actorType: ACTOR.PLAYER,
-            skillId: ID.WILLBENDER_JUSTICE,
-            skillName: 'Justice',
-            // Keep virtue damage separate from the attack that satisfies its hit counter.
-            procType: 'profession',
-            name: 'Justice - Active Burning',
-            icon: runtime.helpers.skillsById.get(ID.RUSHING_JUSTICE)?.icon,
-            condition: String(burn.condition),
-            stacks: effectNumber(profile, burn, 'stacks'),
-            duration: effectNumber(profile, burn, 'duration'),
-            triggeredBy: event.skillName
-          })
-        });
-      }
-    }
+    if (virtue === 'justice') emitWillbenderJusticeBurn(runtime, event);
 
     if (virtue === 'courage')
       for (const name of [BOON.AEGIS, BOON.STABILITY]) {

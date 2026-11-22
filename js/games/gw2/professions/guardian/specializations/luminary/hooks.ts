@@ -96,11 +96,7 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
     reactions: {
       'damage.resolved'(runtime, event, details) {
         countEffulgentHit(runtime, event, details.hitContext.damage);
-        reactToJusticeHitWithOptions(runtime, event, {
-          skillId: ID.RADIANT_JUSTICE,
-          skillName: 'Radiant Justice',
-          passiveBurnDuration: 2
-        });
+        reactToJusticeHitWithOptions(runtime, event);
       },
       'aura.applied'(runtime, event) {
         if (event.aura === AURA.LIGHT) acceptLuminaryAura(runtime, event);

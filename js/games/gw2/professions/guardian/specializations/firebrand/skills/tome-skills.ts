@@ -456,6 +456,8 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     type: 'Profession',
     slot: 'Profession_1',
     virtue: 'justice',
+    // Tome passive Burning starts at one second; Amplified Wrath applies separately.
+    passiveBurnDuration: 1,
     cooldown: 0,
     dormantCooldown: 20,
     inputCategory: 'bar-swap',

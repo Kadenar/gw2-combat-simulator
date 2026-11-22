@@ -6,6 +6,7 @@ import {
 } from '#gw2/professions/guardian/build/build.js';
 import { guardianNativeModules } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { guardianJusticeRuntimeHooks } from '#gw2/professions/guardian/justice-preview.js';
 
 export { guardianCatalog, guardianNativeModules } from '#gw2/professions/guardian/catalog.js';
 
@@ -19,6 +20,8 @@ export const guardianProfession = defineNativeProfession({
     validateBuild: validateGuardianBuild
   },
   modules: guardianNativeModules,
+  // Justice preview entries depend on the selected specialization, so the family binds them per runtime.
+  runtimeHooks: guardianJusticeRuntimeHooks,
   autoattackChains: {
     overrides: [
       {
