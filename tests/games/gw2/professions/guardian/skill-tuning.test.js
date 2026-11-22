@@ -22,24 +22,37 @@ function preview(skills = {}, balanceProfiles = {}) {
   });
 }
 
+function justiceConfig(specialization) {
+  return {
+    specialization,
+    primaryWeapon: 'Pistol',
+    secondaryWeapon: 'Pistol',
+    attributeInputs: baseAttributeInputs({ conditionDamage: 1000, expertise: 150 }),
+    selectedTraitIds: [TRAIT.AMPLIFIED_WRATH]
+  };
+}
+
+function justiceOccurrence(config, mode) {
+  return damageOccurrences(guardianProfession.runtimeFor(config), config).find(
+    (row) => row.id === `profession:justice-${mode}`
+  );
+}
+
 // Compare one earned burn with the isolated occurrence under the same build.
-for (const specialization of ['Core', 'Dragonhunter', 'Firebrand', 'Luminary', 'Willbender']) {
-  test(`${specialization} passive Justice preview uses the combat payload and skill attribution`, () => {
-    const config = {
-      specialization,
-      primaryWeapon: 'Pistol',
-      secondaryWeapon: 'Pistol',
-      attributeInputs: baseAttributeInputs({ conditionDamage: 1000, expertise: 150 }),
-      selectedTraitIds: [TRAIT.AMPLIFIED_WRATH]
-    };
-    const rotation = specialization === 'Willbender' ? [ID.RUSHING_JUSTICE, ID.PEACEKEEPER] : [ID.PEACEKEEPER];
+for (const [specialization, mode, rotation] of [
+  ['Core', 'passive', [ID.PEACEKEEPER]],
+  ['Core', 'active', [ID.JUSTICE, ID.PEACEKEEPER]],
+  ['Dragonhunter', 'passive', [ID.PEACEKEEPER]],
+  ['Firebrand', 'passive', [ID.PEACEKEEPER]],
+  ['Luminary', 'passive', [ID.PEACEKEEPER]],
+  ['Willbender', 'passive', [ID.RUSHING_JUSTICE, ID.PEACEKEEPER]]
+]) {
+  test(`${specialization} ${mode} Justice preview uses the combat payload and skill attribution`, () => {
+    const config = justiceConfig(specialization);
     const combat = runGuardian([...rotation, { type: 'wait', durationMs: 3000 }], config);
     assert.deepEqual(combat.warnings, []);
-    const occurrence = damageOccurrences(guardianProfession.runtimeFor(config), config).find(
-      (row) => row.id === 'profession:justice-passive'
-    );
-    const preview = executeDamageOccurrence(guardianProfession, config, occurrence);
-    const isBurn = (event) => event.type === 'condition' && event.sourceId === 'guardian.justice-passive';
+    const preview = executeDamageOccurrence(guardianProfession, config, justiceOccurrence(config, mode));
+    const isBurn = (event) => event.type === 'condition' && event.sourceId === `guardian.justice-${mode}`;
     const earned = combat.resolvedEvents.find(isBurn);
     const isolated = preview.events.filter(isBurn);
     assert.ok(earned);
@@ -48,6 +61,12 @@ for (const specialization of ['Core', 'Dragonhunter', 'Firebrand', 'Luminary', '
       assert.equal(isolated[0][key], earned[key], key);
   });
 }
+
+// Elite virtues replace Core's Virtue of Justice, which is the only skill that arms the active burn.
+test('only Core lists the active Justice occurrence', () => {
+  assert.ok(justiceOccurrence(justiceConfig('Core'), 'active'));
+  assert.equal(justiceOccurrence(justiceConfig('Dragonhunter'), 'active'), undefined);
+});
 
 test('selected signet grants preserve independent tuning, readiness, and Perfect Inscriptions', () => {
   const profession = preview({

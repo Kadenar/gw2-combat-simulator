@@ -60,10 +60,10 @@ type JusticeBurnOutcome = 'active' | 'passive' | null;
 export function applyJusticeBurn(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
-  mode: 'active' | 'passive',
-  owner = activeGuardianVirtueSkill(context, 'justice')
+  mode: 'active' | 'passive'
 ): JusticeBurnOutcome {
   const active = mode === 'active';
+  const owner = activeGuardianVirtueSkill(context, 'justice');
   const justiceSkill = requireSkill(context.helpers, GUARDIAN_SKILL_IDS.JUSTICE);
   const burn = requireEffect(
     justiceSkill,
