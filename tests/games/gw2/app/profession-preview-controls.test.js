@@ -11,6 +11,7 @@ import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import { ENGINEER_SKILL_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
+import { REVENANT_SKILL_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
 import { headlessApp } from '#tests/helpers/skill-damage.js';
 
 const adapters = {};
@@ -589,9 +590,10 @@ test('Renegade Fervor respects the selected trait cap', () => {
   }
 });
 
-test('Revenant upkeep gives the same outgoing factor to the stat strip and a weapon row', () => {
+test('Herald can preview Facet of Nature on a weapon without equipping Dragon', () => {
   const app = previewApp('revenant', ['Forceful Persistence'], 'Herald');
-  app.build.selectedLegends = ['LegendaryDragon', 'LegendaryAssassin'];
+  app.build.selectedLegends = ['LegendaryAssassin', 'LegendaryDemon'];
+  app.build.startingLegend = 'LegendaryAssassin';
   app.build.weapons = ['Sword', 'Sword'];
   app.attributeData = app.adapter
     .createBuildContext({
@@ -601,7 +603,18 @@ test('Revenant upkeep gives the same outgoing factor to the stat strip and a wea
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const controls = skillDamageControls(app);
-  const upkeep = String(app.activeCatalog.skills.find((skill) => skill.name === 'Facet of Strength').id);
+  const upkeep = String(REVENANT.FACET_OF_NATURE);
+  const options = controls.find((control) => control.key === 'upkeep').options;
+  assert.ok(options.includes(upkeep));
+  assert.ok(!options.includes(String(REVENANT.FACET_OF_STRENGTH)));
+
+  const core = previewApp('revenant');
+  core.build.selectedLegends = [...app.build.selectedLegends];
+  assert.ok(
+    !skillDamageControls(core)
+      .find((control) => control.key === 'upkeep')
+      .options.includes(upkeep)
+  );
   for (const value of ['null', upkeep]) {
     const values = { ...clearedValues(controls), upkeep: value };
     const { request } = createSkillDamagePlan(app, controls, values);
@@ -615,7 +628,7 @@ test('Revenant upkeep gives the same outgoing factor to the stat strip and a wea
     );
   }
 
-  close(stats(app, { upkeep })['Strike Multiplier'].final - stats(app)['Strike Multiplier'].final, 0.1);
+  assert.ok(stats(app, { upkeep })['Strike Multiplier'].final > stats(app)['Strike Multiplier'].final);
 });
 
 // Compare native occurrences so explosion-specific facts never require a runtime callback from the stat preview.

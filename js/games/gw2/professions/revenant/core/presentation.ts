@@ -1,4 +1,5 @@
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
+import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { WEAPON } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
@@ -14,6 +15,7 @@ import type { Skill as PreviewSkill } from '#gw2/platform/skills/types.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
 import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import type {
   RevenantPlanningState,
   RevenantSkill,
@@ -128,8 +130,12 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
     const preview = createPreviewControls(context);
     preview.damageTargetHealth(preview.hasId(TRAIT.SWIFT_TERMINATION, TRAIT.UNSUSPECTING_STRIKES));
     const legends = (context.build as { selectedLegends?: readonly string[] }).selectedLegends ?? [];
+    // Facet of Nature is available on every Herald legend. Legend-bound upkeeps require their equipped legend.
     const upkeeps = context.catalog.skills.filter(
-      (skill: RevenantSkill) => skill.upkeepCost != null && legends.includes(String(skill.legendId))
+      (skill: RevenantSkill) =>
+        isRevenantUpkeep(skill) &&
+        isBuildSkillAvailable(skill, context) &&
+        (skill.legendId == null || legends.includes(skill.legendId))
     );
 
     if (upkeeps.length)
