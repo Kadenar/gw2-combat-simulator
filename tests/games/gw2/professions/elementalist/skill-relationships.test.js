@@ -7,11 +7,33 @@ import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { elementalProcessionEffects } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiar-projection.js';
+import { evokerUi } from '#gw2/professions/elementalist/specializations/evoker/presentation.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+
+test("Evoker preview shows the build's familiar pair and Procession replays the selected catalog's skills", () => {
+  const familiarGroup = evokerUi
+    .skillDamageGroups({ build: { evokerElement: 'Air' }, catalog: elementalistCatalog })
+    .find(({ id }) => id === 'familiar');
+  const skillsById = new Map(elementalistCatalog.skillsById);
+  const patched = { ...skillsById.get(ID.LIGHTNING_BLITZ) };
+  skillsById.set(ID.LIGHTNING_BLITZ, patched);
+
+  assert.deepEqual(familiarGroup.skillIds, [ID.ZAP, ID.LIGHTNING_BLITZ]);
+  assert.ok(elementalProcessionEffects(skillsById).some(({ familiar }) => familiar === patched));
+});
+
+test('Evoker names the element whose familiar pair is missing from the selected catalog', () => {
+  for (const id of [ID.IGNITE, ID.CONFLAGRATION]) {
+    const skillsById = new Map(elementalistCatalog.skillsById);
+    skillsById.delete(id);
+    assert.throws(() => elementalProcessionEffects(skillsById), /Fire familiar/);
+  }
+});
 
 test('pickups and attacks use their declared conjure for admission, lifetime, and presentation', () => {
   const catalog = withSkill(

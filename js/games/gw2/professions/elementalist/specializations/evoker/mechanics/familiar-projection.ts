@@ -4,7 +4,10 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SkillSource } from '#gw2/platform/skills/balance-profiles.js';
 import { requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { ELEMENTALIST_EVOKER_SKILL_FLIPS } from '#gw2/professions/elementalist/specializations/evoker/skills/skill-flips.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Stable tier identities keep removed Burning durations from shifting later consecutive-use choices. */
 export const IGNITE_TIERS = Object.freeze(['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4']);
@@ -44,12 +47,27 @@ export function projectIgniteEffects(
   });
 }
 
+/**
+ * The declared flip pairs name each familiar; the basic skill's attunement picks the element. Both forms come from
+ * the selected catalog so the editor and Procession use the same patched skills.
+ */
+export function evokerFamiliarPair(
+  skillsById: ReadonlyMap<SkillId, ElementalistSkill>,
+  element: ElementalistAttunement
+): { readonly basic: ElementalistSkill; readonly empowered: ElementalistSkill } {
+  const flip = ELEMENTALIST_EVOKER_SKILL_FLIPS.find(({ parentId }) => skillsById.get(parentId)?.attunement === element);
+  const basic = flip && skillsById.get(flip.parentId);
+  const empowered = flip && skillsById.get(flip.followUpId);
+
+  if (!basic || !empowered) throw new Error(`Evoker requires a ${element} familiar and its empowered flip.`);
+
+  return { basic, empowered };
+}
+
 /** Procession replays only the four empowered familiars' direct payloads, without their resource or boon settlement. */
 export function elementalProcessionEffects(skillsById: ReadonlyMap<SkillId, Skill>) {
-  return [ID.CONFLAGRATION, ID.BUOYANT_DELUGE, ID.LIGHTNING_BLITZ, ID.SEISMIC_IMPACT].map((id) => {
-    const familiar = skillsById.get(id);
-
-    if (!familiar) throw new Error(`Missing Elemental Procession familiar: ${id}`);
+  return ELEMENTALIST_ATTUNEMENTS.map((element) => {
+    const { empowered: familiar } = evokerFamiliarPair(skillsById, element);
 
     return {
       familiar,

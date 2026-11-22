@@ -20,18 +20,16 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
-import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import {
-  ELEMENTALIST_FAMILIAR_SKILL_IDS,
-  ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '#gw2/professions/elementalist/data/ids.js';
+  ELEMENTALIST_ATTUNEMENTS,
+  isElementalistAttunement,
+  type ElementalistAttunement
+} from '#gw2/professions/elementalist/core/state.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { electricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
-import type {
-  ElementalistSkill,
-  ElementalistUiContext,
-  ElementalistUiSlice
-} from '#gw2/professions/elementalist/types.js';
+import { evokerFamiliarPair } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiar-projection.js';
+import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/professions/elementalist/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -52,39 +50,26 @@ function selectedElement(
 ): ElementalistAttunement {
   const build = context.build;
   const value = uiState(context)[STATE.ELEMENT] || build?.evokerElement || 'Fire';
-  return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement)
-    ? (value as ElementalistAttunement)
-    : 'Fire';
+  return isElementalistAttunement(value) ? value : 'Fire';
 }
 
-// basic/empowered familiar pair per element, keyed for the familiar skill id table
-const FAMILIAR_SKILL_NAMES = Object.freeze({
-  Fire: { basic: 'Ignite', empowered: 'Conflagration' },
-  Water: { basic: 'Splash', empowered: 'BuoyantDeluge' },
-  Air: { basic: 'Zap', empowered: 'LightningBlitz' },
-  Earth: { basic: 'Calcify', empowered: 'SeismicImpact' }
-} as const);
-
-// returns the empowered form when 3 stacks are ready so the UI shows which familiar is currently usable
-function familiarSkillId(context: ElementalistUiContext): number {
-  const element = selectedElement(context);
+/** F5 shows the empowered skill when charges reach the selected catalog's threshold. */
+function familiarSkillId(context: ElementalistUiContext, element: ElementalistAttunement): SkillId {
   const state = uiState(context);
   const build = context.build;
   const empoweredMaximum =
     state[STATE.EMPOWERED_CHARGES]?.maximum ?? balanceNumber(context.catalog, TRAIT.EVOCATION, 'minimumStacks');
   const empowered = state[STATE.EMPOWERED_CHARGES]?.value ?? build?.initialEvokerEmpowered ?? 0;
-  const name = FAMILIAR_SKILL_NAMES[element][empowered >= empoweredMaximum ? 'empowered' : 'basic'];
-  return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
+  const pair = evokerFamiliarPair(context.catalog.skillsById, element);
+  return empowered >= empoweredMaximum ? pair.empowered.id : pair.basic.id;
 }
 
 /** The build's familiar in both forms; the preview never depends on charges earned in the rotation. */
-function familiarSkillIds(context: SkillDamagePreviewContext): readonly [number, number] {
+function familiarSkillIds(context: SkillDamagePreviewContext): readonly [SkillId, SkillId] {
   const configured = (context.build as { readonly evokerElement?: unknown }).evokerElement;
-  const element = ELEMENTALIST_ATTUNEMENTS.includes(configured as ElementalistAttunement)
-    ? (configured as ElementalistAttunement)
-    : 'Fire';
-  const names = FAMILIAR_SKILL_NAMES[element];
-  return [ELEMENTALIST_FAMILIAR_SKILL_IDS[names.basic], ELEMENTALIST_FAMILIAR_SKILL_IDS[names.empowered]];
+  const element = isElementalistAttunement(configured) ? configured : 'Fire';
+  const { basic, empowered } = evokerFamiliarPair(context.catalog.skillsById, element);
+  return [basic.id, empowered.id];
 }
 
 /** Familiar element selects the attack, while the preview's attunement supplies the player's conditional bonuses. */
@@ -178,7 +163,6 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
   // Edit the build's familiar independently of attunement or a previous simulation's state.
   skillBarGroups: (context: ElementalistUiContext): ProfessionSkillBarGroup[] => {
     const element = selectedElement({ build: context.build });
-    const catalog = context.catalog as Readonly<CanonicalCatalog<ElementalistSkill>> | undefined;
     return [
       {
         id: 'elementalist-evoker-familiar-selection',
@@ -190,8 +174,8 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
             selectionIndex: 0,
             selectionValue: element,
             optionEntries: ELEMENTALIST_ATTUNEMENTS.map((value) => {
-              const skill = catalog?.skillsById.get(ELEMENTALIST_FAMILIAR_SKILL_IDS[FAMILIAR_SKILL_NAMES[value].basic]);
-              return { value, label: `${value} Familiar`, icon: skill?.icon };
+              const { basic } = evokerFamiliarPair(context.catalog.skillsById, value);
+              return { value, label: `${value} Familiar`, icon: basic.icon };
             })
           }
         ]
@@ -220,7 +204,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
       {
         id: 'elementalist-evoker-familiars',
         label: 'F5',
-        skillIds: [familiarSkillId(context)],
+        skillIds: [familiarSkillId(context, element)],
         color: '#c85142',
         className: `elementalist-evoker-familiar elementalist-evoker-${element.toLowerCase()}`,
         // Keep one layered dial beside F5 so basic pips can cycle around the
