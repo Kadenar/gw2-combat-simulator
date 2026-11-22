@@ -10,6 +10,9 @@ import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-fo
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
+/** Executioner's Scythe and the golem timeline use the same target-health tiers. */
+export const SCYTHE_HEALTH_THRESHOLDS = Object.freeze({ half: 0.5, quarter: 0.25 });
+
 /** Supplies Reaper Shroud definitions to specialization composition. */
 export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<NecromancerSkill>>> = {
   [ID.LIFE_REND]: {
@@ -255,8 +258,10 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
               operation: 'multiply',
               parameters: { belowQuarter: 2, belowHalf: 1.5 },
               factor: (context, _target, parameters) =>
-                targetHealthBelow(context, 0.25) ? parameters.belowQuarter : parameters.belowHalf,
-              when: (context) => targetHealthBelow(context, 0.5)
+                targetHealthBelow(context, SCYTHE_HEALTH_THRESHOLDS.quarter)
+                  ? parameters.belowQuarter
+                  : parameters.belowHalf,
+              when: (context) => targetHealthBelow(context, SCYTHE_HEALTH_THRESHOLDS.half)
             }
           ]
         },

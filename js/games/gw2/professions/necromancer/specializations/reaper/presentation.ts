@@ -13,6 +13,7 @@ import {
 } from '#gw2/professions/necromancer/core/presentation.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { SCYTHE_HEALTH_THRESHOLDS } from '#gw2/professions/necromancer/specializations/reaper/skills/shroud-skills.js';
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
@@ -59,8 +60,10 @@ export function bindReaperUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill
       }),
     resourceViews: (context: NecromancerUiContext): ProfessionResourceView[] =>
       necromancerSoulShardResourceViews(context),
-    // Suppress the default 50% Gravedigger threshold when the core layer already defines its own thresholds.
-    targetHealthThresholds: (context: NecromancerUiContext) =>
-      necromancerCoreTargetHealthThresholds(context).length ? [] : [0.5]
+    // Add each Scythe tier once when Core weapons or traits already mark the same crossing.
+    targetHealthThresholds: (context: NecromancerUiContext) => {
+      const coreThresholds = necromancerCoreTargetHealthThresholds(context);
+      return Object.values(SCYTHE_HEALTH_THRESHOLDS).filter((threshold) => !coreThresholds.includes(threshold));
+    }
   });
 }

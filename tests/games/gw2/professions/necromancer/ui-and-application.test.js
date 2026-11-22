@@ -346,22 +346,21 @@ test('Necromancer resources and palette change with specialization state', () =>
   );
   assert.equal(Object.hasOwn(necromancerProfession.ui, 'rotationSkillAvailability'), false);
   assert.equal(formatResourceValue(113.89999999999999), '113.9');
-  assert.deepEqual(
+});
+
+test('golem markers follow the main hand in either set and include both Reaper shroud tiers once', () => {
+  const thresholds = (specialization, weapons, alternateWeapons = []) =>
     necromancerProfession.ui.targetHealthThresholds({
       catalog: necromancerCatalog,
-      specialization: 'Core',
-      build: { weapons: ['Axe', 'Focus'], specializations: [] }
-    }),
-    []
-  );
-  assert.deepEqual(
-    necromancerProfession.ui.targetHealthThresholds({
-      catalog: necromancerCatalog,
-      specialization: 'Reaper',
-      build: { weapons: ['Greatsword', ''], specializations: [] }
-    }),
-    [0.5]
-  );
+      specialization,
+      build: { weapons, alternateWeapons, specializations: [] }
+    });
+
+  assert.deepEqual(thresholds('Core', ['Axe', 'Focus']), [0.5]);
+  assert.deepEqual(thresholds('Core', ['Dagger', 'Focus'], ['Sword', 'Focus']), [0.5]);
+  assert.deepEqual(thresholds('Core', ['Dagger', 'Sword']), []);
+  assert.deepEqual(thresholds('Reaper', ['Dagger', 'Focus']), [0.5, 0.25]);
+  assert.deepEqual(thresholds('Reaper', ['Greatsword', '']), [0.5, 0.25]);
 });
 
 test('Necromancer renders life force above its F-skills', async () => {

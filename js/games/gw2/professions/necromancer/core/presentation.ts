@@ -33,6 +33,7 @@ import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const HALF_HEALTH_TRAITS = new Set(['Siphoned Power', 'Spiteful Fortitude', 'Chill of Death', 'Close to Death']);
+const HALF_HEALTH_MAIN_HANDS = new Set<string>([WEAPON.AXE, WEAPON.GREATSWORD, WEAPON.SPEAR, WEAPON.SWORD]);
 const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
   {
     id: 'necromancer-deaths-carapace',
@@ -144,8 +145,10 @@ export function necromancerCoreTargetHealthThresholds(context: NecromancerUiCont
   const build = context.build || {};
   const traits = selectedTraits(context.catalog, build.specializations || []);
   const hasHalfHealthTrait = traits.some((trait) => HALF_HEALTH_TRAITS.has(trait.name));
-  const weapons = [...(build.weapons || []), ...(build.alternateWeapons || [])];
-  const hasThresholdWeapon = weapons.some((weapon) => weapon === WEAPON.GREATSWORD || weapon === WEAPON.SPEAR);
+  // Satiate belongs to main-hand Sword. Either weapon set can supply it during the rotation.
+  const hasThresholdWeapon = [build.weapons, build.alternateWeapons].some((set) =>
+    HALF_HEALTH_MAIN_HANDS.has(set?.[0] ?? '')
+  );
   return hasHalfHealthTrait || hasThresholdWeapon ? [0.5] : [];
 }
 
