@@ -103,10 +103,7 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
     }
   ],
 
-  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
-  prepareDamageState(runtime, skill, inputs) {
-    if (skill?.shroud) runtime.profession.core.activeShroud = skill.shroud;
-
+  prepareDamageState(runtime, _skill, inputs) {
     // Held Carapace affects both Power and Condition Damage without generating minion or kill events.
     runtime.profession.core.carapaceExpiries = Array(Number(inputs.carapace ?? 0)).fill(Infinity);
   },

@@ -95,6 +95,15 @@ export function enterLich(runtime: NecromancerRuntime): void {
   runtime.schedule(LICH_EXPIRY, state.lichEndsAt, null, { id: LICH_EXPIRY, generation: state.lichGeneration }, -20);
 }
 
+/** Life-force drain and form exit need the same skill identities in combat and isolated damage previews. */
+function setActiveShroud(runtime: NecromancerRuntime, entry: NecromancerSkill): void {
+  const state = runtime.profession.core;
+  const exit = runtime.helpers.skills.find((candidate) => candidate.shroudExit === entry.shroudEntry);
+  state.activeShroud = entry.shroudEntry!;
+  state.activeShroudEntryId = entry.id;
+  state.activeShroudExitId = exit?.id ?? null;
+}
+
 /** Shroud entry preserves preparation, recharge, callbacks, resource refresh, and trait ordering. */
 export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const skill = cast.skill;
@@ -103,12 +112,9 @@ export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: Runtim
   purgeNecromancerSelfConditions(runtime);
   state.plagueSendingArmed = false;
   runtime.fireTrigger(shroudEntering);
-  state.activeShroud = skill.shroudEntry!;
-  state.activeShroudEntryId = skill.id;
-  const exit = [...runtime.helpers.skillsById.values()].find((candidate) => candidate.shroudExit === skill.shroudEntry);
-  state.activeShroudExitId = exit?.id ?? null;
+  setActiveShroud(runtime, skill);
 
-  if (exit) runtime.armFlip(exit.id);
+  if (state.activeShroudExitId != null) runtime.armFlip(state.activeShroudExitId);
 
   runtime.cooldownController.setReadyAt(skill.id, Infinity);
   runNecromancerShroudEnter(runtime, skill);
@@ -125,8 +131,17 @@ const necromancerFormTasks = {
   [LICH_EXPIRY]: exitLich
 };
 
-/** Registers shroud and form tasks with the Core hook assembly. */
+/** A shroud skill preview starts inside its form. Entry rewards and cooldowns belong to an actual transition. */
 export const necromancerFormLifecycle = {
+  prepareDamageState(runtime, skill) {
+    if (!skill?.shroud) return;
+
+    const entry = runtime.helpers.skills.find((candidate) => candidate.shroudEntry === skill.shroud);
+
+    if (!entry) throw new Error(`Missing shroud entry for ${skill.shroud} (skill ${skill.id}).`);
+
+    setActiveShroud(runtime, entry);
+  },
   tasks: necromancerFormTasks
 } satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;
 

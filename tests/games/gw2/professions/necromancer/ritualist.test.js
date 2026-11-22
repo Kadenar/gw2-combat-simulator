@@ -5,6 +5,7 @@ import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { ritualistModule } from '#gw2/professions/necromancer/specializations/ritualist/module.js';
@@ -22,6 +23,30 @@ const base = {
   target: { armor: 2597, health: 0, conditions: {} }
 };
 const state = (result) => observedRuntime(result).profession.specialization.state;
+
+// Each isolated summon starts in Ritualist's Shroud without an entry cast; the preview must still resolve.
+test('Ritualist summon previews resolve in an assumed shroud', () => {
+  for (const id of [ID.ANGUISH, ID.WANDERLUST, ID.PRESERVATION]) {
+    const skill = necromancerProfession.catalog.skillsById.get(id);
+    const [row] = evaluateSkillDamage(
+      {
+        config: base,
+        occurrences: [
+          {
+            id: String(id),
+            effect: { kind: 'skill', id },
+            name: skill.name,
+            source: 'Skill',
+            icon: '',
+            unit: 'activation'
+          }
+        ]
+      },
+      necromancerProfession
+    ).occurrences;
+    assert.ok(['measured', 'zero'].includes(row.status), row.reason);
+  }
+});
 
 // Opening and command ownership select the bonus without applying it again to the autonomous coefficient.
 test('Anguish condition bonus follows spirit ownership and attack type', () => {

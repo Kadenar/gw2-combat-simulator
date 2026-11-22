@@ -374,6 +374,10 @@ function initializeRitualistSpiritLifecycle(runtime: NecromancerRuntime): void {
 /** Register the complete spirit lifetime so callers cannot omit its tasks, combat startup, or resource recovery. */
 export const ritualistSpiritHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   initialize: initializeRitualistSpiritLifecycle,
+  // An assumed shroud has no entry cast to set the clock for a newly summoned spirit.
+  prepareDamageState(runtime, skill) {
+    if (skill?.shroud === 'ritualist') ritualistState.from(runtime.profession).spiritAutoAnchorAt = runtime.time;
+  },
   onCombatStart: startRitualistSpirits,
   sideEffectHandlers: {
     'ritualist.summon-spirit'(runtime, context) {
