@@ -1,3 +1,4 @@
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   defineProfessionSpecializationState,
@@ -29,6 +30,11 @@ function createRenegadeState(): RenegadeState {
 }
 
 export const renegadeState = defineProfessionSpecializationState('Renegade', createRenegadeState);
+
+/** Combat and the rotation snapshot count a Fervor stack through its expiry timestamp. */
+export function fervorStackActive(stack: Readonly<RevenantTimedStack>, at: number): boolean {
+  return stack.at <= at && buffDeadlineActive(stack.expiresAt, at);
+}
 
 /** Select public fields without mutating their owner; the planning observer detaches the result. */
 export function projectRenegadePlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {

@@ -16,6 +16,7 @@ import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { UPKEEP_ACTIVATION } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
@@ -220,10 +221,8 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
         metadata: { trigger: 'empowered-upkeep-pulse' }
       }
     ],
-    // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
-      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
+      ...UPKEEP_ACTIVATION,
       {
         on: 'castStart',
         when: (_runtime, cast) => !cast.cancelledBeforeCommit,

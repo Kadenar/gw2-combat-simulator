@@ -4,6 +4,7 @@ import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { UPKEEP_ACTIVATION } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
@@ -31,11 +32,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
         actorType: ACTOR.EFFECT
       }
     ],
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
-    ]
+    sideEffects: UPKEEP_ACTIVATION
   },
   [ID.FORCED_ENGAGEMENT]: {
     name: 'Forced Engagement',

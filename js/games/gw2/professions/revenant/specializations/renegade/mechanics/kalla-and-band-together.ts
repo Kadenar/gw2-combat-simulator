@@ -1,6 +1,5 @@
 // Private deadlines use the same 40 ms clock as scheduled events.
 
-import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -10,7 +9,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
+import { fervorStackActive, renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import {
   fervorMaximumStacks,
   fervorProfile
@@ -27,8 +26,7 @@ export function activeKallasFervorStacks(
 ): number {
   // Count in place so hit-time queries and repeated grants do not allocate temporary stack arrays.
   let count = 0;
-  for (const application of state.kallasFervor || [])
-    if ((application.at || 0) <= at && buffDeadlineActive(application.expiresAt || 0, at)) count++;
+  for (const application of state.kallasFervor || []) if (fervorStackActive(application, at)) count++;
 
   return Math.min(Math.max(1, maximumStacks), count);
 }

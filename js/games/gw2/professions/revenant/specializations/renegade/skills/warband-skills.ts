@@ -6,6 +6,7 @@ import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/consta
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { UPKEEP_ACTIVATION } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Triggered attacks keep their own skill identities across player and allied grants. */
@@ -232,11 +233,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     castTimeMs: 360,
     effects: [],
     // Skill-owned triggers delegate shared state transitions to the registered mechanic.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.soulcleave-allies' } }
-    ]
+    sideEffects: [...UPKEEP_ACTIVATION, { on: 'castCommit', do: { type: 'revenant.soulcleave-allies' } }]
   },
   [ID.ICERAZORS_IRE_ID_72359]: {
     name: "Icerazor's Ire",

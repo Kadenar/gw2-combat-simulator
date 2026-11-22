@@ -20,6 +20,7 @@ import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
+import { UPKEEP_ACTIVATION } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { heraldFacetPassiveLegend } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -56,10 +57,8 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
     // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
     castTimeMs: 0,
     effects: [],
-    // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
-      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
+      ...UPKEEP_ACTIVATION,
       {
         on: 'castCommit',
         do: {

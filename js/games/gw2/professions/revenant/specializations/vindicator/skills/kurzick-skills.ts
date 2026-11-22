@@ -2,6 +2,7 @@
 import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { UPKEEP_ACTIVATION } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 export const VINDICATOR_KURZICK_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
@@ -105,10 +106,7 @@ export const VINDICATOR_KURZICK_SKILL_MECHANICS: Readonly<Record<number, SkillDe
     upkeepCost: 5,
     castTimeMs: 0,
     // Shared upkeep owns Energy drain and release access. Health loss and healing remain outside scope.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
-    ],
+    sideEffects: UPKEEP_ACTIVATION,
     effects: []
   },
   [ID.DROP_URN_OF_SAINT_VIKTOR]: {

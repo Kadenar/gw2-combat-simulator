@@ -16,6 +16,7 @@ import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js'
 import { type RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
+import { fervorStackActive } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
@@ -48,13 +49,11 @@ function renegadeStateSnapshot(
   const state = revenantUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
-  const fervor = (state[STATE.KALLAS_FERVOR] || []).filter(
-    (stack) => (stack.at || 0) <= at && (stack.expiresAt || 0) > at
-  );
+  const fervor = (state[STATE.KALLAS_FERVOR] || []).filter((stack) => fervorStackActive(stack, at));
 
   if (fervor.length) {
     const maximum = fervorMaximum(context);
-    const remaining = Math.min(...fervor.map((stack) => stack.expiresAt)) - at;
+    const remaining = Math.max(0, Math.min(...fervor.map((stack) => stack.expiresAt)) - at);
     items.push({
       id: 'renegade-kallas-fervor',
       label: "Kalla's Fervor",

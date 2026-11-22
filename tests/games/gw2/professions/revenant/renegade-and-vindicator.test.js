@@ -1668,3 +1668,38 @@ test('Fervor counting preserves start, expiry, and cap boundaries on readonly pa
   assert.equal(activeKallasFervorStacks(state, 3.000001, 2), 1);
   assert.equal(activeKallasFervorStacks(state, 4.000001, 1), 0);
 });
+
+test('the rotation snapshot counts Fervor through expiry and reports the next stack to expire', () => {
+  const state = {
+    kallasFervor: [
+      { at: 0, expiresAt: 3 },
+      { at: 0, expiresAt: 5 }
+    ]
+  };
+  const maximum = revenantCatalog.balanceProfilesById.get(TRAIT.AMBUSH_COMMANDER).maximumStacks;
+  for (const [atSeconds, nextExpiry] of [
+    [2, 3],
+    [3, 3],
+    [3.04, 5],
+    [5, 5],
+    [5.04, null]
+  ]) {
+    const items = revenantProfession.ui.rotationStateSnapshot({
+      specialization: 'Renegade',
+      balanceContext: { catalog: revenantCatalog },
+      professionState: { [STATE.KALLAS_FERVOR]: state.kallasFervor },
+      atSeconds
+    });
+    const fervor = items.find((item) => item.id === 'renegade-kallas-fervor');
+
+    if (nextExpiry == null) {
+      assert.equal(fervor, undefined);
+      continue;
+    }
+
+    // Read the count and remaining seconds by position so wording and separators stay free to change.
+    const [count, , remaining] = fervor.value.match(/\d+(?:\.\d+)?/g).map(Number);
+    assert.equal(count, activeKallasFervorStacks(state, atSeconds, maximum));
+    assert.ok(Math.abs(remaining - (nextExpiry - atSeconds)) <= 0.05, fervor.value);
+  }
+});

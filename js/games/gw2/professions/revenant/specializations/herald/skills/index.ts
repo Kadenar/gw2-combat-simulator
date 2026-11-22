@@ -6,12 +6,20 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, CONTROL, STATUS } from '#gw2/platform/constants.js';
+import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { UPKEEP_ACTIVATION } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { HERALD_NATURE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/facet-of-nature.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+
+/** A facet pays its upkeep like any other upkeep, then starts the Herald passive once the cast commits. */
+const FACET_ACTIVATION: readonly SkillSideEffect[] = [
+  ...UPKEEP_ACTIVATION,
+  { on: 'castCommit', do: { type: 'revenant.start-facet' } }
+];
 
 export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> =
   composeSkillDefinitions<RevenantSkill>(
@@ -31,12 +39,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
         // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
         castTimeMs: 0,
         effects: [],
-        // The declaration owns this activation; shared mechanics retain its live state.
-        sideEffects: [
-          { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-          { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
-          { on: 'castCommit', do: { type: 'revenant.start-facet' } }
-        ]
+        sideEffects: FACET_ACTIVATION
       },
       [ID.FACET_OF_ELEMENTS]: {
         name: 'Facet of Elements',
@@ -53,12 +56,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
         // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
         castTimeMs: 0,
         effects: [],
-        // The declaration owns this activation; shared mechanics retain its live state.
-        sideEffects: [
-          { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-          { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
-          { on: 'castCommit', do: { type: 'revenant.start-facet' } }
-        ]
+        sideEffects: FACET_ACTIVATION
       },
       [ID.GAZE_OF_DARKNESS]: {
         name: 'Gaze of Darkness',
@@ -193,12 +191,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
         // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
         castTimeMs: 200,
         effects: [],
-        // The declaration owns this activation; shared mechanics retain its live state.
-        sideEffects: [
-          { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-          { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
-          { on: 'castCommit', do: { type: 'revenant.start-facet' } }
-        ]
+        sideEffects: FACET_ACTIVATION
       },
       [ID.INFUSE_LIGHT]: {
         name: 'Infuse Light',
@@ -237,12 +230,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
         // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
         castTimeMs: 0,
         effects: [],
-        // The declaration owns this activation; shared mechanics retain its live state.
-        sideEffects: [
-          { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-          { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
-          { on: 'castCommit', do: { type: 'revenant.start-facet' } }
-        ]
+        sideEffects: FACET_ACTIVATION
       },
       [ID.CHAOTIC_RELEASE]: {
         name: 'Chaotic Release',
@@ -362,12 +350,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
         // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
         castTimeMs: 0,
         effects: [],
-        // The declaration owns this activation; shared mechanics retain its live state.
-        sideEffects: [
-          { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-          { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
-          { on: 'castCommit', do: { type: 'revenant.start-facet' } }
-        ]
+        sideEffects: FACET_ACTIVATION
       }
     },
     HERALD_NATURE_SKILL_MECHANICS,
