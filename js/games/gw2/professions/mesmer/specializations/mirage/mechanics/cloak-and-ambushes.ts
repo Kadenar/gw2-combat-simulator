@@ -17,6 +17,7 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { balanceNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import { mesmerCloneAttribution } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
 import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import {
   buildMesmerConditions,
@@ -309,6 +310,7 @@ export function executeMirageCloneAmbushPackets(
     if (!ambush) continue;
 
     const attack = cloneAttacks[weapon] || cloneAttacks.Sword;
+    const attribution = mesmerCloneAttribution(clone.id);
     // Keep catalog identity on summon packets so ownership, rather than a synthetic skill ID, separates actors.
     const pseudo = {
       id: ambush.id,
@@ -329,13 +331,10 @@ export function executeMirageCloneAmbushPackets(
         start: at,
         fullEnd: impactAt,
         baseEvent: {
-          source: 'Clone',
+          ...attribution,
           sourceId: ambush.id,
           skillId: ambush.id,
-          skillName: ambush.name,
-          actorType: ACTOR.SUMMON,
-          summonKind: 'clone',
-          metadata: { cloneId: clone.id }
+          skillName: ambush.name
         }
       })) {
         const packet = buildMesmerPacket({ ...application.event, summonKind: 'clone' });
@@ -364,15 +363,12 @@ export function executeMirageCloneAmbushPackets(
                 name: undefined,
                 summonKind: undefined
               }),
-          source: 'Clone',
+          source: attribution.source,
           // Materialize clone strength as part of the strike so it cannot fall back to player weapon strength.
           weaponStrength: attack.weaponStrength
         },
         {
-          metadata: { cloneId: clone.id },
-          source: 'Clone',
-          actorType: ACTOR.SUMMON,
-          summonKind: 'clone',
+          ...attribution,
           name: `${ambush.name} - Clone`
         }
       ).forEach((packet) => {
@@ -384,11 +380,9 @@ export function executeMirageCloneAmbushPackets(
       });
 
     for (const condition of ambush.clone.conditions || []) {
-      buildMesmerConditions(state, `${ambush.name} - Clone`, impactAt, condition, 'Clone', '', {
-        metadata: { cloneId: clone.id },
-        skillId: ambush.id,
-        actorType: ACTOR.SUMMON,
-        summonKind: 'clone'
+      buildMesmerConditions(state, `${ambush.name} - Clone`, impactAt, condition, attribution.source, '', {
+        ...attribution,
+        skillId: ambush.id
       }).forEach((packet) => {
         state.effects.emit({
           ...delivery,

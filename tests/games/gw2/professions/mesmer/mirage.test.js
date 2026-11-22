@@ -438,6 +438,49 @@ test('Infinite Horizon ambushes retain clone weapon strength in resolved damage'
   }
 });
 
+// Two axe clones use the same attacks, so only the clone that received Might should deal more damage.
+test('Mirage ambushes and Axes of Symmetry apply Might from the attacking clone', () => {
+  const result = runMesmer(
+    [ID.ILLUSIONARY_AMBUSH, ID.AXES_OF_SYMMETRY, { type: 'wait', durationMs: 1500 }],
+    {
+      specialization: 'Mirage',
+      primaryWeapon: 'Axe',
+      initialResource: 2,
+      sharePlayerBoonsWithSummons: true,
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 0, ferocity: 0 }),
+      target: { armor: 1000 }
+    },
+    {
+      initialize(runtime) {
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'buff',
+            kind: 'might',
+            at: 0,
+            source: 'fixture',
+            sourceId: 'clone-might',
+            actorType: 'player',
+            duration: 10,
+            stacks: 25,
+            audience: { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: ['mesmer.clone:1'] }
+          }
+        });
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  for (const skillId of [ID.IMAGINARY_AXES, ID.AXES_OF_SYMMETRY]) {
+    const strikes = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillId === skillId && event.summonKind === 'clone'
+    );
+    const buffed = strikes.find((event) => event.summonOwner === 'mesmer.clone:1');
+    const unbuffed = strikes.find((event) => event.summonOwner === 'mesmer.clone:2');
+    assert.ok(buffed && unbuffed, `Both clones must own their strikes for skill ${skillId}`);
+    assert.ok(buffed.damage > unbuffed.damage, `Only the first clone received Might for skill ${skillId}`);
+  }
+});
+
 test('Chaos Vortex selects clone boon recipients when its boon packet lands', () => {
   const result = simulateMesmer(
     ['Dodge / Mirage Cloak', 'Chaos Vortex', { name: 'Phase Retreat', offset: 120 }],

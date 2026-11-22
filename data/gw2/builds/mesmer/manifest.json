@@ -89,15 +89,15 @@
         "label": "Power (Spear / Greatsword)",
         "build": "data/gw2/builds/mesmer/b-power-mirage-spear-greatsword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-greatsword-bench.json",
-        "benchmarkDps": 40912,
+        "benchmarkDps": 40971,
         "upToDate": true,
         "benchmarkApm": 111.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 41753, "phase": 41753 },
-          "80-60": { "cumulative": 40785, "phase": 39820 },
-          "60-40": { "cumulative": 40866, "phase": 41025 },
-          "40-20": { "cumulative": 41139, "phase": 42010 },
-          "20-0": { "cumulative": 40912, "phase": 40008 }
+          "100-80": { "cumulative": 41811, "phase": 41811 },
+          "80-60": { "cumulative": 40783, "phase": 39744 },
+          "60-40": { "cumulative": 40937, "phase": 41237 },
+          "40-20": { "cumulative": 41422, "phase": 43039 },
+          "20-0": { "cumulative": 40971, "phase": 39271 }
         }
       },
       {
@@ -105,13 +105,13 @@
         "build": "data/gw2/builds/mesmer/b-power-mirage-spear-dagger-sword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-dagger-sword-bench.json",
         "upToDate": true,
-        "benchmarkDps": 42809,
+        "benchmarkDps": 42827,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42072, "phase": 42072 },
-          "80-60": { "cumulative": 41907, "phase": 41744 },
-          "60-40": { "cumulative": 41708, "phase": 41320 },
-          "40-20": { "cumulative": 41266, "phase": 39956 },
-          "20-0": { "cumulative": 42809, "phase": 50212 }
+          "100-80": { "cumulative": 42075, "phase": 42075 },
+          "80-60": { "cumulative": 41915, "phase": 41757 },
+          "60-40": { "cumulative": 41718, "phase": 41337 },
+          "40-20": { "cumulative": 41288, "phase": 40012 },
+          "20-0": { "cumulative": 42827, "phase": 50215 }
         },
         "benchmarkApm": 110.1
       },

@@ -1,7 +1,9 @@
 /** Clone creation, periodic attacks, and retirement share one lifetime owner. */
 import { gw2Time } from '#gw2/platform/combat/clock.js';
-import { ACTOR } from '#gw2/platform/constants.js';
-import { mesmerCloneOwnerId } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
+import {
+  mesmerCloneAttribution,
+  mesmerCloneOwnerId
+} from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
 import type {
   MesmerClone,
   MesmerCloneAttack,
@@ -91,6 +93,7 @@ function emitCloneAttack(runtime: MesmerRuntime, clone: MesmerClone, at: number)
     blade: false
   };
   const impactAt = gw2Time(at + (step.damageAtMs || 0) / 1000);
+  const attribution = mesmerCloneAttribution(clone.id);
   buildMesmerStrikes(
     runtime,
     cloneSkill,
@@ -107,16 +110,9 @@ function emitCloneAttack(runtime: MesmerRuntime, clone: MesmerClone, at: number)
             hits: step.hits,
             atMs: step.atMs
           }),
-      source: 'Clone',
       weaponStrength: attack.weaponStrength
     },
-    {
-      metadata: { cloneId: clone.id },
-      source: 'Clone',
-      actorType: ACTOR.SUMMON,
-      summonKind: 'clone',
-      summonOwner: mesmerCloneOwnerId(clone.id)
-    }
+    attribution
   ).forEach((packet) => {
     runtime.effects.emit({
       kind: 'packet',
@@ -124,12 +120,9 @@ function emitCloneAttack(runtime: MesmerRuntime, clone: MesmerClone, at: number)
     });
   });
   for (const condition of step.conditions || []) {
-    buildMesmerConditions(runtime, skillName, impactAt, condition, 'Clone', '', {
-      metadata: { cloneId: clone.id },
-      skillId: step.id,
-      actorType: ACTOR.SUMMON,
-      summonKind: 'clone',
-      summonOwner: mesmerCloneOwnerId(clone.id)
+    buildMesmerConditions(runtime, skillName, impactAt, condition, attribution.source, '', {
+      ...attribution,
+      skillId: step.id
     }).forEach((packet) => {
       runtime.effects.emit({
         kind: 'packet',

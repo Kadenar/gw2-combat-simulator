@@ -29,6 +29,8 @@ export interface EffectEventBase {
   readonly actorType: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
   readonly summonKind?: string;
+  /** Identifies the acting companion when sampling its boons. */
+  readonly summonOwner?: string;
   readonly skillId?: SkillId | null;
   readonly skillName?: string;
   readonly activationId?: string;

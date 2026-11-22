@@ -5,6 +5,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import { mesmerCloneAttribution } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
 import { buildMesmerConditions, buildMesmerStrikes } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { axeCloneAttack } from '#gw2/professions/mesmer/core/skills/weapons/axe-clone.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -204,6 +205,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
       (clone) => clone.weapon === WEAPON.AXE && gw2Time(clone.createdAt) <= gw2Time(castStart)
     );
     for (const clone of axeClones) {
+      const attribution = mesmerCloneAttribution(clone.id);
       const impactAt = at - 0.04;
       buildMesmerStrikes(
         state,
@@ -218,14 +220,10 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
         {
           coefficient: 1.75,
           hits: 1,
-          source: 'Clone',
           weaponStrength: axeCloneAttack.weaponStrength
         },
         {
-          metadata: { cloneId: clone.id },
-          source: 'Clone',
-          actorType: ACTOR.SUMMON,
-          summonKind: 'clone',
+          ...attribution,
           name: `${skill.name} - Clone`
         }
       ).forEach((packet) => {
@@ -240,9 +238,9 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
         skill.name,
         impactAt,
         { type: 'condition', condition: CONDITION.CONFUSION, duration: 6, stacks: 1 },
-        'Clone',
+        attribution.source,
         `${skill.name} - Clone`,
-        { metadata: { cloneId: clone.id }, skillId: skill.id, actorType: ACTOR.SUMMON, summonKind: 'clone' }
+        { ...attribution, skillId: skill.id }
       ).forEach((packet) => {
         state.effects.emit({
           ...delivery,
