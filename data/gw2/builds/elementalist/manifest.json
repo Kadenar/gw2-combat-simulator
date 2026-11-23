@@ -22,16 +22,16 @@
         "label": "Power (Spear)",
         "build": "data/gw2/builds/elementalist/b-power-weaver-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-weaver-spear.json",
-        "benchmarkDps": 42390,
+        "benchmarkDps": 42716,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-weaver-spear",
         "benchmarkApm": 122.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 47713, "phase": 47713 },
-          "80-60": { "cumulative": 40902, "phase": 35508 },
-          "60-40": { "cumulative": 40352, "phase": 39310 },
-          "40-20": { "cumulative": 41292, "phase": 44478 },
-          "20-0": { "cumulative": 42390, "phase": 47485 }
+          "100-80": { "cumulative": 48976, "phase": 48976 },
+          "80-60": { "cumulative": 42783, "phase": 37845 },
+          "60-40": { "cumulative": 40968, "phase": 37780 },
+          "40-20": { "cumulative": 41574, "phase": 43527 },
+          "20-0": { "cumulative": 42716, "phase": 48023 }
         }
       },
       {
