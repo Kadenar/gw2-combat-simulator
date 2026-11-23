@@ -193,6 +193,25 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
   ];
 
   // Load optional diagnostics only for this player; each analyzer depends on its profession's attribute rules.
+  if (selected.professionId === 'revenant') {
+    const { analyzeEmbraceObservation } =
+      await import('#gw2/integrations/logs/evtc/rotation/professions/revenant/embrace-observation.js');
+    const pulses = analyzeEmbraceObservation(
+      log,
+      playerAddress,
+      app.activeCatalog,
+      reconstructionOptions.professionConfig
+    );
+
+    if (pulses)
+      observations.push({
+        title: 'Embrace the Darkness pulses',
+        summary: `${pulses.empowered} empowered, ${pulses.normal} normal, ${pulses.unknown} unknown (${pulses.normal + pulses.empowered + pulses.unknown} total).`,
+        detail:
+          'Counts use your Torment applications within 4 ms of each pulse on the main target. Durations come from the active build. Overlapping Abyssal Raze stacks are accounted for when the split is clear.'
+      });
+  }
+
   if (selected.professionId === 'warrior') {
     const { analyzeWarriorBloodlustObservation } =
       await import('#gw2/integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js');

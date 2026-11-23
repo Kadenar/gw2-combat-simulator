@@ -12,12 +12,14 @@ import {
 import { analyzeMesmerSharperImagesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
 import { analyzeNecromancerBarbedPrecisionObservation } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
 import { analyzeRangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
+import { analyzeEmbraceObservation } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/embrace-observation.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { RANGER_TRAIT_IDS as RANGER_TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 
 const PLAYER = 0x1000n;
 const TARGET = 0x2000n;
@@ -193,6 +195,37 @@ const sharpenedEdgesProfile = {
   criticalChance: 0.33,
   effects: [{ type: 'condition', condition: 'Bleeding', duration: 3 }]
 };
+
+test('Embrace classifies pulse applications on the main target and leaves unresolved overlaps unknown', () => {
+  const pulse = (time) => event({ time, skillId: 34331 });
+  const torment = (time, overrides) => condition(time, 19426, 6000, overrides);
+  const config = { attributeInputs: baseAttributeInputs({ expertise: 300 }) };
+  const log = fixture([
+    pulse(1000),
+    torment(998),
+    torment(1000, { source: CLONE }),
+    torment(1000, { target: TIGER }),
+    pulse(2000),
+    torment(2000),
+    torment(2002),
+    condition(2000, 19426, 3000),
+    pulse(3000),
+    event({ time: 3000, skillId: 73059 }),
+    ...Array.from({ length: 8 }, () => torment(3000)),
+    pulse(4000),
+    event({ time: 4000, skillId: STRIKE_SKILL_ID }),
+    torment(4000),
+    torment(4000),
+    pulse(5000),
+    torment(5010)
+  ]);
+  assert.deepEqual(analyzeEmbraceObservation(log, PLAYER, revenantCatalog, config), {
+    normal: 2,
+    empowered: 1,
+    unknown: 2
+  });
+  assert.equal(analyzeEmbraceObservation(log, CLONE, revenantCatalog, config), null);
+});
 
 const arachnophobiaProfile = {
   id: RANGER_TRAIT.ARACHNOPHOBIA,
