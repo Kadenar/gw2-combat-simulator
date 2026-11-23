@@ -21,8 +21,8 @@
   "alternateWeapons": ["Shortbow", ""],
   "rune": "Trapper",
   "weaponSigils": [
-    ["Torment", "Doom"],
-    ["Earth", "Geomancy"]
+    ["Doom", "Geomancy"],
+    ["Earth", "Torment"]
   ],
   "relic": "Fractal",
   "food": "Meaty Asparagus Skewer",
