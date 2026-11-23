@@ -181,6 +181,21 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
+    // Each armament selects a different Glaring Burst payload. Show the hammer strike in the main row.
+    skillDamageState(_context, skill) {
+      if (skill.id !== GUARDIAN_SKILL_IDS.GLARING_BURST) return null;
+
+      return {
+        variantComparison: { title: 'Average damage by weapon' },
+        primaryVariantId: 'hammer',
+        variants: Object.entries(RADIANT_ARMAMENT_NAMES).map(([id, label]) => ({
+          id,
+          label,
+          inputs: { radiantWeapon: id }
+        }))
+      };
+    },
+
     /** Compare the native lingering armament window without inventing an independent entitlement field. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);

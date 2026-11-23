@@ -183,6 +183,32 @@ test('Guardian spear illumination is damage-only, works in either set, and reset
   }
 });
 
+// Each variant's weapon input must reach Glaring Burst's runtime state, and the row must show the chosen primary.
+test('Glaring Burst previews each equipped radiant weapon in isolation', async () => {
+  const app = await headlessApp('guardian', 'data/gw2/builds/guardian/b-power-luminary.json');
+  const { request } = healthPlan(app);
+  const burst = request.occurrences.find((entry) => entry.name === 'Glaring Burst');
+  assert.ok(burst);
+  const [row] = evaluateSkillDamage({ ...request, occurrences: [burst] }, app.profession).occurrences;
+  assert.ok(row.variants.length > 1);
+  assert.ok(row.variants.every((variant) => variant.measurement));
+  assert.ok(new Set(row.variants.map((variant) => variant.measurement.total)).size > 1);
+  const primary = row.variants.find((variant) => variant.id === burst.primaryVariantId);
+  assert.equal(row.primaryVariantId, burst.primaryVariantId);
+  assert.deepEqual(row.measurement, primary.measurement);
+});
+
+// A misspelled weapon must fail its own variant instead of measuring a weaponless burst.
+test('Glaring Burst reports an unknown radiant weapon as a failed variant', async () => {
+  const app = await headlessApp('guardian', 'data/gw2/builds/guardian/b-power-luminary.json');
+  const { request } = healthPlan(app);
+  const burst = request.occurrences.find((entry) => entry.name === 'Glaring Burst');
+  const occurrence = { ...burst, variants: [{ id: 'unknown', label: 'Unknown', inputs: { radiantWeapon: 'sword' } }] };
+  const [row] = evaluateSkillDamage({ ...request, occurrences: [occurrence] }, app.profession).occurrences;
+  assert.equal(row.variants[0].measurement, null);
+  assert.equal(row.variants[0].status, 'failed');
+});
+
 // Held Amalgam bonuses must reach both the displayed stats and measured packets without prerequisite casts.
 test('Amalgam damage previews apply Willing Host, Evolve and Titanic Strain independently', async () => {
   const app = await headlessApp('engineer', 'data/gw2/builds/engineer/b-power-amalgam-hammer-double-helix.json');

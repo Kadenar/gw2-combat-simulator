@@ -22,7 +22,7 @@ import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 const glaringBurstTooltip: DescribeSimulationTooltip = (balanceContext) => ({
   description:
-    "Use the equipped radiant weapon's Glaring Burst. Hammer and sword strike; staff and shield grant their listed party boons. Every variant applies vulnerability after its impact. The sword alternates its attack cadence.",
+    'Glaring Burst uses your last equipped radiant weapon, including one equipped during an earlier Radiant Forge entry. Equipping another radiant weapon changes the burst. Before you equip any radiant weapon, the burst applies only vulnerability. Hammer and sword strike. Staff and shield grant their listed party boons. Every variant applies vulnerability after impact. The sword alternates its attack cadence.',
   facts: [
     ...[
       ['hammer', 'hammer'],

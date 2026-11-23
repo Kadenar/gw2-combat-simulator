@@ -219,6 +219,26 @@ function bindHost(host: HTMLElement, app: ProfessionAppState): void {
     }
 
     renderRegions(app);
+
+    if (target.dataset.sdRow) {
+      // Repainting replaces the trigger. Restore focus and reveal the opened row within the results list.
+      const scroller = host.querySelector<HTMLElement>('.sd-table-scroll');
+      const trigger = scroller?.querySelector<HTMLElement>(`[data-sd-row="${CSS.escape(target.dataset.sdRow)}"]`);
+      trigger?.focus({ preventScroll: true });
+      const row = trigger?.closest('.sd-row.is-expanded');
+
+      if (row && scroller) {
+        // The client box excludes the horizontal scrollbar, so the bottom of the breakdown is not left beneath it.
+        const clientTop = scroller.getBoundingClientRect().top + scroller.clientTop;
+        const top = clientTop + scroller.querySelector('.sd-header')!.getBoundingClientRect().height;
+        const bottom = clientTop + scroller.clientHeight;
+        const bounds = row.getBoundingClientRect();
+
+        // A row taller than the visible area keeps its top in view.
+        if (bounds.top < top) scroller.scrollTop -= top - bounds.top;
+        else if (bounds.bottom > bottom) scroller.scrollTop += Math.min(bounds.top - top, bounds.bottom - bottom);
+      }
+    }
   });
   // The input event already applied a value; repainting again on blur's change event would replace the table under
   // a pending click, so only a real change repaints.
@@ -535,7 +555,16 @@ function breakdownHtml(row: SkillDamageRowView, model: SkillDamageViewModel): st
     );
   }
 
-  if (row.variants.length > 1) {
+  if (row.variantComparison && row.variants.length > 1) {
+    // Keep each named variant beside its total, including variants that deal zero damage.
+    const variants = row.variants.map(
+      (variant) =>
+        `<div${variant.primary ? ' class="is-primary"' : ''}><dt>${esc(variant.label)}</dt><dd>${integer(variant.total)}</dd></div>`
+    );
+    sections.unshift(
+      `<section class="sd-variant-comparison"><h4>${esc(row.variantComparison.title)}</h4><dl>${variants.join('')}</dl></section>`
+    );
+  } else if (row.variants.length > 1) {
     const primary = row.variants.find((variant) => variant.primary) ?? row.variants.at(-1)!;
     const readout = (variant: (typeof row.variants)[number]): string =>
       `${variant.label} · ${integer(variant.total)} average`;

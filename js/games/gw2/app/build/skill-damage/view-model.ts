@@ -36,6 +36,7 @@ export interface SkillDamageRowView {
   readonly castSeconds: number | null;
   readonly perCastSecond: number | null;
   readonly variants: readonly SkillDamageVariantView[];
+  readonly variantComparison?: { readonly title: string };
   readonly assumptions: readonly string[];
   readonly unit: string;
 }
@@ -174,6 +175,7 @@ function skillRow(
     icon: definition.icon,
     badge: definition.badge,
     context: definition.context,
+    variantComparison: definition.variantComparison,
     status: definition.status,
     expanded: state.expanded === definition.id,
     measurement,

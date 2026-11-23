@@ -16,7 +16,7 @@ import {
   radiantWeaponEquipped
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import { luminaryFollowUp } from '#gw2/professions/guardian/specializations/luminary/skills/skill-flips.js';
-import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
+import { luminaryState, RADIANT_ARMAMENTS } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 const EXIT = 'guardian.luminary.forge-expiry';
@@ -36,9 +36,7 @@ function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>):
 
   if (!runtime.engagement.preparationComplete()) runtime.cooldownController.clear(enter.id);
   else {
-    const used = Object.keys(state.radiantWeaponsUsed).filter((weapon) =>
-      ['hammer', 'staff', 'blade', 'bulwark'].includes(weapon)
-    ).length;
+    const used = Object.keys(state.radiantWeaponsUsed).filter((weapon) => RADIANT_ARMAMENTS.includes(weapon)).length;
     // Entry owns the selected recharge adjustment even when expiry initiates the exit.
     const reduction =
       used <= 1 ? requireBalanceNumber(enter.rechargeReduction, `skill=${enter.id} field=rechargeReduction`) : 0;
@@ -50,7 +48,6 @@ function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>):
   state.radiantForge = false;
   state.radiantForgeEndsAt = 0;
   state.forgeActivationId = null;
-  state.radiantWeapon = '';
   state.glaringBurstSwordSlow = false;
   runtime.autoattackController.reset();
   // Leaving the forge dismisses only its own bar; ordinary weapon follow-ups retain their independent lifetimes.
@@ -91,9 +88,10 @@ function enterForge(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>):
   state.radiantForge = true;
   state.radiantForgeEndsAt = gw2Time(runtime.time + effectNumber(skill, effect, 'duration'));
   state.forgeActivationId = cast.id;
-  state.radiantWeapon = '';
-  state.glaringBurstSwordSlow = false;
+  // Glaring Burst keeps the last equipped weapon. Only equips during this entry count toward its recharge.
   state.radiantWeaponsUsed = {};
+  // A retained sword burst starts at the fast cadence on every entry, whatever path ended the previous form.
+  state.glaringBurstSwordSlow = false;
   runtime.autoattackController.reset();
   runtime.armFlip(ID.EXIT_RADIANT_FORGE);
   runtime.schedule(EXIT, state.radiantForgeEndsAt, cast.id, undefined, -220);

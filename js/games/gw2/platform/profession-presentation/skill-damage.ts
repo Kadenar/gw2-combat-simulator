@@ -2,7 +2,7 @@ import type {
   AttributePreviewValues,
   ProfessionAttributePreviewContext
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { SkillDamageCastOptions } from '#gw2/platform/skill-damage/types.js';
+import type { DamageInputs, SkillDamageCastOptions } from '#gw2/platform/skill-damage/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** Profession hooks read the same detached build view as the Attribute Preview; no app state is exposed. */
@@ -17,10 +17,11 @@ export interface SkillDamageGroup {
   readonly order?: number;
 }
 
-/** One scaling level of an occurrence, shown as a bar in the row's variant ladder. */
+/** Each bar measures one variant with its own damage inputs and cast options. */
 export interface SkillDamageVariant {
   readonly id: string;
   readonly label: string;
+  readonly inputs?: DamageInputs;
   readonly cast?: Partial<SkillDamageCastOptions>;
 }
 
@@ -30,10 +31,12 @@ export interface SkillDamageState {
   readonly resolvedSkillId?: SkillId;
   readonly initialResource?: number;
   readonly config?: SkillDamageConfigPatch;
-  readonly inputs?: import('#gw2/platform/skill-damage/types.js').DamageInputs;
+  readonly inputs?: DamageInputs;
   readonly assumptions?: readonly string[];
   readonly cast?: Partial<SkillDamageCastOptions>;
   readonly variants?: readonly SkillDamageVariant[];
+  /** Named alternatives, such as weapons, opt into a titled list. Without it, variants are scaling levels in a bar chart. */
+  readonly variantComparison?: { readonly title: string };
   readonly primaryVariantId?: string;
   readonly context?: string;
 }

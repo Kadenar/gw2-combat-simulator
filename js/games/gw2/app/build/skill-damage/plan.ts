@@ -37,6 +37,7 @@ export interface SkillDamageRowDefinition {
   readonly icon: string;
   readonly badge: string;
   readonly context: string;
+  readonly variantComparison?: { readonly title: string };
   readonly status: SkillDamageRowStatus;
 }
 
@@ -453,13 +454,18 @@ export function createSkillDamagePlan(
       variants: owned?.variants,
       primaryVariantId: owned?.primaryVariantId
     });
+    // A named comparison adds the primary variant to the slot context, so the collapsed row says which variant it shows.
+    const primaryLabel = owned?.variantComparison
+      ? owned.variants?.find((variant) => variant.id === owned.primaryVariantId)?.label
+      : undefined;
     rows.set(id, {
       id,
       skillId: skill.id,
       name: skill.name,
       icon: String(skill.icon || ''),
       badge: slotBadge(skill),
-      context: owned?.context ?? base.context,
+      context: owned?.context ?? [base.context, primaryLabel].filter(Boolean).join(' · '),
+      variantComparison: owned?.variantComparison,
       status
     });
     return id;

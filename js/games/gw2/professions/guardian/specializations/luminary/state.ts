@@ -5,6 +5,9 @@ import {
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
+/** Radiant weapon ids that select Glaring Burst's payload and count toward the forge recharge. */
+export const RADIANT_ARMAMENTS: readonly string[] = Object.freeze(['hammer', 'staff', 'blade', 'bulwark']);
+
 export interface GuardianLuminaryState {
   radiantForge: boolean;
   radiantForgeEndsAt: number;
@@ -32,7 +35,7 @@ function createLuminaryState(): GuardianLuminaryState {
     radiantWeapon: '',
     // Tracks distinct weapon types so zero or one used weapon receives the reduced forge recharge.
     radiantWeaponsUsed: {},
-    // Sword Glaring Burst alternates fast then slow until the sword is equipped again.
+    // Sword Glaring Burst starts fast on entry or when the sword is equipped.
     glaringBurstSwordSlow: false,
     empoweredArmamentsUntil: 0,
     piercingStanceUntil: 0,

@@ -29,7 +29,7 @@ import {
 } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryStanceLifecycle } from '#gw2/professions/guardian/specializations/luminary/skills/stance-skills.js';
 import { luminaryVirtueLifecycle } from '#gw2/professions/guardian/specializations/luminary/skills/virtue-skills.js';
-import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
+import { luminaryState, RADIANT_ARMAMENTS } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 /** Luminary owns its live form, virtue entitlements, finite stance work, and actual combo-derived auras. */
@@ -47,7 +47,13 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
       const state = luminaryState.from(runtime.profession);
       state.radiantForge = Boolean(skill?.radiantForgeSkill);
       state.radiantForgeEndsAt = Infinity;
-      state.radiantWeapon = skill?.radiantWeapon ?? '';
+      // A radiant weapon skill measures its own armament. Glaring Burst measures the armament its preview variant selects.
+      const weapon = skill?.radiantWeapon ?? inputs.radiantWeapon ?? '';
+
+      if (weapon !== '' && !RADIANT_ARMAMENTS.includes(String(weapon)))
+        throw new TypeError(`Unknown radiant weapon "${String(weapon)}".`);
+
+      state.radiantWeapon = String(weapon);
 
       if (inputs.radiantHammer)
         runtime.effects.emit({

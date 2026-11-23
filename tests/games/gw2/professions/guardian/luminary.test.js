@@ -123,6 +123,34 @@ test('Radiant Forge precombat exits leave entry ready', () => {
   assert.equal(expired.planningState.cooldownsBySkillId[GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE], undefined);
 });
 
+test('Glaring Burst inherits the last radiant weapon after a manual exit or expiry until another equip commits', () => {
+  for (const exit of ['Exit Radiant Forge', { type: 'wait', durationMs: 30000 }]) {
+    const result = runGuardian(
+      [
+        'Enter Radiant Forge',
+        'Dazzling Hammer',
+        exit,
+        { type: 'cooldown-reset' },
+        'Enter Radiant Forge',
+        { name: 'Luminous Staff', interruptMs: 0 },
+        'Glaring Burst',
+        'Luminous Staff',
+        'Glaring Burst'
+      ],
+      { specialization: 'Luminary' }
+    );
+    assert.deepEqual(result.warnings, []);
+    const bursts = result.resolvedEvents.filter((event) => event.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST);
+    assert.deepEqual(
+      bursts
+        .filter((event) => event.type === 'damage' || event.kind === 'regeneration')
+        .map((event) => event.metadata?.radiantWeapon),
+      ['hammer', 'staff']
+    );
+    assert.deepEqual(result.planningState.profession[STATE.RADIANT_WEAPONS_USED], { staff: true });
+  }
+});
+
 // Reductions cap at readiness and leave unrelated or already-ready cooldowns alone.
 test('Illuminating Inspiration delegates capped reductions for the three radiant virtues', () => {
   const ids = GUARDIAN_SKILL_IDS;
@@ -1400,7 +1428,7 @@ test('Luminary recharge traits alter the intended cooldown families', () => {
 
 // Exercise exits directly so a large time advance cannot silently move the cooldown's origin.
 for (const automatic of [false, true]) {
-  test(`Forge ${automatic ? 'automatic' : 'manual'} exits finalize once at the actual transition and clear weapon state`, () => {
+  test(`Forge ${automatic ? 'automatic' : 'manual'} exits finalize once at the actual transition and clear the weapon bar`, () => {
     let owner;
     let seeded = false;
     const result = runGuardian(
@@ -1447,7 +1475,6 @@ for (const automatic of [false, true]) {
     );
     assert.equal(runtime.cooldownController.rechargeFor(GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE).work, 5);
     assert.equal(state.radiantForge, false);
-    assert.equal(state.radiantWeapon, '');
     assert.equal(state.glaringBurstSwordSlow, false);
     assert.deepEqual(runtime.flips, {});
     assert.deepEqual(
