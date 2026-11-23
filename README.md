@@ -89,7 +89,7 @@ Requires Node.js **24.11+** and npm. Browser tests also require Google Chrome.
 git clone https://github.com/Kadenar/gw2-combat-simulator.git
 cd gw2-combat-simulator
 npm install
-npm run dev              # open the URL Vite prints (normally http://localhost:5173)
+npm run dev              # open the URL Vite prints (normally http://127.0.0.1:5173)
 ```
 
 ### Development
@@ -108,7 +108,8 @@ Production builds exclude the local `patch-preview.html` authoring page. Run `np
 editor and its authoring API, and validate that development build with
 `node scripts/build/check-site.mjs --development`.
 
-[`package.json`](package.json) defines project commands. See [`scripts/README.md`](scripts/README.md) for analysis tools.
+[`package.json`](package.json) defines project commands. See [`scripts/README.md`](scripts/README.md) for analysis
+tools.
 
 ## Project structure
 

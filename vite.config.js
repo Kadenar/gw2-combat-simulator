@@ -199,8 +199,10 @@ export default defineConfig(({ command, mode }) => ({
   publicDir: false,
   // Browser code uses local ES modules only; skip crawling every profession for npm dependencies to prebundle.
   optimizeDeps: { noDiscovery: true, include: [] },
-  // Exclude local captures and compiled copies from file watching so their size does not delay source reads.
   server: {
+    // Use IPv4 loopback so Vite detects ports occupied by other local IPv4 servers.
+    host: '127.0.0.1',
+    // Exclude local captures and compiled copies from file watching so their size does not delay source reads.
     watch: {
       ignored: ['**/.scratch/**', '**/.tmp/**', '**/.lavish/**', '**/dist/**', '**/reference-repos/**']
     }
