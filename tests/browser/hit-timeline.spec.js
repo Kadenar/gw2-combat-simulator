@@ -40,7 +40,7 @@ test('skill details distinguish normal and empowered applications', async ({ pag
         ]
       },
       skillApplications: {
-        'Embrace the Darkness': [0, 1000, 2000, 3000, 6000].map((t) => ({
+        'Embrace the Darkness': [0, 1000, 1000, 2000, 3000, 6000].map((t) => ({
           t,
           empowered: t === 1000 || t === 6000
         }))
@@ -79,6 +79,7 @@ test('skill details distinguish normal and empowered applications', async ({ pag
   await page.locator('[data-sort-col="name"]').click();
   await expect(embraceRow.getByRole('button', { name: 'Inspect Embrace' })).toHaveAttribute('aria-pressed', 'true');
   await expect(timeline).toBeVisible();
+  await expect(timeline.getByText('Pulses (5) · 2 empowered · 3 normal', { exact: true })).toBeVisible();
   await expect(page.locator('[data-skill-key="embrace"] + [data-role="skill-timeline"]')).toHaveCount(1);
   await expect(page.locator('[data-role="result-charts"] [data-role="dps-hit-strip"]')).toHaveCount(0);
   await expect(page.locator('[data-role="result-charts"] [data-role="hit-timeline-canvas"]')).toHaveCount(0);

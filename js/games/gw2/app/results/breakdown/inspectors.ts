@@ -85,10 +85,18 @@ export function renderSkillInspector(
   }
 
   if (hits.length) {
-    const damageTimeline = doc.createElement('div');
-    cell.append(damageTimeline);
     // Pair strikes with their pulse applications; later condition payouts do not represent pulse empowerment.
     const empowerment = new Map(applications.map((application) => [application.t, application.empowered]));
+    if (empowerment.size) {
+      // An empowered pulse can emit multiple torment stacks at one time. Count the pulse once.
+      const empowered = [...empowerment.values()].filter(Boolean).length;
+      const summary = doc.createElement('div');
+      summary.className = 'chart-panel-title';
+      summary.textContent = `Pulses (${empowerment.size}) · ${empowered} empowered · ${empowerment.size - empowered} normal`;
+      cell.append(summary);
+    }
+    const damageTimeline = doc.createElement('div');
+    cell.append(damageTimeline);
     const pulseHits = hits.map((hit) =>
       hit.damageType !== 'condition' && empowerment.has(hit.t) ? { ...hit, empowered: empowerment.get(hit.t) } : hit
     );
