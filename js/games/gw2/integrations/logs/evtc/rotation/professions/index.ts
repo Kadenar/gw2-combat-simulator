@@ -1,6 +1,7 @@
 import type { EvtcReconstructionEvidence } from '#gw2/integrations/logs/evtc/rotation/evidence.js';
 import { weaverAttunementEvents } from '#gw2/integrations/logs/evtc/rotation/professions/elementalist/weaver-attunements.js';
 import { engineerKitActions } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/kit-actions.js';
+import { chronomancerShiftActions } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/continuum-shift.js';
 import { mirageCloakActions } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/mirage-cloak.js';
 import { selectRangerPetCommands } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/pet-commands.js';
 import { rangerRepresentedActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/represented-actions.js';
@@ -36,6 +37,8 @@ function representedProfessionActions(
     case 'engineer':
       return engineerKitActions(context);
     case 'mesmer':
+      if (context.profile.specializationId === 'chronomancer') return chronomancerShiftActions(context);
+
       return context.profile.specializationId === 'mirage' ? mirageCloakActions(context) : context.recordedActions;
     case 'ranger':
       return rangerRepresentedActions(context);

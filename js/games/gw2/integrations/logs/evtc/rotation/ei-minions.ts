@@ -29,7 +29,11 @@ function float32(bits: number): number {
   return view.getFloat32(0, true);
 }
 
-function samePosition(a: ParsedEvtcEvent, b: ParsedEvtcEvent): boolean {
+/**
+ * Compares two effect positions. `xyz` requires the same point. `xy` ignores height for visuals that render above their
+ * ground marker, such as a Chronomancer shatter over its marker.
+ */
+function samePosition(a: ParsedEvtcEvent, b: ParsedEvtcEvent, plane: 'xy' | 'xyz'): boolean {
   // Split ground effects pack signed coordinates into dst_agent; value holds orientation, not position.
   const position = (e: ParsedEvtcEvent): number[] => {
     if ([60, 79].includes(e.stateChange))
@@ -42,7 +46,8 @@ function samePosition(a: ParsedEvtcEvent, b: ParsedEvtcEvent): boolean {
 
   const left = position(a),
     right = position(b);
-  return left.reduce((distance, value, index) => distance + (value - right[index]) ** 2, 0) < 1e-6;
+  const heightDifference = plane === 'xyz' ? left[2] - right[2] : 0;
+  return (left[0] - right[0]) ** 2 + (left[1] - right[1]) ** 2 + heightDifference ** 2 < 1e-6;
 }
 
 /** EI MesmerHelper excludes clone shatter visuals and distinguishes Mind Wrack from Distortion and its ammo variant. */
@@ -67,7 +72,7 @@ export function eiMesmerShatters(context: EvtcProfessionReconstructionContext): 
 
       if (
         skillId == null ||
-        cloneEffects.some((e) => Math.abs(e.event.time - event.time) < 10 && samePosition(e.event, event))
+        cloneEffects.some((e) => Math.abs(e.event.time - event.time) < 10 && samePosition(e.event, event, 'xyz'))
       )
         return [];
 
@@ -239,7 +244,7 @@ export function eiChronomancerShatters(context: EvtcProfessionReconstructionCont
     }
 
     const nearby = boon.filter((e) => Math.abs(e.event.time - event.time) < 10);
-    let emit = nearby.some((e) => samePosition(e.event, event));
+    let emit = nearby.some((e) => samePosition(e.event, event, 'xy'));
 
     if (!emit) {
       if (nearby.length) continue;
@@ -258,7 +263,7 @@ export function eiChronomancerShatters(context: EvtcProfessionReconstructionCont
         continue;
       }
 
-      emit = chrono.some((e) => Math.abs(e.event.time - event.time) < 10 && samePosition(e.event, event));
+      emit = chrono.some((e) => Math.abs(e.event.time - event.time) < 10 && samePosition(e.event, event, 'xy'));
     }
 
     if (emit)

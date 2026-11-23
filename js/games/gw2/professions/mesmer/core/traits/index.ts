@@ -37,7 +37,6 @@ import {
   masterOfFragmentation,
   masterOfMisdirection,
   phantasmalForce,
-  phantasmalHaste,
   shatterStorm,
   thePledge
 } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
@@ -76,7 +75,6 @@ export const mesmerCoreTraits = [
   maliciousSorcery,
   masterOfMisdirection,
   masterOfFragmentation,
-  phantasmalHaste,
   shatterStorm,
   thePledge,
   phantasmalForce,

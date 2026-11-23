@@ -8,6 +8,25 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 // The opening strike is followed by five field pulses.
 const CHAOS_STORM_PULSES_MS = [280, 1280, 2280, 3280, 4280, 5280];
 
+/** Each Warlock pulses three times, then converts at the end of its own 3.80s attack animation. */
+export function warlockAttackCycle(firstStartMs: number, secondStartMs: number) {
+  const starts = [firstStartMs, secondStartMs];
+  const damageAtMsByEntity = starts.map((start) => start + 2520);
+  const spawnAtMsByEntity = starts.map((start) => start + 3800);
+  return {
+    damageAtMs: damageAtMsByEntity[1],
+    damageAtMsByEntity,
+    spawnAtMs: spawnAtMsByEntity[1],
+    spawnAtMsByEntity,
+    damageTicksByEntity: starts.map((start) => ({
+      'One warlock': [920, 1720, 2520].map((offset) => ({ atMs: start + offset }))
+    }))
+  };
+}
+
+// The two NPCs acquire the target independently. These starts are relative to the reference player cast end.
+const WARLOCK_ATTACK = warlockAttackCycle(200, 400);
+
 export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<MesmerSkill>>> = {
   [ID.WINDS_OF_CHAOS]: {
     name: 'Winds of Chaos',
@@ -83,21 +102,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
 
     cooldown: 12,
     // The summon owns its attack and conversion timeline independently of the player cast.
-    phantasmTiming: {
-      damageAtMs: 2920,
-      damageAtMsByEntity: [2800, 2920],
-      // Both Warlocks retain their observed attack and clone-conversion stagger.
-      spawnAtMs: 4120,
-      spawnAtMsByEntity: [4080, 4180],
-      damageTicksByEntity: [
-        {
-          'One warlock': [{ atMs: 1200 }, { atMs: 2000 }, { atMs: 2800 }]
-        },
-        {
-          'One warlock': [{ atMs: 1320 }, { atMs: 2120 }, { atMs: 2920 }]
-        }
-      ]
-    },
+    phantasmTiming: WARLOCK_ATTACK,
     phantasm: true,
     resource: {
       mode: 'phantasm',
@@ -111,11 +116,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 1200, coefficient: 0.15 },
-          { atMs: 2000, coefficient: 0.15 },
-          { atMs: 2800, coefficient: 0.15 }
-        ],
+        ticks: WARLOCK_ATTACK.damageTicksByEntity[0]['One warlock'].map(({ atMs }) => ({ atMs, coefficient: 0.15 })),
         name: 'One warlock',
         actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',

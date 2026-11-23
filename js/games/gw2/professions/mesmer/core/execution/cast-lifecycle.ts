@@ -29,17 +29,20 @@ export function mesmerCastDelivery(
   };
 }
 
-/** Summon ownership survives interruption only when the canonical summon instant was reached. */
+/** A phantasm enters play at its release point even if the player continues the cast. */
+function phantasmSummonTime(
+  cast: Pick<RuntimeCast<MesmerSkill>, 'start' | 'fullEnd'>,
+  skill: Pick<MesmerSkill, 'phantasmSummonProgress'>
+): number {
+  return gw2Time(cast.start + (cast.fullEnd - cast.start) * (skill.phantasmSummonProgress ?? 1));
+}
+
+/** An interrupted phantasm cast keeps its summon once the player has reached the release point. */
 export function isCommittedInterruptedPhantasm(
   cast: Pick<RuntimeCast<MesmerSkill>, 'start' | 'fullEnd' | 'effectiveEnd'>,
   skill: Pick<MesmerSkill, 'phantasmSummonProgress'>
 ): boolean {
-  const progress = Number(skill.phantasmSummonProgress);
-
-  if (!Number.isFinite(progress) || !castWasInterrupted(cast)) return false;
-
-  const summonAt = gw2Time(cast.start + (cast.fullEnd - cast.start) * progress);
-  return gw2Time(cast.effectiveEnd) >= summonAt;
+  return castWasInterrupted(cast) && gw2Time(cast.effectiveEnd) >= phantasmSummonTime(cast, skill);
 }
 
 /** Prepare summon work at acceptance with its own lifetime; shared cast delivery owns the player's effects. */
@@ -49,11 +52,13 @@ export function scheduleMesmerPhantasmEffects(
   skill: MesmerSkill
 ): void {
   const details = context.profession.core.castDetails.get(cast.id) || {};
-  const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(cast, skill);
-  const summonAt = completedInterruptedPhantasm ? cast.effectiveEnd : cast.fullEnd;
+  const summonAt = phantasmSummonTime(cast, skill);
+
+  if (gw2Time(cast.effectiveEnd) < summonAt) return;
+
   createMesmerSkillEffects(context).schedule(skill, summonAt, cast.start, {
     clarityConsumed: Boolean(details.clarityConsumed),
-    delivery: mesmerCastDelivery(cast, skill, completedInterruptedPhantasm ? Infinity : cast.effectiveEnd)
+    delivery: mesmerCastDelivery(cast, skill, Infinity)
   });
 }
 

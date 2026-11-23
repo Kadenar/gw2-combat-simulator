@@ -9,6 +9,30 @@ import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js'
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
+// A shatter between two staggered conversions spends the first clone and leaves the second still to arrive.
+test('a shatter between staggered Warlock conversions spends only the converted clone', () => {
+  const config = {
+    specialization: 'Chronomancer',
+    primaryWeapon: 'Staff',
+    initialResource: 0,
+    selectedTraitIds: [TRAIT.CHRONOPHANTASMA]
+  };
+  const cast = { type: 'cast', skillId: ID.PHANTASMAL_WARLOCK };
+  const wait = (durationMs) => ({ type: 'wait', durationMs });
+  const baseline = simulateMesmer([cast, wait(12000)], config);
+  const [first, second] = baseline.events.find((event) => event.type === 'mesmer.phantasm-summoned').conversionTimes;
+  assert.ok(first < second);
+  const untilFirst = Math.round(first * 1000) - baseline.steps[0].end;
+  const result = simulateMesmer([cast, wait(untilFirst), 'Rewinder', wait(1000)], config);
+  assert.deepEqual(result.warnings, []);
+  const rewinder = result.steps.find((step) => step.skillId === ID.REWINDER);
+  assert.equal(
+    result.events.find((event) => event.type === 'resource' && event.activationId === rewinder.activationId)?.amount,
+    -1
+  );
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 1);
+});
+
 // Neither exit rewinds chain progress, restores a completed chain, or erases a chain started during Split.
 test('manual and automatic Continuum exits leave autoattack chains at their live step', () => {
   for (const [primaryWeapon, root, first, second, third] of [

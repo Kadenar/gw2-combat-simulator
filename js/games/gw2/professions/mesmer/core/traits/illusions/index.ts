@@ -7,7 +7,6 @@ import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { ConditionEffect, StrikeTick } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/execution/cast-timing.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
@@ -169,11 +168,6 @@ export const masterOfFragmentation = defineTrait<MesmerSkill>({
       })
     }))
   ]
-});
-
-/** Phantasmal Haste selects the shared Quickness behavior without a separate tuning profile. */
-export const phantasmalHaste = defineTrait<MesmerSkill>({
-  id: TRAIT.PHANTASMAL_HASTE
 });
 
 /** Own Shatter Storm tuning alongside its runtime behavior. */
@@ -394,11 +388,6 @@ export function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: 
       detail: ''
     }
   });
-}
-
-/** Selected Phantasmal Haste uses the shared Quickness rate when deriving phantasm packet times. */
-export function phantasmalHasteSpeed(context: MesmerRuntime): number {
-  return hasTrait(context, TRAIT.PHANTASMAL_HASTE) ? GW2_QUICKNESS_ACTION_RATE : 1;
 }
 
 /** Shatters, instruments, and Crescendo receive recharge reduction before shared flat resource reductions. */

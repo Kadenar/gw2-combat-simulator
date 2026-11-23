@@ -2,7 +2,11 @@
  * Chronomancer-owned formulas and mechanic classifications.
  */
 import type { MesmerPhantasmAttackTiming } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import { warlockAttackCycle } from '#gw2/professions/mesmer/core/skills/weapons/staff.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+
+// The resummoned pair acquires the target again and performs the same attack as the initial pair.
+const REPEATED_WARLOCK_ATTACK = warlockAttackCycle(4520, 4800);
 
 export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
   Record<number, Partial<MesmerPhantasmAttackTiming>>
@@ -46,19 +50,11 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     repeatSpawnAtMs: 4160
   },
   [ID.PHANTASMAL_WARLOCK]: {
-    repeatDamageAtMs: 7200,
-    repeatDamageAtMsByEntity: [7160, 7200],
-    // The repeated Warlocks preserve their separately observed conversions.
-    repeatSpawnAtMs: 8460,
-    repeatSpawnAtMsByEntity: [8440, 8480],
-    repeatDamageTicksByEntity: [
-      {
-        'One warlock': [{ atMs: 5560 }, { atMs: 6360 }, { atMs: 7160 }]
-      },
-      {
-        'One warlock': [{ atMs: 5600 }, { atMs: 6400 }, { atMs: 7200 }]
-      }
-    ]
+    repeatDamageAtMs: REPEATED_WARLOCK_ATTACK.damageAtMs,
+    repeatDamageAtMsByEntity: REPEATED_WARLOCK_ATTACK.damageAtMsByEntity,
+    repeatSpawnAtMs: REPEATED_WARLOCK_ATTACK.spawnAtMs,
+    repeatSpawnAtMsByEntity: REPEATED_WARLOCK_ATTACK.spawnAtMsByEntity,
+    repeatDamageTicksByEntity: REPEATED_WARLOCK_ATTACK.damageTicksByEntity
   },
   [ID.PHANTASMAL_BERSERKER]: {
     repeatDamageAtMs: 3680,

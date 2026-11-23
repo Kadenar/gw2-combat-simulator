@@ -11,6 +11,9 @@ const BLINK_ID = 10200;
 /** Shared EI identity keeps ambiguous-teleport reconstruction and its warning in agreement. */
 export const BLINK_OR_PHASE_RETREAT_ID = -27;
 
+/** Logs record Continuum Shift under its game ID. The catalog uses a synthetic ID for the same action. */
+export const CONTINUUM_SHIFT_GAME_ID = 30747;
+
 /** Resolves represented Mesmer inputs and avoids replaying cloak gains as additional dodges. */
 export function normalizeMesmerLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   const config = context.professionConfig;

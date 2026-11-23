@@ -5,7 +5,6 @@ import {
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
-  tooltipDecimal,
   tooltipFactorChange,
   tooltipPercent,
   tooltipProfile,
@@ -15,7 +14,6 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { MAX_MIGHT_STACKS } from '#gw2/platform/combat/boons.js';
 import { CONDITION } from '#gw2/platform/constants.js';
-import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/execution/cast-timing.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Name the active specialization's skills so slot numbers cannot be mistaken for hit ordering. */
@@ -75,10 +73,8 @@ export const mesmerIllusionsTooltips = {
     'Your own burning applications from The Prestige and Phantasmal Mage apply additional burning. Phantasm and trait-proc applications do not trigger this.'
   ),
   [TRAIT.ESCAPE_ARTIST]: outsideScopeTooltip,
-  // The trait grants the shared Quickness rate without owning separate balance tuning.
-  [TRAIT.PHANTASMAL_HASTE]: traitTooltip('Phantasms perform their attacks faster.', () => [
-    { name: 'Phantasm action speed', detail: `${tooltipDecimal(GW2_QUICKNESS_ACTION_RATE)}×` }
-  ]),
+  // Logs show only some phantasm phases speed up during its Quickness, so the simulator does not model it.
+  [TRAIT.PHANTASMAL_HASTE]: outsideScopeTooltip,
   // Clone explosions, bladesong hits, and instrument attacks have different trigger counts.
   [TRAIT.MAIM_THE_DISILLUSIONED]: (context, entity, specialization) =>
     traitTooltip(

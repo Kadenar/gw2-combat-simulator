@@ -7,6 +7,7 @@ import { createStrikePacketMatcher } from '#gw2/integrations/logs/evtc/rotation/
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import {
+  eiChronomancerShatters,
   eiMesmerPhaseRetreat,
   eiMesmerShatters,
   eiMinionSpawns
@@ -171,6 +172,32 @@ test('Cry of Frustration and Diversion reject same-caster clone visuals and unav
       assert.deepEqual(eiMesmerShatters(context('mesmer', specialization, [...mappings, visual])), []);
     }
   }
+});
+
+// A player's shatter can render above its ground marker. A horizontal offset is a different location.
+test('Chronomancer attributes shatter visuals by horizontal position', () => {
+  const mapping = (skillId, hex) => {
+    const guid = Buffer.from(hex, 'hex');
+    return event({ stateChange: 46, skillId, source: guid.readBigUInt64LE(0), target: guid.readBigUInt64LE(8) });
+  };
+
+  const visual = event({ time: 100, stateChange: 60, skillId: 77, target: 0x00030002ffffn });
+  const marker = { ...visual, skillId: 78, target: visual.target + (1n << 32n) };
+  const find = (companion) =>
+    eiChronomancerShatters(
+      context('mesmer', 'chronomancer', [
+        mapping(77, 'C035166E3E4C414ABE640F47797D9B4A'),
+        mapping(78, '5FA6527231BB8041AC783396142C6200'),
+        visual,
+        companion,
+        event({ time: 100, skillId: 56925, value: 100, target: 0x2000n })
+      ])
+    );
+  assert.deepEqual(
+    find(marker).map((action) => action.rawSkillId),
+    [56925]
+  );
+  assert.deepEqual(find({ ...marker, target: marker.target + (1n << 16n) }), []);
 });
 
 test('Phase Retreat teleport evidence requires an owned staff clone and merges with missile evidence', () => {

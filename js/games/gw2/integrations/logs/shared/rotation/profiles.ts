@@ -1,3 +1,4 @@
+import { CONTINUUM_SHIFT_GAME_ID } from '#gw2/integrations/logs/shared/rotation/professions/mesmer.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_IDENTITIES } from '#gw2/profession-identities.js';
@@ -45,7 +46,8 @@ const overrides: Partial<Record<keyof typeof PROFESSION_IDENTITIES, RotationProf
     skillIdAliases: { [MESMER_ID.BLADECALL]: MESMER_ID.BLADECALL_NON_VIRTUOSO },
     skillIdAliasesBySpecialization: {
       core: { [-63]: 10191, 49068: 10191 },
-      chronomancer: { 56925: 56930 },
+      // Logs identify Continuum Shift by its game ID even when they omit its skill name.
+      chronomancer: { [CONTINUUM_SHIFT_GAME_ID]: MESMER_ID.CONTINUUM_SHIFT, 56925: 56930 },
       // EI's synthetic identities resolve to existing actions; shared cloak source selection runs before this lookup.
       mirage: { [-63]: 10191, 49068: 10191 },
       virtuoso: {

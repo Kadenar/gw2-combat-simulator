@@ -92,7 +92,7 @@ interface MesmerAttackTimingTick {
   readonly atMs: number;
 }
 
-// Phantasm offsets begin at the actual summon cast end supplied by the scheduler.
+// Offsets use the end of the reference player cast. The scheduler translates them to elapsed time since NPC release.
 export interface MesmerPhantasmAttackTiming {
   readonly damageAtMs: number;
   readonly damageAtMsByEntity?: readonly number[];
@@ -130,7 +130,6 @@ export interface MesmerPhantasmExecution {
   // When a specialization bonus strike fires; uses a post-spawn delay when supplied.
   readonly initialBladeAt: number;
   readonly timing: MesmerPhantasmAttackTiming;
-  // Converts a raw post-cast millisecond offset from timing metadata into a simulation
-  // timestamp, accounting for cast duration and Phantasmal Haste speed scaling.
+  // Converts a reference-cast-end millisecond offset from timing metadata into a simulation timestamp.
   readonly endpoint: (atMs: number | undefined) => number;
 }

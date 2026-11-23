@@ -11,6 +11,40 @@ import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-f
 import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 
+// Early loss restores the recharge snapshot before the next cast. Natural expiry already has a scheduled restore.
+test('Chronomancer replays an early Split exit and leaves natural expiry to the simulator', () => {
+  for (const remaining of [4000, 0]) {
+    const exit = 1000 + 6000 - remaining;
+    const fixture = log({
+      events: [
+        event({ time: 1000, stateChange: 1 }),
+        event({ time: 1000, stateChange: 69, target: PLAYER, skillId: 30136, value: 6000 }),
+        event({ time: 1200, stateChange: 67, skillId: ID.PHANTASMAL_WARLOCK, value: 880 }),
+        event({ time: 2080, stateChange: 68, skillId: ID.PHANTASMAL_WARLOCK, value: 880, activation: 3 }),
+        event({ time: exit, stateChange: 72, skillId: 30136, value: remaining }),
+        event({ time: exit + 200, stateChange: 67, skillId: ID.PHANTASMAL_WARLOCK, value: 880 }),
+        event({ time: exit + 1080, stateChange: 68, skillId: ID.PHANTASMAL_WARLOCK, value: 880, activation: 3 })
+      ]
+    });
+    const imported = reconstructEvtcRotation(fixture, mesmerCatalog);
+    assert.ok(imported.sourceActions.some((action) => action.rawSkillId === 30747));
+    assert.equal(
+      imported.rotation.filter((command) => command.skillId === ID.CONTINUUM_SHIFT).length,
+      remaining ? 1 : 0
+    );
+    const result = simulateMesmer(imported.rotation, {
+      specialization: 'Chronomancer',
+      primaryWeapon: 'Staff',
+      secondaryWeapon: '',
+      initialResource: 3
+    });
+    assert.deepEqual(result.warnings, []);
+    const warlocks = result.steps.filter((step) => step.skillId === ID.PHANTASMAL_WARLOCK);
+    assert.equal(warlocks.length, 2);
+    assert.equal(warlocks[1].start, exit + 200 - 1000);
+  }
+});
+
 /** Core skill evidence applies across Mesmer specializations without inventing casts from unrelated packets. */
 test('Phase Retreat imports owned missile creations across Mesmer specializations without duplicate inputs', () => {
   const missile = event({ time: 200, stateChange: 57, skillId: ID.PHASE_RETREAT });

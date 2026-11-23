@@ -102,7 +102,7 @@ export function schedulePhantasmStrike(
       ...damageGroup,
       atMs: undefined,
       intervalMs: undefined,
-      // Skill-owned phantasm packets use measured post-cast offsets and still inherit Phantasmal Haste.
+      // Skill-owned phantasm packets use the same measured offsets as the phantasm timeline.
       ticks: fixedTicks.map((tick) => ({
         ...tick,
         atMs: (execution.endpoint(tick.atMs) - castStart) * 1000

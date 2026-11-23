@@ -2,6 +2,7 @@
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
   schedulePhantasmBonusStrike,
@@ -16,7 +17,6 @@ import type {
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerIllusionsGained } from '#gw2/professions/mesmer/core/mechanics/resources.js';
-import { phantasmalHasteSpeed } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -44,6 +44,17 @@ interface PhantasmCastSchedulerOptions {
   readonly queueResources: MesmerQueueResources;
 }
 
+/** Same-tick transitions grant one batch. A later phantasm earns its own trait or resource grant. */
+function phantasmCountsAt(executions: readonly MesmerPhantasmExecution[], phase: 'spawnAt' | 'conversionAt') {
+  const counts = new Map<number, number>();
+  for (const execution of executions) {
+    const at = gw2Time(execution[phase]);
+    counts.set(at, (counts.get(at) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
 /** Schedule phantasm lifecycles, attacks, and resource conversions independently of the caster's effects. */
 export function createPhantasmCastScheduler({
   state,
@@ -53,7 +64,6 @@ export function createPhantasmCastScheduler({
 }: PhantasmCastSchedulerOptions) {
   const prepare = (
     skill: MesmerSkill,
-    castStart: number,
     summonAt: number,
     clarityConsumed: boolean,
     delivery: EffectDelivery = {}
@@ -76,13 +86,9 @@ export function createPhantasmCastScheduler({
       throw new TypeError(`Phantasm skill ${skill.id} requires attack timing metadata.`);
     }
 
-    // Phantasmal Haste compresses all post-cast timing offsets by 1/speed.
-    const speed = phantasmalHasteSpeed(state);
-    const endpoint = (atMs: number | undefined): number => {
-      const measuredPostCast = Number(atMs) / 1000;
-      const actualCastTime = summonAt - castStart;
-      return castStart + actualCastTime + measuredPostCast / speed;
-    };
+    // Profiles measure from the end of a reference cast. Convert to time since NPC release once.
+    const referenceRecoveryMs = referenceCastTimeMs(skill) * (1 - (skill.phantasmSummonProgress ?? 1));
+    const endpoint = (atMs: number | undefined): number => summonAt + (referenceRecoveryMs + Number(atMs)) / 1000;
 
     const hasRepeat = Boolean(policy.repeat);
 
@@ -204,23 +210,21 @@ export function createPhantasmCastScheduler({
 
     if (!policy.repeat) return;
 
-    // Chronophantasma repeats the attack; Virtuoso's bonus blades cannot share this specialization.
-    state.fireTrigger(mesmerIllusionsGained, {
-      at: execution.spawnAt,
-      count,
-      sourceSkill: `${skill.name} - ${policy.repeat.label}`,
-      detail: `${count} phantasm${count === 1 ? '' : 's'}`,
-      delivery: execution.delivery
-    });
-
-    {
+    for (const [at, resummoned] of phantasmCountsAt(executions, 'spawnAt')) {
+      state.fireTrigger(mesmerIllusionsGained, {
+        at,
+        count: resummoned,
+        sourceSkill: `${skill.name} - ${policy.repeat.label}`,
+        detail: `${resummoned} phantasm${resummoned === 1 ? '' : 's'}`,
+        delivery: execution.delivery
+      });
       const packet = buildMesmerPacket({
         type: 'mesmer.phantasm-resummoned',
         actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
-        at: execution.spawnAt,
+        at,
         name: skill.name,
-        count
+        count: resummoned
       });
       state.effects.emit({
         ...execution.delivery,
@@ -261,21 +265,6 @@ export function createPhantasmCastScheduler({
     });
   };
 
-  const queueConversion = (execution: MesmerPhantasmExecution, amount = 1): void => {
-    // Resource tasks use their real conversion time; task priority keeps them after same-time illusion work.
-    queueResources(
-      execution.conversionAt,
-      amount,
-      null,
-      `${execution.skill.name} phantasm conversion`,
-      {
-        kind: 'phantasm-conversion',
-        sourceSkillId: execution.skill.id
-      },
-      execution.delivery
-    );
-  };
-
   const schedulePackets = (
     skill: MesmerSkill,
     castStart: number,
@@ -302,18 +291,6 @@ export function createPhantasmCastScheduler({
     }
   };
 
-  // Simultaneous conversions form one resource grant, after the batch's lifecycle and attack work.
-  const scheduleConversions = (executions: readonly MesmerPhantasmExecution[]): void => {
-    const groups = new Map<number, MesmerPhantasmExecution[]>();
-    for (const execution of executions) {
-      const group = groups.get(execution.conversionAt) || [];
-      group.push(execution);
-      groups.set(execution.conversionAt, group);
-    }
-
-    for (const group of groups.values()) queueConversion(group[0], group.length);
-  };
-
   const schedule = (
     skill: MesmerSkill,
     summonAt: number,
@@ -321,11 +298,22 @@ export function createPhantasmCastScheduler({
     { clarityConsumed, delivery }: PhantasmScheduleOptions
   ): void => {
     // The cast owner selects the summon instant; this scheduler owns only the resulting summon work.
-    const phantasmExecutions = prepare(skill, castStart, summonAt, clarityConsumed, delivery);
+    const phantasmExecutions = prepare(skill, summonAt, clarityConsumed, delivery);
     scheduleLifecycle(phantasmExecutions);
     schedulePackets(skill, castStart, phantasmExecutions);
-    // Summon declarations earn resources through their prepared phantasm conversion batches.
-    scheduleConversions(phantasmExecutions);
+    for (const [at, count] of phantasmCountsAt(phantasmExecutions, 'conversionAt')) {
+      queueResources(
+        at,
+        count,
+        null,
+        `${skill.name} phantasm conversion`,
+        {
+          kind: 'phantasm-conversion',
+          sourceSkillId: skill.id
+        },
+        delivery
+      );
+    }
   };
 
   return { schedule };

@@ -211,11 +211,10 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDe
       mode: 'phantasm',
       count: 1
     },
-    // The utility version's full activation is 1160 ms in the post-patch log.
-    castTimeMs: 1160,
-    // The summon appears before recovery ends, so later cancellation must preserve its attacks and blade conversion.
+    castTimeMs: 760,
+    // The summon appears before the cast ends, so later cancellation must preserve its attacks and blade conversion.
     interruptCommitMs: 720,
-    phantasmSummonProgress: 720 / 1160,
+    phantasmSummonProgress: 720 / 760,
     effects: [
       {
         type: 'strike',
