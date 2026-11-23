@@ -166,15 +166,15 @@
         "build": "data/gw2/builds/engineer/b-condi-amalgam-3kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-amalgam-3kit-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-amalgam-three-kits-spear",
-        "benchmarkDps": 42796,
+        "benchmarkDps": 42801,
         "upToDate": true,
-        "benchmarkApm": 132.8,
+        "benchmarkApm": 131.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 49464, "phase": 49464 },
-          "80-60": { "cumulative": 42188, "phase": 36850 },
-          "60-40": { "cumulative": 44320, "phase": 49383 },
-          "40-20": { "cumulative": 42275, "phase": 37255 },
-          "20-0": { "cumulative": 42796, "phase": 45558 }
+          "100-80": { "cumulative": 49382, "phase": 49382 },
+          "80-60": { "cumulative": 42114, "phase": 36760 },
+          "60-40": { "cumulative": 44164, "phase": 49032 },
+          "40-20": { "cumulative": 42112, "phase": 37075 },
+          "20-0": { "cumulative": 42801, "phase": 45884 }
         }
       },
       {
