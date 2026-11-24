@@ -166,6 +166,7 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
 
     energyCost: 5,
     castTimeMs: 960,
+    interruptCommitMs: 920,
     comboFinishers: [
       {
         ownerId: 'revenant',
