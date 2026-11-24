@@ -1,10 +1,10 @@
 /** Present game-data selection in place on desktop and as a compact dropdown on phones. */
 import { mountMobileMenu } from '#browser/shell/mobile-menu.js';
+import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
 import { buildWithPatchSkillSelections } from '#gw2/app/build/state/skill-selection.js';
 import { bindPreviewAssumptionNotice, previewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import type { PatchComparison } from '#gw2/app/simulation/baseline/types.js';
-import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import { missingPatchTraits } from '#gw2/professions/shared/trait-data.js';
@@ -196,9 +196,8 @@ export function renderPatchComparison(container: HTMLElement, app: ProfessionApp
   const overview = app.profession.patchOverviewFor(
     app.adapter
       .createBuildContext({
-        build: buildWithPatchSkillSelections(app, previewPatch.catalog),
-        patch: previewPatch,
-        ...normalizeSimulationSettings(app.simulationSettings)
+        ...buildContextInput(app, buildWithPatchSkillSelections(app, previewPatch.catalog)),
+        patch: previewPatch
       })
       .simulationConfig(),
     observedIds

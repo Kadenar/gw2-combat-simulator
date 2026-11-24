@@ -1,3 +1,4 @@
+import { buildForEncounter } from '#gw2/app/boss-scenarios/simulation.js';
 import type { AttributePreviewInput } from '#gw2/app/build/types.js';
 import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { BuildAttributes, BuildContextInput } from '#gw2/build-context/types.js';
@@ -14,13 +15,13 @@ export interface IsolatedPreview {
   readonly config: Gw2Config;
 }
 
-/** Build-context inputs for the saved build or a detached copy; preview caches key on this same object. */
+/** Apply the active encounter's buff rules to the build used for calculation. */
 export function buildContextInput(
-  input: Pick<AttributePreviewInput, 'build' | 'patch' | 'simulationSettings'>,
+  input: Pick<AttributePreviewInput, 'build' | 'patch' | 'simulationSettings' | 'workspace'>,
   build: AttributePreviewInput['build'] = input.build
 ): BuildContextInput {
   return {
-    build,
+    build: buildForEncounter(build, input.workspace?.scenario),
     patch: input.patch,
     ...normalizeSimulationSettings(input.simulationSettings)
   };
@@ -50,10 +51,11 @@ export function createIsolatedPreview(
   }
 
   // Preview health and conditional state remain explicit query values, outside the build context.
-  const calculation = input.adapter.createBuildContext(buildContextInput(input, build));
+  const calculationInput = buildContextInput(input, build);
+  const calculation = input.adapter.createBuildContext(calculationInput);
   const attributeData = calculation.attributes(weaponSet === 2 ? 2 : 1);
   const context = {
-    build,
+    build: calculationInput.build,
     specialization: calculation.specialization,
     activeTraits: attributeData.activeTraits,
     weapons: weaponSet === 2 ? build.alternateWeapons : build.weapons,

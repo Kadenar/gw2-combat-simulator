@@ -1,4 +1,5 @@
 import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
+import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
 import { relicComparisonAvailable } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { RelicComparisonRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
 import type { CursorPreviewRun } from '#gw2/app/rotation/cursor-preview.js';
@@ -13,7 +14,6 @@ import type {
   RandomDistributionRequest,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
-import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
 import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
@@ -76,11 +76,7 @@ export function createProfessionRuntime({
   function baselineSimulationConfig(app: ProfessionAppState): Gw2Config {
     const patch = profession.resolvePatch({ id: app.patch.id, values: app.patch.values });
     const config = deterministicSimulationConfig(
-      createBuildContext({
-        build: app.build,
-        patch,
-        ...normalizeSimulationSettings(app.simulationSettings)
-      }).simulationConfig()
+      createBuildContext({ ...buildContextInput(app), patch }).simulationConfig()
     );
     return withScenarioConfig(config, app.workspace?.scenario);
   }

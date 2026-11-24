@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { encounterAnalysisPhases } from '#gw2/app/boss-scenarios/analysis-model.js';
-import { ENCOUNTER_TEMPLATES, encounterHealth } from '#gw2/app/boss-scenarios/catalog.js';
+import { ENCOUNTER_TEMPLATES, encounterDifficulties, encounterHealth } from '#gw2/app/boss-scenarios/catalog.js';
 import { ENCOUNTER_HEALTH } from '#gw2/app/boss-scenarios/health-data.js';
 import {
   createBossScenario,
@@ -35,13 +35,29 @@ const makeDraft = () =>
     'current'
   );
 const parse = (value) => parseBossScenario(value, 'engineer', adapter.toApplicationBuild);
+// Baseline, RNG, and modifier requests each compile their own config from the captured build.
+const analysisConfigs = (state) => {
+  const snapshot = captureAnalysisFixture(state, adapter);
+  return [
+    snapshot.baseline({ collectChartData: false, comparePatch: false }).baseConfig,
+    snapshot.distribution().baseConfig,
+    ...snapshot.modifiers(0).comparisons.map((entry) => entry.config)
+  ];
+};
 
-// The boss editor removes imported fractal settings before calculating attributes, preserving the source build.
-test('boss editor discards imported fractal assumptions before calculating attributes', () => {
+test('a CM-only boss opens and reloads in challenge mode', () => {
+  const draft = createBossScenario('030101', createDefaultBuild(adapter), 'My build', 'current');
+  const restored = parse(draft);
+  assert.equal(restored.difficulty, 'challenge');
+  assert.throws(() => selectScenarioEncounter(restored, restored.encounterId, 'normal'), /supported boss/);
+});
+
+// Raid calculations suppress potions while the saved scenario retains the player's AR and augmentation.
+test('fractal buff settings survive switching to a raid and back', () => {
   const build = createDefaultBuild(adapter);
-  build.assumptions.fractal = { ...DEFAULT_FRACTAL_BUFFS, enabled: true };
+  build.assumptions.fractal = { enabled: true, agonyResistance: 212, augmentation: 'champion' };
   const original = structuredClone(build);
-  const draft = createBossScenario('020102', build, 'Fractal build', 'current');
+  const draft = createBossScenario('030101', build, 'Fractal build', 'current');
   const restored = parse(draft);
 
   const state = {
@@ -55,9 +71,26 @@ test('boss editor discards imported fractal assumptions before calculating attri
     attributeData: null
   };
   normalizeSelectedSkillsAndAttributes(state);
-  assert.equal(state.build.assumptions.fractal, undefined);
-  for (const stat of ['Toughness', 'Vitality', 'Concentration'])
-    assert.equal(state.attributeData.attributes[stat].fractalPotions, undefined);
+  assert.ok(state.attributeData.attributes.Concentration.fractalPotions > 0);
+  selectScenarioEncounter(restored, '020102');
+  normalizeSelectedSkillsAndAttributes(state);
+  assert.equal(state.attributeData.attributes.Concentration.fractalPotions, undefined);
+  for (const config of analysisConfigs(state))
+    assert.equal(config.attributeInputs.weaponSets[0].sources.Concentration?.fractalPotions, undefined);
+
+  const reloaded = parse(JSON.parse(JSON.stringify(restored)));
+  assert.deepEqual(reloaded.build.assumptions.fractal, original.assumptions.fractal);
+  state.build = reloaded.build;
+  state.workspace.scenario = reloaded;
+  selectScenarioEncounter(reloaded, '030101');
+  normalizeSelectedSkillsAndAttributes(state);
+  assert.ok(state.attributeData.attributes.Concentration.fractalPotions > 0);
+  for (const config of analysisConfigs(state)) {
+    assert.ok(config.encounter);
+    assert.ok(config.modifiers.playerStrike > 1);
+    assert.ok(config.attributeInputs.weaponSets[0].sources.Concentration.fractalPotions > 0);
+  }
+
   assert.deepEqual(build, original);
 });
 
@@ -188,9 +221,9 @@ test('invalid imports cannot invent health, layouts, durations, or phase rotatio
 
 test('every selectable boss and recorded difficulty has an automatic authoring plan', () => {
   for (const encounter of ENCOUNTER_TEMPLATES) {
-    for (const mode of ['normal', 'challenge', 'legendary']) {
-      if (mode !== 'normal' && !encounterHealth(encounter.id, mode)) continue;
-
+    const modes = encounterDifficulties(encounter.id);
+    assert.ok(modes.length, encounter.name);
+    for (const mode of modes) {
       const draft = makeDraft();
       selectScenarioEncounter(draft, encounter.id, mode);
       const plan = encounterPhasePlan(encounter.id, mode);

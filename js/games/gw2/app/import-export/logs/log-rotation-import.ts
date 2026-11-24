@@ -1,4 +1,4 @@
-import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
+import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -22,13 +22,7 @@ export interface AppLogReconstructionOptions {
 export function appLogReconstructionOptions(app: ProfessionAppState): AppLogReconstructionOptions {
   return {
     selectedSkillIds: [...((app.build as { selectedMorphSkillIds?: readonly number[] }).selectedMorphSkillIds || [])],
-    professionConfig: app.adapter
-      .createBuildContext({
-        build: app.build,
-        patch: app.patch,
-        ...normalizeSimulationSettings(app.simulationSettings)
-      })
-      .simulationConfig()
+    professionConfig: app.adapter.createBuildContext(buildContextInput(app)).simulationConfig()
   };
 }
 

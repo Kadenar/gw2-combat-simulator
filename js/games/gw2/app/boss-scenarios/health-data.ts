@@ -1,4 +1,6 @@
 /** Runtime health retains exact target totals and bars; report provenance stays in offline maintenance files. */
+import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
+
 interface EncounterHealth {
   encounterId: string;
   difficulty: 'normal' | 'challenge' | 'legendary';
@@ -14,7 +16,20 @@ interface EncounterHealth {
   }[];
 }
 
-/** Reviewed EI target health, armor, and hitbox widths for boss scenarios; preserve exact values rather than rounded metadata. */
+/**
+ * CM fractal bosses log the same 2748 toughness as the Standard Kitty Golem, so they share its standard armor.
+ * EI supplies health and hitbox width.
+ */
+function fractalTarget(
+  name: string,
+  health: number,
+  hitboxWidth: number,
+  index = 0
+): EncounterHealth['targets'][number] {
+  return { index, name, health, armor: STANDARD_TARGET_ARMOR, hitboxWidth, primary: true, healthBars: null };
+}
+
+/** Boss scenarios use the recorded target health and hitbox width alongside the encounter armor. */
 export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
   {
     encounterId: '020101',
@@ -633,6 +648,43 @@ export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
         hitboxWidth: 1000
       }
     ]
+  },
+  { encounterId: '030101', difficulty: 'challenge', targets: [fractalTarget('MAMA', 4973977, 290)] },
+  {
+    encounterId: '030102',
+    difficulty: 'challenge',
+    targets: [fractalTarget('Siax the Corrupted', 5874030, 240)]
+  },
+  {
+    encounterId: '030103',
+    difficulty: 'challenge',
+    targets: [fractalTarget('Ensolyss of the Endless Torment', 13439478, 260)]
+  },
+  {
+    encounterId: '030201',
+    difficulty: 'challenge',
+    targets: [fractalTarget('Skorvald the Shattered', 5492616, 180)]
+  },
+  { encounterId: '030202', difficulty: 'challenge', targets: [fractalTarget('Artsariiv', 5867657, 350)] },
+  { encounterId: '030203', difficulty: 'challenge', targets: [fractalTarget('Arkk', 9789212, 120)] },
+  {
+    encounterId: '030301',
+    difficulty: 'challenge',
+    targets: [
+      fractalTarget('Elemental Ai, Keeper of the Peak', 14734372, 200),
+      fractalTarget('Dark Ai, Keeper of the Peak', 14734372, 200, 1)
+    ]
+  },
+  {
+    encounterId: '030401',
+    difficulty: 'challenge',
+    targets: [fractalTarget('Kanaxai, Scythe of House Aurkus', 16999004, 200)]
+  },
+  { encounterId: '030502', difficulty: 'challenge', targets: [fractalTarget('Eparch', 16961832, 280)] },
+  {
+    encounterId: '030601',
+    difficulty: 'challenge',
+    targets: [fractalTarget('Legendary Whispering Shadow', 11449214, 280)]
   },
   {
     encounterId: '040201',

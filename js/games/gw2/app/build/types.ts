@@ -64,7 +64,7 @@ export type ProfessionDefaultOffhand = (context?: ProfessionOffhandContext) => s
 /** Calculation inputs shared by isolated previews, without editor state or a preview weapon selector. */
 export type AttributePreviewInput = Pick<
   import('#gw2/app/types.js').ProfessionAppState,
-  'build' | 'patch' | 'simulationSettings' | 'adapter' | 'profession' | 'activeCatalog'
+  'build' | 'patch' | 'simulationSettings' | 'adapter' | 'profession' | 'activeCatalog' | 'workspace'
 > & {
   readonly attributeData: Pick<import('#gw2/build-context/types.js').BuildAttributes, 'activeTraits'> | null;
 };

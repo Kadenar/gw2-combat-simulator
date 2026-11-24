@@ -1,6 +1,6 @@
 /** Detaches analysis inputs once so lazy requests and cache identity describe the same baseline. */
 import type { BossScenarioDraft } from '#gw2/app/boss-scenarios/model.js';
-import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
+import { buildForEncounter, withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import { buildWithPatchSkillSelections } from '#gw2/app/build/state/skill-selection.js';
 import type { BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
 import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/request.js';
@@ -48,10 +48,7 @@ export function captureAnalysisRequestSnapshot(
   }: { readonly profession: BuildContextProfession; readonly createBuildContext: BuildContextFactory }
 ): AnalysisRequestSnapshot {
   const owner = input.build;
-  const build = structuredClone(input.build);
-
-  // Headless encounter requests enforce the same restriction as the boss editor.
-  if (input.scenario) delete build.assumptions.fractal;
+  const build = structuredClone(buildForEncounter(input.build, input.scenario));
 
   const values = { ...input.patch.values };
   const settings = normalizeSimulationSettings(input.simulationSettings);

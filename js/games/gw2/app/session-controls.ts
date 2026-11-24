@@ -1,3 +1,4 @@
+import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { bindBuildFileImportDialog } from '#gw2/app/import-export/build-file-import-dialog.js';
 import {
@@ -8,7 +9,6 @@ import {
 } from '#gw2/app/import-export/files.js';
 import { bindRotationImportDialog } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { commitBuildReplacement, commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
-import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { requiredElement, requiredInput, requiredSelect } from '#ui/shared/dom.js';
 
@@ -18,11 +18,7 @@ export function bindSessionControls(app: ProfessionAppState): void {
   attributeWeaponSet.addEventListener('change', () => {
     app.attributeWeaponSet = Number(attributeWeaponSet.value) === 2 ? 2 : 1;
     app.attributeData = app.adapter
-      .createBuildContext({
-        build: app.build,
-        patch: app.patch,
-        ...normalizeSimulationSettings(app.simulationSettings)
-      })
+      .createBuildContext(buildContextInput(app))
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     app.renderAttributes();
   });

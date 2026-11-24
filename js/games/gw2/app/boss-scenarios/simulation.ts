@@ -1,10 +1,19 @@
-import { encounterHealth } from '#gw2/app/boss-scenarios/catalog.js';
+import { allowsFractalBuffs, encounterHealth } from '#gw2/app/boss-scenarios/catalog.js';
 import type { BossScenarioDraft } from '#gw2/app/boss-scenarios/model.js';
 import { encounterExecutionPhases, encounterPhasePlan } from '#gw2/app/boss-scenarios/phases.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { EncounterConfig, EncounterPhase } from '#gw2/platform/combat/state/encounter.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export const ENCOUNTER_RESULT_EVENT = 'gw2:encounter-result';
+
+/** Raid and strike calculations omit potions while the saved build keeps the player's fractal settings. */
+export function buildForEncounter(build: Gw2CanonicalBuild, scenario?: BossScenarioDraft): Gw2CanonicalBuild {
+  if (allowsFractalBuffs(scenario) || !build.assumptions.fractal) return build;
+
+  const { fractal: _fractal, ...assumptions } = build.assumptions;
+  return { ...build, assumptions };
+}
 
 /** Compile encounter stages against each EI target and bar; each target receives its own authored group DPS. */
 export function scenarioSimulation(draft: BossScenarioDraft): { config: EncounterConfig | null; reason: string } {

@@ -1,4 +1,5 @@
 /** Owns assumption controls and target choices while preserving encounter-owned health and armor. */
+import { allowsFractalBuffs } from '#gw2/app/boss-scenarios/catalog.js';
 import { bindHelpPopover, HELP_ICON_HTML } from '#gw2/app/build/panels/help-popover.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -93,6 +94,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
   const a = app.build.assumptions as ProfessionBuildAssumptions;
   // Encounters own health and armor; movement and activation rate remain editable damage assumptions.
   const isBoss = Boolean(app.workspace?.scenario);
+  const showFractalBuffs = allowsFractalBuffs(app.workspace?.scenario);
   const targetArmorValue = normalizeTargetArmor(app.build.targetArmor);
   const targetArmorPreset = TARGET_ARMOR_OPTIONS.some((option) => option.value === targetArmorValue)
     ? String(targetArmorValue)
@@ -345,7 +347,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
             ${conditionGroups}
           </div>
           <div id="simulation-options" class="simulation-settings-column">
-            ${isBoss ? '' : section('fractal', 'Fractal buffs', fractalControls)}
+            ${showFractalBuffs ? section('fractal', 'Fractal buffs', fractalControls) : ''}
             ${section(
               'simulation',
               'Simulation',
@@ -366,8 +368,8 @@ export function renderAssumptions(app: ProfessionAppState): void {
             )}
           </div>`;
 
-  // Boss encounters exclude fractal settings; each other edit commits a bounded integer AR value.
-  if (!isBoss) {
+  // The golem and fractal editors share the same AR and augmentation settings.
+  if (showFractalBuffs) {
     const enabled = container.querySelector<HTMLInputElement>('[data-fractal="enabled"]')!;
     const agonyResistance = container.querySelector<HTMLInputElement>('[data-fractal="agonyResistance"]')!;
     const augmentation = container.querySelector<HTMLSelectElement>('[data-fractal="augmentation"]')!;

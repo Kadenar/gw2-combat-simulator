@@ -147,7 +147,12 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     editor.capture();
     const candidate = structuredClone(current);
     edit(candidate);
-    Object.assign(current, parse(candidate));
+    const valid = parse(candidate);
+
+    // Leaving Twin Largos clears its platform selection on the live scenario as well as the draft.
+    if (valid.targetIndex === undefined) delete current.targetIndex;
+
+    Object.assign(current, valid);
     save();
     app.changed(rebuild);
   };
@@ -474,7 +479,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
             selectScenarioEncounter(
               draft,
               control.id === 'boss-encounter' ? control.value : draft.encounterId,
-              control.id === 'boss-mode' ? (control.value as EncounterDifficulty) : 'normal'
+              control.id === 'boss-mode' ? (control.value as EncounterDifficulty) : undefined
             );
 
             draft.name = `${draft.encounter} scenario`;

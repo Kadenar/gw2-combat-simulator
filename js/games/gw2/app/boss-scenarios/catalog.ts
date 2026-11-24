@@ -71,6 +71,26 @@ const groups: readonly [string, readonly [string, string][]][] = [
     ]
   ],
   [
+    'Nightmare Fractal (CM)',
+    [
+      ['030101', 'MAMA'],
+      ['030102', 'Siax the Corrupted'],
+      ['030103', 'Ensolyss of the Endless Torment']
+    ]
+  ],
+  [
+    'Shattered Observatory Fractal (CM)',
+    [
+      ['030201', 'Skorvald the Shattered'],
+      ['030202', 'Artsariiv'],
+      ['030203', 'Arkk']
+    ]
+  ],
+  ['Sunqua Peak Fractal (CM)', [['030301', 'Ai, Keeper of the Peak']]],
+  ['Silent Surf Fractal (CM)', [['030401', 'Kanaxai, Scythe of House Aurkus']]],
+  ['Lonely Tower Fractal (CM)', [['030502', 'Eparch']]],
+  ['Kinfall Fractal (CM)', [['030601', 'Whispering Shadow']]],
+  [
     'The Icebrood Saga',
     [
       ['040201', 'Icebrood Construct'],
@@ -120,9 +140,12 @@ export function encounterHealth(encounterId: string, difficulty: 'normal' | 'cha
   return ENCOUNTER_HEALTH.find((entry) => entry.encounterId === encounterId && entry.difficulty === difficulty);
 }
 
-/** Offer recorded modes only; event entries still have a normal-mode authoring document without invented health. */
+/** Offer only difficulties with verified target data so CM-only bosses open in challenge mode. */
 export function encounterDifficulties(encounterId: string): ('normal' | 'challenge' | 'legendary')[] {
-  return (['normal', 'challenge', 'legendary'] as const).filter(
-    (mode) => mode === 'normal' || encounterHealth(encounterId, mode)
-  );
+  return (['normal', 'challenge', 'legendary'] as const).filter((mode) => encounterHealth(encounterId, mode));
+}
+
+/** Golems allow optional fractal buffs. Elite Insights reserves the 03 encounter prefix for fractals. */
+export function allowsFractalBuffs(scenario?: { encounterId: string }): boolean {
+  return !scenario || scenario.encounterId.startsWith('03');
 }

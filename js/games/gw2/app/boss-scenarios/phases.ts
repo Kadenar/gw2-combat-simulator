@@ -195,6 +195,38 @@ const plans: Readonly<Record<string, EncounterPhasePlan>> = {
   }),
   '020802': healthPlan([75, 40], { '75': 'Flux Nova', '40': 'Flux Nova' }),
   '020803': healthPlan([70, 40], {}),
+  '030101': healthPlan([75, 50, 25], { 75: 'Red Knight', 50: 'Green Knight', 25: 'Blue Knight' }),
+  '030102': healthPlan([66, 33], { 66: 'Echoes of the Unclean', 33: 'Echoes of the Unclean' }),
+  '030103': healthPlan([66, 33, 15], { 66: 'Nightmare Altars', 33: 'Nightmare Altars' }),
+  '030201': healthPlan([66, 33], { 66: 'Flux Anomalies', 33: 'Flux Anomalies' }),
+  '030202': healthPlan([66, 33], { 66: 'Artsariiv clones', 33: 'Artsariiv clones' }),
+  '030203': healthPlan([80, 70, 50, 40, 30], {
+    80: 'Solar Blooms',
+    70: 'Archdiviner',
+    50: 'Solar Blooms',
+    40: 'Brazen Gladiator',
+    30: 'Solar Blooms'
+  }),
+  // Each form of Ai yields at 1%. The transformation starts a separate target at full health.
+  '030301': {
+    repeats: false,
+    phases: [
+      { id: 'air', kind: 'boss', label: 'Air 100% - 66%', targetIndexes: [0], endHealthPercent: 66 },
+      { id: 'meteors', kind: 'split', label: 'Meteors', endHealthPercent: null },
+      { id: 'fire', kind: 'boss', label: 'Fire 66% - 33%', targetIndexes: [0], endHealthPercent: 33 },
+      { id: 'tethers', kind: 'split', label: 'Tidal Bargain', endHealthPercent: null },
+      { id: 'water', kind: 'boss', label: 'Water 33% - 1%', targetIndexes: [0], endHealthPercent: 1 },
+      { id: 'transformation', kind: 'split', label: 'Dark transformation', endHealthPercent: null },
+      // Dark Ai keeps taking damage through the Sorrow and Guilt casts.
+      { id: 'fear', kind: 'boss', label: 'Fear 100% - 66%', targetIndexes: [1], endHealthPercent: 66 },
+      { id: 'sorrow', kind: 'boss', label: 'Sorrow 66% - 33%', targetIndexes: [1], endHealthPercent: 33 },
+      { id: 'guilt', kind: 'boss', label: 'Guilt 33% - 1%', targetIndexes: [1], endHealthPercent: 1 }
+    ]
+  },
+  '030401': healthPlan([66, 33], { 66: 'World Cleaver', 33: 'World Cleaver' }),
+  '030502': healthPlan([65, 35], { 65: 'Kryptis rifts', 35: 'Kryptis rifts' }),
+  // The Shadow can take damage during Guttering Light. Authors set group DPS for each health band.
+  '030601': healthPlan([80, 50, 20], {}),
   '040201': healthPlan([50], { 50: 'Arm shatter' }),
   '040202': mechanicPlan([
     ['boss', 'Fraenir 100% – 75%'],

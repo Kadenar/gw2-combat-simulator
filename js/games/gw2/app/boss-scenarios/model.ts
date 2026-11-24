@@ -46,11 +46,11 @@ export interface BossScenarioDraft {
 export function selectScenarioEncounter(
   draft: BossScenarioDraft,
   encounterId: string,
-  difficulty: EncounterDifficulty
+  difficulty: EncounterDifficulty | undefined = encounterDifficulties(encounterId)[0]
 ): void {
   const encounter = ENCOUNTER_TEMPLATES.find((entry) => entry.id === encounterId);
 
-  if (!encounter || !encounterDifficulties(encounterId).includes(difficulty))
+  if (!encounter || !difficulty || !encounterDifficulties(encounterId).includes(difficulty))
     throw new Error('Choose a supported boss and difficulty.');
 
   const evidence = encounterHealth(encounterId, difficulty);
@@ -119,7 +119,7 @@ export function createBossScenario(
     phases: []
   };
 
-  selectScenarioEncounter(draft, encounterId, 'normal');
+  selectScenarioEncounter(draft, encounterId);
   draft.name = `${draft.encounter} scenario`;
   return draft;
 }

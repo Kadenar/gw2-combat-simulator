@@ -1,5 +1,5 @@
 /** Queries and repairs slot selections, then derives attributes from the normalized build for edits and tab restoration. */
-import { normalizeSimulationSettings } from '#gw2/app/simulation/settings.js';
+import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -178,9 +178,6 @@ export function normalizeSelectedSkillsAndAttributes(
     | 'workspace'
   >
 ): void {
-  // Imported builds and restored encounter tabs cannot apply fractal bonuses to boss previews or simulations.
-  if (state.workspace?.scenario) delete state.build.assumptions.fractal;
-
   normalizeSelectedSkills({
     build: state.build,
     activeCatalog: state.patch.catalog,
@@ -189,10 +186,6 @@ export function normalizeSelectedSkillsAndAttributes(
     analysis: state.analysis
   });
   state.attributeData = state.adapter
-    .createBuildContext({
-      build: state.build,
-      patch: state.patch,
-      ...normalizeSimulationSettings(state.simulationSettings)
-    })
+    .createBuildContext(buildContextInput(state))
     .attributes(state.attributeWeaponSet === 2 ? 2 : 1);
 }
