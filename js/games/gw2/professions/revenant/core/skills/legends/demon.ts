@@ -265,8 +265,8 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     cooldown: 0,
     energyCost: 5,
     legendId: 'LegendaryDemon',
-    // The reviewed activation ends after the existing 560 ms impact packets.
-    castTimeMs: 680,
+    // Include the recovery after impact before the next cast can start.
+    castTimeMs: 920,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
