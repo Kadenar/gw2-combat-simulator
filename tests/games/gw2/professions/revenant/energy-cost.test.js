@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { revenantEnergyAvailability } from '#gw2/professions/revenant/core/mechanics/resources.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { effectiveRevenantEnergyCost, revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
