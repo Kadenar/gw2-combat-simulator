@@ -51,6 +51,8 @@ export interface ProfessionAttributePreviewInput extends ProfessionAttributePrev
 
 /** Only detached query inputs may be mutated here; no saved build or live simulation state is supplied. */
 export interface ProfessionAttributePreviewPreparation extends ProfessionAttributePreviewInput {
+  /** Sample instant for held equipment and other time-dependent attribute inputs. */
+  readonly time: number;
   readonly config: Gw2Config;
   readonly professionState: unknown;
   readonly events: SimulationEvent[];

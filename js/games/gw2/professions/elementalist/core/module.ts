@@ -7,7 +7,7 @@ import {
   ELEMENTALIST_CORE_SKILL_FIELDS
 } from '#gw2/professions/elementalist/core/catalog-fields.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
-import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
+import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
 import { elementalistPassiveAttributes } from '#gw2/professions/elementalist/core/skills/attribute-passives.js';
 import { ELEMENTALIST_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/elementalist/core/skills/autoattack-chains.js';

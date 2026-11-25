@@ -23,11 +23,13 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { displayedSkill, resolveSkillSelector } from '#gw2/platform/skills/selectors.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
-import { conjureSkill } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
+import { conjureSkill, heldConjure } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { elementalistEtchingSkillVisible } from '#gw2/professions/elementalist/core/mechanics/spear.js';
+import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   isElementalistAttunement,
@@ -57,6 +59,12 @@ const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Obje
   Air: '#9b65c7',
   Earth: '#a7783f'
 });
+
+const ATTRIBUTE_PREVIEW_CONJURES = new Map([
+  ['Fiery Greatsword', ID.CONJURE_FIERY_GREATSWORD],
+  ['Lightning Hammer', ID.CONJURE_LIGHTNING_HAMMER],
+  ['Frost Bow', ID.CONJURE_FROST_BOW]
+]);
 
 const PISTOL_BULLET_CONTROL_PREFIX = 'elementalist-pistol-bullet:';
 const PISTOL_BULLETS = Object.freeze([
@@ -514,15 +522,9 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
           description: '+15% Critical Chance'
         });
 
-      const conjures = (
-        [
-          [ID.CONJURE_FIERY_GREATSWORD, 'Fiery Greatsword'],
-          [ID.CONJURE_LIGHTNING_HAMMER, 'Lightning Hammer'],
-          [ID.CONJURE_FROST_BOW, 'Frost Bow']
-        ] as const
-      )
-        .filter(([skill]) => preview.skills.has(skill))
-        .map(([, weapon]) => weapon);
+      const conjures = [...ATTRIBUTE_PREVIEW_CONJURES]
+        .filter(([, id]) => preview.skills.has(id))
+        .map(([weapon]) => weapon);
 
       if (conjures.length)
         preview.add({
@@ -545,11 +547,18 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
     /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
     prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
       // The isolated preview permits no attunement; live combat always has an elemental attunement.
-      const core = readProfessionCoreState<{ primaryAttunement: string }>(context.professionState);
+      const core = readProfessionCoreState<
+        { primaryAttunement: string } & Pick<ElementalistCoreState, 'conjureEquipped' | 'conjureExpiresAt'>
+      >(context.professionState);
       core.primaryAttunement = String(context.values.attunement);
 
-      if (context.values.conjure && context.values.conjure !== 'None')
+      // The attribute selector assumes a fresh copy at the instant the panel samples the wielder.
+      const sourceId = ATTRIBUTE_PREVIEW_CONJURES.get(String(context.values.conjure));
+
+      if (sourceId != null) {
+        Object.assign(core, heldConjure(requireSkill(context.catalog, sourceId), context.time));
         context.queryOptions.skillWeapon = String(context.values.conjure);
+      }
 
       context.queryOptions.conditionDurations = context.values.conjure === 'Frost Bow';
     },

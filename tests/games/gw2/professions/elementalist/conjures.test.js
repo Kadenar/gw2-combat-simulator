@@ -1,14 +1,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { calculateAttributePreview } from '#gw2/app/build/attribute-preview-calculation.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { isConjuredWeapon } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
-import { runNative } from '#tests/helpers/elementalist-simulation.js';
+import { createNativeApp, runNative } from '#tests/helpers/elementalist-simulation.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 
 // Replacing a patch catalog changes which damage events borrow equipped weapon strength.
@@ -26,6 +30,52 @@ const hammerOptions = {
   selectedSkillIds: { Utility1: 5624 },
   assumptions: { quickness: false, alacrity: false }
 };
+
+// The attribute selector equips the sampled player independently of their saved build.
+test('selecting and clearing a conjure updates the detached attribute preview', () => {
+  const { app } = createNativeApp(hammerOptions);
+  const build = structuredClone(app.build);
+  const baseline = calculateAttributePreview(app).attributes;
+  const held = calculateAttributePreview(app, { conjure: 'Lightning Hammer' }).attributes;
+  assert.ok(held.Precision.final > baseline.Precision.final);
+  assert.ok(held.Ferocity.final > baseline.Ferocity.final);
+  assert.deepEqual(calculateAttributePreview(app, { conjure: 'None' }).attributes, baseline);
+  assert.deepEqual(app.build, build);
+});
+
+// Only the bundle attack assumes a fresh copy. Its delayed hit reads the selected lifetime.
+test('isolated bundle attacks lose held bonuses when the conjure expires before impact', () => {
+  const profession = withPatchPreview(elementalistProfession, {
+    id: 'short-conjure',
+    label: 'Short conjure',
+    professions: { elementalist: { skills: { [ID.CONJURE_LIGHTNING_HAMMER]: { fields: { duration: 0.04 } } } } }
+  });
+  const occurrences = [ID.LIGHTNING_LEAP, ID.ARCANE_WAVE].map((id) => ({
+    id: String(id),
+    name: elementalistCatalog.skillsById.get(id).name,
+    effect: { kind: 'skill', id },
+    source: 'Skill',
+    unit: 'activation',
+    icon: ''
+  }));
+  const criticalDamage = (patchId) => {
+    const config = {
+      patchId,
+      specialization: 'Core',
+      primaryWeapon: 'Sword',
+      selectedSkillIds: [ID.CONJURE_LIGHTNING_HAMMER, ID.ARCANE_WAVE]
+    };
+    return evaluateSkillDamage({ config, occurrences }, profession).occurrences.map((row) => {
+      assert.equal(row.status, 'measured', row.reason);
+      return row.measurement.strikeBreakdown.criticalDamageMultiplier;
+    });
+  };
+
+  const [heldLeap, utility] = criticalDamage('current');
+  const [expiredLeap] = criticalDamage('short-conjure');
+  assert.ok(heldLeap > expiredLeap);
+  assert.equal(expiredLeap, utility);
+});
 
 test('Lightning Hammer keeps normal weapon skills visible but unavailable across specializations', () => {
   for (const specialization of ['Core', 'Tempest', 'Weaver', 'Catalyst', 'Evoker']) {

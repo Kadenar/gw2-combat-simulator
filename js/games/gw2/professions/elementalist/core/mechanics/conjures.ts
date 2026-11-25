@@ -3,15 +3,31 @@ import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { professionCoreState, readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { requireSkill, skillNumber, type SkillSource } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { conjureEquipped } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
+import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type {
+  ElementalistModifierContext,
   ElementalistRuntime,
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
+
+/** Real equips and isolated previews start the same held lifetime from the selected conjure skill. */
+export function heldConjure(
+  source: ElementalistSkill,
+  at: number
+): Pick<ElementalistCoreState, 'conjureEquipped' | 'conjureExpiresAt'> {
+  return { conjureEquipped: source.conjureWeapon!, conjureExpiresAt: gw2Time(at + skillNumber(source, 'duration')) };
+}
+
+/** Held bonuses follow the weapon at the hit or attribute sample, applies to hits and attribute samples before expiry; delayed hits after expiry lose it. */
+export function wieldedConjure(context: ElementalistModifierContext): string | null {
+  const state = readProfessionCoreState<ElementalistCoreState>(context.runtime?.profession);
+  return (state.conjureExpiresAt ?? 0) > context.time ? (state.conjureEquipped ?? null) : null;
+}
 
 /** Pickups and attacks resolve the originating conjure in the selected catalog. */
 export function conjureSkill(
@@ -43,16 +59,18 @@ export function isConjuredWeapon(
   return names.has(weapon);
 }
 
-/** A conjure creates independent equipped and one-use ground copies before its trait and swap events. */
+/**
+ * A conjure creates independent equipped and one-use ground copies before its trait and swap events. Both copies
+ * appear together, so the ground copy shares the held copy's deadline on the 40 ms clock.
+ */
 function equipConjure(
   context: ElementalistRuntime,
   cast: RuntimeCast<ElementalistSkill>,
   skill: ElementalistSkill
 ): void {
   const state = professionCoreState(context.profession);
-  const weapon = skill.conjureWeapon!;
-  state.conjureEquipped = weapon;
-  state.conjurePickups[weapon] = cast.effectiveEnd + skillNumber(skill, 'duration');
+  Object.assign(state, heldConjure(skill, cast.effectiveEnd));
+  state.conjurePickups[skill.conjureWeapon!] = state.conjureExpiresAt;
   context.fireTrigger(conjureEquipped, { cast });
   finishConjureSwap(context, cast, skill);
 }
@@ -68,6 +86,7 @@ function dropConjure(
   if (!state.conjureEquipped) return;
 
   state.conjureEquipped = null;
+  state.conjureExpiresAt = 0;
   finishConjureSwap(context, cast, skill);
 }
 
@@ -82,9 +101,9 @@ export function pickUpConjure(
   if (typeof expiresAt !== 'number' || !Number.isFinite(expiresAt) || expiresAt <= cast.start) return;
 
   const state = professionCoreState(context.profession);
-  const weapon = conjureSkill(context.helpers, skill)!.conjureWeapon!;
-  state.conjureEquipped = weapon;
-  delete state.conjurePickups[weapon];
+  const source = conjureSkill(context.helpers, skill)!;
+  Object.assign(state, heldConjure(source, cast.effectiveEnd));
+  delete state.conjurePickups[source.conjureWeapon!];
   finishConjureSwap(context, cast, skill);
 }
 
@@ -96,9 +115,6 @@ function finishConjureSwap(
 ): void {
   const state = professionCoreState(context.profession);
   const at = cast.effectiveEnd;
-  state.conjureExpiresAt = gw2Time(
-    state.conjureEquipped ? at + skillNumber(conjureSkill(context.helpers, skill)!, 'duration') : 0
-  );
   context.schedule('elementalist.conjure-expire', state.conjureExpiresAt || at, null);
   for (const deadline of Object.values(state.conjurePickups))
     context.schedule('elementalist.conjure-expire', deadline, null);
@@ -155,10 +171,10 @@ export const elementalistConjureLifecycle = {
       pickUpConjure(context, trigger.cast, trigger.skill);
     }
   },
-  // Isolated conjure attacks assume their bundle is equipped for damage and attribute queries.
+  // Only a bundle attack starts with a held copy. Preview preparation has no ground copy or equip rewards.
   prepareDamageState(runtime, skill) {
     if (skill?.type === 'Weapon' && skill.conjureSourceId != null)
-      runtime.profession.core.conjureEquipped = conjureSkill(runtime.helpers, skill)!.conjureWeapon!;
+      Object.assign(runtime.profession.core, heldConjure(conjureSkill(runtime.helpers, skill)!, runtime.time));
   },
   tasks: {
     'elementalist.conjure-expire'(runtime) {

@@ -12,12 +12,6 @@ export function primaryAttunement(context: ElementalistModifierContext): string 
   return coreState(context).primaryAttunement || context.config?.startAttunement || 'Fire';
 }
 
-// Conjure attributes belong to the wielder, including utility attacks, only during the equipped copy's lifetime.
-export function wieldedConjure(context: ElementalistModifierContext): string | null {
-  const state = coreState(context);
-  return (state.conjureExpiresAt || 0) > context.time ? state.conjureEquipped || null : null;
-}
-
 /** Might stacks at the event's instant, falling back to the build's assumed might. */
 export function elementalistMightStacks(context: ElementalistModifierContext): number {
   return Number(

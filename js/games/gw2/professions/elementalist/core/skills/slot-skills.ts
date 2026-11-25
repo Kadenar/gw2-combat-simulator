@@ -7,7 +7,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
-import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
+import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';

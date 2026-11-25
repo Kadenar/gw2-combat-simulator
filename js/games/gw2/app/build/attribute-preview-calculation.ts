@@ -87,6 +87,7 @@ function calculatePreview(
   };
 
   // A one-second sample avoids treating default zero-valued expiry timers as newly expired buffs.
+  const time = 1;
   for (const control of controls) {
     const value = values[control.key];
     const count = Number(value) || 0;
@@ -105,6 +106,7 @@ function calculatePreview(
   const previewCooldowns = new Set<SkillId>();
   app.profession.ui.prepareAttributePreview({
     ...context,
+    time,
     config: queryConfig,
     professionState,
     events,
@@ -124,7 +126,7 @@ function calculatePreview(
 
   const event: SimulationEvent = {
     type: 'action',
-    at: 1,
+    at: time,
     actorType: ACTOR.PLAYER,
     source: 'Player',
     sourceId: 'stat-preview',
@@ -148,8 +150,8 @@ function calculatePreview(
     engagement: { startTime: 0 },
     relic
   };
-  const stats = query.statsAt(1, event, runtime);
-  const critical = query.critical(event, 1, runtime, stats);
+  const stats = query.statsAt(time, event, runtime);
+  const critical = query.critical(event, time, runtime, stats);
   const set = (name: string, final: number): void => {
     const original = data.attributes[name] || derivedAttribute(0);
     data.attributes[name] = Object.assign({}, original, { final, conditional: final - original.final });
@@ -163,7 +165,7 @@ function calculatePreview(
     'Condition Duration',
     data.attributes['Condition Duration'].final +
       (stats.expertise - preview.attributeData!.attributes.Expertise.final) / 15 +
-      relicConditionDurationBonus(runtime, 1) * 100
+      relicConditionDurationBonus(runtime, time) * 100
   );
   set(
     'Boon Duration',
@@ -172,10 +174,10 @@ function calculatePreview(
   );
 
   if (queryOptions.conditionDurations) {
-    const duration = (query.conditionDurationMultiplier('', 1, stats, event, runtime) - 1) * 100;
+    const duration = (query.conditionDurationMultiplier('', time, stats, event, runtime) - 1) * 100;
     set('Condition Duration', duration);
     for (const [name, condition] of Object.entries(CONDITION_DURATION_KEYS))
-      set(name, (query.conditionDurationMultiplier(condition, 1, stats, event, runtime) - 1) * 100 - duration);
+      set(name, (query.conditionDurationMultiplier(condition, time, stats, event, runtime) - 1) * 100 - duration);
   }
 
   return data;
