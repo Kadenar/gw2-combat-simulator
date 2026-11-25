@@ -298,15 +298,15 @@
         "label": "Inferno (Dagger/Dagger) - Bolt to the Heart",
         "build": "data/gw2/builds/elementalist/b-inferno-tempest-dagger.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-tempest-dagger.json",
-        "benchmarkDps": 42439,
+        "benchmarkDps": 42449,
         "upToDate": true,
         "benchmarkApm": 78.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43845, "phase": 43845 },
-          "80-60": { "cumulative": 41884, "phase": 40088 },
-          "60-40": { "cumulative": 41306, "phase": 40208 },
-          "40-20": { "cumulative": 41778, "phase": 43287 },
-          "20-0": { "cumulative": 42439, "phase": 45291 }
+          "100-80": { "cumulative": 43764, "phase": 43764 },
+          "80-60": { "cumulative": 41886, "phase": 40167 },
+          "60-40": { "cumulative": 41322, "phase": 40250 },
+          "40-20": { "cumulative": 41791, "phase": 43287 },
+          "20-0": { "cumulative": 42449, "phase": 45291 }
         }
       },
       {
@@ -669,15 +669,15 @@
         "label": "Condition Alacrity Toad (Pistol/Dagger) - EB",
         "build": "data/gw2/builds/elementalist/b-condi-alac-evoker-pistol-dagger.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-evoker-pistol-dagger.json",
-        "benchmarkDps": 40148,
+        "benchmarkDps": 41163,
         "upToDate": true,
-        "benchmarkApm": 147.3,
+        "benchmarkApm": 152.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 34350, "phase": 34350 },
-          "80-60": { "cumulative": 37669, "phase": 41861 },
-          "60-40": { "cumulative": 39098, "phase": 42513 },
-          "40-20": { "cumulative": 39595, "phase": 41110 },
-          "20-0": { "cumulative": 40148, "phase": 42636 }
+          "100-80": { "cumulative": 34517, "phase": 34517 },
+          "80-60": { "cumulative": 38319, "phase": 42921 },
+          "60-40": { "cumulative": 39768, "phase": 43148 },
+          "40-20": { "cumulative": 40876, "phase": 44569 },
+          "20-0": { "cumulative": 41163, "phase": 42375 }
         }
       },
       {

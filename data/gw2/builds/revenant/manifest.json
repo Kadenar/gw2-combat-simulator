@@ -276,15 +276,15 @@
         "label": "Condition (Spear - Mace/Axe) - Enhanced Embodiment",
         "build": "data/gw2/builds/revenant/b-condi-conduit-enhanced-embodiment.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-conduit-enhanced-embodiment-bench.json",
-        "benchmarkDps": 40103,
-        "upToDate": false,
-        "benchmarkApm": 101.3,
+        "benchmarkDps": 40906,
+        "upToDate": true,
+        "benchmarkApm": 101.8,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 37263, "phase": 37263 },
           "80-60": { "cumulative": 38923, "phase": 40845 },
-          "60-40": { "cumulative": 39838, "phase": 41813 },
-          "40-20": { "cumulative": 40390, "phase": 42134 },
-          "20-0": { "cumulative": 40103, "phase": 38767 }
+          "60-40": { "cumulative": 40218, "phase": 43014 },
+          "40-20": { "cumulative": 40812, "phase": 42793 },
+          "20-0": { "cumulative": 40906, "phase": 41308 }
         }
       }
     ]
