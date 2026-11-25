@@ -25,9 +25,22 @@ export function conjureSkill(
     : requireSkill(source, skill.conjureSourceId);
 }
 
-/** Event attribution identifies bundle weapons through the selected conjuring declarations. */
-export function isConjuredWeapon(source: Pick<CanonicalCatalog<ElementalistSkill>, 'skills'>, weapon: string): boolean {
-  return source.skills.some((skill) => skill.conjureWeapon === weapon);
+const conjuredWeapons = new WeakMap<readonly ElementalistSkill[], Set<string>>();
+
+/** Damage events share a weapon-name index for the selected catalog, including its patch overrides. */
+export function isConjuredWeapon(
+  { skills }: Pick<CanonicalCatalog<ElementalistSkill>, 'skills'>,
+  weapon: string
+): boolean {
+  let names = conjuredWeapons.get(skills);
+
+  if (!names) {
+    names = new Set();
+    for (const skill of skills) if (skill.conjureWeapon != null) names.add(skill.conjureWeapon);
+    conjuredWeapons.set(skills, names);
+  }
+
+  return names.has(weapon);
 }
 
 /** A conjure creates independent equipped and one-use ground copies before its trait and swap events. */

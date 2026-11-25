@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { effectStateValue, reviseEffectState, timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import {
+  effectStateValue,
+  observeBuffState,
+  reviseEffectState,
+  timedEffectState
+} from '#gw2/platform/combat/effect-state.js';
 import { sigilBuffPolicies } from '#gw2/platform/equipment/sigils/runtime.js';
 import { EffectRecorder, effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { captureRuntimeEffects, observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
@@ -179,6 +184,29 @@ test('native observations attribute the latest accepted source while retaining e
   read().name = 'Edited observation';
   assert.equal(native.name, undefined);
   assert.equal(state.liveEffects.queries.buffApplications('charges')[1].event.at, 2);
+});
+
+// Duration pools can retain a grant's source after its own window ends. Intensity tracks need a live grant.
+test('chart attribution finds the latest eligible source for the recipient and stacking rule', () => {
+  const grant = (at, expiresAt) => ({
+    at,
+    expiresAt,
+    duration: expiresAt - at,
+    stacks: 1,
+    resolvedAudience: audience,
+    event: { type: 'buff', at }
+  });
+  const live = grant(0, 10);
+  const expired = grant(1, 2);
+  const history = [
+    live,
+    expired,
+    { ...grant(2, 8), event: undefined },
+    { ...grant(3, 8), resolvedAudience: { ...audience, includesSelf: false } },
+    grant(5, 9)
+  ];
+  assert.equal(observeBuffState('might', history, 4, { kind: 'might' }).source, live.event);
+  assert.equal(observeBuffState('fury', history, 4, { kind: 'fury' }).source, expired.event);
 });
 
 // Observation reuse follows accepted grants and explicit consumption without exposing mutable histories.

@@ -34,7 +34,6 @@ export interface Gw2ResolverStageDetails {
   'condition.applied': {
     readonly application: ReturnType<Gw2ConditionResolution['applyCondition']>[number];
     readonly conditionStackIndex: number;
-    readonly stacksBeforeApplication: number;
     readonly activeConditionStackCount: Gw2ConditionResolution['activeConditionStackCount'];
   };
   'condition-tick.resolved': {

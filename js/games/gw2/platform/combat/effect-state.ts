@@ -129,21 +129,29 @@ export function observeBuffState(
   const pool = duration
     ? durationStackState(applications, at, { includes, maximum: durationStackingBoonCapSeconds(kind) })
     : null;
+  // The last eligible grant supplies the chart label. Duration pools retain their latest source across expiries.
+  let source: SimulationEvent | undefined;
+  for (let index = applications.length - 1; index >= 0; index--) {
+    const application = applications[index]!;
+
+    if (
+      application.event &&
+      application.at <= at &&
+      includes(application) &&
+      (duration || buffWindowActive(at, application.at, application.expiresAt, application.removedAt))
+    ) {
+      source = application.event;
+      break;
+    }
+  }
+
   return {
     kind,
     category: duration || [BOON.MIGHT, BOON.STABILITY, BOON.AEGIS].some((boon) => boon === kind) ? 'boon' : 'buff',
     name: policy.name,
     recipient,
     origin: 'simulated',
-    source: applications
-      .filter(
-        (application) =>
-          includes(application) &&
-          application.at <= at &&
-          (duration || buffWindowActive(at, application.at, application.expiresAt, application.removedAt))
-      )
-      .filter((application) => application.event)
-      .at(-1)?.event,
+    source,
     countLimit: duration ? 1 : (policy.maximumStacks ?? null),
     durationLimit: duration ? durationStackingBoonCapSeconds(kind) : (policy.maximumDuration ?? null),
     measure: duration || policy.maximumDuration != null ? 'remaining-duration' : 'count',

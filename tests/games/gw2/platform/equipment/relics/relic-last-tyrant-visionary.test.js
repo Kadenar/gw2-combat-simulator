@@ -281,7 +281,7 @@ test('one-time multi-stack Burning skills expose each stack to Last Tyrant at th
       );
       const { ctx, conditions: resolution } = conditionResolver();
       for (const at of [0, 0.28, 0.56, 0.84])
-        ctx.relic.condition(ctx, burning(at), { activeConditionStackCount: () => 0, stacksBeforeApplication: 0 });
+        ctx.relic.condition(ctx, burning(at), { activeConditionStackCount: () => 0, conditionStackIndex: 1 });
       const applications = packets.flatMap((event) => resolution.applyCondition(ctx, event));
       assert.equal(
         applications.reduce((total, event) => total + event.stacks, 0),
@@ -346,7 +346,7 @@ test('profiled condition procs preserve fractional totals and source attribution
     );
     const { ctx, conditions: resolution } = conditionResolver();
     for (const at of [0, 0.28, 0.56, 0.84])
-      ctx.relic.condition(ctx, burning(at), { activeConditionStackCount: () => 0, stacksBeforeApplication: 0 });
+      ctx.relic.condition(ctx, burning(at), { activeConditionStackCount: () => 0, conditionStackIndex: 1 });
     const applications = events.flatMap((event) => resolution.applyCondition(ctx, event));
     assert.deepEqual(
       applications.map((event) => event.stacks),

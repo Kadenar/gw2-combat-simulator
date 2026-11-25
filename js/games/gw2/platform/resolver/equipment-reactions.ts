@@ -120,10 +120,10 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'relic.condition',
         order: GW2_REACTION_ORDER.LATE_COMMON,
         handler(ctx, application, details) {
-          // Forward the original target count so relic thresholds do not include sibling stacks.
+          // The stack index lets relic thresholds tell the first sibling from later ones.
           ctx.relic.condition?.(ctx, application, {
             ...conditionHelpers(ctx, details),
-            stacksBeforeApplication: details.stacksBeforeApplication
+            conditionStackIndex: details.conditionStackIndex
           });
         }
       }

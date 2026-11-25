@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { isConjuredWeapon } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
@@ -9,6 +10,15 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
+
+// Replacing a patch catalog changes which damage events borrow equipped weapon strength.
+test('conjured weapon lookup stays scoped to its skill catalog', () => {
+  const base = { skills: [{ conjureWeapon: 'Fixture bundle' }] };
+  const patched = { skills: [{}] };
+  assert.equal(isConjuredWeapon(base, 'Fixture bundle'), true);
+  assert.equal(isConjuredWeapon(patched, 'Fixture bundle'), false);
+  assert.equal(isConjuredWeapon(base, 'Fixture bundle'), true);
+});
 
 const hammerOptions = {
   lines: [['Fire'], ['Air'], ['Arcane']],

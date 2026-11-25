@@ -524,8 +524,6 @@ export function createGw2ConditionResolution({
     const applications: ConditionApplication[] = [];
     // A cache pays only when at least two equal-weight siblings can reuse the sample.
     const attributeBatch = stacks >= 2 ? {} : undefined;
-    // Threshold reactions use the target state before this application adds any of its stacks.
-    const stacksBeforeApplication = activeConditionStackCount(ctx, name, event.at);
     for (let index = 0; index < stackCount; index += 1) {
       const application = {
         ...event,
@@ -606,7 +604,6 @@ export function createGw2ConditionResolution({
       reactions.dispatch('condition.applied', ctx, application, {
         application,
         conditionStackIndex: index + 1,
-        stacksBeforeApplication,
         activeConditionStackCount
       });
       applications.push(application);

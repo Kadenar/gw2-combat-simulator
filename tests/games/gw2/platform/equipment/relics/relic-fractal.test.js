@@ -13,7 +13,7 @@ test('Relic of the Fractal ignores bleeding owned by an independent pet or mech'
     relic.condition(
       { relic, config: {}, effects },
       { type: 'condition', at: 1, condition: 'Bleeding', stacks: 1, duration: 5, ...owner },
-      { activeConditionStackCount: () => 7, stacksBeforeApplication: 6 }
+      { activeConditionStackCount: () => 7, conditionStackIndex: 1 }
     );
     return events.map(({ condition }) => condition);
   };

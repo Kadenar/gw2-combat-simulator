@@ -13,19 +13,23 @@ const REQUIRED_BLEEDING = 5;
 export const fractal = defineRelic({
   damagePayload: emitDamagePayload,
   createState: () => ({ readyAt: 0 }),
-  condition(ctx, state, application, { stacksBeforeApplication }) {
+  condition(ctx, state, application, { conditionStackIndex, activeConditionStackCount }) {
     if (
       application.condition !== CONDITION.BLEEDING ||
+      // Siblings share one instant and the cooldown, so only the first stack can trigger. Later siblings must not
+      // count earlier ones toward the threshold.
+      conditionStackIndex !== 1 ||
       // Only bleeding the player owns arms the relic. Pets and the mech own the bleeding they apply, so their
       // applications never trigger it; other summons share the player's condition packets and still do.
       isIndependentConditionOwner(application) ||
       !isInternalCooldownReady(application.at, state.readyAt) ||
-      stacksBeforeApplication < REQUIRED_BLEEDING
+      // The first stack is already on the target. Exclude it to compare the count before this application.
+      activeConditionStackCount(ctx, CONDITION.BLEEDING, application.at) - Number(application.stacks) <
+        REQUIRED_BLEEDING
     ) {
       return;
     }
 
-    // The resolver snapshots the threshold before the whole application; sibling stacks cannot qualify each other.
     // Relic damage stays effect-sourced while explicitly inheriting the player's outgoing modifiers.
     state.readyAt = application.at + 20;
     emitDamagePayload(ctx, application);

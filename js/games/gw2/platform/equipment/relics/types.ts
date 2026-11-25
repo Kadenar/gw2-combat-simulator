@@ -63,6 +63,11 @@ export interface Gw2ConditionHelpers {
   activeConditionStackCount(context: Gw2RelicContext, condition: string, at: number): number;
 }
 
+/** Applications dispatch one stack at a time; the 1-based index identifies siblings from one packet. */
+export interface Gw2ConditionApplicationHelpers extends Gw2ConditionHelpers {
+  readonly conditionStackIndex: number;
+}
+
 /** Pure relic queries expose only their required observations, never emission capabilities. */
 export type Gw2RelicStrikeQueryContext = Readonly<
   Pick<Gw2RelicContext, 'config' | 'totals' | 'liveEffects' | 'helpers' | 'relic'>
@@ -134,7 +139,7 @@ export interface Gw2RelicRule {
     context: Gw2RelicContext,
     state: Gw2RelicState,
     application: SimulationEvent,
-    helpers: Gw2ConditionHelpers & { readonly stacksBeforeApplication: number }
+    helpers: Gw2ConditionApplicationHelpers
   ) => unknown;
   readonly damageResolved?: (context: Gw2RelicContext, event: SimulationEvent) => unknown;
 }
@@ -179,7 +184,7 @@ export interface Gw2RelicRuntime extends Gw2RelicQueryOwner {
   readonly condition?: (
     context: Gw2RelicContext,
     event: SimulationEvent,
-    helpers: Gw2ConditionHelpers & { readonly stacksBeforeApplication: number }
+    helpers: Gw2ConditionApplicationHelpers
   ) => void;
   /** Isolated measurement executes an owned payload without enabling ordinary equipment triggers. */
   damagePayload(
