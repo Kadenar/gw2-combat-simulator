@@ -170,6 +170,62 @@ test('only actual Core pulse producers emit Core upkeep pulses', () => {
   }
 });
 
+const demonConfig = {
+  startingLegend: LEGEND.DEMON,
+  selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
+  initialEnergy: 100
+};
+const embraceApplications = (result) =>
+  result.events.filter((event) => event.type === 'condition' && event.skillId === SKILL.EMBRACE_THE_DARKNESS);
+
+test('Embrace can catch a clock tick on its opening strike before payment empowers the next tick', () => {
+  const result = runRevenant([wait(640), 'Embrace the Darkness', wait(1100), 'Resist the Darkness'], demonConfig);
+  const commit = result.steps.find((step) => step.skillId === SKILL.EMBRACE_THE_DARKNESS).end / 1000;
+  const applications = embraceApplications(result);
+  const beforePayment = applications.filter((event) => event.at < commit);
+  assert.equal(beforePayment.length, 2);
+  assert.equal(beforePayment[0].at, beforePayment[1].at);
+  assert.ok(beforePayment.every((event) => !event.metadata?.trigger));
+  assert.equal(applications.find((event) => event.at >= commit)?.metadata?.trigger, 'empowered-upkeep-pulse');
+});
+
+test('seeded Embrace pulses stop on release and rejoin the same clock after reactivation', () => {
+  const rotation = [
+    'Embrace the Darkness',
+    wait(2300),
+    'Resist the Darkness',
+    wait(4200),
+    'Embrace the Darkness',
+    wait(2300),
+    'Resist the Darkness',
+    wait(1200)
+  ];
+  const run = (seed) => {
+    const result = runRevenant(rotation, { ...demonConfig, randomness: { mode: 'stochastic', seed } });
+    assert.deepEqual(result.warnings, []);
+    const applications = embraceApplications(result);
+    const releases = result.steps.filter((step) => step.skillId === SKILL.RESIST_THE_DARKNESS);
+    const starts = result.steps.filter((step) => step.skillId === SKILL.EMBRACE_THE_DARKNESS);
+    const phases = new Set();
+    let activeApplications = 0;
+    for (const [i, start] of starts.entries()) {
+      const window = applications.filter(
+        (event) => event.at >= start.start / 1000 && event.at <= releases[i].end / 1000
+      );
+      assert.ok(window.length >= 2);
+      activeApplications += window.length;
+      for (const event of window.slice(1)) phases.add(Math.round(event.at * 1000) % 1000);
+    }
+
+    assert.equal(activeApplications, applications.length);
+    assert.equal(phases.size, 1);
+    return [...phases][0];
+  };
+
+  assert.equal(run(1), run(1));
+  assert.ok(new Set([1, 2, 3, 4].map(run)).size > 1);
+});
+
 test('Hammers enters combat on activation and release retires its pending damage', () => {
   // Opening damage must enter combat even when release happens before the next orbiting hammer.
   const config = {

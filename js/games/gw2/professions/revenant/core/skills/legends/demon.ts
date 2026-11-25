@@ -1,5 +1,5 @@
 /** Owns Legendary Demon Stance skill definitions and its Unyielding Impact follow-up. */
-import { gw2Time } from '#gw2/platform/combat/clock.js';
+import { GW2_TICK_MS, gw2Interval, gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import {
   conditionEffectTicks,
@@ -14,7 +14,7 @@ import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
+import { activeRevenantUpkeep, revenantUpkeepOwner } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { UPKEEP_ACTIVATION } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
@@ -189,7 +189,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     upkeepCost: 6,
     pulseInterval: 1,
     legendId: 'LegendaryDemon',
-    // The upkeep lifecycle owns drain and scheduling; this legend owns the pulse payload below.
+    // The buff and its pulses start on the opening strike. Energy payment and drain start at commit.
     castTimeMs: 440,
     interruptCommitMs: 400,
     comboFields: [{ ownerId: 'revenant', fieldType: COMBO_FIELD.DARK, startAnchor: 'castEnd', duration: 198 }],
@@ -323,7 +323,7 @@ export function demonAvailability(
 }
 
 // Emit one Embrace the Darkness pulse; an armed empowered pulse selects the stronger Torment packet once.
-export function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number, empowered: boolean): void {
+function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number, empowered: boolean): void {
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
   const torment = skill.effects?.find(
     (effect) =>
@@ -365,7 +365,16 @@ export function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at:
   });
 }
 
-/** A committed Embrace activation lands its opening pulse at the authored offset, before drain begins. */
+function scheduleEmbracePulse(runtime: RevenantRuntime, at: number, upkeepStartsAt: number): void {
+  runtime.schedule(
+    'revenant.embrace-pulse',
+    gw2Time(at),
+    upkeepStartsAt,
+    revenantUpkeepOwner(ID.EMBRACE_THE_DARKNESS, upkeepStartsAt)
+  );
+}
+
+/** The opening strike is independent of the periodic clock, even when both hits land on the same tick. */
 export function startRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const skill = cast.skill;
 
@@ -375,7 +384,31 @@ export function startRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast
 
   if (!strike) throw new Error('Embrace the Darkness is missing its strike effect.');
 
-  embracePulse(runtime, skill, gw2Time(cast.start + (effectFirstAtMs(strike) || 0) / 1000), false);
+  const openingAt = gw2Time(cast.start + (effectFirstAtMs(strike) || 0) / 1000);
+  embracePulse(runtime, skill, openingAt, false);
+
+  // Simulations use whole seconds by default. Seeded trials sample the unknown phase once per fight.
+  const periodMs = Math.round(gw2Interval(skill.pulseInterval ?? 1) * 1000);
+  const phaseMs = (runtime.profession.core.embracePulsePhaseMs ??=
+    runtime.random.mode === 'stochastic'
+      ? Math.floor(runtime.random.next('revenant.embrace-phase') * (periodMs / GW2_TICK_MS)) * GW2_TICK_MS
+      : 0);
+  const periods = Math.ceil((Math.round(openingAt * 1000) - phaseMs) / periodMs);
+  scheduleEmbracePulse(runtime, (phaseMs + periods * periodMs) / 1000, cast.effectiveEnd);
+}
+
+/** A pulse before payment is unempowered. Later pulses consume the live grant and stop when upkeep ends. */
+export function resolveEmbracePulse(runtime: RevenantRuntime, upkeepStartsAt: number): void {
+  const active = activeRevenantUpkeep(runtime, ID.EMBRACE_THE_DARKNESS, upkeepStartsAt);
+
+  if (runtime.time >= upkeepStartsAt && !active) return;
+
+  const skill = runtime.helpers.skillsById.get(ID.EMBRACE_THE_DARKNESS)!;
+  embracePulse(runtime, skill, runtime.time, active?.empoweredNextPulse ?? false);
+
+  if (active) active.empoweredNextPulse = false;
+
+  scheduleEmbracePulse(runtime, runtime.time + gw2Interval(skill.pulseInterval ?? 1), upkeepStartsAt);
 }
 
 /** A committed paid skill, including Embrace's own activation, arms Embrace's next pulse. */

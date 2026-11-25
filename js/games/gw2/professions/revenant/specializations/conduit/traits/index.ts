@@ -1,6 +1,5 @@
 // Trait IDs own balance lookup and emission so patches and runtime share the same trait definition.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -18,10 +17,6 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import {
-  revenantRuntimeCoreState,
-  revenantRuntimeSpecializationState
-} from '#gw2/professions/revenant/core/state-queries.js';
 import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_LEGEND_IDS as LEGEND,
@@ -64,15 +59,7 @@ const bolsteredBonds = defineTrait({
     attributeMultiplier: 2
   },
   attributes: (context) => ({
-    attributeEffects: Object.entries(
-      bolsteredBondsBonuses(
-        context.balanceContext.catalog,
-        context.runtime ? revenantRuntimeCoreState(context).selectedLegendIds : context.loadout.selectedLegends,
-        buffDeadlineActive(revenantRuntimeSpecializationState(context, 'Conduit').cosmicWisdomUntil ?? 0, context.time)
-          ? balanceNumber(context.balanceContext.catalog, TRAIT.BOLSTERED_BONDS, 'attributeMultiplier')
-          : 1
-      )
-    ).map(([attribute, amount]) => ({
+    attributeEffects: Object.entries(bolsteredBondsBonuses(context)).map(([attribute, amount]) => ({
       kind: 'flat' as const,
       to: BUILD_ATTRIBUTE_NAMES[attribute as keyof typeof BUILD_ATTRIBUTE_NAMES],
       amount,

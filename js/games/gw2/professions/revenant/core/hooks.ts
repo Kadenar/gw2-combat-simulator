@@ -30,7 +30,11 @@ import {
   reactRevenantImpossibleOdds
 } from '#gw2/professions/revenant/core/skills/legends/assassin.js';
 import { centaurLifecycle } from '#gw2/professions/revenant/core/skills/legends/centaur.js';
-import { empowerRevenantEmbrace, startRevenantEmbrace } from '#gw2/professions/revenant/core/skills/legends/demon.js';
+import {
+  empowerRevenantEmbrace,
+  resolveEmbracePulse,
+  startRevenantEmbrace
+} from '#gw2/professions/revenant/core/skills/legends/demon.js';
 import { greatswordLifecycle } from '#gw2/professions/revenant/core/skills/weapons/greatsword.js';
 import { scepterLifecycle } from '#gw2/professions/revenant/core/skills/weapons/scepter.js';
 import { spearLifecycle } from '#gw2/professions/revenant/core/skills/weapons/spear.js';
@@ -71,6 +75,9 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   },
 
   buffPolicies: revenantBuffPolicies,
+  tasks: {
+    'revenant.embrace-pulse': (runtime, data) => resolveEmbracePulse(runtime, Number(data))
+  },
   observeEffects: revenantEffectStates,
   sideEffectHandlers: {
     'revenant.embrace-opening'(runtime, context) {

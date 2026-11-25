@@ -1,12 +1,16 @@
+import type { Gw2AttributeContext } from '#gw2/platform/attributes/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
-import { balanceNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { revenantRuntimeSpecializationState } from '#gw2/professions/revenant/core/state-queries.js';
+import {
+  revenantRuntimeCoreState,
+  revenantRuntimeSpecializationState
+} from '#gw2/professions/revenant/core/state-queries.js';
 import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_LEGEND_IDS as LEGEND,
@@ -24,21 +28,27 @@ const LEGEND_ATTRIBUTE_GROUPS = new Map<string, string>([
   [LEGEND.ENTITY, 'entityAttributeBonuses']
 ]);
 
-/** Each selected legend contributes its named grants, preserving shared attributes and the active multiplier. */
-export function bolsteredBondsBonuses(
-  source: BalanceProfileSource,
-  selectedLegendIds: readonly string[] = [],
-  multiplier = 1
-): Record<string, number> {
-  if (!multiplier) return {};
-
+/**
+ * Each selected legend grants its attributes. The form enhances them immediately, and the enhancement outlasts the
+ * form until the next stat refresh.
+ */
+export function bolsteredBondsBonuses(context: Gw2AttributeContext): Record<string, number> {
+  const source = context.balanceContext.catalog;
+  const form = revenantRuntimeSpecializationState(context, 'Conduit');
+  const enhancedActive =
+    buffDeadlineActive(form.cosmicWisdomUntil ?? 0, context.time) ||
+    context.time < (form.bolsteredBondsEnhancedUntil ?? 0);
+  const selectedLegendIds = context.runtime
+    ? revenantRuntimeCoreState(context).selectedLegendIds
+    : context.loadout.selectedLegends;
+  const profile = requireBalanceProfile(source, TRAIT.BOLSTERED_BONDS);
+  const multiplier = enhancedActive ? balanceProfileNumber(profile, 'attributeMultiplier') : 1;
   const bonuses: Record<string, number> = {};
-  for (const legendId of selectedLegendIds) {
+  for (const legendId of selectedLegendIds ?? []) {
     const group = LEGEND_ATTRIBUTE_GROUPS.get(legendId);
 
     if (!group) continue;
 
-    const profile = requireBalanceProfile(source, TRAIT.BOLSTERED_BONDS);
     for (const [attribute, amount] of Object.entries(profile[group] as Readonly<Record<string, number>>))
       bonuses[attribute] = (bonuses[attribute] ?? 0) + amount * multiplier;
   }

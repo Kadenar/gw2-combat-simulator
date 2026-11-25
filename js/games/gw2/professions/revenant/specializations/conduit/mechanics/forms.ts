@@ -13,6 +13,7 @@ import { conduitState, revenantConduitFormIsActive } from '#gw2/professions/reve
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 const FORM_EXPIRY = 'revenant.conduit-form-expiry';
+const STAT_REFRESH_SECONDS = 3;
 
 /** Changed form deadlines schedule their own wakes; older wakes cannot expire a later extension. */
 function scheduleFormExpiry(runtime: RevenantRuntime): void {
@@ -52,6 +53,8 @@ function formExpiry(runtime: RevenantRuntime, data: unknown): void {
 
   if (state.cosmicWisdomUntil !== (data as { until: number }).until) return;
 
+  // Bolstered Bonds keeps its enhanced stats until the first stat refresh at or after the actual form expiry.
+  state.bolsteredBondsEnhancedUntil = Math.ceil(runtime.time / STAT_REFRESH_SECONDS) * STAT_REFRESH_SECONDS;
   state.cosmicWisdomUntil = 0;
   state.conduitForm = '';
 }

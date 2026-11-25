@@ -39,6 +39,8 @@ export interface RevenantCoreState {
   tranquil: boolean;
   selectedLegendIds: string[];
   activeUpkeeps: RevenantUpkeepState[];
+  /** Embrace rejoins the same pulse clock each time the player turns it on. */
+  embracePulsePhaseMs: number | null;
   endurance: ResourceClock;
   enchantedDaggers: ChargeGrant;
   battleScars: number[];
@@ -76,6 +78,7 @@ export function createRevenantCoreState(config: RevenantConfig): RevenantCoreSta
     tranquil: activeLegendId === 'LegendaryCentaur',
     selectedLegendIds,
     activeUpkeeps: [],
+    embracePulsePhaseMs: null,
     endurance: createResourceClock(ENDURANCE.maximum),
     enchantedDaggers: {
       count: 0,

@@ -13,7 +13,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { runRevenant } from '#tests/helpers/revenant-simulation.js';
+import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 const conduitConfig = {
   specialization: 'Conduit',
@@ -202,6 +202,49 @@ test('Mesmer runtime costs restore native values at form expiry', () => {
 
   assert.equal(observedRuntime(expired).profession.specialization.state.conduitForm, '');
   assert.equal(observedRuntime(expired).profession.specialization.state.cosmicWisdomUntil, 0);
+});
+
+test('Bolstered Bonds stays enhanced until the shared stat refresh after each form', () => {
+  // Starting each form at a different phase distinguishes the shared refresh from a fixed grace period.
+  // Torment durations read Demon's Expertise and strikes read Entity's Power, so both legends' grants must linger.
+  const result = runRevenant(
+    [wait(400), 'Cosmic Wisdom', wait(3200), { type: 'cooldown-reset' }, 'Cosmic Wisdom', wait(3000)],
+    // Capped Might keeps Numinous Gift's stacks from changing Power between forms.
+    { ...conduitConfig, selectedTraitIds: [TRAIT.BOLSTERED_BONDS], boons: { might: 25 } },
+    {
+      catalog: (catalog) =>
+        applySkillPatch(catalog, {
+          skills: { [ID.COSMIC_WISDOM]: { effects: [{ type: 'buff', name: 'cosmic-wisdom', duration: 1 }] } }
+        }),
+      initialize(runtime) {
+        for (const at of [0.2, 0.8, 2.96, 3, 4, 5.96, 6]) {
+          runtime.schedule('test.emit', at, {
+            type: 'condition',
+            at,
+            source: 'fixture',
+            sourceId: ID.BANISH_ENCHANTMENT,
+            actorType: 'player',
+            skillId: ID.BANISH_ENCHANTMENT,
+            skillName: 'Test Torment',
+            condition: 'Torment',
+            duration: 4,
+            stacks: 1
+          });
+          runtime.schedule('test.emit', at, revenantHit(at, { skillName: 'Test Strike', canCrit: false }));
+        }
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const pattern = (values) => {
+    const [baseline, boosted] = values;
+    assert.ok(boosted > baseline);
+    assert.deepEqual(values, [baseline, boosted, boosted, baseline, boosted, boosted, baseline]);
+  };
+  
+  const fixture = (name) => result.resolvedEvents.filter((event) => event.skillName === name);
+  pattern(fixture('Test Torment').map((event) => event.effectiveDuration));
+  pattern(fixture('Test Strike').map((event) => event.damage));
 });
 
 // Form entry validates even unused costs in score output, and errors identify the selected patch rather than a fallback.

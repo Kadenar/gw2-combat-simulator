@@ -11,6 +11,8 @@ import { createResourceClock, type ResourceClock } from '#kernel/resources/accru
 export interface ConduitState {
   affinity: ResourceClock;
   cosmicWisdomUntil: number;
+  /** Bolstered Bonds stays enhanced after the form until this stat refresh. */
+  bolsteredBondsEnhancedUntil: number;
   conduitForm: string;
   beguilingHazeCharges: number;
   beguilingHazeReadyAt: number;
@@ -32,6 +34,7 @@ function createConduitState(): ConduitState {
   return {
     affinity: createResourceClock(),
     cosmicWisdomUntil: 0,
+    bolsteredBondsEnhancedUntil: 0,
     // Empty string means no active form; presence is tested via revenantConduitFormIsActive, not a separate boolean.
     conduitForm: '',
     beguilingHazeCharges: 0,

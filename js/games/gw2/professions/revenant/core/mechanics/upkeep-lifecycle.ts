@@ -13,7 +13,6 @@ import {
   starveRevenantUpkeeps,
   upkeepRelease
 } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
-import { embracePulse } from '#gw2/professions/revenant/core/skills/legends/demon.js';
 import { hammerPulse } from '#gw2/professions/revenant/core/skills/legends/dwarf.js';
 import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -106,17 +105,10 @@ export function createRevenantUpkeepContribution(
 const coreCadences: readonly RevenantUpkeepCadence[] = [
   {
     name: 'revenant.upkeep-pulse',
-    accepts: (skill) => skill.id === ID.EMBRACE_THE_DARKNESS || skill.id === ID.VENGEFUL_HAMMERS,
+    accepts: (skill) => skill.id === ID.VENGEFUL_HAMMERS,
     interval: (skill) => Math.max(0, skill.pulseInterval ?? 1),
-    // Hammers hit on activation; Embrace rejoins the next whole-second pulse boundary.
-    firstAt: (runtime, skill) =>
-      skill.id === ID.EMBRACE_THE_DARKNESS ? Math.floor(gw2Time(runtime.time)) + 1 : runtime.time,
-    pulse(runtime, skill, active) {
-      if (skill.id === ID.EMBRACE_THE_DARKNESS) {
-        embracePulse(runtime, skill, runtime.time, active.empoweredNextPulse);
-        active.empoweredNextPulse = false;
-      } else hammerPulse(runtime, skill, runtime.time);
-    }
+    firstAt: (runtime) => runtime.time,
+    pulse: (runtime, skill) => hammerPulse(runtime, skill, runtime.time)
   }
 ];
 

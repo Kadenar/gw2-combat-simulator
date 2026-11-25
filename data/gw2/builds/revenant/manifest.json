@@ -71,15 +71,15 @@
         "build": "data/gw2/builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-shortbow-mace-axe",
-        "benchmarkDps": 41247,
+        "benchmarkDps": 41114,
         "upToDate": true,
         "benchmarkApm": 67.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40095, "phase": 40095 },
-          "80-60": { "cumulative": 41376, "phase": 42724 },
-          "60-40": { "cumulative": 41282, "phase": 41089 },
-          "40-20": { "cumulative": 40802, "phase": 39401 },
-          "20-0": { "cumulative": 41247, "phase": 43162 }
+          "100-80": { "cumulative": 39853, "phase": 39853 },
+          "80-60": { "cumulative": 41132, "phase": 42478 },
+          "60-40": { "cumulative": 41124, "phase": 41108 },
+          "40-20": { "cumulative": 41057, "phase": 40862 },
+          "20-0": { "cumulative": 41114, "phase": 41362 }
         }
       },
       {
@@ -87,7 +87,7 @@
         "build": "data/gw2/builds/revenant/b-condi-renegade-spear-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-spear-mace-axe",
-        "benchmarkDps": 41281,
+        "benchmarkDps": 41418,
         "upToDate": true,
         "benchmarkApm": 67.6,
         "benchmarkDpsByHealth": {
@@ -95,7 +95,7 @@
           "80-60": { "cumulative": 41903, "phase": 43012 },
           "60-40": { "cumulative": 41637, "phase": 41132 },
           "40-20": { "cumulative": 41267, "phase": 40141 },
-          "20-0": { "cumulative": 41281, "phase": 41336 }
+          "20-0": { "cumulative": 41418, "phase": 42034 }
         }
       },
       {
@@ -103,15 +103,15 @@
         "build": "data/gw2/builds/revenant/b-condi-renegade-spear-shortbow.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-shortbow-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-spear-shortbow",
-        "benchmarkDps": 41230,
+        "benchmarkDps": 41228,
         "upToDate": true,
         "benchmarkApm": 67.3,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 40811, "phase": 40811 },
-          "80-60": { "cumulative": 40808, "phase": 40806 },
-          "60-40": { "cumulative": 41403, "phase": 42625 },
-          "40-20": { "cumulative": 41282, "phase": 40911 },
-          "20-0": { "cumulative": 41230, "phase": 41025 }
+          "80-60": { "cumulative": 40803, "phase": 40794 },
+          "60-40": { "cumulative": 41400, "phase": 42625 },
+          "40-20": { "cumulative": 41279, "phase": 40911 },
+          "20-0": { "cumulative": 41228, "phase": 41025 }
         }
       }
     ]
@@ -140,15 +140,15 @@
         "build": "data/gw2/builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-quick-herald-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-quickness-herald-shortbow-mace-axe",
-        "benchmarkDps": 31855,
+        "benchmarkDps": 31888,
         "upToDate": true,
         "benchmarkApm": 87.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 29340, "phase": 29340 },
-          "80-60": { "cumulative": 30974, "phase": 32739 },
-          "60-40": { "cumulative": 31311, "phase": 32040 },
-          "40-20": { "cumulative": 31609, "phase": 32518 },
-          "20-0": { "cumulative": 31855, "phase": 32918 }
+          "100-80": { "cumulative": 28614, "phase": 28614 },
+          "80-60": { "cumulative": 31044, "phase": 33810 },
+          "60-40": { "cumulative": 31491, "phase": 32460 },
+          "40-20": { "cumulative": 31747, "phase": 32556 },
+          "20-0": { "cumulative": 31888, "phase": 32471 }
         }
       }
     ]
@@ -197,15 +197,15 @@
         "build": "data/gw2/builds/revenant/b-power-conduit.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-bench.json",
-        "benchmarkDps": 43820,
+        "benchmarkDps": 44101,
         "upToDate": true,
         "benchmarkApm": 80.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 50008, "phase": 50008 },
-          "80-60": { "cumulative": 43614, "phase": 38872 },
-          "60-40": { "cumulative": 42146, "phase": 39286 },
-          "40-20": { "cumulative": 42851, "phase": 45111 },
-          "20-0": { "cumulative": 43820, "phase": 48122 }
+          "100-80": { "cumulative": 50132, "phase": 50132 },
+          "80-60": { "cumulative": 43017, "phase": 37620 },
+          "60-40": { "cumulative": 42536, "phase": 41604 },
+          "40-20": { "cumulative": 42941, "phase": 44195 },
+          "20-0": { "cumulative": 44101, "phase": 49193 }
         }
       },
       {
@@ -213,15 +213,15 @@
         "build": "data/gw2/builds/revenant/b-power-conduit-greatsword-scepter-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-greatsword-scepter-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-scepter-sword",
-        "benchmarkDps": 43574,
+        "benchmarkDps": 43872,
         "upToDate": true,
         "benchmarkApm": 89,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 48817, "phase": 48817 },
-          "80-60": { "cumulative": 42832, "phase": 37913 },
-          "60-40": { "cumulative": 43374, "phase": 44542 },
-          "40-20": { "cumulative": 43436, "phase": 43624 },
-          "20-0": { "cumulative": 43574, "phase": 44127 }
+          "100-80": { "cumulative": 49031, "phase": 49031 },
+          "80-60": { "cumulative": 43186, "phase": 38210 },
+          "60-40": { "cumulative": 43545, "phase": 44275 },
+          "40-20": { "cumulative": 43625, "phase": 43869 },
+          "20-0": { "cumulative": 43872, "phase": 44890 }
         }
       },
       {
@@ -229,15 +229,15 @@
         "build": "data/gw2/builds/revenant/b-power-conduit-staff-sword-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-staff-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-staff-sword-sword",
-        "benchmarkDps": 43660,
+        "benchmarkDps": 43961,
         "upToDate": true,
         "benchmarkApm": 66.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 46656, "phase": 46656 },
-          "80-60": { "cumulative": 43421, "phase": 40607 },
-          "60-40": { "cumulative": 42162, "phase": 39902 },
-          "40-20": { "cumulative": 43182, "phase": 46762 },
-          "20-0": { "cumulative": 43660, "phase": 45729 }
+          "100-80": { "cumulative": 47423, "phase": 47423 },
+          "80-60": { "cumulative": 43606, "phase": 40383 },
+          "60-40": { "cumulative": 42440, "phase": 40349 },
+          "40-20": { "cumulative": 43341, "phase": 46543 },
+          "20-0": { "cumulative": 43961, "phase": 46636 }
         }
       },
       {
@@ -245,15 +245,15 @@
         "build": "data/gw2/builds/revenant/b-power-quick-conduit-staff-sword-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-quick-conduit-staff-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-quickness-conduit-staff-sword-sword",
-        "benchmarkDps": 37684,
+        "benchmarkDps": 37725,
         "upToDate": true,
         "benchmarkApm": 58.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44134, "phase": 44134 },
-          "80-60": { "cumulative": 37326, "phase": 32124 },
-          "60-40": { "cumulative": 36859, "phase": 35952 },
-          "40-20": { "cumulative": 37306, "phase": 38717 },
-          "20-0": { "cumulative": 37684, "phase": 39252 }
+          "100-80": { "cumulative": 44180, "phase": 44180 },
+          "80-60": { "cumulative": 37567, "phase": 32463 },
+          "60-40": { "cumulative": 36981, "phase": 35862 },
+          "40-20": { "cumulative": 37453, "phase": 38962 },
+          "20-0": { "cumulative": 37725, "phase": 38845 }
         }
       },
       {
@@ -261,15 +261,15 @@
         "build": "data/gw2/builds/revenant/b-condi-conduit-mistfire.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-conduit-mistfire-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-conduit-mistfire-spear-mace-axe",
-        "benchmarkDps": 41202,
+        "benchmarkDps": 41407,
         "upToDate": true,
         "benchmarkApm": 93.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39906, "phase": 39906 },
-          "80-60": { "cumulative": 41227, "phase": 42618 },
-          "60-40": { "cumulative": 41340, "phase": 41573 },
-          "40-20": { "cumulative": 41465, "phase": 41846 },
-          "20-0": { "cumulative": 41202, "phase": 40118 }
+          "100-80": { "cumulative": 40084, "phase": 40084 },
+          "80-60": { "cumulative": 41392, "phase": 42769 },
+          "60-40": { "cumulative": 41533, "phase": 41823 },
+          "40-20": { "cumulative": 41667, "phase": 42074 },
+          "20-0": { "cumulative": 41407, "phase": 40338 }
         }
       }
     ]
