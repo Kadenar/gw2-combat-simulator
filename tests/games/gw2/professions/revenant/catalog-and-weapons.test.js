@@ -673,14 +673,19 @@ test('Abyssal Raze recharge reduction carries only excess work into the next que
 });
 
 test('Crushing Abyss scales Raze and triggers at three stacks on weapon swap', () => {
-  const result = simulate('Core', ['Abyssal Raze', 'Abyssal Raze', 'Abyssal Raze', 'Swap Weapons'], {
-    primaryWeapon: 'Spear',
-    secondaryWeapon: '',
-    weaponSet2Primary: 'Sword',
-    weaponSet2Secondary: 'Sword',
-    initialEnergy: 100,
-    boons: { quickness: true }
-  });
+  const result = simulate(
+    'Core',
+    ['Abyssal Raze', 'Abyssal Raze', 'Abyssal Raze', 'Swap Weapons'],
+    {
+      primaryWeapon: 'Spear',
+      secondaryWeapon: '',
+      weaponSet2Primary: 'Sword',
+      weaponSet2Secondary: 'Sword',
+      initialEnergy: 100,
+      boons: { quickness: true }
+    },
+    observationTail(1600)
+  );
 
   assert.equal(result.warnings.length, 0);
   const razes = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Abyssal Raze');

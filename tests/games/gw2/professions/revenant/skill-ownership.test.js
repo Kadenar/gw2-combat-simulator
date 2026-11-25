@@ -69,12 +69,12 @@ test('shared Dodge completion and cancellation reset airborne autoattack chains'
   }
 });
 
-// Weapon-swap traits must observe the spear owner's consumed pool and already-emitted Raze payload.
-test('Crushing Abyss resolves before Brutality observes the committed weapon swap', () => {
+// Brutality sees the spent stacks on swap. Raze hits later using those stacks.
+test('Crushing Abyss spends stacks before Brutality and lands after the swap', () => {
   const observations = [];
   let razeEmitted = false;
   const result = runRevenant(
-    ['__combat_start', 'Swap Weapons'],
+    ['__combat_start', 'Swap Weapons', wait(1600)],
     {
       primaryWeapon: 'Spear',
       weaponSet2Primary: 'Sword',
@@ -102,6 +102,14 @@ test('Crushing Abyss resolves before Brutality observes the committed weapon swa
   );
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(observations, [{ remaining: 0, razeEmitted: true }]);
+  const swap = result.steps.find((step) => step.skillId === SHARED_SKILL_IDS.SWAP_WEAPONS);
+  const packets = result.resolvedEvents.filter(
+    (event) => event.triggeredBy === 'Swap Weapons' && event.sourceId === ID.ABYSSAL_RAZE
+  );
+  const hit = packets.find((event) => event.type === 'damage');
+  assert.ok(hit.at > swap.end / 1000);
+  const torment = packets.filter((event) => event.type === 'condition' && event.condition === 'Torment');
+  assert.ok(torment.length > 0 && torment.every((event) => event.at === hit.at));
 });
 
 // Removing an intrinsic declaration must remove its transition, rather than leave a second hook dispatcher active.

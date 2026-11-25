@@ -91,11 +91,11 @@
         "upToDate": true,
         "benchmarkApm": 67.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40905, "phase": 40905 },
-          "80-60": { "cumulative": 41903, "phase": 43012 },
-          "60-40": { "cumulative": 41637, "phase": 41132 },
-          "40-20": { "cumulative": 41267, "phase": 40141 },
-          "20-0": { "cumulative": 41418, "phase": 42034 }
+          "100-80": { "cumulative": 40712, "phase": 40712 },
+          "80-60": { "cumulative": 41736, "phase": 42869 },
+          "60-40": { "cumulative": 41571, "phase": 41253 },
+          "40-20": { "cumulative": 41183, "phase": 40009 },
+          "20-0": { "cumulative": 41418, "phase": 42388 }
         }
       },
       {
@@ -103,15 +103,15 @@
         "build": "data/gw2/builds/revenant/b-condi-renegade-spear-shortbow.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-shortbow-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-spear-shortbow",
-        "benchmarkDps": 41228,
+        "benchmarkDps": 41433,
         "upToDate": true,
         "benchmarkApm": 67.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40811, "phase": 40811 },
-          "80-60": { "cumulative": 40803, "phase": 40794 },
-          "60-40": { "cumulative": 41400, "phase": 42625 },
-          "40-20": { "cumulative": 41279, "phase": 40911 },
-          "20-0": { "cumulative": 41228, "phase": 41025 }
+          "100-80": { "cumulative": 40628, "phase": 40628 },
+          "80-60": { "cumulative": 40944, "phase": 41261 },
+          "60-40": { "cumulative": 41511, "phase": 42677 },
+          "40-20": { "cumulative": 41325, "phase": 40756 },
+          "20-0": { "cumulative": 41433, "phase": 41871 }
         }
       }
     ]
@@ -261,30 +261,30 @@
         "build": "data/gw2/builds/revenant/b-condi-conduit-mistfire.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-conduit-mistfire-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-conduit-mistfire-spear-mace-axe",
-        "benchmarkDps": 41407,
+        "benchmarkDps": 41419,
         "upToDate": true,
         "benchmarkApm": 93.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40084, "phase": 40084 },
-          "80-60": { "cumulative": 41392, "phase": 42769 },
-          "60-40": { "cumulative": 41533, "phase": 41823 },
-          "40-20": { "cumulative": 41667, "phase": 42074 },
-          "20-0": { "cumulative": 41407, "phase": 40338 }
+          "100-80": { "cumulative": 39922, "phase": 39922 },
+          "80-60": { "cumulative": 41329, "phase": 42809 },
+          "60-40": { "cumulative": 41485, "phase": 41806 },
+          "40-20": { "cumulative": 41626, "phase": 42056 },
+          "20-0": { "cumulative": 41419, "phase": 40565 }
         }
       },
       {
         "label": "Condition (Spear - Mace/Axe) - Enhanced Embodiment",
         "build": "data/gw2/builds/revenant/b-condi-conduit-enhanced-embodiment.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-conduit-enhanced-embodiment-bench.json",
-        "benchmarkDps": 40906,
+        "benchmarkDps": 41843,
         "upToDate": true,
         "benchmarkApm": 101.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 37263, "phase": 37263 },
-          "80-60": { "cumulative": 38923, "phase": 40845 },
-          "60-40": { "cumulative": 40218, "phase": 43014 },
-          "40-20": { "cumulative": 40812, "phase": 42793 },
-          "20-0": { "cumulative": 40906, "phase": 41308 }
+          "100-80": { "cumulative": 36859, "phase": 36859 },
+          "80-60": { "cumulative": 39911, "phase": 43480 },
+          "60-40": { "cumulative": 41229, "phase": 44157 },
+          "40-20": { "cumulative": 42033, "phase": 44623 },
+          "20-0": { "cumulative": 41843, "phase": 41082 }
         }
       }
     ]

@@ -19,12 +19,7 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import {
-  activeStackCount,
-  addTimedStacks,
-  grantTimedStacks,
-  purgeExpiredStacks
-} from '#kernel/resources/timed-stacks.js';
+import { grantTimedStacks, purgeExpiredStacks } from '#kernel/resources/timed-stacks.js';
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
@@ -376,9 +371,9 @@ function abyssalRazePackets(
     throw new Error('Abyssal Raze is missing its declarative effects.');
 
   const base = strikeEffectCoefficient(strike);
-  // Even a weapon-swap trigger belongs to Raze and uses Spear attribution; activationId identifies its causing action.
+  // A swap consumes the stacks immediately. Its spear strike and Torment land together 1.2 seconds later.
   const common = {
-    at: runtime.time,
+    at: triggeredBy ? gw2Time(runtime.time + 1.2) : runtime.time,
     source: 'revenant',
     sourceId: skill.id,
     actorType: ACTOR.PLAYER,
@@ -450,19 +445,24 @@ function revenantAbyssalRazeImpact(runtime: RevenantRuntime, data: unknown): voi
 
   const { activationId } = data as { activationId: string };
   // Capture and emit damage before adding this impact's stack: a Raze cannot benefit from its own new stack.
-  abyssalRazePackets(runtime, skill, activeStackCount(activeCrushingAbyss(runtime), runtime.time), activationId);
+  const stacks = activeCrushingAbyss(runtime).length;
+  abyssalRazePackets(runtime, skill, stacks, activationId);
   const effect = skill.effects?.find((candidate) => candidate.type === 'buff' && candidate.kind === 'crushing-abyss');
 
   if (effect?.type !== 'buff') throw new Error('Abyssal Raze is missing Crushing Abyss.');
 
   const maximum = Math.max(0, skill.maximumStacks || 0);
   const duration = Math.max(0, effect.duration || 0);
-  const grant = addTimedStacks(activeCrushingAbyss(runtime), 1, runtime.time, gw2Time(duration), maximum);
+  if (!maximum || !duration) return;
 
-  // At the cap the grant lands nothing, and the buff must not be published either.
-  if (grant.added === 0) return;
-
-  runtime.profession.core.crushingAbyss = grant.expiries;
+  // Every Raze hit restarts the whole stack timer, including hits at the cap.
+  runtime.profession.core.crushingAbyss = grantTimedStacks([], {
+    at: runtime.time,
+    expiresAt: gw2Time(runtime.time + duration),
+    count: Math.min(stacks + 1, maximum),
+    maximumStacks: maximum,
+    retain: 'latest-expiry'
+  });
   const effectId = effect.sourceId ?? ID.ABYSSAL_RAZE;
   const effectName = effect.name || 'Crushing Abyss';
   runtime.effects.emit({
