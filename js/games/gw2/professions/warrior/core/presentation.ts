@@ -1,5 +1,3 @@
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type {
@@ -20,6 +18,7 @@ import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result
 import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_MAXIMUM_ADRENALINE } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
@@ -304,7 +303,7 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
   paletteOverride: (context, skill) => {
     if ((context.specialization || 'Core') === 'Core') return warriorBurstPaletteOverride(context, skill);
   },
-  assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
+  assumptionControls: buildAssumptionControls(),
   effectPresentations: warriorCoreEffectPresentations,
   rotationStateSnapshot: warriorCoreStateSnapshot,
   paletteGroups: (context) => (uiSpecialization(context) === 'Core' ? warriorPaletteGroups(context) : []),

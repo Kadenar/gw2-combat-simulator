@@ -483,16 +483,6 @@ test('Engineer defaults migrate and validate morph branch choices', () => {
   const defaults = createEngineerBuildDefaults();
 
   assert.equal(defaults.assumptions.inDamagingField, false);
-  assert.deepEqual(
-    engineerProfession.ui.assumptionControls.find((control) => control.key === 'inDamagingField'),
-    {
-      key: 'inDamagingField',
-      label: 'In damaging field',
-      type: 'boolean',
-      defaultValue: false,
-      specializations: ['Amalgam']
-    }
-  );
   assert.deepEqual(validateEngineerBuild(defaults), {
     valid: true,
     errors: []

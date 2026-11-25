@@ -109,7 +109,7 @@ test('every native profession exposes persisted simulation randomness', () => {
       profession.ui.assumptionControls
         .filter((control) => control.section === 'simulation')
         .map((control) => control.key),
-      ['simulationMode', 'simulationSeed', 'criticalDamageMode', 'permanentComboField']
+      ['simulationMode', 'simulationSeed', 'criticalDamageMode', 'permanentComboField', 'inDamagingField']
     );
     assert.equal(
       profession.ui.assumptionControls.find((control) => control.key === 'simulationMode')?.label,

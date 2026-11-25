@@ -3,7 +3,6 @@ import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { WEAPON } from '#gw2/platform/constants.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import { resolveSelectedAmalgamMorphId } from '#gw2/professions/engineer/build/morphs.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_SKILL_IDS as SKILL } from '#gw2/professions/engineer/data/ids.js';
@@ -61,11 +60,7 @@ export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
       Elite: SKILL.SUPPLY_CRATE
     },
     selectedMorphSkillIds: [...DEFAULT_AMALGAM_MORPHS],
-    ...createCommonBuildDefaults({
-      assumptions: {
-        inDamagingField: false
-      }
-    }),
+    ...createCommonBuildDefaults(),
     initialHeat: 0
   };
 }
@@ -85,7 +80,7 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
   schemaVersion: ENGINEER_BUILD_SCHEMA_VERSION,
   catalog: engineerCatalog,
   createDefaults: createEngineerBuildDefaults,
-  assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
+
   // Heat normalization and validation share this one persisted-field contract.
   extraFields: {
     initialHeat: {

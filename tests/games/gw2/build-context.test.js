@@ -10,7 +10,6 @@ import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.
 import { remainingTargetHealthBelow, remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
-import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
 import { resolveRevenantSkillLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
@@ -191,7 +190,7 @@ test('headless fixed loadouts retain both bars while attribute skills follow the
   assert.equal(context.simulationConfig().skillInputBars[0].slots['slot-6'], REVENANT.ENCHANTED_DAGGERS);
 });
 
-test('headless ordinary loadouts preserve empty slots and specialization-scoped assumption defaults', async () => {
+test('headless ordinary loadouts preserve empty slots and the shared damaging-field setting', async () => {
   const module = await loadBuildContext('engineer');
   const build = module.toApplicationBuild(module.profession.createBuildDefaults());
   const utility = Object.values(build.selectedSkillIds).find((id) => id != null);
@@ -199,7 +198,7 @@ test('headless ordinary loadouts preserve empty slots and specialization-scoped 
   build.selectedSkillIds = { Heal: null, Utility1: null, Utility2: utility, Utility3: null, Elite: null };
   delete build.assumptions.inDamagingField;
   const factory = bindBuildContext(withoutPresentation(module.profession))(() => ({}), {
-    assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
+    assumptionControls: [],
     resolveSkillLoadout: resolveSelectedSkillLoadout
   });
   build.specializations = [{ name: 'Amalgam', traits: '1-1-1' }];
@@ -210,10 +209,7 @@ test('headless ordinary loadouts preserve empty slots and specialization-scoped 
   build.assumptions.inDamagingField = true;
   assert.equal(factory(input(module.profession, build)).simulationConfig().professionAssumptions.inDamagingField, true);
   build.specializations = [];
-  assert.equal(
-    Object.hasOwn(factory(input(module.profession, build)).simulationConfig().professionAssumptions, 'inDamagingField'),
-    false
-  );
+  assert.equal(factory(input(module.profession, build)).simulationConfig().professionAssumptions.inDamagingField, true);
 });
 
 test('profession starting resources and selections survive headless composition', async () => {

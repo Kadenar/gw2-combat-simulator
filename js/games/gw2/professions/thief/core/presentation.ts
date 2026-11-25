@@ -1,6 +1,4 @@
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { stealthActive } from '#gw2/platform/combat/stealth.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type {
@@ -12,6 +10,7 @@ import type { RotationStateSnapshotItem } from '#gw2/platform/profession-present
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
@@ -282,11 +281,7 @@ export const thiefCoreUi = Object.freeze({
       name: 'Lead Attacks'
     }
   ],
-  assumptionControls: Object.freeze([
-    ...THIEF_CORE_ASSUMPTION_CONTROLS,
-    ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-    ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
-  ]),
+  assumptionControls: buildAssumptionControls(THIEF_CORE_ASSUMPTION_CONTROLS),
   rotationStateSnapshot: thiefCoreStateSnapshot,
   paletteGroups: (context: ThiefUiContext) =>
     (context.specialization || context.config?.specialization || 'Core') === 'Core' ? thiefStealPaletteGroups() : [],

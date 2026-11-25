@@ -1,6 +1,4 @@
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { WEAPON } from '#gw2/platform/constants.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -47,6 +45,7 @@ import type {
   RangerUiSlice
 } from '#gw2/professions/ranger/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const RANGER_HIDDEN_EVENT_TYPES = new Set([
@@ -227,11 +226,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
             )
         };
     },
-    assumptionControls: [
-      ...RANGER_ASSUMPTION_CONTROLS,
-      ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-      ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
-    ],
+    assumptionControls: buildAssumptionControls(RANGER_ASSUMPTION_CONTROLS),
     skillBarGroups: (context: RangerUiContext) => {
       const pet = selectedRangerUiPet(context);
       const pet2 = selectedRangerUiPet(context, 2);

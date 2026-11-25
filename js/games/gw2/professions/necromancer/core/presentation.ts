@@ -1,5 +1,3 @@
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -29,6 +27,7 @@ import type {
   NecromancerUiState
 } from '#gw2/professions/necromancer/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
@@ -267,7 +266,7 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
             order: 0
           }
         : undefined,
-    assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
+    assumptionControls: buildAssumptionControls(),
     // Core owns these labels because the effects remain available across Necromancer specializations.
     effectPresentations: () => [...NECROMANCER_EFFECT_PRESENTATIONS],
     // Read the inspected combat observation so timed and minion stacks follow the cursor across all specializations.

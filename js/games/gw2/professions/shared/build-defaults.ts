@@ -27,17 +27,7 @@ const DEFAULT_TARGET_HEALTH = 4_000_000;
 const DEFAULT_TARGET_STARTING_HEALTH_PERCENT = 100;
 const DEFAULT_STARTING_WEAPON_SET = 1;
 
-/**
- * Additional or overridden assumptions supplied by an individual profession.
- *
- * Examples:
- *
- * Engineer:
- *   { inDamagingField: false }
- *
- * Ranger:
- *   normalizeProfessionAssumptions({}, RANGER_ASSUMPTION_CONTROLS)
- */
+/** Additional or overridden assumptions supplied by an individual profession. */
 type ProfessionAssumptionOverrides = Readonly<Record<string, unknown>>;
 
 /**
@@ -67,6 +57,7 @@ function createDefaultSimulationAssumptions(overrides: ProfessionAssumptionOverr
     // Benchmark builds assume the standard golem boon set, including permanent Aegis.
     aegis: true,
 
+    inDamagingField: false,
     targetMoving: false,
     targetConditions: createDefaultTargetConditions(),
     ...overrides

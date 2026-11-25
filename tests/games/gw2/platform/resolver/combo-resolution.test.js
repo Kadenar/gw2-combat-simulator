@@ -147,6 +147,30 @@ test('combo boon resolution samples changing live concentration instead of confi
   );
 });
 
+test('Dark Aura retaliates in a damaging field and shares its cooldown across overlapping grants', () => {
+  const events = [
+    field('dark', 'Dark'),
+    finisher('blast', 'dark', { finisherType: 'Blast' }),
+    finisher('leap', 'dark', { finisherType: 'Leap', at: 1.4, effectAt: 1.4 })
+  ];
+  const torment = (inDamagingField) =>
+    resolve(events, { professionAssumptions: { inDamagingField } }).resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.condition === 'Torment'
+    );
+
+  assert.deepEqual(torment(false), []);
+  const applications = torment(true);
+  assert.deepEqual(
+    applications.map((event) => event.at),
+    [1, 2, 3, 4, 5, 6]
+  );
+  assert.ok(
+    applications.every(
+      (event) => event.skillName === 'Dark Aura' && event.stacks === 1 && event.naturalExpiresAt === event.at + 2
+    )
+  );
+});
+
 test('Dark projectile and whirl siphons own their hits without inflating the finisher', () => {
   for (const [finisherType, flatStrikeBase, siphonName] of [
     ['Projectile', 202, 'Life Siphon Damage'],

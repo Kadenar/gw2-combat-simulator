@@ -1,8 +1,6 @@
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { BOON } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
@@ -24,6 +22,7 @@ import type {
   EngineerUiSlice
 } from '#gw2/professions/engineer/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
@@ -219,7 +218,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
       const dodge = skills.findIndex((skill) => skill.id === SHARED_SKILL_IDS.DODGE);
       return [...skills.slice(0, dodge + 1), swap, ...skills.slice(dodge + 1)];
     },
-    assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
+    assumptionControls: buildAssumptionControls(),
     // Builds one stacked palette group per selected kit, plus Core's profession-skill group.
     paletteGroups: (context: EngineerUiContext) => {
       const groups: ProfessionPaletteGroup[] = [];

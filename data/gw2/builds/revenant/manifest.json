@@ -261,15 +261,15 @@
         "build": "data/gw2/builds/revenant/b-condi-conduit-mistfire.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-conduit-mistfire-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-conduit-mistfire-spear-mace-axe",
-        "benchmarkDps": 40511,
+        "benchmarkDps": 41202,
         "upToDate": true,
-        "benchmarkApm": 92.5,
+        "benchmarkApm": 93.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38928, "phase": 38928 },
-          "80-60": { "cumulative": 40366, "phase": 41956 },
-          "60-40": { "cumulative": 40781, "phase": 41652 },
-          "40-20": { "cumulative": 41008, "phase": 41712 },
-          "20-0": { "cumulative": 40511, "phase": 38568 }
+          "100-80": { "cumulative": 39906, "phase": 39906 },
+          "80-60": { "cumulative": 41227, "phase": 42618 },
+          "60-40": { "cumulative": 41340, "phase": 41573 },
+          "40-20": { "cumulative": 41465, "phase": 41846 },
+          "20-0": { "cumulative": 41202, "phase": 40118 }
         }
       }
     ]

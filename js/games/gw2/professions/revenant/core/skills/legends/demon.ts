@@ -1,6 +1,6 @@
 /** Owns Legendary Demon Stance skill definitions and its Unyielding Impact follow-up. */
 import { gw2Time } from '#gw2/platform/combat/clock.js';
-import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import {
   conditionEffectTicks,
   effectFirstAtMs,
@@ -126,6 +126,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     legendId: 'LegendaryDemon',
     castTimeMs: 800,
     interruptCommitMs: 760,
+    comboFinishers: [{ ownerId: 'revenant', finisherType: COMBO_FINISHER.LEAP }],
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(
       { atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
@@ -191,6 +192,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     // The upkeep lifecycle owns drain and scheduling; this legend owns the pulse payload below.
     castTimeMs: 440,
     interruptCommitMs: 400,
+    comboFields: [{ ownerId: 'revenant', fieldType: COMBO_FIELD.DARK, startAnchor: 'castEnd', duration: 198 }],
     effects: [
       {
         type: 'strike',

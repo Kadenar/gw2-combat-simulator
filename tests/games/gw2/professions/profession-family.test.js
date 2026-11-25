@@ -1171,12 +1171,10 @@ test('Engineer presentation and public projection preserve their contracts', () 
       active === 'Holosmith',
       active
     );
-    assert.equal(
+    assert.ok(
       engineerProfession.ui.assumptionControls.some(
-        (control) => control.key === 'inDamagingField' && control.specializations?.includes(active)
-      ),
-      active === 'Amalgam',
-      active
+        (control) => control.key === 'inDamagingField' && !control.specializations
+      )
     );
   }
 

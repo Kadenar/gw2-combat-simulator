@@ -1,6 +1,4 @@
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { WEAPON } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
@@ -23,6 +21,7 @@ import type {
   RevenantUiSlice
 } from '#gw2/professions/revenant/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export function revenantUiState(context: Pick<RevenantUiContext, 'professionState'>): Partial<RevenantPlanningState> {
@@ -195,11 +194,7 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
     if (skill.paletteLegendId === activeRevenantLegend(context))
       return { available: false, message: `${skill.displayName || 'Legend'} is already active` };
   },
-  assumptionControls: Object.freeze([
-    ...REVENANT_ASSUMPTION_CONTROLS,
-    ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-    ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
-  ]),
+  assumptionControls: buildAssumptionControls(REVENANT_ASSUMPTION_CONTROLS),
   slotLoadout: revenantLegendLoadout,
   rotationStateSnapshot: revenantCoreStateSnapshot,
   timelineSkillIcon: revenantTimelineSkillIcon,

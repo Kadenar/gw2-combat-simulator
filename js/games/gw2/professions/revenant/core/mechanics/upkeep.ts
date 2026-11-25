@@ -37,6 +37,13 @@ export function removeRevenantUpkeep(runtime: RevenantRuntime, skillId: SkillId)
 
   if (!active) return undefined;
 
+  // Release, starvation, and legend swaps all end this activation's mobile field.
+  if (skillId === ID.EMBRACE_THE_DARKNESS) {
+    const field = runtime.combat.fieldFor(skillId, active.startsAt);
+
+    if (field && runtime.time < field.expiresAt) runtime.combat.expireField(field.fieldId, runtime.time);
+  }
+
   core.activeUpkeeps = core.activeUpkeeps.filter((upkeep) => upkeep !== active);
   runtime.cancelOwner(revenantUpkeepOwner(skillId, active.startsAt));
   return active;

@@ -2,7 +2,6 @@ import { bindBuildContext } from '#gw2/build-context/create.js';
 import type { BoundProfession } from '#gw2/build-context/types.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
-import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import type { EngineerCanonicalBuild, EngineerConfig } from '#gw2/professions/engineer/types.js';
 
@@ -16,5 +15,5 @@ export const createBuildContext = bindBuildContext<EngineerCanonicalBuild, Engin
     initialHeat: build.initialHeat,
     selectedMorphSkillIds: build.selectedMorphSkillIds
   }),
-  { assumptionControls: ENGINEER_ASSUMPTION_CONTROLS, resolveSkillLoadout: resolveSelectedSkillLoadout }
+  { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
 );

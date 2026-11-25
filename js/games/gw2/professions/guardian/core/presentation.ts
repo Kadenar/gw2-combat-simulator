@@ -1,6 +1,4 @@
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
@@ -25,6 +23,7 @@ import type {
   GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Simulation time (seconds) of the rotation point being inspected. */
@@ -178,7 +177,7 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
       return preview.controls;
     },
 
-    assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
+    assumptionControls: buildAssumptionControls(),
     // Inspiring Virtue is a binary Core effect shared by every Guardian specialization.
     effectPresentations: () => [...GUARDIAN_CORE_EFFECT_PRESENTATIONS],
     rotationStateSnapshot: guardianCoreStateSnapshot,

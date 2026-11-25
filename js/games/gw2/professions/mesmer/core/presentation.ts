@@ -1,5 +1,3 @@
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { BOON } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
@@ -22,6 +20,7 @@ import type {
   MesmerUiState
 } from '#gw2/professions/mesmer/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { clamp } from '#kernel/core/numeric.js';
 
@@ -192,7 +191,7 @@ export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
   prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) =>
     values.initialResource == null ? {} : { initialResource: Number(values.initialResource) },
 
-  assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
+  assumptionControls: buildAssumptionControls(),
   effectPresentations: mesmerCoreEffectPresentations,
   eventLogRow: mesmerEventLogRow,
   // Shatter badges describe the executed resource and its profession-owned spend phase.

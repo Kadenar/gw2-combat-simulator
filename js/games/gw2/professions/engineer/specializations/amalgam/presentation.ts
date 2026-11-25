@@ -13,7 +13,6 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
-import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import {
   engineerToolbeltSkillIds,
   engineerUiState,
@@ -237,7 +236,6 @@ export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>
       state.titanicUntil = context.values.titanic ? 60 : 0;
     },
 
-    assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
     rotationStateSnapshot: amalgamStateSnapshot,
     skillBarGroups: (context: EngineerUiContext) => amalgamSkillBarGroups(catalog, context),
     updateSkillBarSelection: (context: EngineerUiContext, selection: EngineerUiSelection) =>

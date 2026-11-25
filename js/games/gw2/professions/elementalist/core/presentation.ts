@@ -3,10 +3,8 @@
  * palette, visible and castable skill variants, event-log rows, and the timeline's attunement lane.
  * Reads simulation state without changing it. `updatePaletteControl` edits the build's starting stock.
  */
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -50,6 +48,7 @@ import type {
   ElementalistUiSlice
 } from '#gw2/professions/elementalist/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Object.freeze({
@@ -598,11 +597,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       }
     },
     // Expose the shared seed control alongside Elementalist's own simulation assumptions.
-    assumptionControls: [
-      ...ELEMENTALIST_ASSUMPTION_CONTROLS,
-      ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-      ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
-    ],
+    assumptionControls: buildAssumptionControls(ELEMENTALIST_ASSUMPTION_CONTROLS),
     paletteGroups: (context: ElementalistUiContext) => elementalistPaletteGroups(catalog, context),
     paletteActionSkills: (context, skills) => paletteActionSkills(catalog, context, skills),
     paletteWeaponSkills: (context: ElementalistUiContext, skills: readonly Skill[]) =>
