@@ -219,30 +219,30 @@
         "build": "data/gw2/builds/engineer/b-condi-holosmith-pistol-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-holosmith-pistol-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-holosmith-pistol-pistol",
-        "benchmarkDps": 43206,
+        "benchmarkDps": 43235,
         "upToDate": true,
         "benchmarkApm": 109.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44415, "phase": 44415 },
-          "80-60": { "cumulative": 43157, "phase": 41964 },
-          "60-40": { "cumulative": 42760, "phase": 41989 },
-          "40-20": { "cumulative": 43796, "phase": 47208 },
-          "20-0": { "cumulative": 43206, "phase": 40940 }
+          "100-80": { "cumulative": 44463, "phase": 44463 },
+          "80-60": { "cumulative": 43180, "phase": 41965 },
+          "60-40": { "cumulative": 42791, "phase": 42032 },
+          "40-20": { "cumulative": 43821, "phase": 47216 },
+          "20-0": { "cumulative": 43235, "phase": 40983 }
         }
       },
       {
         "label": "Condition (Pistol / Pistol - Tools TRV)",
         "build": "data/gw2/builds/engineer/b-condi-holosmith-pistol-pistol-tools-trv.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-holosmith-pistol-pistol-tools-trv-bench.json",
-        "benchmarkDps": 36870,
+        "benchmarkDps": 37444,
         "upToDate": true,
         "benchmarkApm": 94.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35772, "phase": 35772 },
-          "80-60": { "cumulative": 36527, "phase": 37355 },
-          "60-40": { "cumulative": 36650, "phase": 36906 },
-          "40-20": { "cumulative": 37138, "phase": 38650 },
-          "20-0": { "cumulative": 36870, "phase": 35770 }
+          "100-80": { "cumulative": 35783, "phase": 35783 },
+          "80-60": { "cumulative": 36553, "phase": 37396 },
+          "60-40": { "cumulative": 36685, "phase": 36963 },
+          "40-20": { "cumulative": 37188, "phase": 38742 },
+          "20-0": { "cumulative": 37444, "phase": 38548 }
         }
       },
       {
@@ -250,15 +250,15 @@
         "build": "data/gw2/builds/engineer/b-power-holosmith-sword-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-power-holosmith-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-holosmith-sword-pistol",
-        "benchmarkDps": 41624,
+        "benchmarkDps": 41484,
         "upToDate": true,
-        "benchmarkApm": 96.6,
+        "benchmarkApm": 96.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43308, "phase": 43308 },
-          "80-60": { "cumulative": 41277, "phase": 39438 },
-          "60-40": { "cumulative": 39908, "phase": 37413 },
-          "40-20": { "cumulative": 40958, "phase": 44486 },
-          "20-0": { "cumulative": 41624, "phase": 44526 }
+          "100-80": { "cumulative": 40836, "phase": 40836 },
+          "80-60": { "cumulative": 40420, "phase": 40007 },
+          "60-40": { "cumulative": 39911, "phase": 38934 },
+          "40-20": { "cumulative": 40785, "phase": 43656 },
+          "20-0": { "cumulative": 41484, "phase": 44736 }
         }
       }
     ]

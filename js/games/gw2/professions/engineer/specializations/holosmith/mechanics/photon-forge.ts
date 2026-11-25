@@ -88,7 +88,7 @@ function passiveHeatPerTick(context: EngineerRuntime<HolosmithSkill>): number {
   return heatPerSecond * HOLOSMITH_HEAT.heatTickInterval;
 }
 
-/** Returns the cooling due on one cadence tick after accounting for Forge state, delay, and PBM. */
+/** Cooling accrues from its aligned start, with five full seconds at the slower rate. */
 function passiveCoolingPerTick(context: EngineerRuntime<HolosmithSkill>, at: number): number {
   const state = holosmithState.from(context.profession);
 
@@ -96,13 +96,8 @@ function passiveCoolingPerTick(context: EngineerRuntime<HolosmithSkill>, at: num
 
   if (preservesPhotonicHeat(context)) return 0;
 
-  // Cooling phases use the same canonical deadlines as their scheduled work.
-  const elapsedSinceExit = gw2Time(at - state.forgeExitedAt);
-
-  if (elapsedSinceExit <= HOLOSMITH_HEAT.coolingDelay) return 0;
-
   const coolingPerSecond =
-    elapsedSinceExit <= HOLOSMITH_HEAT.fastCoolingStartsAt
+    at <= state.passiveHeatAnchor + HOLOSMITH_HEAT.slowCoolingDuration
       ? HOLOSMITH_HEAT.slowCoolingPerSecond
       : HOLOSMITH_HEAT.fastCoolingPerSecond;
 
@@ -150,12 +145,13 @@ function forceOverheat(context: EngineerRuntime<HolosmithSkill>, at: number): vo
   context.fireTrigger(photonForgeTransitioned, { transition: 'overheat', at, blastAt: blast?.at });
 }
 
-/** Restarts passive heat processing one cadence tick after a Forge state transition. */
+/** Heating starts at entry. Cooling starts on the first whole second at or after the exit delay. */
 function startPhotonForgeHeatCadence(context: EngineerRuntime<HolosmithSkill>, at: number, restart = true): void {
   const state = holosmithState.from(context.profession);
 
   if (restart) {
-    state.passiveHeatAnchor = gw2Time(at);
+    state.passiveHeatAnchor =
+      state.forgeExitedAt == null ? gw2Time(at) : Math.ceil(gw2Time(state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay));
     state.passiveHeatOccurrence = 0;
   }
 
@@ -410,12 +406,7 @@ const photonForgeTasks: RuntimeHooks<EngineerRuntimeState, HolosmithSkill>['task
     // Overheat can replace the cadence while applying this tick.
     if (state.passiveHeatAt !== data) return;
 
-    const coolingGrace =
-      !state.photonForgeActive &&
-      state.forgeExitedAt != null &&
-      context.time <= gw2Time(state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay);
-
-    if ((state.photonForgeActive && !state.overheated) || state.heat.value > 0 || coolingGrace)
+    if ((state.photonForgeActive && !state.overheated) || state.heat.value > 0)
       startPhotonForgeHeatCadence(context, context.time, false);
     else state.passiveHeatAt = null;
   },
@@ -441,7 +432,7 @@ export const photonForgeHooks = composeRuntimeHooks<EngineerRuntimeState, Holosm
     if (holosmithState.from(runtime.profession).photonForgeActive) leavePhotonForge(runtime, cast, 'kit');
   }),
   {
-    // The pool stores heat; Forge-relative tasks retain heating, cooling, and overheat timing.
+    // The pool stores heat while scheduled updates apply Forge gain and cooling.
     resources: {
       heat: {
         kind: 'continuous',

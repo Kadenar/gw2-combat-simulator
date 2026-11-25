@@ -5,6 +5,7 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -37,7 +38,7 @@ test('Holosmith initializes one capped heat clock before preheated cooling', () 
     assert.equal(state.heat.maximum, maximum);
     assert.equal(state.heat.unitsPerSecond, 0);
     assert.equal(state.forgeExitedAt, 0);
-    assert.equal(state.passiveHeatAt, 0.12);
+    assert.equal(state.passiveHeatAt, 3.12);
     assert.equal(state.overheated, false);
     assert.equal(Object.hasOwn(state, 'maximumHeat'), false);
     assert.equal(Object.hasOwn(projected, 'maximumHeat'), false);
@@ -56,6 +57,35 @@ test('Holosmith initializes one capped heat clock before preheated cooling', () 
   assert.equal(empty.planningState.profession[STATE.HEAT].value, 0);
   assert.equal(observedRuntime(empty).profession.specialization.state.forgeExitedAt, null);
   assert.equal(observedRuntime(empty).profession.specialization.state.passiveHeatAt, null);
+});
+
+// Both exits reach the same cooling boundary and get five full seconds of slow cooling.
+test('off-second Forge exits share the cooling clock', () => {
+  for (const [exit, delay] of [
+    [ID.DEACTIVATE_PHOTON_FORGE, 6400],
+    [ID.GRENADE_KIT, 6800]
+  ]) {
+    const result = runEngineer([ID.ENGAGE_PHOTON_FORGE, wait(delay), exit, wait(10000)], {
+      specialization: 'Holosmith',
+      initialHeat: 50
+    });
+    assert.deepEqual(result.warnings, []);
+    const heat = result.events.filter((event) => event.type === 'engineer.heat');
+    const atExit = heat.find((event) => event.reason === 'exit-forge').heat;
+    const lossAt = (at) => Number((atExit - heat.findLast((event) => event.at <= at).heat).toFixed(9));
+    assert.deepEqual([10, 11, 15, 16].map(lossAt), [0, 5, 25, 35]);
+  }
+});
+
+// A pending cooling update must yield to the new Forge heating cadence.
+test('re-entering Forge during the delay cancels pending cooling', () => {
+  const result = runEngineer(
+    [ID.ENGAGE_PHOTON_FORGE, wait(6400), ID.DEACTIVATE_PHOTON_FORGE, wait(2000), ID.ENGAGE_PHOTON_FORGE, wait(3000)],
+    { specialization: 'Holosmith', initialHeat: 50 }
+  );
+  assert.deepEqual(result.warnings, []);
+  const entry = result.events.findLast((event) => event.type === 'engineer.heat' && event.reason === 'enter-forge');
+  assert.equal(result.planningState.profession[STATE.HEAT].value, entry.heat + 6);
 });
 
 // The owner rounds each 100 ms transaction; a continuous pool rate would change these fractional boundaries.

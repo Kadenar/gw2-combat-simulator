@@ -13,10 +13,10 @@ export const HOLOSMITH_HEAT = Object.freeze({
   highThreshold: 50,
   // Passive heat and Overheat both advance every 100 ms from Forge entry.
   heatTickInterval: 0.1,
-  // Cooling waits three seconds, loses 5%/s through eight seconds, then loses 10%/s.
+  // Cooling starts on a whole second after the delay. Its first five seconds use the slower rate.
   coolingDelay: 3,
   slowCoolingPerSecond: 5,
-  fastCoolingStartsAt: 8,
+  slowCoolingDuration: 5,
   fastCoolingPerSecond: 10,
   // Observed delay from forge ejection to Overheat damage, the PBM blast, and
   // the tool-belt recharge penalty that the delayed effect applies.

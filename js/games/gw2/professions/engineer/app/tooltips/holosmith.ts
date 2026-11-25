@@ -151,9 +151,9 @@ const photonForgeEnterTooltip: DescribeSimulationTooltip = skillTooltip(
 );
 
 const photonForgeExitTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Leave Photon Forge and return to your weapon skills. After a short delay, heat begins to fall, cooling faster over time. With Photonic Blasting Module, heat only cools after overheating.',
+  'Leave Photon Forge and return to your weapon skills. Cooling starts on the first whole second after the minimum delay and speeds up over time. With Photonic Blasting Module, heat only cools after overheating.',
   () => [
-    { name: 'Cooling delay', detail: tooltipSeconds(HOLOSMITH_HEAT.coolingDelay) },
+    { name: 'Minimum cooling delay', detail: tooltipSeconds(HOLOSMITH_HEAT.coolingDelay) },
     { name: 'Initial cooling per second', detail: tooltipDecimal(HOLOSMITH_HEAT.slowCoolingPerSecond) },
     { name: 'Later cooling per second', detail: tooltipDecimal(HOLOSMITH_HEAT.fastCoolingPerSecond) }
   ]
