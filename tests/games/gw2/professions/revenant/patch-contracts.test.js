@@ -241,7 +241,7 @@ test('Bolstered Bonds stays enhanced until the shared stat refresh after each fo
     assert.ok(boosted > baseline);
     assert.deepEqual(values, [baseline, boosted, boosted, baseline, boosted, boosted, baseline]);
   };
-  
+
   const fixture = (name) => result.resolvedEvents.filter((event) => event.skillName === name);
   pattern(fixture('Test Torment').map((event) => event.effectiveDuration));
   pattern(fixture('Test Strike').map((event) => event.damage));
