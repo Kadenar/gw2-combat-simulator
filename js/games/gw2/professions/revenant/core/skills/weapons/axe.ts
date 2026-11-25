@@ -53,6 +53,7 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
     // Once opened at 480 ms, the rift retains its delayed effects and the remaining cast lockout.
     interruptCommitMs: 480,
     retainsCastLockoutAfterInterrupt: true,
+    energyPaidAt: 'castCommit',
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 640, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {

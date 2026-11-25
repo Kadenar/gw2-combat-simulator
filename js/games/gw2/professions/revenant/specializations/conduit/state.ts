@@ -1,5 +1,6 @@
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
+import type { SkillFlipWindow } from '#gw2/platform/execution/skill-flips.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
@@ -14,6 +15,8 @@ export interface ConduitState {
   /** Bolstered Bonds stays enhanced after the form until this stat refresh. */
   bolsteredBondsEnhancedUntil: number;
   conduitForm: string;
+  /** The particular Unyielding Impact granted by an empowered Call to Anguish. */
+  mesmerImpactFlipId: SkillFlipWindow['identity'] | null;
   beguilingHazeCharges: number;
   beguilingHazeReadyAt: number;
   /** Main recharge saved while follow-ups occupy the button; null means no recharge remains. */
@@ -37,6 +40,7 @@ function createConduitState(): ConduitState {
     bolsteredBondsEnhancedUntil: 0,
     // Empty string means no active form; presence is tested via revenantConduitFormIsActive, not a separate boolean.
     conduitForm: '',
+    mesmerImpactFlipId: null,
     beguilingHazeCharges: 0,
     beguilingHazeReadyAt: 0,
     beguilingHazeRecharge: null

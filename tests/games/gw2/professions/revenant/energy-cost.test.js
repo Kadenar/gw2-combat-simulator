@@ -2,12 +2,24 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { assertRevenantEnergyPaymentTimes } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { effectiveRevenantEnergyCost, revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { observedRuntime, planningFixture } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
+
+// A numeric payment time must fall inside the authored cast; the cast end itself is the last valid time.
+test('Energy payment times outside the authored cast are rejected', () => {
+  const skill = (energyPaidAt, castTimeMs = 520) => ({ id: 1, name: 'Synthetic', castTimeMs, energyPaidAt });
+
+  assert.doesNotThrow(() =>
+    assertRevenantEnergyPaymentTimes([skill(undefined), skill('castCommit', 0), skill(280), skill(520)])
+  );
+  for (const invalid of [skill(560), skill(0), skill(-40), skill(Number.NaN), skill('castStart'), skill(280, 0)])
+    assert.throws(() => assertRevenantEnergyPaymentTimes([invalid]), TypeError);
+});
 
 // Cancelling the block still pays its activation cost without entering combat through the finishing strike.
 test("interrupted Gladiator's Defense requires and spends 20 energy without attacking", () => {

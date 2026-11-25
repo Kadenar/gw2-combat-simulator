@@ -24,7 +24,7 @@ export function validateConduitMesmerEnergyCosts(catalog: CanonicalCatalog): voi
 
 /** Resolve active form costs from the selected catalog, after free upkeep and follow-up rules. */
 export function applyConduitEnergyCostRules(
-  { state, time, catalog }: RevenantEnergyCostInput,
+  { state, time, catalog, flips }: RevenantEnergyCostInput,
   skill: RevenantSkill,
   baseCost: number
 ): number {
@@ -35,10 +35,15 @@ export function applyConduitEnergyCostRules(
 
   if (hazeCost != null) return hazeCost;
 
-  // Tied gameplay retains form costs until expiry cleanup removes the form.
-  if (!revenantConduitFormIsActive(state, 'Mesmer', time)) return baseCost;
-
   if (!MESMER_FORM_COSTS.has(skill.id)) return baseCost;
+
+  // A flip granted after form expiry keeps the cost of the empowered cast that granted it.
+  const empoweredImpact =
+    skill.id === ID.UNYIELDING_IMPACT &&
+    state.mesmerImpactFlipId != null &&
+    flips?.[skill.id]?.identity === state.mesmerImpactFlipId;
+
+  if (!empoweredImpact && !revenantConduitFormIsActive(state, 'Mesmer', time)) return baseCost;
 
   return Math.max(0, skillNumber(requireSkill(catalog, skill.id), 'mesmerEnergyCost'));
 }

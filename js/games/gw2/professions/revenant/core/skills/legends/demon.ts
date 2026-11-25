@@ -80,6 +80,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     energyCost: 20,
     legendId: 'LegendaryDemon',
     castTimeMs: 440,
+    energyPaidAt: 'castCommit',
     // Banish Enchantment commits at 400 ms, preserving the launched multi-hit sequence after interruption.
     interruptCommitMs: 400,
     // Share timing defaults while preserving each packet, effect order, and local schedule.

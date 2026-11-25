@@ -1,4 +1,8 @@
-import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import {
+  catalogSkillById,
+  normalizedName as normalized,
+  recordedActionSkill
+} from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import type {
   LogActionNormalizationContext,
   LogActionNormalizer,
@@ -110,7 +114,8 @@ export function normalizeRevenantLogActions(context: LogActionNormalizationConte
   // casts; the simulator generates both from their parent actions, so importing
   // these signals would apply their damage and conditions twice.
   const withoutAutomaticCalls = context.recordedActions.filter((action) => {
-    const name = normalized(action.rawName);
+    // Localized reports still identify the generated call through its catalog ID.
+    const name = normalized(catalogSkillById(context.catalog, action.rawSkillId)?.name || action.rawName);
     return !BLITZ_MINE_SIGNALS.has(action.rawSkillId) && !SONG_OF_THE_MISTS_SIGNAL.test(name);
   });
   const common = normalizeLegendSwaps(context, withoutAutomaticCalls);

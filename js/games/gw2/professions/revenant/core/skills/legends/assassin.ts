@@ -31,6 +31,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     legendId: 'LegendaryAssassin',
     // Charges feed the strike-triggered siphon defined below.
     castTimeMs: 360,
+    energyPaidAt: 'castCommit',
     effects: [
       {
         name: 'enchanted-daggers',
@@ -114,6 +115,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     energyCost: 30,
     legendId: 'LegendaryAssassin',
     castTimeMs: 360,
+    energyPaidAt: 'castCommit',
     effects: [
       {
         type: 'strike',
@@ -140,6 +142,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     energyCost: 35,
     legendId: 'LegendaryAssassin',
     castTimeMs: 680,
+    energyPaidAt: 'castCommit',
     effects: [
       {
         type: 'strike',

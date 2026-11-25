@@ -2,7 +2,7 @@ import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resou
 import type { EndurancePolicy, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_ENERGY_DEPLETED, revenantUpkeepDrain } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import {
@@ -12,7 +12,6 @@ import {
   revenantStartingEnergy
 } from '#gw2/professions/revenant/core/resource-values.js';
 import { enduringRecoveryBonus } from '#gw2/professions/revenant/core/traits/retribution/index.js';
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
 import { resourceAtLeast } from '#kernel/resources/pool.js';
@@ -44,26 +43,6 @@ export const revenantEndurance: EndurancePolicy<RevenantRuntime> = {
   regenerationRate: (runtime, vigor) => revenantEnduranceRate(runtime, vigor)
 };
 
-// These skills join upkeep activations in paying their Energy when the cast commits instead of when it starts.
-export const energyPaidAtCastCommit: ReadonlySet<SkillId> = new Set([
-  ID.TEMPORAL_RIFT,
-  ID.ABYSSAL_FORCE,
-  ID.ABYSSAL_BLOT,
-  ID.HEX_EATER_VORTEX,
-  ID.BEGUILING_HAZE,
-  ID.BANISH_ENCHANTMENT,
-  ID.JADE_WINDS,
-  ID.PHASE_TRAVERSAL,
-  ID.ENCHANTED_DAGGERS,
-  ID.SOOTHING_STONE,
-  ID.SCORCHRAZOR,
-  ID.SPIRITCRUSH,
-  ID.SEVENSHOT,
-  // Band Together casts keep these base IDs; their enhanced profiles only supply effects.
-  ID.ICERAZORS_IRE,
-  ID.RAZORCLAWS_RAGE
-]);
-
 /**
  * Pay the cost captured when this cast started. In game, a cast whose payment point finds too little Energy, because
  * another skill spent it or an upkeep drained it during the windup, is cancelled. The simulator has already scheduled
@@ -84,7 +63,7 @@ export function payPendingEnergy(runtime: RevenantRuntime, castId: string, skill
 
   core.unpaidEnergyCasts[castId] = true;
   runtime.combat.warn({
-    message: `${skillName} lacks energy at commit; the game cancels this cast.`,
+    message: `${skillName} needs ${cost} energy when payment is due. The game cancels this cast.`,
     at: runtime.time,
     activationId: castId,
     cancelsCast: true

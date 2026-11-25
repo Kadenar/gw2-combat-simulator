@@ -59,6 +59,8 @@ const overrides: Partial<Record<keyof typeof PROFESSION_IDENTITIES, RotationProf
   },
   revenant: {
     aliases: { 'legend swap': 'Swap Legends' },
+    // Both spear autoattack IDs replay as Abyssal Strike, including in localized reports.
+    skillIdAliases: { 73139: 73015 },
     skillIdAliasesBySpecialization: {
       conduit: { 78191: 28287, 78203: 27917, 78351: 76503 }
     }

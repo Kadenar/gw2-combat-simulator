@@ -1,5 +1,6 @@
 import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { BoonId } from '#gw2/platform/constants.js';
+import type { SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
@@ -23,6 +24,8 @@ export interface RevenantSkill
     Skill,
     NumericSkillFields<typeof REVENANT_CORE_SKILL_FIELDS>,
     NumericSkillFields<typeof CONDUIT_SKILL_FIELDS> {
+  /** Omit to spend at cast start. A numeric delay is measured in milliseconds from cast start. */
+  readonly energyPaidAt?: 'castCommit' | number;
   /** Grants legend affinity when the skill hits. */
   readonly affinityOnHit?: boolean;
   /** Consumes an active facet instead of starting its upkeep. */
@@ -85,6 +88,7 @@ export interface RevenantRuntimeState {
 
 /** Explicit cost inputs shared by simulation and palette calculations. */
 export interface RevenantEnergyCostInput {
+  readonly flips?: Readonly<SkillFlipWindows>;
   readonly catalog: CanonicalCatalog;
   readonly specialization: string;
   readonly time: number;
@@ -92,7 +96,7 @@ export interface RevenantEnergyCostInput {
     Partial<
       Pick<
         RevenantCoreState & ConduitState,
-        'activeUpkeeps' | 'beguilingHazeCharges' | 'conduitForm' | 'cosmicWisdomUntil'
+        'activeUpkeeps' | 'beguilingHazeCharges' | 'conduitForm' | 'cosmicWisdomUntil' | 'mesmerImpactFlipId'
       >
     >
   >;

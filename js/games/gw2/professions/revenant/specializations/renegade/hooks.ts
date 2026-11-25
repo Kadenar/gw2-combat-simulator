@@ -1,8 +1,6 @@
-import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { payPendingEnergy } from '#gw2/professions/revenant/core/mechanics/resources.js';
 import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import {
@@ -50,30 +48,6 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
   // Band Together readiness is sampled before the accepted cast changes its state.
 
   modifyEffects: (_runtime, cast, effects) => (bandTogether.get(cast)?.enhanced ? [] : effects),
-  onCastStart(runtime, cast) {
-    if (cast.skill.id !== ID.ICERAZORS_IRE && cast.skill.id !== ID.RAZORCLAWS_RAGE) return;
-
-    const spendAt = gw2Time(cast.start + 0.32);
-
-    // Instant Band Together casts pay before their enhancement rewards, so All for One never lands on an unpaid pool.
-    if (cast.fullEnd < spendAt) payPendingEnergy(runtime, cast.id, cast.skill.name);
-    // Normal summons spend during their windup.
-    else if (cast.effectiveEnd >= spendAt)
-      runtime.schedule(
-        'renegade.pay-summon-energy',
-        spendAt,
-        { castId: cast.id, skillName: cast.skill.name },
-        undefined,
-        -101
-      );
-  },
-  tasks: {
-    // Pay before cancellation or a legend swap at the same instant.
-    'renegade.pay-summon-energy'(runtime, data) {
-      const { castId, skillName } = data as { castId: string; skillName: string };
-      payPendingEnergy(runtime, castId, skillName);
-    }
-  },
   sideEffectHandlers: {
     'revenant.heroic-command'(runtime, context) {
       if (context.kind === 'cast') heroicCommand(runtime, context.cast);

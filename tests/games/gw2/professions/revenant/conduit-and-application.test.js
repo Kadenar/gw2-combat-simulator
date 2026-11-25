@@ -482,6 +482,45 @@ test('Form of the Mesmer modifies Demon skill costs', () => {
   assert.equal(affordableEmbrace.planningState.profession[STATE.ACTIVE_UPKEEPS][0].startsAt, 0.44);
 });
 
+test('Mesmer expiry replaces an available Impact, but an empowered Call can grant its flip after expiry', () => {
+  // Every Impact is used after expiry. Only the timing of the parent cast changes.
+  for (const [waitMs, expectedCost] of [
+    [6000, 5],
+    [6200, 5],
+    [6640, 1],
+    [7040, 5]
+  ]) {
+    let spent;
+    const result = runRevenant(
+      [
+        'Cosmic Wisdom',
+        { type: 'wait', durationMs: waitMs },
+        'Call to Anguish',
+        { type: 'wait', durationMs: 1000 },
+        'Unyielding Impact'
+      ],
+      {
+        specialization: 'Conduit',
+        selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
+        startingLegend: LEGEND.DEMON,
+        initialEnergy: 100
+      },
+      {
+        extend: (native) => ({
+          onCastStart(runtime, cast) {
+            const energy = runtime.resourceController.value('energy');
+            native.onCastStart(runtime, cast);
+
+            if (cast.skill.id === SKILL.UNYIELDING_IMPACT) spent = energy - runtime.resourceController.value('energy');
+          }
+        })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(spent, expectedCost);
+  }
+});
+
 test('Form of the Assassin fires daggers on skills and Impossible Odds pulses', () => {
   const result = simulate('Conduit', ['Cosmic Wisdom', 'Impossible Odds', { type: 'wait', durationMs: 3100 }], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],

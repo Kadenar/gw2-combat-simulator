@@ -87,6 +87,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     energyCost: 5,
     legendId: 'LegendaryDwarf',
     castTimeMs: 680,
+    energyPaidAt: 'castCommit',
     effects: [
       {
         type: 'boon',

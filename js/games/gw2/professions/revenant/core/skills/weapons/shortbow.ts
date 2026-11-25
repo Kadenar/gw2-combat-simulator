@@ -85,6 +85,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 440,
     // Once the volley releases, its projectiles keep traveling after the remaining animation is interrupted.
     interruptCommitMs: 400,
+    energyPaidAt: 'castCommit',
     comboFinishers: [
       {
         ownerId: 'revenant',
@@ -121,6 +122,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 9,
     energyCost: 12,
     castTimeMs: 400,
+    energyPaidAt: 'castCommit',
     // Commit before cast end so later interrupts preserve the skill.
     interruptCommitMs: 320,
     comboFields: [
@@ -176,6 +178,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 12,
     energyCost: 16,
     castTimeMs: 360,
+    energyPaidAt: 'castCommit',
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {

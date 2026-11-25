@@ -299,6 +299,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     legendId: 'LegendaryEntity',
     // The 280 ms launch and 240 ms teleport form one main cast; impact precedes completion by one action tick.
     castTimeMs: 520,
+    energyPaidAt: 'castCommit',
     // Assassin resonance follows the equipped legend, even when it is inactive.
     modifiers: [
       {
@@ -338,6 +339,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     legendId: 'LegendaryEntity',
     // The local variant selects the projectile count; the scheduler owns their authored impacts.
     castTimeMs: 520,
+    energyPaidAt: 280,
     // Keep each projectile's strike and Torment on the same fixed impact tick.
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [

@@ -10,6 +10,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { guardianZealTooltips } from '#gw2/professions/guardian/app/tooltips/zeal.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
 
 // A trait's rate and another effect's stack limit can change independently between patches.
 test('capped trait bonuses use the selected rate and the owning effect limit', () => {
@@ -83,6 +84,32 @@ test('selector tabs project the matching skills in selection order', () => {
     result.factTabs,
     Object.keys(selector.selector).map((label, index) => ({ label, facts: choices[index] }))
   );
+});
+
+// Conduit moves only form-dependent costs into tabs, including a recharge gained in form.
+test('form cost tabs follow the equipped specialization and selected skill values', () => {
+  const base = { id: 'fixture', name: 'Fixture', energyCost: 14, cooldown: 0, upkeepCost: 3 };
+  const form = { ...base, mesmerEnergyCost: 2, mesmerRecharge: 6 };
+  const describe = (skill, specialization) =>
+    describeSimulationSkill({ catalog: {} }, skill, revenantTooltips, { specializations: [{ name: specialization }] });
+  const details = (facts) => facts.map(({ detail }) => detail);
+  const card = describe(form, 'Conduit');
+  assert.deepEqual(
+    card.factTabs.map(({ facts }) => details(facts)),
+    [
+      ['14', '0s'],
+      ['2', '6s']
+    ]
+  );
+  assert.deepEqual(details(card.facts), ['3']);
+  const sharedRecharge = describe({ ...base, cooldown: 8, mesmerEnergyCost: 0 }, 'Conduit');
+  assert.deepEqual(
+    sharedRecharge.factTabs.map(({ facts }) => details(facts)),
+    [['14'], ['0']]
+  );
+  assert.deepEqual(details(sharedRecharge.facts), ['8s', '3']);
+  assert.deepEqual(describe(form, 'Herald'), describe(base, 'Conduit'));
+  assert.equal(describe(base, 'Conduit').factTabs, undefined);
 });
 
 // Invoked skills share the normal effect formatter. Only a positive recharge contributes another fact.

@@ -51,6 +51,12 @@ export interface ProfessionTooltips<TSkill extends Skill = Skill> {
   readonly skills?: Readonly<Record<string, DescribeSimulationTooltip<TSkill, TSkill>>>;
   /** Profession resources supplement both ordinary skills and explicitly described skills. */
   readonly skillFacts?: (context: ProfessionBalanceContext<TSkill>, skill: TSkill) => readonly TooltipFact[];
+  /** Group the completed skill facts when an equipped specialization changes how the skill works. */
+  readonly groupSkillFacts?: (
+    model: SimulationTooltip,
+    skill: TSkill,
+    build?: Pick<Gw2CanonicalBuild, 'specializations'>
+  ) => SimulationTooltip;
 }
 
 const tooltipSelections = new WeakMap<ProfessionTooltips, WeakMap<object, ProfessionTooltips>>();
@@ -736,13 +742,14 @@ export function describeSimulationSkill(
 
   facts.push(...simulationComboFacts(skill, model));
 
-  return {
+  const tooltip = {
     ...model,
     facts: [...facts, ...model.facts, ...(presentation.skillFacts?.(context, skill) || [])].map((fact) => ({
       ...fact,
       icon: fact.icon || tooltipFactIcon(fact.name)
     }))
   };
+  return presentation.groupSkillFacts?.(tooltip, skill, build) ?? tooltip;
 }
 
 /** Every trait must have a reviewed local declaration, including traits outside simulation scope. */

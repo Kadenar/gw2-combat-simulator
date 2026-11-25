@@ -70,6 +70,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     castTimeMs: 520,
     // Once summoned at 400 ms, Icerazor's remaining attacks survive interruption.
     interruptCommitMs: 400,
+    energyPaidAt: 320,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
@@ -185,6 +186,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     legendId: 'LegendaryRenegade',
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/hooks.ts`.
     castTimeMs: 360,
+    energyPaidAt: 320,
     effects: BASE_RAZORCLAW_EFFECTS,
     // Skill-owned triggers delegate shared state transitions to the registered mechanic.
     sideEffects: [

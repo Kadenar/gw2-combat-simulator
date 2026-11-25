@@ -1,5 +1,7 @@
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import { controlOnSkillBar } from '#gw2/platform/skills/input-controls.js';
@@ -11,7 +13,6 @@ import { consumeBattleScar, emitBattleScar } from '#gw2/professions/revenant/cor
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { swapLegend } from '#gw2/professions/revenant/core/mechanics/legends.js';
 import {
-  energyPaidAtCastCommit,
   payPendingEnergy,
   revenantEndurance,
   revenantEnergy
@@ -76,6 +77,10 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
 
   buffPolicies: revenantBuffPolicies,
   tasks: {
+    'revenant.pay-energy'(runtime, data) {
+      const { cast } = data as { cast: RuntimeCast<RevenantSkill> };
+      payPendingEnergy(runtime, cast.id, cast.skill.name);
+    },
     'revenant.embrace-pulse': (runtime, data) => resolveEmbracePulse(runtime, Number(data))
   },
   observeEffects: revenantEffectStates,
@@ -114,9 +119,27 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
 
     if (cost === 0) return;
 
-    if (isRevenantUpkeep(skill) || energyPaidAtCastCommit.has(skill.id))
+    if (isRevenantUpkeep(skill) || skill.energyPaidAt === 'castCommit') {
       runtime.profession.core.pendingEnergyCosts[cast.id] = cost;
-    else runtime.resourceController.spend('energy', cost);
+      return;
+    }
+
+    if (typeof skill.energyPaidAt === 'number') {
+      const spendAt = gw2Time(cast.start + skill.energyPaidAt / 1000);
+
+      // Shortened casts such as instant Band Together summons pay on activation.
+      if (cast.fullEnd >= spendAt && spendAt > cast.start) {
+        // Reaching the payment time spends energy before a tied interrupt or legend swap.
+        if (cast.effectiveEnd >= spendAt) {
+          runtime.profession.core.pendingEnergyCosts[cast.id] = cost;
+          runtime.scheduleForCast('revenant.pay-energy', spendAt, cast, {}, undefined, -101);
+        }
+
+        return;
+      }
+    }
+
+    runtime.resourceController.spend('energy', cost);
   },
   onCastCancel(runtime, cast) {
     delete runtime.profession.core.pendingEnergyCosts[cast.id];
@@ -124,8 +147,7 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   onCastCommit(runtime, cast) {
     const skill = cast.skill;
 
-    // Pay a cost still pending at commit; upkeep activation and Renegade summons have already paid their own.
-    payPendingEnergy(runtime, cast.id, skill.name);
+    if (skill.energyPaidAt === 'castCommit') payPendingEnergy(runtime, cast.id, skill.name);
 
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
       runtime.fireTrigger(revenantWeaponSwapped, { cast });

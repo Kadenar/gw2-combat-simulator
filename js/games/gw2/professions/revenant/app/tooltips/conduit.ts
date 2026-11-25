@@ -3,6 +3,7 @@ import {
   profileFact,
   simulationEffectFacts,
   skillTooltip,
+  tooltipDecimal,
   tooltipFactorChange,
   tooltipNumber,
   tooltipPercent,
@@ -14,6 +15,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { variantEffects } from '#gw2/professions/revenant/app/tooltips/shared.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 const beguilingHazeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => ({
   description:
@@ -118,6 +120,28 @@ const releasePotentialTooltip: DescribeSimulationTooltip = (balanceContext, enti
 
 /** Describe conduit tooltips from the selected balance data. */
 export const conduitTooltips = {
+  // Only activation costs vary by form. Upkeep and attack effects stay visible in either tab.
+  groupSkillFacts(model, skill, build) {
+    if (skill.mesmerEnergyCost == null || !build?.specializations.some(({ name }) => name === 'Conduit')) return model;
+
+    const costs = (energy: number, recharge: number | undefined) => [
+      { name: 'Energy cost', detail: tooltipDecimal(energy) },
+      ...(recharge == null ? [] : [{ name: 'Recharge', detail: tooltipSeconds(recharge) }])
+    ];
+    return {
+      ...model,
+      facts: model.facts.filter(
+        (fact) => fact.name !== 'Base energy cost' && !(skill.mesmerRecharge != null && fact.name === 'Base recharge')
+      ),
+      factTabs: [
+        {
+          label: 'Base',
+          facts: costs(tooltipNumber(skill, 'energyCost'), skill.mesmerRecharge == null ? undefined : skill.cooldown)
+        },
+        { label: 'Form of the Mesmer', facts: costs(skill.mesmerEnergyCost, skill.mesmerRecharge) }
+      ]
+    };
+  },
   skills: {
     [ID.BEGUILING_HAZE]: beguilingHazeTooltip,
     [ID.HEX_EATER_VORTEX]: hexEaterVortexTooltip,
@@ -221,4 +245,4 @@ export const conduitTooltips = {
       ...variantEffects(tooltipProfile(balanceContext, TRAIT.NUMINOUS_GIFT).effects)
     })
   }
-} satisfies ProfessionTooltips;
+} satisfies ProfessionTooltips<RevenantSkill>;

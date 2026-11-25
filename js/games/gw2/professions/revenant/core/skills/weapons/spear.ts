@@ -88,6 +88,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     rechargeReduction: 5,
     // The spear lifecycle reduces Abyssal Raze recharge after the qualifying hit.
     castTimeMs: 520,
+    energyPaidAt: 'castCommit',
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 1160, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -203,6 +204,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     // The initial pull recharges Raze by 3 seconds per target, matching the in-game tooltip.
     rechargeReduction: 3,
     castTimeMs: 800,
+    energyPaidAt: 'castCommit',
     interruptCommitMs: 720,
     // The dark field spans Blot's five impacts so subsequent spear finishers
     // resolve their combo outcome against the field instead of its damage.

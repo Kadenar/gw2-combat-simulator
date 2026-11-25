@@ -296,7 +296,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     skillFamily: 'Weapon skill',
     castTimeMs: 440,
     // Commit the cast and bullet interaction before the remaining animation ends.
-    interruptCommitMs: 400,
+    interruptCommitMs: 320,
     // Preserve the committed strike, Vulnerability, and crowd control after interruption.
     effects: impactEffects(
       { atMs: 280, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },

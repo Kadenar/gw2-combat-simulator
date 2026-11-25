@@ -1,4 +1,5 @@
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
+import type { SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { applyConduitEnergyCostRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
@@ -41,6 +42,7 @@ export function revenantEnergyCost(
     readonly profession: RevenantRuntimeState;
     readonly config: RevenantConfig;
     readonly time: number;
+    readonly flips: SkillFlipWindows;
   }> & { readonly helpers: CanonicalCatalog },
   skill: RevenantSkill
 ): number {
@@ -50,6 +52,7 @@ export function revenantEnergyCost(
       specialization: specialization.kind,
       catalog: runtime.helpers,
       time: runtime.time,
+      flips: runtime.flips,
       state: {
         activeUpkeeps: core.activeUpkeeps,
         ...(specialization.kind === 'Conduit' ? specialization.state : {})

@@ -14,6 +14,7 @@ import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/reven
 
 const FORM_EXPIRY = 'revenant.conduit-form-expiry';
 const STAT_REFRESH_SECONDS = 3;
+const empoweredCallsToAnguish = new WeakSet<RuntimeCast<RevenantSkill>>();
 
 /** Changed form deadlines schedule their own wakes; older wakes cannot expire a later extension. */
 function scheduleFormExpiry(runtime: RevenantRuntime): void {
@@ -55,6 +56,8 @@ function formExpiry(runtime: RevenantRuntime, data: unknown): void {
 
   // Bolstered Bonds keeps its enhanced stats until the first stat refresh at or after the actual form expiry.
   state.bolsteredBondsEnhancedUntil = Math.ceil(runtime.time / STAT_REFRESH_SECONDS) * STAT_REFRESH_SECONDS;
+  // Expiry replaces an available empowered Impact. A Call still casting can grant a new one afterward.
+  state.mesmerImpactFlipId = null;
   state.cosmicWisdomUntil = 0;
   state.conduitForm = '';
 }
@@ -97,7 +100,17 @@ export const conduitFormLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSk
       ? REVENANT_CONDUIT_FORM_BY_LEGEND[runtime.profession.core.activeLegendId] || ''
       : '';
   },
+  onCastStart(runtime, cast) {
+    if (
+      cast.skill.id === ID.CALL_TO_ANGUISH &&
+      revenantConduitFormIsActive(conduitState.from(runtime.profession), 'Mesmer', cast.start)
+    )
+      empoweredCallsToAnguish.add(cast);
+  },
   onCastCommit(runtime, cast) {
+    if (cast.skill.id === ID.CALL_TO_ANGUISH && empoweredCallsToAnguish.has(cast))
+      conduitState.from(runtime.profession).mesmerImpactFlipId = runtime.flips[ID.UNYIELDING_IMPACT]?.identity ?? null;
+
     if (cast.skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
   },
   sideEffectHandlers: {

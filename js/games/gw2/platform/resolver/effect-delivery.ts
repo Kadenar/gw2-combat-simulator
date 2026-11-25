@@ -230,11 +230,13 @@ export function createEffectDelivery<T extends object>(
             config
           })
         : null;
-    const packet = assertSimulationEvent({
-      ...identified,
-      ...(equippedProfileId ? { weaponStrengthProfileId: equippedProfileId } : {}),
-      at: gw2Time(event.at)
-    });
+    const at = gw2Time(event.at);
+    // Identity allocation already copied the packet. Reuse it when its delivery fields are final.
+    const packet = assertSimulationEvent(
+      !equippedProfileId && Object.is(identified.at, at)
+        ? identified
+        : { ...identified, ...(equippedProfileId ? { weaponStrengthProfileId: equippedProfileId } : {}), at }
+    );
 
     if (packet.at < runtime.time) throw new RangeError('Events cannot backdate the live clock.');
 

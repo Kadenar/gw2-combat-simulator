@@ -152,7 +152,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     skillFamily: 'Weapon skill',
     castTimeMs: 480,
     // The field is committed before the final 40 ms of aftercast.
-    interruptCommitMs: 440,
+    interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
     comboFields: [
       {
         ownerId: 'elementalist',

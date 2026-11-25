@@ -10,6 +10,7 @@ import { vindicatorTooltips } from '#gw2/professions/revenant/app/tooltips/vindi
 export const revenantTooltips: ProfessionTooltips = {
   modifiers: revenantModifierDescriptions,
   skillFacts: revenantCoreTooltips.skillFacts,
+  groupSkillFacts: conduitTooltips.groupSkillFacts,
   skills: {
     ...revenantCoreTooltips.skills,
     ...heraldTooltips.skills,
