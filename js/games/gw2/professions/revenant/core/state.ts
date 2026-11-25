@@ -31,6 +31,10 @@ interface RevenantSelfCondition {
 export interface RevenantCoreState {
   activationClaims: ActivationClaims;
   energy: ResourceClock;
+  /** Costs captured at cast start for casts that pay when they commit. */
+  pendingEnergyCosts: Record<string, number>;
+  /** Casts whose payment point found too little Energy; kept for the run like activation claims. */
+  unpaidEnergyCasts: Record<string, true>;
   activeLegendId: string;
   tranquil: boolean;
   selectedLegendIds: string[];
@@ -65,6 +69,8 @@ export function createRevenantCoreState(config: RevenantConfig): RevenantCoreSta
       unitsPerSecond: REVENANT_ENERGY_REGENERATION,
       recoveryMaximum: REVENANT_PRECOMBAT_ENERGY_CEILING
     },
+    pendingEnergyCosts: {},
+    unpaidEnergyCasts: {},
     activationClaims: {},
     activeLegendId,
     tranquil: activeLegendId === 'LegendaryCentaur',

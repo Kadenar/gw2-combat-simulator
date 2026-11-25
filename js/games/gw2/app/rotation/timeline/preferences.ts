@@ -26,9 +26,12 @@ export const ROTATION_TIMELINE_SIZE_OPTIONS = Object.freeze([
 
 export type RotationTimelineSize = (typeof ROTATION_TIMELINE_SIZE_OPTIONS)[number]['value'];
 
+/** Use 125% when no valid saved size is available. */
+const DEFAULT_ROTATION_TIMELINE_SIZE: RotationTimelineSize = 'large';
+
 export function normalizeRotationTimelineSize(value: unknown): RotationTimelineSize {
   const match = ROTATION_TIMELINE_SIZE_OPTIONS.find((option) => option.value === value);
-  return match?.value || 'normal';
+  return match?.value ?? DEFAULT_ROTATION_TIMELINE_SIZE;
 }
 
 /** Only an explicit stored true enables opt-in timeline overlays. */
@@ -71,7 +74,7 @@ function readStoredSize(root: Document): RotationTimelineSize {
   try {
     return normalizeRotationTimelineSize(root.defaultView?.localStorage.getItem(ROTATION_TIMELINE_SIZE_STORAGE_KEY));
   } catch {
-    return 'normal';
+    return DEFAULT_ROTATION_TIMELINE_SIZE;
   }
 }
 
@@ -83,11 +86,12 @@ function storeSize(root: Document, size: RotationTimelineSize): void {
   }
 }
 
+/** Show idle gaps unless the user has turned them off. */
 function readStoredRotationDeadTimeVisibility(root: Document): boolean {
   try {
-    return normalizeRotationVisibility(root.defaultView?.localStorage.getItem(ROTATION_DEAD_TIME_STORAGE_KEY));
+    return root.defaultView?.localStorage.getItem(ROTATION_DEAD_TIME_STORAGE_KEY) !== 'false';
   } catch {
-    return false;
+    return true;
   }
 }
 

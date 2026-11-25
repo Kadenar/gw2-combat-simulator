@@ -13,6 +13,11 @@ export interface Gw2SimulationDiagnostic {
   readonly rotationIndex?: number;
   /** Activation behind a delayed notice; detailed results resolve it to `rotationIndex` through reported steps. */
   readonly activationId?: string;
+  /**
+   * The game cancels the located cast, although the simulator still resolved its scheduled work. Timelines draw it like
+   * an invalid command but keep its time, so the user sees which cast to fix.
+   */
+  readonly cancelsCast?: true;
 }
 
 /**

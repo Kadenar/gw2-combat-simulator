@@ -280,24 +280,16 @@ test('field interaction is inclusive and remains valid after later expiry', () =
   assert.equal(combo.fieldId, 'fire:delayed');
 });
 
-test('expired explicit bindings warn while unbound finishers quietly skip combos', () => {
-  const expired = resolve([
-    field('fire:expired', 'Fire', 0, 1),
-    finisher('expired', 'fire:expired', { activationId: 'expired-cast' })
-  ]);
-
-  assert.equal(
-    expired.resolvedEvents.some((event) => event.type === 'combo'),
-    false
+test('expired explicit bindings are internal errors while unbound finishers quietly skip combos', () => {
+  // Explicit bindings only name fields live at selection, so an expired one is an authoring bug, not a user warning.
+  assert.throws(
+    () =>
+      resolve([
+        field('fire:expired', 'Fire', 0, 1),
+        finisher('expired', 'fire:expired', { activationId: 'expired-cast' })
+      ]),
+    /Combo field fire:expired is not active/
   );
-  // The failed binding names its finisher activation and selection time instead of embedding them in the wording.
-  assert.deepEqual(expired.warnings, [
-    {
-      message: 'Combo field fire:expired is not active for Fixture Finisher; no combo resolved.',
-      at: 1,
-      activationId: 'expired-cast'
-    }
-  ]);
 
   // An explicit absence of binding stays silent even when fields are available.
   const unbound = resolve([
@@ -337,8 +329,7 @@ test('attempt IDs deduplicate successful and failed rolls', () => {
     roll(chance, stream) {
       rolls.push([chance, stream]);
       return rolls.length === 2;
-    },
-    warn() {}
+    }
   };
   for (const [attemptId, count] of [
     ['failed', 0],
@@ -523,10 +514,7 @@ function seededSignature(mode, seed, consumeUnrelated = false) {
           effectAt: 1 + index * 0.1,
           chance: 0.5
         }),
-        {
-          roll: random.roll,
-          warn() {}
-        }
+        { roll: random.roll }
       ).length
   ).join('');
 }

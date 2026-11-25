@@ -910,9 +910,12 @@ describe('Band Together summon enhancement', () => {
 });
 
 test('All for One refunds Energy and halves only enhanced-skill recharge', () => {
-  // Compare identical casts so passive regeneration and authored cooldown changes cancel out.
+  // Compare identical casts so passive regeneration and authored cooldown changes cancel out. The enhanced summon
+  // starts above 90 Energy, so a refund granted before its cost would be clipped by the 100 Energy cap.
   const rotation = [
+    '__combat_start',
     { type: 'cast', skillId: 42949 },
+    { type: 'wait', durationMs: 3500 },
     { type: 'cast', skillId: 40485 }
   ];
   const config = {

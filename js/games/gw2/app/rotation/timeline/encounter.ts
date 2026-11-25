@@ -68,31 +68,30 @@ export function encounterStepContext(step: SimulationStep | undefined, markers: 
   };
 }
 
-/** Places target-health milestones at the next command without changing rotation timing. */
+/** Place each shared Golem health milestone at the next rotation command. */
 export function targetHealthTimelineMarkers(
   result: Gw2SimulationResult | null | undefined,
   targetHealth: number,
-  thresholds: readonly number[] = [],
   rotationLength = 0,
   startingHealthPercent = 100
 ) {
-  const percents = [...new Set(thresholds)]
-    .map((threshold) => Number(threshold) * 100)
-    .filter((percent) => percent > 0 && percent < 100);
+  if (!result) return [];
 
-  if (!percents.length) return [];
-
-  const steps = (result?.steps || [])
+  const steps = result.steps
     .filter((step) => step.rotationCommandIndex >= 0 && !step.invalid)
     .sort((left, right) => left.start - right.start || left.rotationCommandIndex - right.rotationCommandIndex);
-  return targetHealthBreakpointSnapshots(result, targetHealth, percents, startingHealthPercent).map((snapshot) => {
-    const start = Math.round(snapshot.at * 1000);
+  const placeMarker = (healthPercent: number, at: number, damage: number) => {
+    const start = Math.round(at * 1000);
     const next = steps.find((step) => step.start >= start);
-    return {
-      insertionIndex: next?.rotationCommandIndex ?? rotationLength,
-      healthPercent: snapshot.healthPercent,
-      start,
-      damage: snapshot.damage
-    };
-  });
+    return { insertionIndex: next?.rotationCommandIndex ?? rotationLength, healthPercent, start, damage };
+  };
+
+  const markers = targetHealthBreakpointSnapshots(result, targetHealth, [80, 75, 50, 25], startingHealthPercent).map(
+    (snapshot) => placeMarker(snapshot.healthPercent, snapshot.at, snapshot.damage)
+  );
+
+  // The simulation records the exact time of the killing hit.
+  if (result.deathTime != null) markers.push(placeMarker(0, result.deathTime, result.totalDamage));
+
+  return markers;
 }

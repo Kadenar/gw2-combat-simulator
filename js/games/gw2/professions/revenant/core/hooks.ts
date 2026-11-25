@@ -10,7 +10,12 @@ import { revenantAvailability } from '#gw2/professions/revenant/core/mechanics/a
 import { consumeBattleScar, emitBattleScar } from '#gw2/professions/revenant/core/mechanics/battle-scars.js';
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { swapLegend } from '#gw2/professions/revenant/core/mechanics/legends.js';
-import { revenantEndurance, revenantEnergy } from '#gw2/professions/revenant/core/mechanics/resources.js';
+import {
+  energyPaidAtCastCommit,
+  payPendingEnergy,
+  revenantEndurance,
+  revenantEnergy
+} from '#gw2/professions/revenant/core/mechanics/resources.js';
 import {
   battleScarConsumed,
   revenantConditionApplied,
@@ -96,11 +101,24 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     // Shared execution already pays Dodge's endurance cost before specialization reactions.
     if (skill.id === SHARED_SKILL_IDS.DODGE) return;
 
-    if (!isRevenantUpkeep(skill) && skill.id !== ID.SWAP_LEGENDS)
-      runtime.resourceController.spend('energy', revenantEnergyCost(runtime, skill));
+    if (skill.id === ID.SWAP_LEGENDS) return;
+
+    const cost = revenantEnergyCost(runtime, skill);
+
+    if (cost === 0) return;
+
+    if (isRevenantUpkeep(skill) || energyPaidAtCastCommit.has(skill.id))
+      runtime.profession.core.pendingEnergyCosts[cast.id] = cost;
+    else runtime.resourceController.spend('energy', cost);
+  },
+  onCastCancel(runtime, cast) {
+    delete runtime.profession.core.pendingEnergyCosts[cast.id];
   },
   onCastCommit(runtime, cast) {
     const skill = cast.skill;
+
+    // Pay a cost still pending at commit; upkeep activation and Renegade summons have already paid their own.
+    payPendingEnergy(runtime, cast.id, skill.name);
 
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
       runtime.fireTrigger(revenantWeaponSwapped, { cast });

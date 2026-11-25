@@ -3,12 +3,11 @@ import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { payPendingEnergy } from '#gw2/professions/revenant/core/mechanics/resources.js';
 import {
   activateRevenantUpkeep,
   activeRevenantUpkeep,
-  cancelRevenantUpkeep,
   releaseRevenantUpkeep,
-  reserveRevenantUpkeep,
   REVENANT_ENERGY_DEPLETED,
   revenantUpkeepOwner,
   starveRevenantUpkeeps,
@@ -133,12 +132,11 @@ export const revenantUpkeepLifecycle: RuntimeHooks<RevenantRuntimeState, Revenan
       ];
   },
   sideEffectHandlers: {
-    'revenant.reserve-upkeep'(runtime, context) {
-      if (context.kind === 'cast') reserveRevenantUpkeep(runtime, context.cast);
-    },
     'revenant.activate-upkeep'(runtime, context) {
       if (context.kind !== 'cast') return;
 
+      // Pay before activation changes live cost queries. An unpaid upkeep still activates, like other unpaid casts.
+      payPendingEnergy(runtime, context.cast.id, context.cast.skill.name);
       activateRevenantUpkeep(runtime, context.cast);
       startCadences(runtime, context.cast.skill, coreCadences);
     },
@@ -149,7 +147,6 @@ export const revenantUpkeepLifecycle: RuntimeHooks<RevenantRuntimeState, Revenan
   modifyEffects(runtime, cast, effects) {
     return isRevenantUpkeep(cast.skill) || upkeepRelease(runtime, cast.skill) ? [] : effects;
   },
-  onCastCancel: cancelRevenantUpkeep,
   tasks: {
     [REVENANT_ENERGY_DEPLETED]: starveRevenantUpkeeps,
     ...cadenceTasks(coreCadences)

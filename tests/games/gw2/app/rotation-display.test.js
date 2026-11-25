@@ -123,6 +123,59 @@ test('timeline marks failed interrupts and accepts channels that granted a boon'
   }
 });
 
+// A cast the game cancels keeps its simulated time but draws like an invalid command; other warnings leave tiles alone.
+test('timeline draws casts with cancelling warnings as invalid tiles that keep their time', () => {
+  const skill = { id: 1, name: 'Example Skill' };
+  const app = withoutTraitSkillVariants({
+    activeCatalog: { skills: [skill], skillsById: new Map([[1, skill]]) },
+    adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => '' },
+    profession: { ui: professionUiFixture({ timelineWeaponLineTransition: () => null }) }
+  });
+  const steps = [0, 1].map((rotationCommandIndex) => ({
+    rotationCommandIndex,
+    skillId: skill.id,
+    skillName: skill.name,
+    activationId: `cast:${rotationCommandIndex}`,
+    start: rotationCommandIndex * 1000,
+    end: rotationCommandIndex * 1000 + 500
+  }));
+  const build = {
+    rotation: steps.map(() => ({ type: 'cast', skillId: skill.id })),
+    startingWeaponSet: 1,
+    weapons: [],
+    alternateWeapons: []
+  };
+  const results = {
+    steps,
+    events: [],
+    resolvedEvents: [],
+    rotationEndTime: 2,
+    observationEndTime: 2,
+    combatEndTime: 2,
+    warnings: [
+      { message: 'Starved cast.', at: 0.5, rotationIndex: 0, cancelsCast: true },
+      { message: 'Unrelated notice.', at: 1.5, rotationIndex: 1 }
+    ]
+  };
+  const html = timelineRowsView(
+    app,
+    build,
+    results,
+    true,
+    new Set(),
+    false,
+    createWorkspacePresentation(app).timeline(app, build, results)
+  )
+    .rows.map((row) => row.html)
+    .join('');
+  assert.match(html, /class="rot-skill rot-invalid"[^>]*data-idx="0"/);
+  assert.match(
+    html,
+    /data-idx="0"[\s\S]*?rot-invalid-badge" title="Starved cast\."[\s\S]*?class="rot-time"[\s\S]*?data-idx="1"/
+  );
+  assert.doesNotMatch(html, /class="rot-skill rot-invalid"[^>]*data-idx="1"/);
+});
+
 // Successful instrument activation is visible even when the shortened channel itself deals no damage.
 test('both Harp variants keep normal timeline styling after starting to play, including with zero notes', async () => {
   const adapter = await loadProfessionAppAdapter('mesmer');
@@ -528,10 +581,11 @@ test('rotation timeline sizes expose two larger display options', () => {
       ['extra-large', '150%']
     ]
   );
+  assert.equal(normalizeRotationTimelineSize('normal'), 'normal');
   assert.equal(normalizeRotationTimelineSize('large'), 'large');
   assert.equal(normalizeRotationTimelineSize('extra-large'), 'extra-large');
-  assert.equal(normalizeRotationTimelineSize('unsupported'), 'normal');
-  assert.equal(normalizeRotationTimelineSize(null), 'normal');
+  assert.equal(normalizeRotationTimelineSize('unsupported'), 'large');
+  assert.equal(normalizeRotationTimelineSize(null), 'large');
   assert.equal(normalizeRotationVisibility('true'), true);
   assert.equal(normalizeRotationVisibility(true), true);
   assert.equal(normalizeRotationVisibility('false'), false);
@@ -551,11 +605,13 @@ test('rotation dead-time visibility applies to the timeline and persists', () =>
     getElementById: () => ({ closest: () => panel })
   };
 
-  setRotationDeadTimeVisibility(root, true);
-
-  assert.equal(panel.dataset.showDeadTime, 'true');
-  assert.equal(stored.get(ROTATION_DEAD_TIME_STORAGE_KEY), 'true');
   assert.equal(rotationDeadTimeVisibility(root), true);
+  setRotationDeadTimeVisibility(root, false);
+  assert.equal(panel.dataset.showDeadTime, 'false');
+  assert.equal(stored.get(ROTATION_DEAD_TIME_STORAGE_KEY), 'false');
+
+  delete panel.dataset.showDeadTime;
+  assert.equal(rotationDeadTimeVisibility(root), false);
 });
 
 test('rotation proc overlay preferences normalize stored checkbox values', () => {

@@ -39,15 +39,15 @@
         "build": "data/gw2/builds/revenant/b-power-alac-renegade-sword-sword.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-alacrity-renegade-staff-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-alac-renegade-sword-sword-bench.json",
-        "benchmarkDps": 34469,
+        "benchmarkDps": 34034,
         "upToDate": true,
-        "benchmarkApm": 42.1,
+        "benchmarkApm": 41.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39418, "phase": 39418 },
-          "80-60": { "cumulative": 34073, "phase": 29953 },
-          "60-40": { "cumulative": 33668, "phase": 32890 },
-          "40-20": { "cumulative": 33776, "phase": 34110 },
-          "20-0": { "cumulative": 34469, "phase": 37566 }
+          "100-80": { "cumulative": 39933, "phase": 39933 },
+          "80-60": { "cumulative": 33500, "phase": 28806 },
+          "60-40": { "cumulative": 33319, "phase": 32962 },
+          "40-20": { "cumulative": 33199, "phase": 32839 },
+          "20-0": { "cumulative": 34034, "phase": 37862 }
         }
       },
       {
@@ -213,15 +213,15 @@
         "build": "data/gw2/builds/revenant/b-power-conduit-greatsword-scepter-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-greatsword-scepter-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-scepter-sword",
-        "benchmarkDps": 43537,
+        "benchmarkDps": 43574,
         "upToDate": true,
         "benchmarkApm": 89,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 48646, "phase": 48646 },
-          "80-60": { "cumulative": 42755, "phase": 37913 },
-          "60-40": { "cumulative": 42981, "phase": 43447 },
-          "40-20": { "cumulative": 43390, "phase": 44702 },
-          "20-0": { "cumulative": 43537, "phase": 44127 }
+          "100-80": { "cumulative": 48817, "phase": 48817 },
+          "80-60": { "cumulative": 42832, "phase": 37913 },
+          "60-40": { "cumulative": 43374, "phase": 44542 },
+          "40-20": { "cumulative": 43436, "phase": 43624 },
+          "20-0": { "cumulative": 43574, "phase": 44127 }
         }
       },
       {
@@ -245,15 +245,15 @@
         "build": "data/gw2/builds/revenant/b-power-quick-conduit-staff-sword-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-quick-conduit-staff-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-quickness-conduit-staff-sword-sword",
-        "benchmarkDps": 37642,
+        "benchmarkDps": 37684,
         "upToDate": true,
         "benchmarkApm": 58.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43894, "phase": 43894 },
-          "80-60": { "cumulative": 37222, "phase": 32124 },
-          "60-40": { "cumulative": 36816, "phase": 36031 },
-          "40-20": { "cumulative": 37359, "phase": 39064 },
-          "20-0": { "cumulative": 37642, "phase": 38830 }
+          "100-80": { "cumulative": 44134, "phase": 44134 },
+          "80-60": { "cumulative": 37326, "phase": 32124 },
+          "60-40": { "cumulative": 36859, "phase": 35952 },
+          "40-20": { "cumulative": 37306, "phase": 38717 },
+          "20-0": { "cumulative": 37684, "phase": 39252 }
         }
       },
       {

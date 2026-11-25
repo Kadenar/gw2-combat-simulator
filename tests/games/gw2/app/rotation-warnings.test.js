@@ -60,7 +60,7 @@ test('activation-owned diagnostics locate their authored step and leave unreport
   ];
   const located = locateDiagnostics(
     [
-      { message: 'Fire combo field is not active for Finisher; no combo resolved.', at: 3, activationId: 'first' },
+      { message: 'Delayed activation notice.', at: 3, activationId: 'first' },
       { message: 'Reworded notice for the same activation.', at: 3, activationId: 'first' },
       { message: 'Companion notice.', at: 0.5, activationId: 'companion' },
       { message: 'Unreported activation.', at: 1, activationId: 'missing' }

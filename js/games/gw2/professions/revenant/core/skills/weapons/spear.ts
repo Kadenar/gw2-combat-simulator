@@ -161,6 +161,9 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     name: 'Blitz Mines',
     icon: 'https://render.guildwars2.com/file/E4E54213769DC10572D31BDD4573E0B6B9A56DA6/3379185.png',
     type: 'Weapon',
+    weapon: 'Spear',
+    // Abyssal Blitz delivers the mine strikes from the original spear cast.
+    rotationInputExcluded: true,
     slot: 'Weapon_3',
     cooldown: 0,
     energyCost: 0,
@@ -199,10 +202,8 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     energyCost: 12,
     // The initial pull recharges Raze by 3 seconds per target, matching the in-game tooltip.
     rechargeReduction: 3,
-    // The spear lifecycle reduces Abyssal Raze recharge after the qualifying hit.
     castTimeMs: 800,
-    // Abyssal Blot commits after 760 ms, preserving its field and delayed impacts after interruption.
-    interruptCommitMs: 760,
+    interruptCommitMs: 720,
     // The dark field spans Blot's five impacts so subsequent spear finishers
     // resolve their combo outcome against the field instead of its damage.
     comboFields: [

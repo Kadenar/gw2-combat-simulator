@@ -126,6 +126,12 @@ export function timelineRowsView(
   const steps = new Map<number, SimulationStep>(
     resultSteps.filter((step) => step.rotationCommandIndex >= 0).map((step) => [step.rotationCommandIndex, step])
   );
+  // A cast the game cancels still ran in the simulator, so its tile looks invalid but keeps its time and tooltip.
+  const cancelledCastWarnings = new Map<number, string>(
+    (results?.warnings ?? []).flatMap((warning) =>
+      warning.cancelsCast && warning.rotationIndex != null ? [[warning.rotationIndex, warning.message] as const] : []
+    )
+  );
   const castOrdinals = timelineSkillCastOrdinals(resultSteps);
   const resourceSpends = mechanicResourceSpends(results);
   // Partition commands by weapon set and transformation so events can be placed on their owning line.
@@ -456,6 +462,7 @@ export function timelineRowsView(
         item.command.type === 'cast' && skill ? hotkeyActionForCast(index, item.command, skill) : null;
       const hotkeyAttribute = hotkeyAction ? ` data-hotkey-action="${esc(hotkeyAction)}"` : '';
       const invalid = Boolean(step?.invalid);
+      const cancelWarning = invalid ? undefined : cancelledCastWarnings.get(index);
       const display =
         item.type === 'wait'
           ? 'Wait'
@@ -520,6 +527,7 @@ export function timelineRowsView(
                   ? [transitionDetails.get(step.activationId)!]
                   : []),
                 ...(failedInterrupt ? ['Cancelled before the skill took effect'] : []),
+                ...(cancelWarning ? [cancelWarning] : []),
                 ...outcomeDetails
               ]
             )
@@ -570,7 +578,7 @@ export function timelineRowsView(
       const combatTimeAttribute = step && !invalid ? ` data-combat-time-ms="${step.start - combatReferenceMs}"` : '';
       // Escape the complete title once so imported diagnostic and resource text cannot become HTML attributes.
       // Named native removal controls also support keyboard activation on editable entries.
-      const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${outcomeMismatch ? ' rot-charge-mismatch' : ''}${failedInterrupt ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}${hotkeyAttribute}
+      const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid || cancelWarning ? ' rot-invalid' : ''}${outcomeMismatch ? ' rot-charge-mismatch' : ''}${failedInterrupt ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}${hotkeyAttribute}
                     role="group" aria-label="${esc(time ? `${display}, ${time}` : display)}" tabindex="0"
                     data-idx="${index}"${combatTimeAttribute}${encounterAttribute} data-skill-highlight-key="${esc(highlightKey)}" ${skill ? `${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patch, app.build), { details: (skillTooltip === display ? '' : skillTooltip) + titleSuffix + resourceTitle + encounterTitle, detailsTitle: 'Rotation details' })} data-wiki-delay="700"` : `title="${esc(skillTooltip + titleSuffix + resourceTitle + encounterTitle)}"`} style="--att-border:${failedInterrupt ? '#ff3b45' : '#9d7bd0'}">
                     <img src="${esc(icon)}" alt="" />
@@ -585,7 +593,13 @@ export function timelineRowsView(
                           : ''
                     }
                     ${readOnly ? '' : `<button type="button" class="rot-x" aria-label="Remove ${esc(display)}" title="Remove (Shift: remove this and everything after)">×</button>`}
-                    ${invalid ? '<span class="rot-invalid-badge" title="Invalid - not simulated">✕</span>' : ''}
+                    ${
+                      invalid
+                        ? '<span class="rot-invalid-badge" title="Invalid - not simulated">✕</span>'
+                        : cancelWarning
+                          ? `<span class="rot-invalid-badge" title="${esc(cancelWarning)}">✕</span>`
+                          : ''
+                    }
                     ${
                       // A release badge already carries the timestamp, leaving room for the edit affordance.
                       resourceShortLabel && !annotation?.releaseBadge

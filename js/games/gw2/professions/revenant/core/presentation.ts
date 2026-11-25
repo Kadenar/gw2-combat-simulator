@@ -23,7 +23,6 @@ import type {
   RevenantUiSlice
 } from '#gw2/professions/revenant/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export function revenantUiState(context: Pick<RevenantUiContext, 'professionState'>): Partial<RevenantPlanningState> {
@@ -201,10 +200,6 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
     ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
     ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
   ]),
-  targetHealthThresholds: (context: RevenantUiContext) => {
-    const traits = selectedTraits(context.catalog, context.build?.specializations || []);
-    return traits.some((trait) => trait.name === 'Swift Termination') ? [0.5] : [];
-  },
   slotLoadout: revenantLegendLoadout,
   rotationStateSnapshot: revenantCoreStateSnapshot,
   timelineSkillIcon: revenantTimelineSkillIcon,

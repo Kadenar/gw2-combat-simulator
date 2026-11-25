@@ -9,6 +9,7 @@ import { normalizeRenegadeLogActions } from '#gw2/integrations/logs/shared/rotat
 import { normalizeVindicatorLogActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/vindicator.js';
 import { mergeCompositeActions, mergedActionStatus } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
 import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
+import { REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
 import { isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
 
 const specializationNormalizers: ReadonlyMap<string, LogActionNormalizer> = new Map([
@@ -18,7 +19,8 @@ const specializationNormalizers: ReadonlyMap<string, LogActionNormalizer> = new 
 ]);
 const LEGEND_STANCE_NAME = /^legendary .+(?: stance)?$/;
 const SONG_OF_THE_MISTS_SIGNAL = /^call of the (alliance|assassin|centaur|demon|dragon|dwarf|renegade)$/;
-const ABYSSAL_BLITZ_CHILD_SIGNAL = /^blitz mines \((drop|detonation)\)$/;
+// Abyssal Blitz owns the mine drop and detonation. Discard both log signals before catalog lookup.
+const BLITZ_MINE_SIGNALS = new Set<number>([-39, REVENANT_SKILL_IDS.BLITZ_MINES]);
 const COMPOSITE_CASTS = [
   { startId: 27074, finishId: 28625, maximumGapMs: 10 },
   { startId: 28029, finishId: 26923, maximumGapMs: 10 },
@@ -109,7 +111,7 @@ export function normalizeRevenantLogActions(context: LogActionNormalizationConte
   // these signals would apply their damage and conditions twice.
   const withoutAutomaticCalls = context.recordedActions.filter((action) => {
     const name = normalized(action.rawName);
-    return !SONG_OF_THE_MISTS_SIGNAL.test(name) && !ABYSSAL_BLITZ_CHILD_SIGNAL.test(name);
+    return !BLITZ_MINE_SIGNALS.has(action.rawSkillId) && !SONG_OF_THE_MISTS_SIGNAL.test(name);
   });
   const common = normalizeLegendSwaps(context, withoutAutomaticCalls);
   const specialized = specializationNormalizers.get(context.profile.specializationId)?.({

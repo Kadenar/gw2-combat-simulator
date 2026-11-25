@@ -482,7 +482,6 @@ export interface ProfessionUiContract<TProfessionState = unknown, TSkill extends
   readonly startControls: (context: ProfessionUiContext<TProfessionState>) => ProfessionStartControl[];
   /** Shared loadout contract for build selections, skill bars, and palette projections. */
   readonly slotLoadout: FixedSlotLoadout<Gw2CanonicalBuild> | null;
-  readonly targetHealthThresholds: (context: ProfessionUiContext<TProfessionState>) => number[];
   readonly rotationStateSnapshot: (
     context: ProfessionStateSnapshotContext<TProfessionState>
   ) => RotationStateSnapshotItem[];

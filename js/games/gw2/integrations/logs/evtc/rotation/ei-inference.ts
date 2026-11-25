@@ -120,7 +120,7 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
               matches =
                 isBuffApply(log, event) &&
                 owns(event.target) &&
-                (rule.appliedDuration == null || Math.abs(event.value - rule.appliedDuration) < 10) &&
+                (rule.matchesAppliedDuration?.(event.value) ?? true) &&
                 // EI's related-event checker counts self-applied BuffApplyEvents, including initial corroboration.
                 (selfAppliedBuffs == null ||
                   (eventsBySkill.get(Number(rule.signal)) ?? []).filter(
@@ -179,6 +179,15 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
 
         if (swap) start = rule.swapOffset < 0 ? Math.min(start, swap.time - 1) : Math.max(start, swap.time + 1);
       }
+
+      const recordedCastWindow = rule.recordedCastWindowMs;
+      if (
+        recordedCastWindow != null &&
+        context.recordedActions.some(
+          (action) => action.rawSkillId === rule.skillId && Math.abs(action.start - start) < recordedCastWindow
+        )
+      )
+        continue;
 
       actions.push({
         start,

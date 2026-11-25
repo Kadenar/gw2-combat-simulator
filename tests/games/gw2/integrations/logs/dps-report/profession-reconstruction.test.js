@@ -728,8 +728,8 @@ test('normalizes Renegade warband variants and ignores generated Spear mine sign
     {
       s28287: { name: 'Embrace the Darkness' },
       s72938: { name: 'Abyssal Blitz' },
-      's-39': { name: 'Blitz Mines (Drop)', isInstantCast: true, isNotAccurate: true },
-      s73149: { name: 'Blitz Mines (Detonation)', isInstantCast: true, isNotAccurate: true },
+      // Raw logs can omit the drop's skill record and give the detonation its plain in-game name.
+      s73149: { name: 'Blitz Mines', isInstantCast: true, isNotAccurate: true },
       s72366: { name: "Darkrazor's Daring", isInstantCast: true, isNotAccurate: true },
       s73139: { name: 'Abyssal Strike', autoAttack: true },
       s26693: { name: 'Resist the Darkness', isInstantCast: true },
@@ -745,7 +745,6 @@ test('normalizes Renegade warband variants and ignores generated Spear mine sign
       slot: 'weapon_1',
       castTimeMs: 480
     }),
-    skill(73149, 'Blitz Mines', { type: 'weapon', weapon: 'Spear', castTimeMs: 0 }),
     skill(41220, "Darkrazor's Daring", { castTimeMs: 500 }),
     skill(72366, "Darkrazor's Daring", { castTimeMs: 0, rotationInputExcluded: true }),
     // A release is identified by its upkeep flip parent.
@@ -758,6 +757,7 @@ test('normalizes Renegade warband variants and ignores generated Spear mine sign
 
   assert.equal(result.actions.find((action) => action.rawSkillId === 72366)?.skillId, 41220);
   assert.equal(result.actions.find((action) => action.rawSkillId === 73139)?.skillId, 73015);
+  assert.ok(result.rotation.some((command) => command.type === 'cast' && command.skillId === 72938));
   assert.equal(
     result.actions.some((action) => [-39, 73149].includes(action.rawSkillId)),
     false

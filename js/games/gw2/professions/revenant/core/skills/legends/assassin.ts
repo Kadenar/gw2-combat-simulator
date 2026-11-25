@@ -166,7 +166,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     cooldown: 0,
     energyCost: 30,
     legendId: 'LegendaryAssassin',
-    castTimeMs: 0,
+    castTimeMs: 840,
     effects: [
       {
         type: 'boon',

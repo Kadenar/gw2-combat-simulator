@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "profession": "elementalist",
   "gear": {
     "Helm": "Viper's",
@@ -22,7 +22,7 @@
   "alternateWeapons": ["", ""],
   "rune": "Trapper",
   "weaponSigils": [
-    ["Malice", "Earth"],
+    ["Malice", "Bursting"],
     ["Malice", "Earth"]
   ],
   "relic": "Fractal",
@@ -36,14 +36,6 @@
     },
     {
       "stat": "Precision",
-      "count": 0
-    },
-    {
-      "stat": "Power",
-      "count": 0
-    },
-    {
-      "stat": "Condition Damage",
       "count": 0
     }
   ],
@@ -70,7 +62,14 @@
   },
   "assumptions": {
     "simulationMode": "deterministic",
-    "hitboxSize": "small",
+    "simulationSeed": 1,
+    "criticalDamageMode": "rolled",
+    "permanentComboField": "none",
+    "fractal": {
+      "enabled": false,
+      "agonyResistance": 150,
+      "augmentation": "none"
+    },
     "might": 25,
     "fury": true,
     "quickness": true,
@@ -93,12 +92,13 @@
       "Slow": true,
       "Weakness": true,
       "Vulnerability": 25
-    }
+    },
+    "hitboxSize": "small"
   },
   "startingWeaponSet": 1,
   "targetHealth": 4000000,
+  "targetStartingHealthPercent": 100,
   "targetArmor": 2597,
-  "rotation": [],
   "startAttunement": "Earth",
   "secondaryAttunement": "Earth",
   "initialCatalystEnergy": 30,
@@ -110,5 +110,8 @@
     "Water": false,
     "Air": false,
     "Earth": true
-  }
+  },
+  "precastRelics": [],
+  "initialThornsStacks": 0,
+  "rotation": []
 }

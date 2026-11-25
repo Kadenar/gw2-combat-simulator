@@ -212,15 +212,15 @@
         "label": "Power (Greatsword / Spear) - Nagy Rotation",
         "build": "data/gw2/builds/guardian/b-power-luminary-nagy.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-nagy.json",
-        "benchmarkDps": 42915,
+        "benchmarkDps": 43060,
         "upToDate": true,
-        "benchmarkApm": 97.4,
+        "benchmarkApm": 98.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 51794, "phase": 51794 },
-          "80-60": { "cumulative": 44187, "phase": 38388 },
-          "60-40": { "cumulative": 43263, "phase": 41512 },
-          "40-20": { "cumulative": 43619, "phase": 44734 },
-          "20-0": { "cumulative": 42915, "phase": 40305 }
+          "100-80": { "cumulative": 53003, "phase": 53003 },
+          "80-60": { "cumulative": 44657, "phase": 38532 },
+          "60-40": { "cumulative": 43374, "phase": 41001 },
+          "40-20": { "cumulative": 43725, "phase": 44808 },
+          "20-0": { "cumulative": 43060, "phase": 40574 }
         }
       },
       {

@@ -724,15 +724,22 @@ test('target-health timeline markers are inserted after the crossing hit', () =>
     ]
   };
 
-  assert.deepEqual(targetHealthTimelineMarkers(result, 1000, [0.5], 3), [
-    {
-      insertionIndex: 2,
-      healthPercent: 50,
-      start: 1500,
-      damage: 600
-    }
+  assert.deepEqual(targetHealthTimelineMarkers(result, 1000, 3), [
+    { insertionIndex: 1, healthPercent: 80, start: 500, damage: 400 },
+    { insertionIndex: 1, healthPercent: 75, start: 500, damage: 400 },
+    { insertionIndex: 2, healthPercent: 50, start: 1500, damage: 600 }
   ]);
-  assert.deepEqual(targetHealthTimelineMarkers(result, 1000, [], 3), []);
+
+  const defeated = {
+    ...result,
+    resolvedEvents: [...result.resolvedEvents, { type: 'damage', at: 2.5, damage: 400 }],
+    deathTime: 2.5,
+    totalDamage: 1000
+  };
+  assert.deepEqual(targetHealthTimelineMarkers(defeated, 1000, 3).slice(-2), [
+    { insertionIndex: 3, healthPercent: 25, start: 2500, damage: 1000 },
+    { insertionIndex: 3, healthPercent: 0, start: 2500, damage: 1000 }
+  ]);
 });
 
 test('Engineer kits register distinct weapon lines in the timeline', async () => {

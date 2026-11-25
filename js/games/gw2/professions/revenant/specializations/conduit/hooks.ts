@@ -1,7 +1,9 @@
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { revenantEnergyUnpaid } from '#gw2/professions/revenant/core/mechanics/resources.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { conduitBuffPolicies } from '#gw2/professions/revenant/specializations/conduit/effect-state.js';
@@ -39,6 +41,8 @@ import {
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 const RELEASE_POTENTIAL_IDS = new Set<SkillId>(Object.values(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND));
+// Pending costs captured at cast start; cancelled casts never commit and simply drop their entry.
+const pendingAffinityCosts = new WeakMap<RuntimeCast<RevenantSkill>, number>();
 
 const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   resources: { affinity: conduitAffinityPolicy },
@@ -73,7 +77,12 @@ const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   },
   onCastStart(runtime, cast) {
     const skill = cast.skill;
-    costAffinity(runtime, cast);
+    // Core records pending costs first. A cast that pays at commit earns affinity only after it pays, so an Expanded
+    // Consciousness refund cannot hit the Energy cap ahead of the cost.
+    const pending = runtime.profession.core.pendingEnergyCosts[cast.id];
+
+    if (pending == null) costAffinity(runtime, cast);
+    else pendingAffinityCosts.set(cast, pending);
 
     if (
       skill.legendId === LEGEND.ENTITY &&
@@ -83,6 +92,14 @@ const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   },
   onCastCommit(runtime, cast) {
     const skill = cast.skill;
+    const pending = pendingAffinityCosts.get(cast);
+
+    // Core has paid by now; upkeeps pay in their activation handler before this hook. An unpaid cast earns nothing.
+    if (pending != null) {
+      pendingAffinityCosts.delete(cast);
+
+      if (!revenantEnergyUnpaid(runtime, cast.id)) costAffinity(runtime, cast, pending);
+    }
 
     // Cosmic Wisdom form procs follow successful casts through the common completion path.
     if (skill.legendId === LEGEND.ASSASSIN) lesserDaggers(runtime, skill);

@@ -2,7 +2,6 @@
 import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
 import type { ComboEvent, ComboFieldEvent, ComboFinisherEvent } from '#gw2/platform/combos/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { timeKey } from '#kernel/core/clock.js';
 import { cloneData } from '#kernel/core/clone.js';
@@ -32,15 +31,13 @@ function selectComboFieldForFinisher(fields: readonly ComboFieldEvent[]): ComboF
 interface ComboState {
   readonly fields: Map<string, ComboFieldEvent>;
   readonly handledAttemptIds: Set<string>;
-  readonly warningKeys: Set<string>;
 }
 
 /** One run retains historical fields; registration and observations never share mutable packets with callers. */
 export function createGw2ComboController() {
   const state: ComboState = {
     fields: new Map(),
-    handledAttemptIds: new Set(),
-    warningKeys: new Set()
+    handledAttemptIds: new Set()
   };
   return Object.freeze({
     register(event: ComboFieldEvent): void {
@@ -99,62 +96,42 @@ function isComboFieldActiveAt(
   );
 }
 
-function warningLabel(event: ComboFinisherEvent): string {
+function finisherLabel(event: ComboFinisherEvent): string {
   return String(event.skillName || event.name || event.source || event.sourceId);
 }
 
-type ComboWarn = (diagnostic: Gw2SimulationDiagnostic) => void;
-
-/** Reports a failed binding once per key, located at the finisher's field selection and originating activation. */
-function warnOnce(state: ComboState, key: string, message: string, event: ComboFinisherEvent, warn: ComboWarn): void {
-  if (state.warningKeys.has(key)) return;
-
-  state.warningKeys.add(key);
-  warn({
-    message,
-    at: event.fieldSelectionAt ?? event.at,
-    ...(event.activationId ? { activationId: event.activationId } : {})
-  });
-}
-
-function boundField(state: ComboState, event: ComboFinisherEvent, warn: ComboWarn): ComboFieldEvent | null {
-  // An unbound finisher is a normal missed combo opportunity; only failed explicit bindings warrant warnings.
+/**
+ * Explicit bindings name a field that was live when the finisher selected it, so an inactive one is an internal
+ * authoring bug rather than a rotation problem the user can fix.
+ */
+function boundField(state: ComboState, event: ComboFinisherEvent): ComboFieldEvent | null {
+  // An unbound finisher is a normal missed combo opportunity.
   if (event.fieldId === null) return null;
 
   const at = event.fieldSelectionAt ?? event.at;
-  const label = warningLabel(event);
-
   const field = state.fields.get(event.fieldId);
 
   if (field && isComboFieldActiveAt(field, event.at, at, event.allowFieldAtExpiry === true)) return field;
 
-  warnOnce(
-    state,
-    `inactive-id|${event.fieldId}|${label}`,
-    `Combo field ${event.fieldId} is not active for ${label}; no combo resolved.`,
-    event,
-    warn
-  );
-  return null;
+  throw new Error(`Combo field ${event.fieldId} is not active for ${finisherLabel(event)}.`);
 }
 
 interface ResolveComboAttemptOptions {
   readonly roll: (probability: number, stream: string) => boolean;
-  readonly warn: ComboWarn;
 }
 
 /** Resolves one explicitly bound attempt into zero or more semantic combos. */
 function resolveComboAttempt(
   state: ComboState,
   event: ComboFinisherEvent,
-  { roll, warn }: ResolveComboAttemptOptions
+  { roll }: ResolveComboAttemptOptions
 ): readonly ComboEvent[] {
   // Guard against the same attempt being processed twice if the finisher event
   // appears more than once in the event queue.
   if (state.handledAttemptIds.has(event.attemptId)) return [];
 
   state.handledAttemptIds.add(event.attemptId);
-  const field = boundField(state, event, warn);
+  const field = boundField(state, event);
 
   if (!field) return [];
 

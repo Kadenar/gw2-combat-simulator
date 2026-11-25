@@ -14,11 +14,10 @@ export type SnapshotBalanceAssertions = [
   Assert<'modifierRulesById' extends keyof ProfessionStateSnapshotContext ? false : true>
 ];
 
-/** Trait resolution and threshold hooks reject absent catalogs instead of silently hiding selected traits. */
+/** Trait resolution and profession views reject absent catalogs instead of silently hiding selected traits. */
 export type TraitCatalogAssertions = [
   Assert<undefined extends Parameters<typeof selectedTraits>[0] ? false : true>,
   Assert<null extends Parameters<typeof selectedTraits>[0] ? false : true>,
-  Assert<{} extends Parameters<ProfessionUiContract['targetHealthThresholds']>[0] ? false : true>,
   Assert<{} extends Parameters<ProfessionUiContract['resourceViews']>[0] ? false : true>,
   Assert<undefined extends Parameters<ProfessionUiContract['resourceViews']>[0]['catalog'] ? false : true>,
   Assert<null extends Parameters<NonNullable<ProfessionUiContract['eventLogRow']>>[0]['catalog'] ? false : true>

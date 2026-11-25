@@ -139,16 +139,16 @@ test('combo registration and observations detach nested data and preserve histor
   assert.equal(combo.fieldFor(1, 1).expiresAt, 1.5);
   assert.deepEqual(combo.activeFields('fixture', 1.5), []);
   assert.equal(combo.bind(finisher('historical', { at: 1.75, fieldSelectionAt: 1.25 })).fieldId, 'stored');
-  const options = { roll: () => true, warn: () => assert.fail('Historical binding must remain eligible') };
+  // An ineligible historical binding would throw instead of resolving.
   const attempt = combo.bind(finisher('historical', { at: 1.75, fieldSelectionAt: 1.25 }));
-  assert.equal(combo.resolve(attempt, options).length, 1);
+  assert.equal(combo.resolve(attempt, { roll: () => true }).length, 1);
   combo.expireField('missing', 0);
   assert.equal(combo.fieldFor(99, 1), undefined);
   assert.equal(combo.fieldFor(1, undefined), undefined);
   assert.deepEqual(createGw2ComboController().activeFields('fixture', 1), []);
 });
 
-test('combo attempts claim before rolls and warnings can reenter resolution', () => {
+test('combo attempts claim before rolls can reenter resolution', () => {
   const combo = createGw2ComboController();
   combo.register(field('stored'));
   const accepted = combo.bind(finisher('accepted'));
@@ -158,29 +158,10 @@ test('combo attempts claim before rolls and warnings can reenter resolution', ()
       rolls += 1;
       assert.deepEqual(combo.resolve(accepted, options), []);
       return true;
-    },
-    warn() {
-      assert.fail('The accepted field is eligible');
     }
   };
   assert.equal(combo.resolve(accepted, options).length, 1);
   assert.equal(rolls, 1);
-  const warnings = [];
-  const missing = finisher('missing', { fieldId: 'absent', comboAutoSelectField: false });
-  const rejected = {
-    roll() {
-      assert.fail('Missing fields cannot roll');
-    },
-    warn(diagnostic) {
-      warnings.push(diagnostic);
-      assert.deepEqual(combo.resolve(missing, rejected), []);
-    }
-  };
-  assert.deepEqual(combo.resolve(missing, rejected), []);
-  assert.deepEqual(combo.resolve({ ...missing, attemptId: 'another-missing' }, rejected), []);
-  assert.equal(warnings.length, 1);
-  combo.register(field('absent'));
-  assert.deepEqual(combo.resolve(missing, rejected), []);
 });
 
 test('combo outcomes retain summon condition scaling from the finisher', () => {
@@ -222,10 +203,7 @@ test('combo outcomes retain summon condition scaling from the finisher', () => {
   assert.equal(events[0].fieldId, null);
   const finisher = state.bind(events[0]);
   assert.deepEqual(finisher.fieldId, 'field:poison');
-  const [combo] = state.resolve(finisher, {
-    roll: () => true,
-    warn: () => {}
-  });
+  const [combo] = state.resolve(finisher, { roll: () => true });
   const [request] = comboOutcomeRequests(combo);
   assert.equal(request.kind, 'packet');
   const poison = request.event;

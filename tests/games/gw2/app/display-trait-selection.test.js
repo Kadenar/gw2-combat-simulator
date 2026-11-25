@@ -1,13 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
 import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
-import { timelineRowsView } from '#gw2/app/rotation/timeline/rows.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 
 // Select a single major trait so unrelated defaults cannot make a missing display pass.
@@ -82,47 +79,5 @@ test('trait-dependent state rows use the snapshot balance catalog', () => {
     app.patch = { ...patch, catalog, balanceContext: { ...patch.balanceContext, catalog } };
     app.activeCatalog = catalog;
     assert.ok(!rotationStateSnapshot(app).items.some((row) => row.id === rowId), `${trait} moved`);
-  }
-});
-
-// Rendering real timeline rows protects the catalog handoff as well as each profession's threshold hook.
-test('Spite minors and Swift Termination add the 50% target-health timeline marker', () => {
-  for (const profession of [necromancerProfession, revenantProfession]) {
-    const catalog = profession.catalog;
-    const build = {
-      rotation: [],
-      weapons: [],
-      alternateWeapons: [],
-      startingWeaponSet: 1,
-      targetHealth: 1000,
-      specializations: [
-        profession === necromancerProfession
-          ? { name: 'Spite', traits: '0-0-0' }
-          : selectTrait(catalog, 'Swift Termination')
-      ]
-    };
-    const app = { profession, activeCatalog: catalog, adapter: { eliteSpecialization: () => 'Core' } };
-    const result = {
-      steps: [],
-      events: [],
-      resolvedEvents: [{ type: 'damage', at: 1, damage: 600 }],
-      rotationEndTime: 1,
-      planningState: { atSeconds: 1 }
-    };
-    const html = () =>
-      timelineRowsView(
-        app,
-        build,
-        result,
-        false,
-        new Set(),
-        false,
-        createWorkspacePresentation(app).timeline(app, build, result)
-      )
-        .rows.map((row) => row.html)
-        .join('');
-    assert.match(html(), /50%/, profession.id);
-    build.specializations = [];
-    assert.doesNotMatch(html(), /50%/, `${profession.id} without threshold traits`);
   }
 });

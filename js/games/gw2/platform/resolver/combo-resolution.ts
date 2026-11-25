@@ -19,12 +19,7 @@ export function createGw2ComboResolution({
     },
 
     combo_finisher(context, event) {
-      const combos = controller.resolve(event as ComboFinisherEvent, {
-        roll: context.random.roll,
-        warn(diagnostic) {
-          context.warnings.push(diagnostic);
-        }
-      });
+      const combos = controller.resolve(event as ComboFinisherEvent, { roll: context.random.roll });
       for (const combo of combos) {
         context.effects.emit({ kind: 'packet', event: combo });
         // Outcome requests keep boon lineage with profile expansion and retain the finisher's duration context.

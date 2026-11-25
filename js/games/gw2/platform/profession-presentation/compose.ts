@@ -274,7 +274,6 @@ export function createProfessionFamilyUi(
     resourceViews: list('resourceViews'),
     skillBarGroups: list('skillBarGroups'),
     startControls: list('startControls'),
-    targetHealthThresholds: list('targetHealthThresholds'),
     rotationStateSnapshot: list('rotationStateSnapshot'),
     assumptionControls: Object.freeze(
       deduplicateUiEntries(

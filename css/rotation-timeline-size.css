@@ -35,22 +35,17 @@
   min-inline-size: 9.6em;
 }
 
-.rotation-panel[data-rotation-size='large'] .rot-row-skills {
-  zoom: 1.25;
+.rotation-panel[data-rotation-size='large'] {
+  --rotation-scale: 1.25;
 }
 
-.rotation-panel[data-rotation-size='extra-large'] .rot-row-skills {
-  zoom: 1.5;
+.rotation-panel[data-rotation-size='extra-large'] {
+  --rotation-scale: 1.5;
 }
 
-.rotation-panel[data-rotation-size='large'] .rot-row-label {
-  min-width: 17px;
-  font-size: 11px;
-}
-
-.rotation-panel[data-rotation-size='extra-large'] .rot-row-label {
-  min-width: 21px;
-  font-size: 13px;
+/* Scale the weapon labels with the skill bar and timeline while their sticky container stays in place. */
+.rotation-panel :is(.rotation-palette, .rot-row-skills, .rot-row-label-content) {
+  zoom: var(--rotation-scale, 1);
 }
 
 /* Scale square icons with their tiles so larger timings fit without squeezing the artwork. */

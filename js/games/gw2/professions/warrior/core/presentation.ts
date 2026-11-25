@@ -308,8 +308,7 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
   effectPresentations: warriorCoreEffectPresentations,
   rotationStateSnapshot: warriorCoreStateSnapshot,
   paletteGroups: (context) => (uiSpecialization(context) === 'Core' ? warriorPaletteGroups(context) : []),
-  resourceViews: (context) => (uiSpecialization(context) === 'Core' ? warriorAdrenalineResourceViews(context) : []),
-  targetHealthThresholds: () => [0.8, 0.5, 0.25]
+  resourceViews: (context) => (uiSpecialization(context) === 'Core' ? warriorAdrenalineResourceViews(context) : [])
 });
 
 /** Restricts a weapon burst to the weapon set that supplied it. */

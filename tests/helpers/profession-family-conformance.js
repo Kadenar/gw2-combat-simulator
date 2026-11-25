@@ -15,7 +15,7 @@ const EXECUTABLE_FAMILY_KEYS = Object.freeze([
   'availability'
 ]);
 
-const UI_LIST_CALLBACKS = Object.freeze(['paletteGroups', 'resourceViews', 'skillBarGroups', 'targetHealthThresholds']);
+const UI_LIST_CALLBACKS = Object.freeze(['paletteGroups', 'resourceViews', 'skillBarGroups']);
 
 const CANONICAL_REACTION_STAGES = new Set(GW2_RESOLVER_STAGES);
 

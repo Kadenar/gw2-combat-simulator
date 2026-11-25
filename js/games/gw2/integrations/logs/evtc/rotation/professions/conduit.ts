@@ -4,7 +4,11 @@ import type {
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import { alignConduitHazeCombatOffset } from '#gw2/integrations/logs/shared/rotation/professions/revenant/conduit.js';
 
-/** Account for the unrecorded launch in the opening combat offset without adding a cast. */
+/**
+ * Account for the unrecorded launch in the opening combat offset without adding a cast. Haze is the only opener whose
+ * log can lose an earlier part of the same input; see alignConduitHazeCombatOffset. The owned-hit check limits this
+ * to a teleport that actually opened combat.
+ */
 export function restoreConduitHazeOpener(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[],

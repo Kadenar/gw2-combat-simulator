@@ -23,7 +23,14 @@ export function normalizeConduitLogActions(context: LogActionNormalizationContex
   );
 }
 
-/** Align combat within a clipped opening teleport using the main-minus-follow-up offset, without adding inputs. */
+/**
+ * Align combat within a clipped opening teleport using the main-minus-follow-up offset, without adding inputs.
+ *
+ * Generic combat entry places the marker at the recorded hit's offset into the recorded cast. That fails only here:
+ * Haze logs as two parts (launch 77141, teleport 77047), and a launch that ends before logging begins leaves just the
+ * teleport. The simulator replays that opener as the full main cast, so its hit lands one launch later than the
+ * recorded offset unless the start moves back by the missing launch.
+ */
 export function alignConduitHazeCombatOffset<Action extends CompositeAction & { readonly replayDurationMs?: number }>(
   actions: readonly Action[],
   catalog: RotationCatalog | null,

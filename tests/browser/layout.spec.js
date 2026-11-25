@@ -69,8 +69,22 @@ test('weapon-set labels stay centered in groups and visible while scrolling', as
   await expect(group).toHaveCount(1);
   const labelContent = group.locator(':scope > .rot-row-label > .rot-row-label-content');
   const label = labelContent.locator('.rot-row-label-text');
+  const duration = labelContent.locator('.rot-row-duration');
   await expect(label).toHaveText('W1');
-  await expect(labelContent.locator('.rot-row-duration')).toHaveText(/\d+\.\d{3}s/);
+  await expect(duration).toHaveText(/\d+\.\d{3}s/);
+  const size = page.getByRole('combobox', { name: 'Timeline size', exact: true });
+  await size.selectOption('normal');
+  const labelWidth = (await label.boundingBox()).width;
+  const durationWidth = (await duration.boundingBox()).width;
+  for (const [option, scale] of [
+    ['large', 1.25],
+    ['extra-large', 1.5]
+  ]) {
+    await size.selectOption(option);
+    expect(Math.abs((await label.boundingBox()).width - labelWidth * scale)).toBeLessThan(1);
+    expect(Math.abs((await duration.boundingBox()).width - durationWidth * scale)).toBeLessThan(1);
+  }
+
   const labelLayout = await labelContent.evaluate((element) => {
     const weapon = element.querySelector('.rot-row-label-text');
     const duration = element.querySelector('.rot-row-duration');

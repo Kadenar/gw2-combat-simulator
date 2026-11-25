@@ -45,8 +45,10 @@ export interface EiInstantRule {
   readonly relatedHit?: number;
   readonly absentRelatedHits?: readonly number[];
   readonly gainedBuff?: number;
-  /** Buff-gain finders distinguish shared buff identities using EI's strict duration tolerance. */
-  readonly appliedDuration?: number;
+  /** Buffs with multiple uses require the duration check from the corresponding EI finder. */
+  readonly matchesAppliedDuration?: (durationMs: number) => boolean;
+  /** A recorded cast within this window already supplies the replay input. */
+  readonly recordedCastWindowMs?: number;
   /** Require exactly this many nearby self-applications of the signal buff, with the declared duration. */
   readonly selfAppliedBuffs?: { readonly count: number; readonly durationMs: number };
   /** Require a nearby remove-all event for this buff, without restricting its actor, as EI's checker does. */
@@ -1756,7 +1758,7 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     skillId: 44663,
     signal: 40052,
     kind: 'buff-gain',
-    appliedDuration: 6000,
+    matchesAppliedDuration: (durationMs) => Math.abs(durationMs - 6000) < 10,
     rule: 'ScourgeHelper.BuffGainCastFinder(DesertShroud)'
   },
   {
@@ -1765,7 +1767,7 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     skillId: 54870,
     signal: 40052,
     kind: 'buff-gain',
-    appliedDuration: 3500,
+    matchesAppliedDuration: (durationMs) => Math.abs(durationMs - 3500) < 10,
     rule: 'ScourgeHelper.BuffGainCastFinder(SandstormShroudSkill)'
   },
   {
@@ -3092,6 +3094,19 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     signal: 77234,
     kind: 'buff-gain',
     rule: 'ConduitHelper.BuffGainCastFinder(LegendaryEntityStanceSkill)'
+  },
+  {
+    profession: 'revenant',
+    specialization: 'conduit',
+    skillId: 77371,
+    name: 'Cosmic Wisdom',
+    signal: 76559,
+    kind: 'buff-gain',
+    rule: 'ConduitHelper.BuffGainCastFinder(CosmicWisdomSkill)',
+    // Before the VoE release, this buff ID identified Ventari's active Monk form.
+    minBuild: 190000,
+    matchesAppliedDuration: (durationMs) => durationMs === 7000,
+    recordedCastWindowMs: 50
   },
   {
     profession: 'revenant',

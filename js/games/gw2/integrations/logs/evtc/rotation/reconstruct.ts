@@ -343,12 +343,14 @@ function reconstructWithProfile(
     ...professionContext,
     recordedActions: sourceActions.filter((a) => a.castOrigin == null || a.castOrigin === 'skill')
   });
+  // A clipped Haze opener lost its launch part; restore that offset so combat entry stays on its first hit.
   const completeOpener = restoreConduitHazeOpener(
     { ...professionContext, recordedActions: sourceActions },
     normalized,
     combatStart
   );
-  // Use normalized swaps for both packet evidence and replay; raw bar-change signals may have been removed.
+  // Packet matching, conditional skill resolution, and replay use normalized swaps plus the restored Haze opener; raw
+  // bar-change signals may have been removed.
   const timingContext = { ...professionContext, recordedActions: completeOpener };
   const resolveSkill = createRotationSkillResolver(timingContext);
   const resolved = applyObservedInterruptTiming(

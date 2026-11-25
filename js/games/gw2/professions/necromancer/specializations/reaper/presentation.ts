@@ -7,13 +7,11 @@ import type {
 import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import {
-  necromancerCoreTargetHealthThresholds,
   necromancerSoulShardResourceViews,
   necromancerTransformPaletteGroups
 } from '#gw2/professions/necromancer/core/presentation.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { SCYTHE_HEALTH_THRESHOLDS } from '#gw2/professions/necromancer/specializations/reaper/skills/shroud-skills.js';
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
@@ -59,11 +57,6 @@ export function bindReaperUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill
         stackId: 'reaper-profession'
       }),
     resourceViews: (context: NecromancerUiContext): ProfessionResourceView[] =>
-      necromancerSoulShardResourceViews(context),
-    // Add each Scythe tier once when Core weapons or traits already mark the same crossing.
-    targetHealthThresholds: (context: NecromancerUiContext) => {
-      const coreThresholds = necromancerCoreTargetHealthThresholds(context);
-      return Object.values(SCYTHE_HEALTH_THRESHOLDS).filter((threshold) => !coreThresholds.includes(threshold));
-    }
+      necromancerSoulShardResourceViews(context)
   });
 }

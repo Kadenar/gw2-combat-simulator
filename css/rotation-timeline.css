@@ -349,7 +349,7 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
 /* One weapon-set label spans its preserved transform lines so state boundaries stay visible without repeated labels. */
 .rot-row {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: calc(48px * var(--rotation-scale, 1)) minmax(0, 1fr);
   align-items: stretch;
   gap: 2px;
   padding: 0 0 0 8px;

@@ -8,25 +8,11 @@ import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
-import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { timeKey } from '#kernel/core/clock.js';
 import { resourceDepletionAt } from '#kernel/resources/accrual.js';
 
 export const REVENANT_ENERGY_DEPLETED = 'revenant.energy-depleted';
-
-// Deferred upkeep costs are immutable acceptance facts, spent only if the activation commits.
-const upkeepCosts = new WeakMap<RuntimeCast<RevenantSkill>, number>();
-
-/** Capture the accepted cost before the active upkeep changes live cost queries. */
-export function reserveRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  upkeepCosts.set(cast, revenantEnergyCost(runtime, cast.skill));
-}
-
-/** Cancellation discards the accepted cost without spending Energy. */
-export function cancelRevenantUpkeep(_runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  upkeepCosts.delete(cast);
-}
 
 /** Each activation owns its recurring work; a later activation of the same skill has a new generation. */
 export function revenantUpkeepOwner(skillId: SkillId, startsAt: number) {
@@ -93,13 +79,8 @@ export function starveRevenantUpkeeps(runtime: RevenantRuntime): void {
   runtime.resourceController.refresh('energy');
 }
 
-/** Spend the reserved cost before activation changes live cost queries, then start drain and arm the release. */
+/** Begin the committed upkeep's drain and arm its release. */
 export function activateRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const cost = upkeepCosts.get(cast);
-  upkeepCosts.delete(cast);
-
-  if (cost != null) runtime.resourceController.spend('energy', cost);
-
   const skill = cast.skill;
   const core = runtime.profession.core;
   const active: RevenantUpkeepState = {

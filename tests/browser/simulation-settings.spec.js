@@ -49,6 +49,8 @@ test('weapon-swap line breaks survive settings that end combat before the remain
   await health.press('Tab');
   await assertRows();
   expect(await page.evaluate(() => window.professionApp.analysis.state.results.deathTime)).not.toBeNull();
+  const deathMarker = page.locator('#rotation-timeline .rot-health-marker').getByText('0%', { exact: true });
+  await expect(deathMarker).toBeVisible();
   const delay = page.locator('#simulation-weaponSwapMs');
   await delay.fill('100');
   await delay.press('Tab');
@@ -56,6 +58,7 @@ test('weapon-swap line breaks survive settings that end combat before the remain
   await health.fill('0');
   await health.press('Tab');
   await assertRows();
+  await expect(deathMarker).toHaveCount(0);
 });
 
 // A native settings edit must invalidate an inactive tab and let the worker replace both cached comparison results.
@@ -300,7 +303,8 @@ test('embedded simulation settings expand inline on narrow frames', async ({ pag
   await expect(controls).toBeVisible();
   await expect(trigger).toBeFocused();
   await expect(frame.locator('dialog[open]')).toHaveCount(0);
-  await config.getByLabel('Display idle time').check();
+  await expect(config.getByLabel('Display idle time')).toBeChecked();
+  await config.getByLabel('Display idle time').uncheck();
   await trigger.click();
   await expect(controls).toBeHidden();
   await expect(trigger).toBeFocused();
@@ -310,7 +314,7 @@ test('embedded simulation settings expand inline on narrow frames', async ({ pag
     iframe.style.height = '400px';
   });
   await trigger.press('Space');
-  await expect(config.getByLabel('Display idle time')).toBeChecked();
+  await expect(config.getByLabel('Display idle time')).not.toBeChecked();
   expect(await config.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
   await config.getByLabel('Overlay relics').check();
   await trigger.click();

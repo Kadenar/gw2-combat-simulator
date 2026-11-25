@@ -2,9 +2,8 @@ import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
-/** Reserve the accepted Energy cost at cast start. Pay it and begin the drain when the cast commits. */
+/** Pay the reserved energy and begin the drain when the upkeep commits. */
 export const UPKEEP_ACTIVATION: readonly SkillSideEffect[] = [
-  { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
   { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
 ];
 

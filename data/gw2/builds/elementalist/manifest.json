@@ -54,16 +54,16 @@
         "label": "Condition (Pistol/Dagger)",
         "build": "data/gw2/builds/elementalist/b-condi-weaver-pistol-dagger.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-pistol-dagger.json",
-        "benchmarkDps": 42644,
+        "benchmarkDps": 44751,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-pistol-dagger",
-        "benchmarkApm": 100.8,
+        "benchmarkApm": 101.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42540, "phase": 42540 },
-          "80-60": { "cumulative": 41916, "phase": 41292 },
-          "60-40": { "cumulative": 41648, "phase": 41139 },
-          "40-20": { "cumulative": 41269, "phase": 40110 },
-          "20-0": { "cumulative": 42644, "phase": 49858 }
+          "100-80": { "cumulative": 44641, "phase": 44641 },
+          "80-60": { "cumulative": 45482, "phase": 46380 },
+          "60-40": { "cumulative": 43637, "phase": 40395 },
+          "40-20": { "cumulative": 43050, "phase": 41345 },
+          "20-0": { "cumulative": 44751, "phase": 53162 }
         }
       },
       {

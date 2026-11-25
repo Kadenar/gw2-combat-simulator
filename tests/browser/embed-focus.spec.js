@@ -42,7 +42,7 @@ test('embedded focus and settings follow the viewport of a scrolled cross-origin
 
   await settings.click();
   await expect(controls).toBeVisible();
-  await config.getByLabel('Display idle time').check();
+  await config.getByLabel('Display idle time').uncheck();
   await config.getByLabel('Overlay relics').check();
   await settings.click();
   await expect(controls).toBeHidden();
@@ -63,7 +63,7 @@ test('embedded focus and settings follow the viewport of a scrolled cross-origin
   await page.evaluate(() => scrollBy(0, -200));
   await expectInHostViewport(workspace);
   await settings.click();
-  await expect(config.getByLabel('Display idle time')).toBeChecked();
+  await expect(config.getByLabel('Display idle time')).not.toBeChecked();
   await expect(config.getByLabel('Overlay relics')).toBeChecked();
   await expectInHostViewport(config);
   await settings.click();

@@ -659,9 +659,9 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
   assert.equal(beguilingAmmo.maximum, 1);
   assert.equal(beguilingAmmo.charges, 0);
   assert.equal(beguilingAmmo.nextRechargeAt, beguiling.planningState.profession[STATE.BEGUILING_HAZE_READY_AT]);
-  // Above the precombat cap, regeneration resumes only when the first hit starts combat.
-  const combatDuration = beguiling.steps.at(-1).end / 1000 - beguiling.planningState.profession[STATE.COMBAT_BEGAN_AT];
-  assert.ok(Math.abs(beguiling.planningState.profession[STATE.ENERGY].value - (80 + 5 * combatDuration)) < 1e-9);
+  // The first Haze spends energy at commit. Its two free follow-ups allow that energy to regenerate.
+  const recoverySeconds = (beguiling.steps.at(-1).end - beguiling.steps[0].end) / 1000;
+  assert.ok(Math.abs(beguiling.planningState.profession[STATE.ENERGY].value - (80 + 5 * recoverySeconds)) < 1e-9);
 
   const recharged = simulate(
     'Conduit',
@@ -975,6 +975,79 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     Math.abs(
       expanded.planningState.profession[STATE.ENERGY].value - ordinary.planningState.profession[STATE.ENERGY].value - 15
     ) < 1e-9
+  );
+});
+
+// The third Phase Traversal crosses the affinity cap at full Energy; its reserved cost must be paid before the refund.
+test('Expanded Consciousness refunds Energy after a reserved cost is paid', () => {
+  const rotation = [
+    '__combat_start',
+    'Phase Traversal',
+    { type: 'wait', durationMs: 6000 },
+    'Phase Traversal',
+    { type: 'wait', durationMs: 6000 },
+    'Phase Traversal'
+  ];
+  const config = {
+    selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
+    startingLegend: LEGEND.ASSASSIN,
+    initialEnergy: 100
+  };
+  const ordinary = simulate('Conduit', rotation, config);
+  const expanded = simulate('Conduit', rotation, { ...config, selectedTraitIds: [TRAIT.EXPANDED_CONSCIOUSNESS] });
+
+  assert.deepEqual(expanded.warnings, []);
+  assert.ok(
+    Math.abs(
+      expanded.planningState.profession[STATE.ENERGY].value -
+        ordinary.planningState.profession[STATE.ENERGY].value -
+        revenantCatalog.balanceProfilesById.get(TRAIT.EXPANDED_CONSCIOUSNESS).resourceGain
+    ) < 1e-9
+  );
+});
+
+// Affinity follows commitment, whether the cancelled cast reserved its Energy or paid it at cast start.
+test('Conduit cancelled casts grant no affinity or Conductive Armaments', () => {
+  for (const [skillId, startingLegend] of [
+    [SKILL.PHASE_TRAVERSAL, LEGEND.ASSASSIN],
+    [SKILL.CHILLING_ISOLATION, LEGEND.ENTITY]
+  ]) {
+    const result = simulate('Conduit', ['__combat_start', { type: 'cast', skillId, interruptAfterMs: 40 }], {
+      selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+      startingLegend,
+      initialEnergy: 100,
+      selectedTraitIds: [TRAIT.CONDUCTIVE_ARMAMENTS]
+    });
+
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession[STATE.AFFINITY].value, 0);
+  }
+});
+
+// A windup cast starved of Energy at commit earns the same affinity as never casting it.
+test('Conduit casts that lack energy at commit grant no affinity', () => {
+  const attack = revenantCatalog.skillsById.get(SKILL.PHASE_TRAVERSAL);
+  // Impossible Odds is an instant upkeep, so it pays first and leaves less than the attack's cost at commit.
+  const instant = revenantCatalog.skillsById.get(SKILL.IMPOSSIBLE_ODDS);
+  const config = {
+    selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
+    startingLegend: LEGEND.ASSASSIN,
+    initialEnergy: attack.energyCost + instant.energyCost - 2
+  };
+  const starved = simulate(
+    'Conduit',
+    [
+      '__combat_start',
+      { type: 'cast', skillId: attack.id },
+      { type: 'cast', skillId: instant.id, concurrentOffsetMs: 40 }
+    ],
+    config
+  );
+  const alone = simulate('Conduit', ['__combat_start', { type: 'cast', skillId: instant.id }], config);
+  assert.equal(starved.warnings.length, 1);
+  assert.equal(
+    starved.planningState.profession[STATE.AFFINITY].value,
+    alone.planningState.profession[STATE.AFFINITY].value
   );
 });
 

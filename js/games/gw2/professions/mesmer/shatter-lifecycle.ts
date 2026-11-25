@@ -161,7 +161,9 @@ function resolveShatter(runtime: MesmerRuntime, cast: RuntimeCast<MesmerSkill>):
     runtime.combat.warn({
       message: `${skill.name} skipped: no ${definition.plural}.`,
       at: runtime.time,
-      activationId: cast.id
+      activationId: cast.id,
+      // Another shatter spent the blades this one found at cast start; the game cancels it.
+      cancelsCast: true
     });
     return;
   }

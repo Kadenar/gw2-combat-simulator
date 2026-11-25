@@ -362,6 +362,7 @@ function reconstructDpsReportWithProfile(
     recordedActions: recorded,
     professionConfig: options.professionConfig
   });
+  // EI also drops a Haze launch that ended before logging; restore its offset so combat entry stays on the first hit.
   const combatAligned =
     profile.specializationId === 'conduit'
       ? alignConduitHazeCombatOffset(professionActions, catalog, phase.start)

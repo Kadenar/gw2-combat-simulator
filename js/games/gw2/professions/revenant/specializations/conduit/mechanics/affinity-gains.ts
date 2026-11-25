@@ -6,12 +6,19 @@ import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import { gainAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
-/** Each committed Energy-costing legend or armed weapon cast builds affinity at acceptance. */
-export function costAffinity(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+/**
+ * Each committed Energy-costing legend or armed weapon cast builds affinity when its Energy is spent. A cast that pays
+ * at commit passes the cost captured at cast start, because the cast can change its own cost before it commits.
+ */
+export function costAffinity(
+  runtime: RevenantRuntime,
+  cast: RuntimeCast<RevenantSkill>,
+  cost = revenantEnergyCost(runtime, cast.skill)
+): void {
   const skill = cast.skill;
-  const cost = revenantEnergyCost(runtime, skill);
 
-  if (!(cost > 0)) return;
+  // A cast cancelled before its commit builds no affinity, even when it paid its Energy at cast start.
+  if (cast.cancelledBeforeCommit || !(cost > 0)) return;
 
   // Legend skills whose affinity is deferred to hit time are excluded to avoid double-granting.
   if (skill.legendId && !skill.affinityOnHit) gainAffinity(runtime, cost >= 25 ? 2 : 1);

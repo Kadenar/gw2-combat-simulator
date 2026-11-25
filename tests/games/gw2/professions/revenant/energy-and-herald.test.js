@@ -320,8 +320,9 @@ test('Soulcleave stays on its parent tile at zero Energy until its release is ar
 test('energy accumulates fractionally with elapsed time and skills pay their explicit costs', () => {
   const result = simulate('Core', ['Phase Traversal', { type: 'wait', durationMs: 1000 }]);
 
-  // Energy accrues at five per second throughout the cast and the explicit wait.
-  assert.equal(result.planningState.profession[STATE.ENERGY].value, 20 + result.planningState.atSeconds * 5);
+  // Phase Traversal starts at the precombat cap. Recovery begins when the cast pays its cost.
+  const recoverySeconds = result.planningState.atSeconds - result.steps[0].end / 1000;
+  assert.equal(result.planningState.profession[STATE.ENERGY].value, 20 + recoverySeconds * 5);
   const denied = simulate('Core', [{ type: 'cast', skillId: 28406 }], { initialEnergy: 34 });
 
   assert.match(denied.warnings[0].message, /requires 35 energy/);

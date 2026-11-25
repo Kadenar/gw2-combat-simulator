@@ -200,7 +200,15 @@ test('timing display switches between classic and larger labels and survives rel
   const display = page.getByRole('combobox', { name: 'Display', exact: true });
   const size = page.getByRole('combobox', { name: 'Timeline size', exact: true });
   await expect(display).toHaveValue('classic');
-  await page.locator('.pal-skill[data-skill="Bladecall"]').click();
+  await expect(size).toHaveValue('large');
+  const skillButton = page.locator('.pal-skill[data-skill="Bladecall"]');
+  const skillWidth = async () => (await skillButton.boundingBox()).width;
+  const largeWidth = await skillWidth();
+  await size.selectOption('extra-large');
+  await expect.poll(skillWidth).toBeCloseTo((largeWidth * 1.5) / 1.25, 1);
+  await size.selectOption('normal');
+  await expect.poll(skillWidth).toBeCloseTo(largeWidth / 1.25, 1);
+  await skillButton.click();
   await page.waitForFunction(
     () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
   );
@@ -214,15 +222,16 @@ test('timing display switches between classic and larger labels and survives rel
   const icon = page.locator('#rotation-timeline .rot-skill[data-idx] img').first();
   const bounds = await icon.boundingBox();
   expect(bounds.width).toBe(bounds.height);
-  await size.selectOption('large');
   expect(await page.evaluate(() => window.professionApp.analysis.state.buildRevision)).toBe(revision);
   await page.reload();
   await expect(display).toHaveValue('timings');
-  await expect(size).toHaveValue('large');
+  await expect(size).toHaveValue('normal');
+  await page.mouse.move(0, 0);
+  await expect.poll(skillWidth).toBeCloseTo(largeWidth / 1.25, 1);
   expect(await time.evaluate((element) => parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThan(
     classicFontSize
   );
   await display.selectOption('classic');
   expect(await time.evaluate((element) => parseFloat(getComputedStyle(element).fontSize))).toBe(classicFontSize);
-  await expect(size).toHaveValue('large');
+  await expect(size).toHaveValue('normal');
 });

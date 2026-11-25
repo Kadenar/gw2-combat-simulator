@@ -1,7 +1,6 @@
 import { renderPatchComparison } from '#gw2/app/patch-preview/view.js';
 import { presentationMetrics, type WorkspacePresentation } from '#gw2/app/presentation/model.js';
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
-import { professionPlanningState } from '#gw2/app/rotation/context.js';
 import { targetHealthTimelineMarkers } from '#gw2/app/rotation/timeline/encounter.js';
 
 /** Golem presents one target's health milestones and makes patch comparison available alongside analysis. */
@@ -10,19 +9,11 @@ export function createGolemPresentation(): WorkspacePresentation {
     analysisTitle: 'Golem analysis',
     // Match the visible navigation label so empty results lead back to a recognizable destination.
     authoringLink: { href: '#workspace', label: 'Simulation' },
-    timeline(app, build, result) {
-      const thresholds =
-        app.profession.ui.targetHealthThresholds?.({
-          catalog: app.activeCatalog,
-          specialization: app.adapter.eliteSpecialization(build),
-          build,
-          professionState: professionPlanningState(result)
-        }) || [];
+    timeline(_app, build, result) {
       return {
         healthMarkers: targetHealthTimelineMarkers(
           result,
           build.targetHealth,
-          thresholds,
           build.rotation.length,
           build.targetStartingHealthPercent
         ),

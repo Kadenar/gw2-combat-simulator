@@ -119,15 +119,13 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     icon: 'https://render.guildwars2.com/file/CA26B3FC712CCF9BD695BD1128B51A759AFA0522/961452.png',
     type: 'Utility',
     slot: 'Utility',
-
     // Mesmer form changes activation cost independently of upkeep drain.
     mesmerEnergyCost: 10,
     cooldown: 3,
     energyCost: 30,
     legendId: 'LegendaryDemon',
     castTimeMs: 800,
-    // Call to Anguish completes on its 800 ms impact, which also commits its effects.
-    interruptCommitMs: 800,
+    interruptCommitMs: 760,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(
       { atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
@@ -265,8 +263,10 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     cooldown: 0,
     energyCost: 5,
     legendId: 'LegendaryDemon',
-    // Include the recovery after impact before the next cast can start.
+    // Interrupting after the skill commits keeps the remaining cast lockout.
     castTimeMs: 920,
+    interruptCommitMs: 680,
+    retainsCastLockoutAfterInterrupt: true,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {

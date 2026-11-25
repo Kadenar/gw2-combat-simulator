@@ -2,12 +2,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { cast } from '#tests/helpers/commands.js';
-import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 test('an early buff chain settles before a tied strike after ordinary work has started', () => {
   const coordinator = createExecutionCoordinator(() => ({ time: 1 }));
@@ -63,47 +59,4 @@ test('a hit-triggered buff follows its hit and does not inherit strike priority'
   assert.equal(coordinator.queue.dequeue(), reward);
   assert.equal(reward.priority ?? 0, 0);
   assert.equal(coordinator.queue.dequeue(), sibling);
-});
-
-test('Incensed Response exposes Might to the strike tied with its Fury grant in both output modes', () => {
-  const config = {
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Sword',
-    selectedTraitIds: [TRAIT.INCENSED_RESPONSE],
-    attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, ferocity: 0 }),
-    target: { armor: 1000, health: 0, conditions: {} },
-    randomness: { mode: 'expected', seed: 1 }
-  };
-  const initial = runRevenant([{ type: 'combat-start' }, cast(ID.PREPARATION_THRUST)], config);
-  const hit = initial.resolvedEvents.find((event) => event.type === 'damage');
-  const completionMs = initial.steps.find((step) => step.skillId === ID.PREPARATION_THRUST).end;
-  // Tie the projectile to completion so the concurrent grant enters an already ordinary timestamp.
-  const rotation = [
-    { type: 'combat-start' },
-    cast(ID.PREPARATION_THRUST, { impactDelayMs: completionMs - hit.at * 1000 }),
-    cast(ID.RIPOSTING_SHADOWS, { concurrentOffsetMs: completionMs })
-  ];
-  const damage = [];
-  for (const output of ['detailed', 'score']) {
-    const observed = [];
-    const result = runRevenant(rotation, config, {
-      output,
-      extend: (native) => ({
-        reactions: {
-          ...native.reactions,
-          'damage.resolved'(runtime, event, details) {
-            if (event.skillId === ID.PREPARATION_THRUST)
-              observed.push(runtime.combat.activeBoonStacks('might', event.at));
-
-            native.reactions?.['damage.resolved']?.(runtime, event, details);
-          }
-        }
-      })
-    });
-    assert.deepEqual(result.warnings, []);
-    assert.deepEqual(observed, [5]);
-    damage.push(result.totalDamage);
-  }
-
-  assert.equal(damage[0], damage[1]);
 });

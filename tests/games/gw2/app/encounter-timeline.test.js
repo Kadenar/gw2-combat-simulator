@@ -105,7 +105,7 @@ test('encounter phases render as separate full-width rows while keeping their co
     workspace: { scenario: { encounterId: '020102', difficulty: 'normal' } },
     activeCatalog: { skills: [], skillsById: new Map() },
     adapter: { eliteSpecialization: () => '' },
-    profession: { ui: professionUiFixture({ targetHealthThresholds: () => [0.8, 0.5, 0.25] }) }
+    profession: { ui: professionUiFixture() }
   };
   for (const readOnly of [false, true]) {
     const render = (results) =>
@@ -164,7 +164,7 @@ test('encounter phases render as separate full-width rows while keeping their co
     );
   }
 
-  // The same damage still exposes profession thresholds when the shared renderer belongs to Golem.
+  // The same damage still crosses the shared thresholds when the shared renderer belongs to Golem.
   const golem = timelineRowsView(
     { ...app, workspace: undefined },
     build,
@@ -179,7 +179,7 @@ test('encounter phases render as separate full-width rows while keeping their co
   )
     .rows.map((row) => row.html)
     .join('');
-  assert.equal((golem.match(/rot-health-marker/g) ?? []).length, 3);
+  assert.equal((golem.match(/rot-health-marker/g) ?? []).length, 4);
 });
 
 // Intermission markers distinguish the extra pause without renumbering the next damage phase.

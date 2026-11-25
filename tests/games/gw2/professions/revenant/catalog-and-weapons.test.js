@@ -293,27 +293,6 @@ test('Revenant utilities and Conduit resources render by their related skills', 
   assert.match(html, /timeline-tools-palette-stack[\s\S]*__wait/);
 });
 
-test('Swift Termination exposes the 50% target-health timeline marker', () => {
-  assert.deepEqual(
-    revenantProfession.ui.targetHealthThresholds({
-      catalog: revenantCatalog,
-      build: {
-        specializations: [{ name: 'Devastation', traits: '1-1-2' }]
-      }
-    }),
-    [0.5]
-  );
-  assert.deepEqual(
-    revenantProfession.ui.targetHealthThresholds({
-      catalog: revenantCatalog,
-      build: {
-        specializations: [{ name: 'Devastation', traits: '1-1-1' }]
-      }
-    }),
-    []
-  );
-});
-
 test('weapon swap changes the active Revenant weapon set', () => {
   const result = simulate('Core', ['Swap Weapons'], {
     primaryWeapon: 'Sword',
