@@ -181,6 +181,7 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
       }
 
       const recordedCastWindow = rule.recordedCastWindowMs;
+
       if (
         recordedCastWindow != null &&
         context.recordedActions.some(
