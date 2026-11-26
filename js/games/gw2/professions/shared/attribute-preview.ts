@@ -113,7 +113,8 @@ export function createPreviewControls(context: ProfessionAttributePreviewContext
           description: 'Fixed target health for conditional damage'
         });
     },
-    playerHealth(names: readonly string[], initial = 100): void {
+    // Start at combat's full health and let the preview explore lower-health bonuses.
+    playerHealth(names: readonly string[]): void {
       if (has(...names))
         add({
           key: 'playerHealth',
@@ -121,7 +122,7 @@ export function createPreviewControls(context: ProfessionAttributePreviewContext
           group: 'Trait conditionals',
           kind: 'special',
           max: 100,
-          initial,
+          initial: 100,
           description: names.filter((name) => has(name)).join(', ')
         });
     }

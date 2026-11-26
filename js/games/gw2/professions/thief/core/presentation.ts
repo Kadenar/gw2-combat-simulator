@@ -214,7 +214,7 @@ export const thiefCoreUi = Object.freeze({
     preview.damageTargetHealth(
       preview.hasId(TRAIT.EXECUTIONER) || context.weapons[0] === WEAPON.SPEAR || context.weapons[0] === WEAPON.DAGGER
     );
-    preview.playerHealth(['Keen Observer', 'Twin Fangs'], preview.has('Keen Observer') ? 50 : 100);
+    preview.playerHealth(['Keen Observer', 'Twin Fangs']);
 
     preview.buff('Twin Fangs', 'twinFangs', 'twin-fangs', 'Earned critical-chance bonus active');
     for (const condition of ['Crippled', 'Chilled', 'Immobilized']) preview.condition(condition, 'Opportune Opening');

@@ -61,7 +61,7 @@ import { findRotationProfile } from '#gw2/integrations/logs/shared/rotation/prof
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
-import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
+import { replayCastLaneDurationMs } from '#gw2/integrations/logs/shared/rotation/timing.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 
@@ -237,11 +237,9 @@ function replayActionEnd(action: ResolvedAction): number {
       : action.status === 'completed' && runtimeDuration > 0
         ? Math.max(action.end, action.start + runtimeDuration)
         : action.end);
-  // The command retains the observed interrupt, while timeline spacing remains anchored to the full aftercast.
-  return retainsReplayCastLockout(action.skill, action.replayInterruptMs ?? action.end - action.start) &&
-    runtimeDuration > 0
-    ? Math.max(observedReplayEnd, action.start + runtimeDuration)
-    : observedReplayEnd;
+  const elapsed = action.replayInterruptMs ?? action.end - action.start;
+  const occupied = replayCastLaneDurationMs(action.skill, elapsed, runtimeDuration);
+  return occupied > elapsed ? Math.max(observedReplayEnd, action.start + occupied) : observedReplayEnd;
 }
 
 function buildRotation(actions: readonly ResolvedAction[], origin: number, combatStart: number): RotationCommand[] {

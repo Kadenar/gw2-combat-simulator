@@ -410,7 +410,18 @@ export function profileFact(
           field.slice(dot + 1) as import('#gw2/platform/skills/types.js').SkillAttributeKey,
           field.slice(0, dot)
         );
-  return { name, detail: format(value) };
+  // This profile field always gates repeated triggers. Other timing fields can also describe pulses or skill recharge.
+  return { name, detail: format(value), ...(field === 'internalCooldown' ? { internalCooldownSeconds: value } : {}) };
+}
+
+/** Trait cards move this fact into the heading. Trait descriptions drop it when the cooldown is zero. */
+export function internalCooldownFact(name: string, seconds: number): TooltipFact {
+  return { name, detail: tooltipSeconds(seconds), internalCooldownSeconds: seconds };
+}
+
+/** Some profiles store a trigger cooldown under a field also used for skill recharge or pulse timing. */
+export function profileCooldown(name: string, field = 'cooldown'): FactSpec {
+  return (context, id) => internalCooldownFact(name, balanceNumber(context.catalog, id, field));
 }
 
 /** Resolve a skill fact from the same patched owner used by combat and attribute calculations. */
@@ -802,13 +813,21 @@ export function describeSimulationTrait(
   context: ProfessionBalanceContext,
   trait: CatalogEntity,
   presentation: ProfessionTooltips,
-  specialization = 'Core'
+  specialization = 'Core',
+  build?: TooltipBuild
 ): SimulationTooltip {
   presentation = resolveTooltips(context, presentation);
   const describe = presentation.traits[trait.id];
 
   if (!describe) throw new Error(`Missing trait tooltip: ${trait.id} (${trait.name})`);
 
-  const model = describe(context, trait, specialization);
-  return { ...model, facts: model.facts.map((fact) => ({ ...fact, icon: fact.icon || tooltipFactIcon(fact.name) })) };
+  const model = describe(context, trait, specialization, build);
+  // A zero cooldown imposes no trigger limit on either the build card or the modifier reference.
+  const activeFacts = (facts: readonly TooltipFact[]) => facts.filter((fact) => fact.internalCooldownSeconds !== 0);
+  return {
+    ...model,
+    facts: activeFacts(model.facts).map((fact) => ({ ...fact, icon: fact.icon || tooltipFactIcon(fact.name) })),
+    factTabs: model.factTabs?.map((tab) => ({ ...tab, facts: activeFacts(tab.facts) })),
+    factSections: model.factSections?.map((section) => ({ ...section, facts: activeFacts(section.facts) }))
+  };
 }

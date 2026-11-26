@@ -3,11 +3,13 @@ import {
   fromSkill,
   modifierFact,
   ordinarySkillDescription,
+  profileFact,
   simulationEffectFacts,
   skillFact,
   skillTooltip,
   tooltipDecimal,
   tooltipFactorChange,
+  tooltipHasTrait,
   tooltipNumber,
   tooltipPercent,
   tooltipProfile,
@@ -37,9 +39,20 @@ const weaponSwapTooltip: DescribeSimulationTooltip = skillTooltip(
 );
 
 const dodgeTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Spend endurance to dodge and trigger supported dodge traits. Daredevil applies only the selected dodge package. Silent Scope can grant a stealth-attack charge when malice exceeds its threshold.',
-  (balanceContext) => [
+  'Spend endurance to dodge and trigger supported dodge traits. Daredevil applies only the selected dodge package.',
+  (balanceContext, _skill, build) => [
     { name: 'Endurance cost', detail: String(ENDURANCE.dodgeCost) },
+    // Only a selected Silent Scope grants a stealth-attack charge on dodge.
+    ...(tooltipHasTrait(balanceContext, build, TRAIT.SILENT_SCOPE)
+      ? [
+          profileFact(
+            balanceContext,
+            TRAIT.SILENT_SCOPE,
+            'threshold',
+            'Silent Scope grants a stealth attack above this malice'
+          )
+        ]
+      : []),
     ...[TRAIT.BOUNDING_DODGER, TRAIT.LOTUS_TRAINING, TRAIT.UNHINDERED_COMBATANT].flatMap((id) => {
       const profile = tooltipProfile(balanceContext, id);
       return simulationEffectFacts(profile.effects, `alternative: ${profile.name}`).facts;

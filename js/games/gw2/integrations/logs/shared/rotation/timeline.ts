@@ -1,5 +1,5 @@
 import { actionKind } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
+import { replayCastLaneDurationMs } from '#gw2/integrations/logs/shared/rotation/timing.js';
 import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { quantizeGw2ActionDurationUp, quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
@@ -341,6 +341,13 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       appendObservedIdle(at);
     }
 
+    // Dodge can start as soon as the preceding cast is cut. Only encode an overlap if it changes takeoff.
+    if (dodge && command.concurrentOffsetMs != null && projectedPreviousCastStart != null) {
+      const offsetStart = Math.max(projectedTime, projectedPreviousCastStart + command.concurrentOffsetMs);
+
+      if (offsetStart === Math.max(projectedTime, projectedInstantReadyAt)) delete command.concurrentOffsetMs;
+    }
+
     rotation.push(command);
 
     // Mechanic-owned charge intervals already define their replay occupancy.
@@ -351,10 +358,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
         : actionReplayEnd - at);
     const interruptMs = command.interruptAfterMs ?? action.skill?.defaultInterruptMs;
     const effectiveRuntimeMs = interruptMs == null ? runtimeMs : Math.min(runtimeMs, Math.max(0, interruptMs));
-    const retainedRuntimeMs =
-      effectiveRuntimeMs < runtimeMs && retainsReplayCastLockout(action.skill, effectiveRuntimeMs)
-        ? runtimeMs
-        : effectiveRuntimeMs;
+    const retainedRuntimeMs = replayCastLaneDurationMs(action.skill, effectiveRuntimeMs, runtimeMs);
     // A mechanic can occupy a recorded interval while its entry command still uses the instant lane.
     const projectedStart: number =
       command.concurrentOffsetMs != null
@@ -407,8 +411,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       activeCastEnd = Math.max(activeCastEnd, instant ? at : actionReplayEnd);
 
       // Only an interrupted command uses the retained lane; idle after a completed cast remains explicit.
-      if (command.interruptAfterMs != null && retainsReplayCastLockout(action.skill, command.interruptAfterMs)) {
-        retainedCastEnd = Math.max(retainedCastEnd, actionReplayEnd);
+      if (retainedRuntimeMs > effectiveRuntimeMs) {
+        retainedCastEnd = Math.max(retainedCastEnd, at + retainedRuntimeMs);
       }
     }
   }

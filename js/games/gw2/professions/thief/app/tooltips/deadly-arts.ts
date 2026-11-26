@@ -5,6 +5,8 @@ import {
   profileFact,
   simulationEffectFacts,
   tooltipFactorChange,
+  tooltipHasTrait,
+  tooltipNumber,
   tooltipPercent,
   tooltipPercentValue,
   tooltipProfile,
@@ -37,14 +39,28 @@ export const thiefDeadlyArtsTooltips = {
   [TRAIT.MUG]: traitTooltip(
     'Stealing deals an additional strike that cannot critically strike. Healing is outside combat simulation scope.'
   ),
-  [TRAIT.DEADLY_AMBITION]: traitTooltip(
-    'Gain condition damage. The first landed player strike of a dual attack poisons the target. Potent Poison replaces the base application with more stacks. Current in-game bug: another player strike can consume the proc before the first hit of Death Blossom or during the first projectile flight of Twilight Combo.',
-    [
-      ['attributeBonuses.conditionDamage', 'Condition damage'],
-      ['playerStacks', 'Poison stacks with Potent Poison']
-    ],
-    'base application'
-  ),
+  [TRAIT.DEADLY_AMBITION]: (context, trait, _specialization, build) => {
+    const profile = tooltipProfile(context, trait.id);
+    const potent = tooltipHasTrait(context, build, TRAIT.POTENT_POISON);
+    // Potent Poison replaces the stack count on the same application.
+    const poison = simulationEffectFacts(
+      profile.effects?.map((effect) =>
+        potent && effect.type === 'condition' && effect.condition === CONDITION.POISONED
+          ? { ...effect, stacks: tooltipNumber(profile, 'playerStacks') }
+          : effect
+      )
+    );
+    return {
+      ...poison,
+      description:
+        'Your first hit with a dual attack poisons the target. With Death Blossom or Twilight Combo, another strike can trigger the poison before the first hit lands.',
+      facts: [
+        profileFact(context, trait.id, 'attributeBonuses.conditionDamage', 'Condition damage'),
+        ...poison.facts,
+        ...(!build ? [profileFact(context, trait.id, 'playerStacks', 'Poison stacks with Potent Poison')] : [])
+      ]
+    };
+  },
   [TRAIT.EVEN_THE_ODDS]: traitTooltip('Stealing inflicts vulnerability.'),
   // Distinguish the strike cooldown from poison on every immobilize, including the live stack-count bug.
   [TRAIT.PANIC_STRIKE]: (balanceContext, entity) => {

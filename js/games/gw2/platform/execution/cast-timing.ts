@@ -31,20 +31,27 @@ export function castReachedFullDuration(cast: Gw2CastEndTimes): boolean {
   );
 }
 
-/** Compare accepted ticks so a skill can release lockout on one tick or on every tick from its threshold. */
-export function retainsInterruptedCastLockout(
+/** A committed cut holds the cast lane until its recovery endpoint unless the cut lands on a release tick. */
+export function castLaneEnd(
   skill: Skill | null,
-  cast: Pick<RuntimeCast, 'start' | 'effectiveEnd' | 'cancelledBeforeCommit'>
-): boolean {
-  if (skill?.retainsCastLockoutAfterInterrupt !== true || cast.cancelledBeforeCommit) return false;
+  cast: Pick<RuntimeCast, 'start' | 'fullEnd' | 'effectiveEnd' | 'cancelledBeforeCommit'>
+): number {
+  if (skill?.retainsCastLockoutAfterInterrupt !== true || cast.cancelledBeforeCommit) return cast.effectiveEnd;
 
   const releaseMs = skill.interruptLockoutReleaseExactMs ?? skill.interruptLockoutReleaseMs;
 
-  if (releaseMs == null) return true;
+  if (releaseMs != null) {
+    const interruptAt = gw2Time(cast.effectiveEnd);
+    const releaseAt = gw2Time(cast.start + releaseMs / 1000);
 
-  const interruptAt = gw2Time(cast.effectiveEnd);
-  const releaseAt = gw2Time(cast.start + releaseMs / 1000);
-  return skill.interruptLockoutReleaseExactMs != null ? interruptAt !== releaseAt : interruptAt < releaseAt;
+    if (skill.interruptLockoutReleaseExactMs != null ? interruptAt === releaseAt : interruptAt >= releaseAt)
+      return cast.effectiveEnd;
+  }
+
+  if (skill.interruptLockoutUntilMs == null) return cast.fullEnd;
+
+  const endpoint = gw2Time(cast.start + skill.interruptLockoutUntilMs / 1000);
+  return Math.max(cast.effectiveEnd, Math.min(endpoint, cast.fullEnd));
 }
 
 /**

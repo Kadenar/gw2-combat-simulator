@@ -1,4 +1,5 @@
 import {
+  internalCooldownFact,
   profileFact,
   simulationEffectFacts,
   skillTooltip,
@@ -213,7 +214,7 @@ export const firebrandTooltips = {
             : []),
           { name: 'Charge duration', detail: tooltipSeconds(duration) },
           { name: 'Charge use interval per recipient', detail: tooltipSeconds(ashes.triggerIntervalSeconds) },
-          ...(cooldown > 0 ? [{ name: 'Ashes grant cooldown', detail: tooltipSeconds(cooldown) }] : [])
+          internalCooldownFact('Ashes grant cooldown', cooldown)
         ]
       };
     },

@@ -81,6 +81,9 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 0,
     castTimeMs: 440,
     interruptCommitMs: 280,
+    // An early cut after impact keeps the dagger chain occupied. A cut on the last tick releases it.
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 400,
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',

@@ -2,10 +2,10 @@ import {
   attributeConversionFact,
   maximumBonusFact,
   outsideScopeTooltip,
+  profileCooldown,
   profileFact,
   tooltipFactorChange,
   tooltipPercent,
-  tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
@@ -40,7 +40,7 @@ export const necromancerCursesTooltips = {
   ),
   [TRAIT.CHILLING_DARKNESS]: traitTooltip(
     'Applying blind also inflicts chill.',
-    [['cooldown', 'Internal cooldown', tooltipSeconds]],
+    [profileCooldown('Internal cooldown')],
     'on blind'
   ),
   [TRAIT.MASTER_OF_CORRUPTION]: traitTooltip(

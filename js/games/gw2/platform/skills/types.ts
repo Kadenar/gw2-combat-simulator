@@ -67,6 +67,8 @@ type SkillInterruptMode = 'commit' | 'per-packet';
 export interface TooltipFact {
   readonly name: string;
   readonly detail: string;
+  /** Trait cards show trigger cooldowns beside the trait name. */
+  readonly internalCooldownSeconds?: number;
   readonly icon?: string;
   readonly applications?: number;
   /** Intensity counts appear on the effect icon instead of in the detail text. */

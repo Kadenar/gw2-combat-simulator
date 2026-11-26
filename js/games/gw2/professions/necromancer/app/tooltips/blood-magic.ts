@@ -1,5 +1,6 @@
 import {
   outsideScopeTooltip,
+  profileCooldown,
   tooltipFactorChange,
   tooltipSeconds,
   traitSkillTooltip,
@@ -37,7 +38,7 @@ export const necromancerBloodMagicTooltips = {
   [TRAIT.VAMPIRIC_PRESENCE]: traitTooltip(
     'Vampiric Aura lets you, your summons, and configured allies deal life-steal damage on hit. Their life-steal damage increases while you are in shroud.',
     [
-      ['cooldown', 'Internal cooldown per recipient', tooltipSeconds],
+      profileCooldown('Internal cooldown per recipient'),
       ['auraPulseInterval', 'Vampiric Aura pulse interval', tooltipSeconds],
       // Keep the assumed initial delay visible without burying the trait's effect in scheduling prose.
       [

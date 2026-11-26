@@ -154,7 +154,12 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
     patch: ResolvedPatch,
     build?: Pick<Gw2CanonicalBuild, 'specializations'>
   ) => SimulationTooltip;
-  readonly traitTooltip: (trait: CatalogEntity, patch: ResolvedPatch, specialization: string) => SimulationTooltip;
+  readonly traitTooltip: (
+    trait: CatalogEntity,
+    patch: ResolvedPatch,
+    specialization: string,
+    build?: Pick<Gw2CanonicalBuild, 'specializations'>
+  ) => SimulationTooltip;
   readonly gameId: 'gw2';
   readonly contentId: string;
   readonly id: string;

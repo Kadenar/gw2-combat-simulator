@@ -13,8 +13,7 @@
       "skillId": 13028
     },
     {
-      "type": "combat-start",
-      "concurrentOffsetMs": 720
+      "type": "combat-start"
     },
     {
       "type": "cast",
@@ -94,6 +93,10 @@
       "type": "cast",
       "skillId": -5,
       "interruptAfterMs": 760
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
     },
     {
       "type": "cast",

@@ -18,7 +18,8 @@
     "Weapon2": "Berserker's"
   },
   "weapons": ["Rifle", ""],
-  "alternateWeapons": ["Rifle", ""],
+  "alternateWeapons": ["Dagger", "Pistol"],
+  "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
   "rune": "Dragonhunter",
   "weaponSigils": [
     ["Force", "Impact"],

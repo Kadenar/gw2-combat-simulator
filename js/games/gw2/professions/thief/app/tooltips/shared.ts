@@ -19,6 +19,10 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
   const selected = balanceContext.catalog.skillsById.get(entity.id) as ThiefSkill;
   let effects = (selected.effects || []).filter((effect) => effect.packetLabel !== 'malice');
   const facts: TooltipFact[] = [];
+
+  // Malicious attacks spend every stack after hitting the mark. The skill sets when the spend occurs.
+  if (selected.malicious) facts.push({ name: 'Malice consumed', detail: 'All stacks' });
+
   let description = 'Requires stealth or an available stealth-attack charge. A charge is consumed at cast start.';
   description +=
     selected.id === ID.DEATHS_JUDGMENT || selected.id === ID.MALICIOUS_DEATHS_JUDGMENT

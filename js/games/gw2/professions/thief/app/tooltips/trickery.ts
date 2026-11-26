@@ -2,7 +2,6 @@ import {
   fromProfile,
   maximumBonusFact,
   outsideScopeTooltip,
-  profileFact,
   skillTooltip,
   tooltipFactorChange,
   tooltipPercent,
@@ -17,10 +16,9 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 export const thiefTrickeryTooltips = {
   [TRAIT.KLEPTOMANIAC]: traitTooltip('Stealing restores initiative.', [['resourceGain', 'Initiative restored']]),
   // Only the traited capacity varies with the patch; the baseline is the shared initiative rule.
-  [TRAIT.PREPAREDNESS]: traitTooltip('Increase maximum initiative and gain expertise.', (context, id) => [
-    profileFact(context, id, 'attributeBonuses.expertise', 'Expertise'),
-    profileFact(context, id, 'maximumStacks', 'Maximum initiative with Preparedness'),
-    { name: 'Maximum initiative without Preparedness', detail: String(INITIATIVE.maximum) }
+  [TRAIT.PREPAREDNESS]: traitTooltip('Gain expertise and raise your initiative cap.', [
+    ['maximumStacks', 'Maximum initiative', (cap) => `${INITIATIVE.maximum} to ${cap}`],
+    ['attributeBonuses.expertise', 'Expertise', (amount) => `${amount > 0 ? '+' : ''}${amount}`]
   ]),
   [TRAIT.LEAD_ATTACKS]: traitTooltip('Spending initiative grants temporary damage stacks. Steal recharges faster.', [
     ['damageIncreasePerStack', 'Strike and condition damage per stack', tooltipPercent],
@@ -30,13 +28,15 @@ export const thiefTrickeryTooltips = {
   ]),
   // Triggered skill tooltips read the selected skill patch, just like their trait consumers.
   [TRAIT.UNCATCHABLE]: (context, entity, specialization) =>
-    skillTooltip('Dodging drops Lesser Caltrops, repeatedly inflicting bleeding and cripple.', (_context, skill) =>
-      (skill.effects ?? []).flatMap((effect) =>
-        effect.intervalMs == null
-          ? []
-          : [{ name: `${effect.name} pulse interval`, detail: tooltipSeconds(effect.intervalMs / 1000) }]
-      )
-    )(context, { ...entity, id: ID.LESSER_CALTROPS }, specialization),
+    skillTooltip('Drop Lesser Caltrops when you dodge. Each pulse inflicts conditions.', (_context, skill) => {
+      // Show a shared interval once. Keep individual intervals when a patch gives the effects different timings.
+      const pulsing = skill.effects?.filter((effect) => effect.intervalMs != null) ?? [];
+      const intervals = new Set(pulsing.map((effect) => effect.intervalMs));
+      return (intervals.size === 1 ? pulsing.slice(0, 1) : pulsing).map((effect) => ({
+        name: intervals.size === 1 ? 'Pulse interval' : `${effect.name} pulse interval`,
+        detail: tooltipSeconds(effect.intervalMs! / 1000)
+      }));
+    })(context, { ...entity, id: ID.LESSER_CALTROPS }, specialization),
   [TRAIT.BURST_OF_AGILITY]: (context, entity, specialization) =>
     skillTooltip(
       'Landing an attack against a defiant target triggers Lesser Haste, granting quickness, fury, and swiftness to yourself.',

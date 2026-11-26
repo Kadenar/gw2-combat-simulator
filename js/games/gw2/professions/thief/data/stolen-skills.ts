@@ -25,6 +25,9 @@ export const DEADEYE_STOLEN_SKILL_IDS: readonly SkillId[] = Object.freeze([
 /** Membership is shared by accepted-cast snapshots and stolen-skill traits. */
 export const DEADEYE_STOLEN_SKILL_ID_SET = new Set<SkillId>(DEADEYE_STOLEN_SKILL_IDS);
 
+/** Deadeye stolen skills grant stealth when the cast commits with at least this much malice. */
+export const STOLEN_SKILL_STEALTH_MALICE = 3;
+
 /** Recognizes supported stolen skills even when their stored use has already been consumed. */
 export function isThiefStolenSkill(skillId: SkillId | undefined): boolean {
   return skillId != null && (THIEF_STOLEN_SKILL_IDS.includes(skillId) || DEADEYE_STOLEN_SKILL_ID_SET.has(skillId));

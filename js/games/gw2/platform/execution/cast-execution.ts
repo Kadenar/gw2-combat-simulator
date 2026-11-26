@@ -18,8 +18,8 @@ import {
   selectSkillEffects
 } from '#gw2/platform/execution/cast-effects.js';
 import {
+  castLaneEnd,
   castWasInterrupted,
-  retainsInterruptedCastLockout,
   skillTaskAt,
   summonQuicknessCastTimeMs
 } from '#gw2/platform/execution/cast-timing.js';
@@ -263,9 +263,7 @@ export function createCastExecution<T extends object>(
       start,
       fullEnd,
       effectiveEnd,
-      laneEnd: retainsInterruptedCastLockout(skill, { start, effectiveEnd, cancelledBeforeCommit: cancelled })
-        ? fullEnd
-        : effectiveEnd,
+      laneEnd: castLaneEnd(skill, { start, fullEnd, effectiveEnd, cancelledBeforeCommit: cancelled }),
       rechargeStart: gw2Time(Math.max(start, rechargeStart)),
       // Reserve one-shot recharge entitlements at acceptance, querying only the current live instant.
       rechargeWork,

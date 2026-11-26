@@ -1,13 +1,18 @@
+import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import {
   fromModifier,
   fromProfile,
   fromSkill,
   maximumBonusFact,
   outsideScopeTooltip,
+  profileFact,
   simulationEffectFacts,
+  skillFact,
   skillTooltip,
   tooltipFactorChange,
+  tooltipHasTrait,
   tooltipPercent,
+  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type DescribeSimulationTooltip,
@@ -17,15 +22,21 @@ import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { stealthAttack } from '#gw2/professions/thief/app/tooltips/shared.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { STOLEN_SKILL_STEALTH_MALICE } from '#gw2/professions/thief/data/stolen-skills.js';
 
+// Maleficent Seven replaces the base cap. Both builds gain malice once per initiative skill.
 const deadeyesMarkTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Mark the target, trigger stealing traits, and grant the configured Deadeye stolen skill. Marked initiative attacks build malice on their first hit, with additional gain from critical hits. Remarking preserves existing malice; Malicious Intent adds its grant.',
-  [
-    fromSkill(ID.DEADEYES_MARK, 'duration', 'Mark duration', tooltipSeconds),
-    fromProfile(TRAIT.DEADEYES_GAZE, 'maximumStacks', 'Maximum malice'),
-    fromProfile(TRAIT.MALEFICENT_SEVEN, 'maximumStacks', 'Maximum malice with Maleficent Seven'),
-    fromProfile(TRAIT.DEADEYES_GAZE, 'resourceGain', 'Malice per initiative attack'),
-    fromProfile(TRAIT.DEADEYES_GAZE, 'playerStacks', 'Additional malice from a critical hit')
+  'Mark your target. Initiative skills gain malice once per use when they hit your mark, with extra malice on a critical hit. Shadowstep to the target with a main-hand dagger, sword, spear, or staff. Lose your malice when the mark expires or you mark a different target.',
+  (context, skill, build) => [
+    profileFact(
+      context,
+      tooltipHasTrait(context, build, TRAIT.MALEFICENT_SEVEN) ? TRAIT.MALEFICENT_SEVEN : TRAIT.DEADEYES_GAZE,
+      'maximumStacks',
+      'Maximum malice'
+    ),
+    profileFact(context, TRAIT.DEADEYES_GAZE, 'resourceGain', 'Malice gained on hit'),
+    profileFact(context, TRAIT.DEADEYES_GAZE, 'playerStacks', 'Malice gained on critical hit'),
+    { ...skillFact(context, skill.id, 'duration', 'Duration', tooltipSeconds), icon: MODIFIER_EFFECT_ICONS.Lifetime }
   ]
 );
 
@@ -57,13 +68,16 @@ const deadeyeShadowMeldTooltip: DescribeSimulationTooltip = skillTooltip(
 const deadeyeStolenSkillTooltip: DescribeSimulationTooltip = (balanceContext, entity) => ({
   description:
     'Consume the held Deadeye stolen skill. Its boons affect the party. Having enough malice also grants stealth; this does not consume malice. Stolen-skill traits apply.',
-  facts: simulationEffectFacts(
-    balanceContext.catalog.skillsById
-      .get(entity.id)!
-      .effects?.map((effect): SkillEffect =>
-        effect.type === 'boon' ? { ...effect, audience: { recipients: RECIPIENT.PARTY } } : effect
-      )
-  ).facts
+  facts: [
+    { name: 'Malice required for stealth', detail: String(STOLEN_SKILL_STEALTH_MALICE) },
+    ...simulationEffectFacts(
+      balanceContext.catalog.skillsById
+        .get(entity.id)!
+        .effects?.map((effect): SkillEffect =>
+          effect.type === 'boon' ? { ...effect, audience: { recipients: RECIPIENT.PARTY } } : effect
+        )
+    ).facts
+  ]
 });
 
 /** Describe deadeye tooltips from the selected balance data. */
@@ -106,7 +120,11 @@ export const deadeyeTooltips = {
   },
   traits: {
     [TRAIT.DEADEYES_GAZE]: traitTooltip(
-      "Unlock Deadeye, rifle, cantrips, and Deadeye's Mark. Initiative attacks build malice against the marked target; malicious attacks consume it."
+      "Unlock Deadeye, rifle, cantrips, and Deadeye's Mark. Initiative attacks build malice against the marked target. Malicious attacks consume it.",
+      [
+        ['resourceGain', 'Malice gained on hit'],
+        ['playerStacks', 'Malice gained on critical hit']
+      ]
     ),
     [TRAIT.RENEWING_GAZE]: outsideScopeTooltip,
     [TRAIT.IRON_SIGHT]: traitTooltip('Deal increased strike damage to the marked target.', [
@@ -126,7 +144,10 @@ export const deadeyeTooltips = {
       [
         ['attributeBonuses.precision', 'Precision'],
         ['threshold', 'Malice must exceed'],
-        ['duration', 'Attack availability', tooltipSeconds]
+        (context, id) => ({
+          ...profileFact(context, id, 'duration', 'Attack availability', tooltipSeconds),
+          icon: tooltipFactIcon('Duration')
+        })
       ]
     ),
     [TRAIT.PAYBACK]: outsideScopeTooltip,
@@ -138,13 +159,22 @@ export const deadeyeTooltips = {
         maximumBonusFact('damagePerBoon', 'maximumBoons', 'Maximum strike damage bonus')
       ]
     ),
-    [TRAIT.MALEFICENT_SEVEN]: traitTooltip(
-      'Increase maximum malice. Reaching maximum malice grants initiative and boons once until a malicious attack spends malice.',
-      [
-        ['maximumStacks', 'Maximum malice'],
-        ['resourceGain', 'Initiative restored']
-      ]
-    ),
+    // The higher cap is passive. Only filling the malice pool grants initiative and boons.
+    [TRAIT.MALEFICENT_SEVEN]: (context, trait) => {
+      const rewards = simulationEffectFacts(tooltipProfile(context, trait.id).effects);
+      return {
+        incomplete: rewards.incomplete,
+        description:
+          'Increase your malice cap. After you spend or lose your malice, you can fill it again to earn the rewards.',
+        facts: [profileFact(context, trait.id, 'maximumStacks', 'Maximum malice')],
+        factSections: [
+          {
+            label: 'On reaching maximum malice',
+            facts: [profileFact(context, trait.id, 'resourceGain', 'Initiative restored'), ...rewards.facts]
+          }
+        ]
+      };
+    },
     [TRAIT.BE_QUICK_OR_BE_KILLED]: traitTooltip(
       'Marking a target grants quickness. Gain power and precision while quickness is active.',
       [

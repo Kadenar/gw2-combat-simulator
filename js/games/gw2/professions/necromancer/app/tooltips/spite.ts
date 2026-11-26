@@ -2,6 +2,7 @@ import {
   attributeConversionFact,
   fromProfile,
   maximumBonusFact,
+  profileCooldown,
   tooltipDecimal,
   tooltipFactorChange,
   tooltipPercent,
@@ -25,10 +26,7 @@ export const necromancerSpiteTooltips = {
   ]),
   [TRAIT.SIPHONED_POWER]: traitTooltip(
     'Striking a low-health target grants might.',
-    [
-      ['cooldown', 'Internal cooldown', tooltipSeconds],
-      ['threshold', 'Target health below', tooltipPercentValue]
-    ],
+    [profileCooldown('Internal cooldown'), ['threshold', 'Target health below', tooltipPercentValue]],
     'against a low-health target'
   ),
   [TRAIT.SPITEFUL_TALISMAN]: traitTooltip('Increases strike damage.', [

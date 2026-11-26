@@ -2,6 +2,7 @@ import {
   fromProfile,
   maximumBonusFact,
   outsideScopeTooltip,
+  profileCooldown,
   profileFact,
   simulationEffectFacts,
   skillFact,
@@ -138,15 +139,11 @@ export const evokerTooltips = {
   },
   traits: {
     [TRAIT.EVOCATION]: traitTooltip(
-      'Unlock Evoker, familiars, meditations, and familiar charges. Choose a familiar element; with Fire selected, burning applications grant might.',
+      "Unlock Evoker, familiars, meditations, and familiar charges. With the Fire familiar, burning applications grant might. Sunspot, Pyromancer's Puissance, Earthen Blast, and Rock Solid share the attunement-entry cooldown.",
       [
         // Entry traits share Evocation's cooldown policy, separate from fire-familiar might.
-        [
-          'internalCooldown',
-          "Attunement-entry trait cooldown (Sunspot, Pyromancer's Puissance, Earthen Blast, Rock Solid)",
-          tooltipSeconds
-        ],
-        fromProfile(TRAIT.EVOCATION, 'pulseInterval', 'Fire-familiar might cooldown', tooltipSeconds)
+        ['internalCooldown', 'Attunement entry', tooltipSeconds],
+        profileCooldown('Fire-familiar might cooldown', 'pulseInterval')
       ]
     ),
     [TRAIT.ENHANCED_POTENCY]: traitTooltip(

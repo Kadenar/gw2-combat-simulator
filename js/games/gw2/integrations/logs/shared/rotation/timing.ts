@@ -1,30 +1,26 @@
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import type { StrikeEffect } from '#gw2/platform/effects/types.js';
+import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/cast-effects.js';
 import {
+  castLaneEnd,
   castRelativeEffectTimingScale,
-  referenceCastTimeMs,
-  retainsInterruptedCastLockout
+  referenceCastTimeMs
 } from '#gw2/platform/execution/cast-timing.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
-/** A shortened atomic input cancels unless a declared skill or effect cutoff has been reached. */
-function isUncommittedCast(skill: Skill | null, elapsedMs: number): boolean {
-  if (skill?.interruptMode === 'per-packet') return false;
+/** Extend an observed duration only when the scheduler would reserve recovery beyond its snapped cut. */
+export function replayCastLaneDurationMs(skill: Skill | null, durationMs: number, fullMs: number): number {
+  if (durationMs >= fullMs || !skill?.retainsCastLockoutAfterInterrupt) return durationMs;
 
-  if (elapsedMs >= referenceCastTimeMs(skill)) return false;
-
-  const cutoffs = [skill?.interruptCommitMs, ...(skill?.effects || []).map((effect) => effect.interruptCommitMs)];
-  return !cutoffs.some((cutoff) => cutoff != null && Number.isFinite(cutoff) && elapsedMs >= cutoff);
-}
-
-/** Quantize once so imported commitment and lockout release use the same replay duration. */
-export function retainsReplayCastLockout(skill: Skill | null, durationMs: number): boolean {
-  const elapsedMs = quantizeGw2ActionTimingMs(durationMs);
-  return retainsInterruptedCastLockout(skill, {
+  const effectiveEnd = quantizeGw2ActionTimingMs(durationMs) / 1000;
+  const fullEnd = fullMs / 1000;
+  const laneEnd = castLaneEnd(skill, {
     start: 0,
-    effectiveEnd: elapsedMs / 1000,
-    cancelledBeforeCommit: isUncommittedCast(skill, elapsedMs)
+    fullEnd,
+    effectiveEnd,
+    cancelledBeforeCommit: cancelledBeforeInterruptCommit(skill, 0, fullEnd, effectiveEnd)
   });
+  return laneEnd > effectiveEnd ? laneEnd * 1000 : durationMs;
 }
 
 export { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';

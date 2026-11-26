@@ -5,6 +5,7 @@ import {
   profileFact,
   simulationEffectFacts,
   tooltipFactorChange,
+  tooltipNumber,
   tooltipPercent,
   tooltipPercentValue,
   tooltipProfile,
@@ -18,8 +19,20 @@ import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 /** Describe critical strikes tooltips from the selected balance data. */
 export const thiefCriticalStrikesTooltips = {
   [TRAIT.KEEN_OBSERVER]: traitTooltip(
-    'Gain critical-strike chance. The full-health bonus applies in combat simulation.',
-    [['criticalChance', 'Critical chance at full player health', tooltipPercent]]
+    'Gain critical-hit chance at any health. Gain an additional bonus while your health is above the threshold. Combat simulation uses full health.',
+    (context, id) => {
+      // The profile stores the total at high health. Show only the extra chance in the conditional row.
+      const profile = tooltipProfile(context, id);
+      const baseChance = tooltipNumber(profile, 'lowHealthCriticalChance');
+      return [
+        { name: 'Health threshold', detail: tooltipPercentValue(tooltipNumber(profile, 'threshold')) },
+        { name: 'Base critical chance increase', detail: tooltipPercent(baseChance) },
+        {
+          name: 'Additional critical chance above threshold',
+          detail: tooltipPercent(tooltipNumber(profile, 'criticalChance') - baseChance)
+        }
+      ];
+    }
   ),
   [TRAIT.UNRELENTING_STRIKES]: traitTooltip(
     'Eligible critical hits grant fury to the party.',
@@ -36,7 +49,7 @@ export const thiefCriticalStrikesTooltips = {
     ['resourceGain', 'Initiative restored']
   ]),
   [TRAIT.TWIN_FANGS]: traitTooltip(
-    'Deal increased critical damage, which is further increased while your health is above the threshold. Gain bonus critical-hit chance for a duration after hitting a foe from behind or the side or when they are defiant. Combat simulation always applies the high-health critical-damage bonus and triggers the critical-chance buff after a direct hit against a defiant target. Further qualifying hits refresh the buff; flanking non-defiant targets is not modeled.',
+    'Deal bonus critical damage, with a larger bonus above the health threshold. Flanking hits and direct hits on defiant foes grant or refresh bonus critical chance. Simulations use full health and check only for defiant foes.',
     [
       ['threshold', 'Health threshold', tooltipPercentValue],
       ['criticalDamage', 'Critical damage increase', tooltipFactorChange],

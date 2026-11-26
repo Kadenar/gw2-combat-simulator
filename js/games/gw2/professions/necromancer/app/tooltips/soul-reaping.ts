@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  internalCooldownFact,
   simulationEffectFacts,
   tooltipDecimal,
   tooltipFactorChange,
@@ -75,7 +76,7 @@ export const necromancerSoulReapingTooltips = {
     return {
       ...effects,
       description: scourge ? 'Shade strikes inflict burning.' : 'Shroud skill 1 inflicts burning.',
-      facts: [...effects.facts, ...(scourge ? [{ name: 'Internal cooldown', detail: tooltipSeconds(interval) }] : [])]
+      facts: [...effects.facts, ...(scourge ? [internalCooldownFact('Internal cooldown', interval)] : [])]
     };
   }
 } satisfies NonNullable<ProfessionTooltips<NecromancerSkill>['traits']>;

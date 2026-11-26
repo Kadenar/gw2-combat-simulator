@@ -65,6 +65,7 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Trigger duration': 'https://render.guildwars2.com/file/7B2193ACCF77E56C13E608191B082D68AA0FAA71/156659.png',
   // Lifetime facts use the game's hourglass glyph to identify how long an effect remains active.
   Lifetime: 'https://render.guildwars2.com/file/7B2193ACCF77E56C13E608191B082D68AA0FAA71/156659.png',
+  Malice: 'https://render.guildwars2.com/file/5E50F7555EC3E9D7373B35C5FC73F24E74573459/1983628.png',
   'Energy cost': 'https://assets.gw2dat.com/156647.png',
   'Crushing Abyss': 'https://render.guildwars2.com/file/632F757C2309C12BCFE99FCCE4BB761FA59AECEE/3379187.png',
   'Battle Scars': 'https://render.guildwars2.com/file/12FFBBD82F3BB8C057E95AB7E907AD3EACFDF221/2261517.png',
@@ -158,6 +159,7 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Affinity: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Energy: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Endurance: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
+  Initiative: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Motivation: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   // Artifact-use grants share the book glyph with other resource amounts.
   'Artifact uses': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
@@ -237,6 +239,12 @@ const tooltipIconNames = Object.keys(MODIFIER_EFFECT_ICONS)
 /** Qualifiers change a fact's wording, not its icon; conversions use the destination attribute. */
 export function tooltipFactIcon(name: string): string | undefined {
   const label = name.toLowerCase().split('converted to ').at(-1)!;
+
+  // Player health thresholds share the target glyph across trait tooltips.
+  if (label === 'health threshold') return MODIFIER_EFFECT_ICONS.Target;
+
+  // Malice gains and per-stack bonuses share the resource icon, including damage and duration bonuses.
+  if (/\bmalice\b/.test(label)) return MODIFIER_EFFECT_ICONS.Malice;
 
   if (/\bskills? recharge\b/.test(label)) return MODIFIER_EFFECT_ICONS['Skill recharge'];
 

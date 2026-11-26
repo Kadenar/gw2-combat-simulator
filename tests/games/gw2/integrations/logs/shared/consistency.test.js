@@ -456,6 +456,31 @@ test('the shared timeline preserves unsupported durations, idle gaps, and concur
   ]);
 });
 
+test('the importer adds a dodge offset only when takeoff overlaps the preceding replayed cast', () => {
+  const cast = { id: 1, name: 'Channel', castTimeMs: 400 };
+  const dodge = { id: -5, name: 'Dodge', inputControl: 'dodge', castTimeMs: 800 };
+  for (const [takeoff, expectedOffset] of [
+    [160, 160],
+    [320, undefined]
+  ]) {
+    const rotation = buildReplayTimeline(
+      [
+        { start: 0, end: 400, eventIndex: 0, skill: cast, name: cast.name, skillId: cast.id },
+        { start: takeoff, end: takeoff + 800, eventIndex: 1, skill: dodge, name: dodge.name, skillId: dodge.id }
+      ],
+      0,
+      null,
+      {
+        commandFor: ({ skillId }) =>
+          skillId === cast.id ? { type: 'cast', skillId, interruptAfterMs: 320 } : { type: 'cast', skillId }
+      }
+    );
+    assert.equal(rotation.length, 2);
+    assert.equal(rotation[1].skillId, dodge.id);
+    assert.equal(rotation[1].concurrentOffsetMs, expectedOffset);
+  }
+});
+
 test('weapon swaps retain their observed overlap with dodge through an intervening instant', () => {
   const instant = { id: 2_000, name: 'Instant', castTimeMs: 0 };
   const swap = { id: -3, name: 'Swap Weapons', castTimeMs: 0 };

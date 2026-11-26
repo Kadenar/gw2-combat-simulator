@@ -370,6 +370,7 @@ test('player health changes only the isolated stat preview', () => {
   assert.ok(attributePreviewControls(app).some((control) => control.key === 'playerHealth'));
   const low = stats(app, { playerHealth: 0 });
   const high = stats(app, { playerHealth: 100 });
+  assert.deepEqual(stats(app), high);
   assert.ok(high['Critical Chance'].final > low['Critical Chance'].final);
   assert.ok(high['Critical Damage'].final > low['Critical Damage'].final);
   assert.deepEqual(stats(app, { playerHealth: 0 }), low);

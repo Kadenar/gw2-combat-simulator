@@ -1,5 +1,5 @@
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
-import type { SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
+import { tooltipDecimal, type SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import type { CatalogEntity, Skill, TooltipFact } from '#gw2/platform/skills/types.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 
@@ -15,6 +15,19 @@ export function wikiTooltipAttributes(
   if (!name || name === 'None') return '';
 
   return `data-wiki-name="${esc(name)}" data-wiki-description="${esc(String(description ?? ''))}" data-wiki-page="${esc(wikiName)}" data-wiki-effects="${esc(JSON.stringify(facts))}" data-wiki-effect-tabs="${esc(JSON.stringify(factTabs))}" data-wiki-effect-sections="${esc(JSON.stringify(factSections))}"`;
+}
+
+/** One recharge badge in the card heading. A tab index limits a trait timer to that tab. */
+interface HeadingTimer {
+  name: string;
+  seconds: string;
+  label?: string;
+  tab?: number;
+}
+
+/** Store skill recharge and trait trigger timers on the control that opens the card. */
+function rechargeAttributes(timers: readonly HeadingTimer[]): string {
+  return timers.length ? ` data-wiki-recharges="${esc(JSON.stringify(timers))}"` : '';
 }
 
 /** Renders a locally described model; the selected simulation definitions own every numeric fact. */
@@ -53,9 +66,17 @@ export function skillTooltipAttributes(
     (energy && (Number(energy.detail) > 0 || energy.name === 'Energy cost')
       ? ` data-wiki-energy="${esc(energy.detail)}" data-wiki-energy-label="${esc(energy.name)}"`
       : '') +
-    (recharge
-      ? ` data-wiki-recharge="${esc(recharge.detail.replace(/s$/, ''))}" data-wiki-recharge-label="${esc(recharge.name)}"`
-      : '') +
+    rechargeAttributes(
+      recharge
+        ? [
+            {
+              name: recharge.name,
+              seconds: recharge.detail.replace(/s$/, ''),
+              label: recharge.name.startsWith('Base ') ? 'Base' : undefined
+            }
+          ]
+        : []
+    ) +
     (detailLines ? ` data-wiki-details="${esc(detailLines)}" data-wiki-details-title="${esc(detailsTitle)}"` : '') +
     (notice ? ` data-wiki-notice="${esc(notice)}"` : '')
   );
@@ -69,13 +90,26 @@ export function traitTooltipAttributes(trait: CatalogEntity, tooltip: Simulation
   ]
     .filter(Boolean)
     .join('\n');
-  return wikiTooltipAttributes(
-    trait.name,
-    description,
-    trait.name,
-    tooltip.facts,
-    tooltip.factTabs,
-    tooltip.factSections
+  const cooldowns: HeadingTimer[] = [];
+  // Tab timers follow the selected tab. Persistent sections identify their triggers in the heading.
+  const effectRows = (facts: readonly TooltipFact[], section?: string, tab?: number) =>
+    facts.filter((fact) => {
+      if (fact.internalCooldownSeconds == null) return true;
+
+      const name = section ? `${section}: ${fact.name}` : fact.name;
+      // Round like the fact rows so a computed interval cannot show floating-point noise.
+      cooldowns.push({ name, seconds: tooltipDecimal(fact.internalCooldownSeconds), label: name, tab });
+
+      return false;
+    });
+  const facts = effectRows(tooltip.facts);
+  const tabs = tooltip.factTabs?.map((tab, index) => ({ ...tab, facts: effectRows(tab.facts, undefined, index) }));
+  const sections = tooltip.factSections?.map((section) => ({
+    ...section,
+    facts: effectRows(section.facts, section.label)
+  }));
+  return (
+    wikiTooltipAttributes(trait.name, description, trait.name, facts, tabs, sections) + rechargeAttributes(cooldowns)
   );
 }
 
@@ -132,6 +166,7 @@ export function bindWikiTooltips(): void {
   let closeTimer: ReturnType<typeof setTimeout> | undefined;
   let openTimer: ReturnType<typeof setTimeout> | undefined;
   let pointerInteraction = false;
+  let timers: HeadingTimer[] = [];
 
   const cancelClose = () => clearTimeout(closeTimer);
 
@@ -191,15 +226,29 @@ export function bindWikiTooltips(): void {
     panel.style.top = `${placeBelow ? rect.bottom + 6 : rect.top - panel.offsetHeight - 6}px`;
   };
 
+  // Show the active tab's timers beside shared timers. Visible labels distinguish multiple triggers on touchscreens.
+  const renderTimers = (activeTab: number) => {
+    const visible = timers.filter((timer) => timer.tab == null || timer.tab === activeTab);
+    recharge.innerHTML = visible
+      .map(
+        ({ name, seconds, label }) =>
+          `<span role="img" aria-label="${esc(name)}: ${esc(seconds)} seconds" title="${esc(name)}">${label ? `<span class="wiki-tooltip-timer-label">${esc(label)}</span> ` : ''}<span class="wiki-tooltip-timer-value">${esc(seconds)} <img src="${esc(MODIFIER_EFFECT_ICONS.Recharge)}" alt=""></span></span>`
+      )
+      .join('');
+    recharge.hidden = !visible.length;
+  };
+
   // Tabs expose one alternative at a time and keep only the selected tab in the keyboard tab order.
   const selectTab = (selected: HTMLButtonElement) => {
-    for (const tab of effects.querySelectorAll<HTMLButtonElement>('[role="tab"]')) {
+    const tabs = [...effects.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    for (const tab of tabs) {
       const active = tab === selected;
       tab.setAttribute('aria-selected', String(active));
       tab.tabIndex = active ? 0 : -1;
       document.getElementById(tab.getAttribute('aria-controls')!)!.hidden = !active;
     }
 
+    renderTimers(tabs.indexOf(selected));
     position();
   };
 
@@ -283,26 +332,21 @@ export function bindWikiTooltips(): void {
     // Clear the shared badge when the next skill has no positive energy cost.
     // Keep the base qualifier visible when the heading stands in for the full fact row.
     const energyLabel = element.dataset.wikiEnergyLabel || 'Energy cost';
-    const rechargeLabel = element.dataset.wikiRechargeLabel || 'Recharge';
     energy.title = energyLabel;
-    recharge.title = rechargeLabel;
     energy.innerHTML = element.dataset.wikiEnergy
       ? `${energyLabel.startsWith('Base') ? 'Base ' : ''}${esc(element.dataset.wikiEnergy)} <img src="${esc(MODIFIER_EFFECT_ICONS['Energy cost'])}" alt="">`
       : '';
     energy.setAttribute('aria-label', `${energyLabel}: ${element.dataset.wikiEnergy || 0}`);
     energy.hidden = !element.dataset.wikiEnergy;
-    // Use the same game recharge asset in the heading and qualified recharge fact rows.
-    recharge.innerHTML = element.dataset.wikiRecharge
-      ? `${rechargeLabel.startsWith('Base') ? 'Base ' : ''}${esc(element.dataset.wikiRecharge)} <img src="${esc(MODIFIER_EFFECT_ICONS.Recharge)}" alt="">`
-      : '';
-    recharge.setAttribute('aria-label', `${rechargeLabel}: ${element.dataset.wikiRecharge || 0} seconds`);
-    recharge.hidden = !element.dataset.wikiRecharge;
+    timers = JSON.parse(element.dataset.wikiRecharges || '[]');
+    renderTimers(0);
     const facts: TooltipFact[] = JSON.parse(element.dataset.wikiEffects || '[]');
     const factTabs: NonNullable<SimulationTooltip['factTabs']> = JSON.parse(element.dataset.wikiEffectTabs || '[]');
     const factSections: NonNullable<SimulationTooltip['factSections']> = JSON.parse(
       element.dataset.wikiEffectSections || '[]'
     );
-    effects.hidden = !facts.length && !factTabs.length && !factSections.length;
+    const visibleSections = factSections.filter((section) => section.description || section.facts.length);
+    effects.hidden = !facts.length && !factTabs.length && !visibleSections.length;
     // Named sections provide the hierarchy without an extra heading above the ordinary effect rows.
     effects.innerHTML = `${facts.length && !factTabs.length && !factSections.length && !element.dataset.wikiEquipment ? '<div class="wiki-tooltip-effects-label">Base effects</div>' : ''}${renderFacts(facts)}${
       factTabs.length
@@ -312,7 +356,7 @@ export function bindWikiTooltips(): void {
         : ''
     }`;
     // Persistent sections separate conditional bonuses without hiding their trigger or facts behind a tab.
-    effects.innerHTML += factSections
+    effects.innerHTML += visibleSections
       .map(
         (section, index) =>
           `<section class="wiki-tooltip-effect-section" aria-labelledby="wiki-tooltip-section-${index}"><h3 id="wiki-tooltip-section-${index}">${esc(section.label)}</h3>${section.description ? `<p>${esc(section.description)}</p>` : ''}${renderFacts(section.facts)}</section>`

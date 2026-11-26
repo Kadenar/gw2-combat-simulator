@@ -3,6 +3,7 @@ import {
   fromProfile,
   maximumBonusFact,
   outsideScopeTooltip,
+  profileCooldown,
   skillTooltip,
   tooltipFactorChange,
   tooltipPercent,
@@ -55,7 +56,7 @@ export const reaperTooltips = {
     ),
     [TRAIT.CHILLING_NOVA]: traitTooltip(
       'Critical hits against chilled targets trigger an explosion and chill.',
-      [['cooldown', 'Internal cooldown', tooltipSeconds]],
+      [profileCooldown('Internal cooldown')],
       'on eligible critical hit'
     ),
     [TRAIT.RELENTLESS_PURSUIT]: outsideScopeTooltip,
@@ -65,7 +66,7 @@ export const reaperTooltips = {
     ),
     [TRAIT.CHILLING_VICTORY]: traitTooltip('Striking chilled targets generates life force.', [
       ['lifeForceGain', 'Life force gained', lifeForce],
-      ['cooldown', 'Internal cooldown', tooltipSeconds]
+      profileCooldown('Internal cooldown')
     ]),
     [TRAIT.DECIMATE_DEFENSES]: traitTooltip('Gain critical-strike chance for vulnerability on the target.', [
       ['criticalChancePerStack', 'Critical chance per vulnerability stack', tooltipPercent],

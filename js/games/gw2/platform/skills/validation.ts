@@ -77,10 +77,11 @@ function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): voi
     throw new TypeError(`Skill ${skill.id} declares both a lockout release threshold and an exact release tick.`);
 
   if (
-    (skill.interruptLockoutReleaseMs ?? skill.interruptLockoutReleaseExactMs) != null &&
+    (skill.interruptLockoutUntilMs ?? skill.interruptLockoutReleaseMs ?? skill.interruptLockoutReleaseExactMs) !=
+      null &&
     skill.retainsCastLockoutAfterInterrupt !== true
   )
-    throw new TypeError(`Skill ${skill.id} lockout release time requires retainsCastLockoutAfterInterrupt.`);
+    throw new TypeError(`Skill ${skill.id} lockout timing requires retainsCastLockoutAfterInterrupt.`);
 
   // Selector metadata is a cross-catalog contract, never a second source of executable packets.
   if (skill.selector) {

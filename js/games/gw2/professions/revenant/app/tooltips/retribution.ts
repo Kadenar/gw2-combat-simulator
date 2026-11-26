@@ -2,9 +2,9 @@ import {
   attributeConversionFact,
   fromProfile,
   outsideScopeTooltip,
+  profileCooldown,
   tooltipFactorChange,
   tooltipPercent,
-  tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
@@ -43,7 +43,7 @@ export const revenantRetributionTooltips = {
         'Condition damage with resolution',
         tooltipPercent
       ),
-      ['cooldown', 'Might cooldown', tooltipSeconds]
+      profileCooldown('Might cooldown')
     ]
   ),
   [TRAIT.VERSED_IN_STONE]: traitTooltip(

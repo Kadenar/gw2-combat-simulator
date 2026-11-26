@@ -20,37 +20,43 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
     cooldown: 0,
     kneelSkill: true,
     castTimeMs: 600,
-    interruptCommitMs: 520,
-    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 1.1,
-        hits: 1,
-        name: 'Deadly Aim',
-        actorType: ACTOR.PLAYER,
-        comboFinishers: [
-          {
-            ownerId: 'thief',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2
-          }
-        ]
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        stacks: 2,
-        duration: 6,
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        stacks: 1,
-        duration: 6,
-        actorType: ACTOR.PLAYER
-      }
-    ])
+    // The bullet can land after the animation is cut. Only the last tick of recovery can be skipped.
+    interruptCommitMs: 440,
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 560,
+    effects: impactEffects(
+      { atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 1.1,
+          hits: 1,
+          name: 'Deadly Aim',
+          actorType: ACTOR.PLAYER,
+          comboFinishers: [
+            {
+              ownerId: 'thief',
+              finisherType: COMBO_FINISHER.PROJECTILE,
+              chance: 0.2
+            }
+          ]
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.VULNERABILITY,
+          stacks: 2,
+          duration: 6,
+          actorType: ACTOR.PLAYER
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.VULNERABILITY,
+          stacks: 1,
+          duration: 6,
+          actorType: ACTOR.PLAYER
+        }
+      ]
+    )
   },
   [ID.BRUTAL_AIM]: {
     name: 'Brutal Aim',

@@ -43,7 +43,7 @@ import {
 import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
 import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
-import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
+import { replayCastLaneDurationMs } from '#gw2/integrations/logs/shared/rotation/timing.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
@@ -206,29 +206,28 @@ function observedInterruptMs(action: ResolvedLogAction): number | null {
   // A completed follow-up must not become a cancellation of its longer main skill.
   const runtimeDurationMs = action.replayDurationMs ?? referenceCastTimeMs(action.skill);
 
+  // EI marks a shortened dodge complete once it commits. Preserve that takeoff-to-landing interval on the replay grid.
+  const committedDodge =
+    action.skill?.inputControl === 'dodge' &&
+    action.skill.interruptCommitMs != null &&
+    interruptMs >= action.skill.interruptCommitMs;
+
   // A completed animation can end between the final two replay ticks. Rounding it down would discard its hit.
-  if (action.status === 'completed' && sourceDurationMs > runtimeDurationMs - GW2_TICK_MS) return null;
+  if (!committedDodge && action.status === 'completed' && sourceDurationMs > runtimeDurationMs - GW2_TICK_MS)
+    return null;
 
   return sourceDurationMs > 0 && interruptMs < runtimeDurationMs ? interruptMs : null;
 }
 
 /** Keeps retained aftercast occupied in replay without encoding that same interval as a separate wait. */
 function replayActionEnd(action: ResolvedLogAction, completeReportedAftercast = false): number {
-  if (action.replayInterruptMs != null) return action.start + action.replayInterruptMs;
+  const runtimeDuration = action.replayDurationMs ?? referenceCastTimeMs(action.skill);
+  const interruptMs = action.replayInterruptMs ?? observedInterruptMs(action);
 
-  if (retainsReplayCastLockout(action.skill, observedInterruptMs(action) ?? action.end - action.start)) {
-    const runtimeDuration = action.replayDurationMs ?? referenceCastTimeMs(action.skill);
-    return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
-  }
-
-  // Timeline waits begin after the same interruption encoded in the replay command, including tick snapping.
-  const interruptMs = observedInterruptMs(action);
-
-  if (interruptMs != null) return action.start + interruptMs;
+  if (interruptMs != null) return action.start + replayCastLaneDurationMs(action.skill, interruptMs, runtimeDuration);
 
   if (!completeReportedAftercast) return action.end;
 
-  const runtimeDuration = action.replayDurationMs ?? referenceCastTimeMs(action.skill);
   return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
 }
 

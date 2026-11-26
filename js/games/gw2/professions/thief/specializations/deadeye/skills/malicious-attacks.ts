@@ -44,6 +44,10 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     malicious: { spend: 'impact' },
     castTimeMs: 680,
     interruptCommitMs: 520,
+    // Early committed shots hold the rifle until 640 ms. A cut at 600 ms releases it immediately.
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutUntilMs: 640,
+    interruptLockoutReleaseMs: 600,
     // Mercy during the windup or projectile flight reduces the malice available on impact.
     modifiers: [
       {
@@ -262,6 +266,9 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     },
     castTimeMs: 440,
     interruptCommitMs: 200,
+    // Cutting the stealth attack after impact keeps its recovery unless the cut reaches the last tick.
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 400,
     effects: impactEffects(
       { atMs: 200, timingAnchor: 'castStart' as const, timingScale: 'fixed' as const, persistsAfterInterrupt: true },
       [

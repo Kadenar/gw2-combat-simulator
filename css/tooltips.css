@@ -102,6 +102,21 @@
   vertical-align: middle;
 }
 
+/* Stack labeled timers at the right edge and wrap long trigger names without splitting the number from its icon. */
+.wiki-tooltip-costs:has(.wiki-tooltip-timer-label) {
+  max-width: 65%;
+  white-space: normal;
+  text-align: right;
+}
+
+.wiki-tooltip-recharge > span {
+  display: block;
+}
+
+.wiki-tooltip-timer-value {
+  white-space: nowrap;
+}
+
 .wiki-tooltip-highlight {
   color: #ffd12c;
 }

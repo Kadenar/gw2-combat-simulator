@@ -2,6 +2,7 @@ import {
   fromProfile,
   maximumBonusFact,
   outsideScopeTooltip,
+  profileCooldown,
   simulationEffectFacts,
   skillTooltip,
   tooltipFactorChange,
@@ -201,15 +202,12 @@ export const renegadeTooltips = {
       ['internalCooldown', 'Vigor cooldown', tooltipSeconds]
     ]),
     [TRAIT.ASHEN_DEMEANOR]: traitTooltip("Using a healing skill grants boons and Kalla's Fervor.", [
-      ['cooldown', 'Internal cooldown', tooltipSeconds],
+      profileCooldown('Internal cooldown'),
       ['fervorStacks', 'Fervor stacks gained']
     ]),
     [TRAIT.BLOOD_FURY]: traitTooltip(
       "Fury applications grant Kalla's Fervor. Bleeding lasts longer while you have fury.",
-      [
-        ['cooldown', 'Fervor cooldown', tooltipSeconds],
-        ['conditionDurationBonus', 'Bleeding duration with fury', tooltipPercent]
-      ]
+      [profileCooldown('Fervor cooldown'), ['conditionDurationBonus', 'Bleeding duration with fury', tooltipPercent]]
     ),
     [TRAIT.WROUGHT_IRON_WILL]: outsideScopeTooltip,
     [TRAIT.BOLD_REVERSAL]: traitTooltip(

@@ -162,14 +162,14 @@ export function renderTraits(app: ProfessionAppState): void {
                                     <button type="button" class="spec-trait-minor ${selection.disabledMinorTraits?.includes(tier) ? 'dim' : 'sel'}"
                                       data-line="${lineIndex}" data-tier="${tier}" data-pick="0"
                                       aria-pressed="${!selection.disabledMinorTraits?.includes(tier)}" aria-label="${esc(minor.name)}"
-                                      ${traitTooltipAttributes(minor, app.adapter.traitTooltip(minor, app.patch, eliteSpecialization))}><img src="${esc(minor.icon)}" alt=""></button>
+                                      ${traitTooltipAttributes(minor, app.adapter.traitTooltip(minor, app.patch, eliteSpecialization, app.build))}><img src="${esc(minor.icon)}" alt=""></button>
                                     <div class="spec-trait-majors">${spec.majorTraits[tier]
                                       .map(
                                         (trait, position) =>
                                           `<button type="button" class="spec-trait-major ${picks[tier] === position + 1 ? 'sel' : 'dim'}"
                                             data-line="${lineIndex}" data-tier="${tier}" data-pick="${position + 1}"
                                             aria-pressed="${picks[tier] === position + 1}" aria-label="${esc(trait.name)}"
-                                            ${traitTooltipAttributes(trait, app.adapter.traitTooltip(trait, app.patch, eliteSpecialization))}><img src="${esc(trait.icon)}" alt=""></button>`
+                                            ${traitTooltipAttributes(trait, app.adapter.traitTooltip(trait, app.patch, eliteSpecialization, app.build))}><img src="${esc(trait.icon)}" alt=""></button>`
                                       )
                                       .join('')}</div>
                                 </div>`;

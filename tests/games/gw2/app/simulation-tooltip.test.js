@@ -6,11 +6,15 @@ import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
 import {
   describeSimulationSkill,
   describeSimulationTrait,
+  profileCooldown,
   simulationEffectFacts,
   skillTooltip,
-  tooltipNumber
+  tooltipHasTrait,
+  tooltipNumber,
+  tooltipSeconds,
+  traitTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
+import { skillTooltipAttributes, traitTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 
 test('skill cards cache by selection and balance context while row details stay local', async () => {
@@ -45,6 +49,37 @@ test('skill cards cache by selection and balance context while row details stay 
   assert.equal(row('row-one'), saved);
 });
 
+// Trait cards must follow edits to the current build while reference cards have no selection.
+test('trait cards resolve effects against the current trait choices', async () => {
+  const { profession } = await professionRegistry[0].loadAppAdapter();
+  const trait = { id: 'source', name: 'Source' };
+  const adjustment = { id: 'adjustment' };
+  const catalog = { specializations: [{ name: 'line', minorTraits: [], majorTraits: [[adjustment]] }] };
+  const patch = { balanceContext: { catalog } };
+  const adapter = defineProfessionApp({
+    profession,
+    tooltips: {
+      traits: {
+        [trait.id]: (context, _trait, _specialization, build) =>
+          simulationEffectFacts([
+            {
+              type: 'condition',
+              condition: 'Bleeding',
+              duration: 4,
+              stacks: tooltipHasTrait(context, build, adjustment.id) ? 2 : 1
+            }
+          ])
+      }
+    }
+  });
+  const stacks = (build) => adapter.traitTooltip(trait, patch, 'Core', build).facts[0].stacks;
+  const build = { specializations: [{ name: 'line', traits: '1-0-0' }] };
+  assert.equal(stacks(build), 2);
+  build.specializations[0].traits = '0-0-0';
+  assert.equal(stacks(build), 1);
+  assert.equal(stacks(), 1);
+});
+
 // A selected trait may remove a cost entirely or add charges. Row and heading values must agree.
 test('adjusted skill costs follow the selected trait and revert when it is removed', () => {
   const skill = { id: 'fixture', name: 'Fixture', cooldown: 8, ammo: 1, energyCost: 4 };
@@ -65,11 +100,59 @@ test('adjusted skill costs follow the selected trait and revert when it is remov
   );
   const heading = skillTooltipAttributes(skill, adjusted);
   assert.match(heading, /data-wiki-energy="0"/);
-  assert.match(heading, /data-wiki-recharge="6"/);
+  assert.equal(tooltipAttribute(heading, 'recharges')[0].seconds, '6');
   assert.deepEqual(
     describe('0-0-0').facts.map((fact) => fact.detail),
     ['8s', '1', '4']
   );
+});
+
+function tooltipAttribute(markup, name) {
+  const value = markup.match(new RegExp(`data-wiki-${name}="([^"]*)"`))?.[1];
+  return value && JSON.parse(value.replaceAll('&quot;', '"'));
+}
+
+test('trait headers collect trigger cooldowns and preserve their scope', () => {
+  const trait = { id: 'sample', name: 'Sample' };
+  const profile = { ...trait, internalCooldown: 0.5, cooldown: 4, rechargeReduction: 2 };
+  const context = { catalog: { balanceProfilesById: new Map([[trait.id, profile]]) } };
+  const model = traitTooltip('', [
+    ['internalCooldown', 'First trigger', tooltipSeconds],
+    ['rechargeReduction', 'Recharge reduction', tooltipSeconds]
+  ])(context, trait);
+  const scoped = profileCooldown('Second trigger')(context, trait.id);
+  const tabs = ['Base effects', 'Alternate'].map((label) => ({ label, facts: [scoped] }));
+  const card = traitTooltipAttributes(trait, {
+    ...model,
+    factTabs: tabs,
+    factSections: [{ label: 'On swap', facts: [scoped] }]
+  });
+  assert.deepEqual(tooltipAttribute(card, 'recharges'), [
+    { name: 'First trigger', seconds: '0.5', label: 'First trigger' },
+    ...tabs.map((_, tab) => ({ name: 'Second trigger', seconds: '4', label: 'Second trigger', tab })),
+    { name: 'On swap: Second trigger', seconds: '4', label: 'On swap: Second trigger' }
+  ]);
+  assert.deepEqual(tooltipAttribute(card, 'effects'), [model.facts[1]]);
+  assert.deepEqual(
+    tooltipAttribute(card, 'effect-tabs'),
+    tabs.map(({ label }) => ({ label, facts: [] }))
+  );
+  assert.deepEqual(tooltipAttribute(card, 'effect-sections'), [{ label: 'On swap', facts: [] }]);
+  assert.doesNotMatch(traitTooltipAttributes(trait, { facts: [model.facts[1]] }), /data-wiki-recharges/);
+});
+
+test('a disabled trigger cooldown is absent from both reference facts and the trait heading', () => {
+  const trait = { id: 'sample', name: 'Sample' };
+  const profile = { ...trait, internalCooldown: 0, rechargeReduction: 0 };
+  const context = { catalog: { balanceProfilesById: new Map([[trait.id, profile]]) } };
+  const describe = traitTooltip('', [
+    ['internalCooldown', 'Trigger', (seconds) => `${seconds} seconds`],
+    ['rechargeReduction', 'Reduction', tooltipSeconds]
+  ]);
+  const model = describeSimulationTrait(context, trait, { traits: { [trait.id]: describe } });
+  assert.equal(model.facts.length, 1);
+  assert.equal(model.facts[0].name, 'Reduction');
+  assert.doesNotMatch(traitTooltipAttributes(trait, model), /data-wiki-recharges/);
 });
 
 test('a custom skill formatter reads the effect payload once', () => {

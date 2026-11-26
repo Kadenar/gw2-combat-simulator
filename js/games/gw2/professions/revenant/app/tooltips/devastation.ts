@@ -2,6 +2,7 @@ import {
   fromProfile,
   maximumBonusFact,
   outsideScopeTooltip,
+  profileCooldown,
   tooltipDecimal,
   tooltipFactorChange,
   tooltipPercent,
@@ -58,11 +59,9 @@ export const revenantDevastationTooltips = {
   ),
   [TRAIT.THRILL_OF_COMBAT]: traitTooltip(
     'Periodically gain Battle Scars during combat. Qualifying player strikes consume a scar to deal life-siphon damage.',
-    [['cooldown', 'ICD', tooltipSeconds]]
+    [['cooldown', 'Battle Scars interval', tooltipSeconds]]
   ),
-  [TRAIT.BRUTALITY]: traitTooltip('Completing a weapon swap grants quickness.', [
-    ['cooldown', 'Internal cooldown', tooltipSeconds]
-  ]),
+  [TRAIT.BRUTALITY]: traitTooltip('Completing a weapon swap grants quickness.', [profileCooldown('Internal cooldown')]),
   [TRAIT.SWIFT_TERMINATION]: traitTooltip(
     'Player-owned strikes deal increased damage while the target is below half health.',
     [fromProfile(TRAIT.SWIFT_TERMINATION, 'damageMultiplier', 'Strike damage', tooltipFactorChange)]

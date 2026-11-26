@@ -38,8 +38,8 @@ export const THIEF_CORE_SKILLS: readonly ThiefSkill[] = Object.freeze([
   Object.freeze(createWeaponSwapSkill()),
   Object.freeze(
     createDodgeSkill({
-      interruptCommitMs: 760,
-      retainsCastLockoutAfterInterrupt: true
+      // A committed dodge can end one tick early so the next skill can start immediately.
+      interruptCommitMs: 760
     })
   )
 ]);

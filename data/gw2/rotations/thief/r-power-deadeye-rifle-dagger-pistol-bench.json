@@ -5,7 +5,7 @@
     "benchmarkDurationSeconds": 94.45,
     "benchmarkDamage": 4011016,
     "benchmarkDps": 42467,
-    "note": "User-specified opener: Kneel, Malicious Restoration, Deadeye's Mark. Combat starts on the opening Mark's Serpent's Touch. Six missing Shadow Swaps are placed 600 ms after each Shadow Flare finishes; exact Swap timestamps are unavailable. Missing Marks replenish stolen skills only after the opener and recorded One in the Chamber cantrips have been consumed; their timestamps are inferred immediately before the next stolen skill. The successful 522 ms Judgment is extended to its 560 ms commit, and the final rifle shot completes before weapon swap to preserve its confirmed hit. Simulator metrics are recorded separately in the build manifest.",
+    "note": "User-specified opener: Kneel, Malicious Restoration, Deadeye's Mark. Combat starts on the opening Mark's Serpent's Touch. Six missing Shadow Swaps are placed 600 ms after each Shadow Flare finishes; exact Swap timestamps are unavailable. Missing Marks replenish stolen skills only after the opener and recorded One in the Chamber cantrips have been consumed; their timestamps are inferred immediately before the next stolen skill. The 522 ms Judgment rounds to a 520 ms cut. The final rifle shot completes before weapon swap to preserve its confirmed hit. Simulator metrics are recorded separately in the build manifest.",
     "reconstructedShadowSwapTimesMs": [1513, 18608, 35242, 52322, 70035, 87244],
     "reconstructedMarkTimesMs": [15995, 33159, 50479, 74316, 77721, 90643],
     "timingReferences": ["20261011-213831.zevtc", "20261011-214730.zevtc"]
@@ -95,11 +95,7 @@
     {
       "type": "cast",
       "skillId": 44087,
-      "interruptAfterMs": 560
-    },
-    {
-      "type": "wait",
-      "durationMs": 80
+      "interruptAfterMs": 520
     },
     {
       "type": "cast",
@@ -228,10 +224,6 @@
       "interruptAfterMs": 560
     },
     {
-      "type": "wait",
-      "durationMs": 80
-    },
-    {
       "type": "cast",
       "skillId": 44591
     },
@@ -255,10 +247,6 @@
       "type": "cast",
       "skillId": 44087,
       "interruptAfterMs": 560
-    },
-    {
-      "type": "wait",
-      "durationMs": 80
     },
     {
       "type": "cast",
@@ -318,10 +306,6 @@
       "type": "cast",
       "skillId": 44087,
       "interruptAfterMs": 560
-    },
-    {
-      "type": "wait",
-      "durationMs": 40
     },
     {
       "type": "cast",
@@ -412,10 +396,6 @@
       "type": "cast",
       "skillId": 44087,
       "interruptAfterMs": 560
-    },
-    {
-      "type": "wait",
-      "durationMs": 80
     },
     {
       "type": "cast",
@@ -549,10 +529,6 @@
       "interruptAfterMs": 360
     },
     {
-      "type": "wait",
-      "durationMs": 80
-    },
-    {
       "type": "cast",
       "skillId": 13097
     },
@@ -681,10 +657,6 @@
       "type": "cast",
       "skillId": 13108,
       "interruptAfterMs": 360
-    },
-    {
-      "type": "wait",
-      "durationMs": 80
     },
     {
       "type": "cast",

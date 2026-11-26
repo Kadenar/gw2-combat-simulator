@@ -118,9 +118,14 @@ export function defineProfessionApp({
         cached.models.set(skill.id, model);
         return model;
       }, skill.name),
-    traitTooltip: (trait: CatalogEntity, patch: ResolvedPatch, specialization: string) =>
-      // Core traits can change their payload when an elite specialization is selected.
-      tooltip(() => describeSimulationTrait(patch.balanceContext, trait, tooltips, specialization), trait.name),
+    traitTooltip: (
+      trait: CatalogEntity,
+      patch: ResolvedPatch,
+      specialization: string,
+      build?: Pick<Gw2CanonicalBuild, 'specializations'>
+    ) =>
+      // Trait effects can depend on both the elite specialization and individual trait choices.
+      tooltip(() => describeSimulationTrait(patch.balanceContext, trait, tooltips, specialization, build), trait.name),
     storageKey,
     globalName,
     filenames,

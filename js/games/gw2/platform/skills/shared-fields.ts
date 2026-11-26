@@ -22,6 +22,8 @@ export const SHARED_SKILL_FIELDS = defineFields(
     quicknessCastTimeMs: numberField({ label: 'Summon Quickness cast time', unit: 'milliseconds', runtimeOnly: true }),
     defaultInterruptMs: numberField({ unit: 'milliseconds' }),
     interruptCommitMs: numberField({ unit: 'milliseconds', runtimeOnly: true }),
+    /** Retained recovery ends this far from cast start. Defaults to the full cast duration. */
+    interruptLockoutUntilMs: numberField({ unit: 'milliseconds', runtimeOnly: true }),
     /** Interruptions at or after this threshold release retained lockout. */
     interruptLockoutReleaseMs: numberField({ unit: 'milliseconds', runtimeOnly: true }),
     /** Only an interruption on this tick releases retained lockout. */

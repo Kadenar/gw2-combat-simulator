@@ -4,10 +4,15 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { thiefStealthGrant } from '#gw2/professions/thief/core/skills/stealth-grant.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { STOLEN_SKILL_STEALTH_MALICE } from '#gw2/professions/thief/data/stolen-skills.js';
 
 /** Malice gates Stealth at commitment. Spending the stolen use is unconditional. */
 const stolenSkillCommit: readonly SkillSideEffect[] = [
-  { on: 'castCommit', when: (runtime) => runtime.resourceController.value('malice') >= 3, do: thiefStealthGrant(3) },
+  {
+    on: 'castCommit',
+    when: (runtime) => runtime.resourceController.value('malice') >= STOLEN_SKILL_STEALTH_MALICE,
+    do: thiefStealthGrant(3)
+  },
   { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
 ];
 
@@ -129,6 +134,7 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = 
 
     cooldown: 0.5,
     castTimeMs: 280,
+    interruptCommitMs: 200,
     // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {

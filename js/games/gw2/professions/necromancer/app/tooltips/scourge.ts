@@ -2,12 +2,12 @@ import {
   attributeConversionFact,
   fromProfile,
   outsideScopeTooltip,
+  profileCooldown,
   simulationEffectFacts,
   skillTooltip,
   tooltipFactorChange,
   tooltipHasTrait,
   tooltipProfile,
-  tooltipSeconds,
   traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
@@ -128,10 +128,7 @@ export const scourgeTooltips = {
     ]),
     [TRAIT.NOURISHING_ASHES]: traitTooltip(
       'Burning applications generate life force, subject to an internal cooldown.',
-      [
-        ['lifeForceGain', 'Life force gained', lifeForce],
-        ['cooldown', 'Internal cooldown', tooltipSeconds]
-      ]
+      [['lifeForceGain', 'Life force gained', lifeForce], profileCooldown('Internal cooldown')]
     ),
     [TRAIT.FEED_FROM_CORRUPTION]: outsideScopeTooltip,
     [TRAIT.SADISTIC_SEARING]: traitTooltip('Nefarious Favor inflicts burning.'),
@@ -143,7 +140,7 @@ export const scourgeTooltips = {
     [TRAIT.DEMONIC_LORE]: traitTooltip(
       'Torment deals increased damage and can trigger burning.',
       [
-        ['cooldown', 'Internal cooldown', tooltipSeconds],
+        profileCooldown('Internal cooldown'),
         fromProfile(TRAIT.DEMONIC_LORE, 'conditionDamageMultiplier', 'Torment damage', tooltipFactorChange)
       ],
       'on torment'
