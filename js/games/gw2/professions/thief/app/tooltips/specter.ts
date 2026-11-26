@@ -1,7 +1,6 @@
 import {
   attributeConversionFact,
   fromProfile,
-  fromSkill,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
@@ -10,6 +9,7 @@ import {
   tooltipPercent,
   tooltipProfile,
   tooltipSeconds,
+  tooltipSelection,
   traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
@@ -18,12 +18,15 @@ import { BOON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { siphonShadowForceGain } from '#gw2/professions/thief/specializations/specter/skills/siphon.js';
 
 const siphonTooltip: DescribeSimulationTooltip = skillTooltip(
   'Siphon the target, trigger stealing traits, and gain Shadow Force. Replaces the held stolen-skill pool without granting a stolen skill.',
-  [
-    fromSkill(ID.SIPHON, 'shadowForceGain', 'Shadow Force gained'),
-    fromProfile(TRAIT.AMPLIFIED_SIPHONING, 'resourceGain', 'Additional Shadow Force with Amplified Siphoning')
+  (context, skill, build) => [
+    {
+      name: 'Shadow Force gained',
+      detail: tooltipDecimal(siphonShadowForceGain(context.catalog, tooltipSelection(context, build).hasTrait, skill))
+    }
   ]
 );
 

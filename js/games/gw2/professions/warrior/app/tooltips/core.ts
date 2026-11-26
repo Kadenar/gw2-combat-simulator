@@ -7,8 +7,10 @@ import {
   skillTooltip,
   tooltipDecimal,
   tooltipFactorChange,
+  tooltipHasTrait,
   tooltipNumber,
   tooltipPercent,
+  tooltipProfile,
   tooltipSeconds,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
@@ -21,7 +23,7 @@ import { warriorDisciplineTooltips } from '#gw2/professions/warrior/app/tooltips
 import { resourceTooltip } from '#gw2/professions/warrior/app/tooltips/shared.js';
 import { warriorStrengthTooltips } from '#gw2/professions/warrior/app/tooltips/strength.js';
 import { warriorTacticsTooltips } from '#gw2/professions/warrior/app/tooltips/tactics.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Compose core skills and trait-line tooltips from the selected balance data. */
@@ -57,6 +59,17 @@ export const warriorCoreTooltips = {
         ])
   ],
   skills: {
+    [ID.SHIELD_STANCE]: skillTooltip('Raise your shield to block incoming attacks.'),
+    [ID.RIPOSTE]: skillTooltip(
+      'Block with your sword. Ending the block early unlocks Adrenaline Rush for the rest of the block window.'
+    ),
+    [ID.MENDING]: skillTooltip('Cleanse conditions and heal yourself.'),
+    [ID.DEFIANT_STANCE]: skillTooltip('Heal yourself and absorb incoming strikes while the stance lasts.'),
+    [ID.DUAL_SHOT]: skillTooltip('Fire two arrows at your target.', (context, _skill, build) =>
+      tooltipHasTrait(context, build, TRAIT.CRACK_SHOT)
+        ? simulationEffectFacts(tooltipProfile(context, TRAIT.CRACK_SHOT).effects, 'per arrow that hits').facts
+        : []
+    ),
     [ID.FAN_OF_FIRE]: skillTooltip(
       'Pending first-hit and repeat-hit damage and Burning values. The simulator retains the previous three-arrow payload.'
     ),

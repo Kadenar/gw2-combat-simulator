@@ -7,7 +7,7 @@ import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { ConditionEffect, StrikeTick } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { SelectedContentContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -390,21 +390,22 @@ export function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: 
   });
 }
 
+// Master of Misdirection applies to the same profession skills on the card and in combat.
+export function misdirectionSkill(skill: MesmerSkill): boolean {
+  return Boolean(skill.shatter || skill.instrument || skill.id === ID.CRESCENDO);
+}
+
 /** Shatters, instruments, and Crescendo receive recharge reduction before shared flat resource reductions. */
 export const masterOfMisdirectionRecharge = compileRechargeRules<MesmerRuntimeState, MesmerSkill>([
   {
     trait: TRAIT.MASTER_OF_MISDIRECTION,
-    when: (_runtime, skill) => Boolean(skill.shatter || skill.instrument || skill.id === ID.CRESCENDO),
+    when: (_runtime, skill) => misdirectionSkill(skill),
     multiplier: { profile: TRAIT.MASTER_OF_MISDIRECTION, field: 'rechargeMultiplier' }
   }
 ]);
 
 /** Only native slot-one shatters and instruments receive Shatter Storm's extra charge. */
-export function shatterStormMaximumAmmo(
-  context: MaximumAmmoContext<object>,
-  skill: MesmerSkill,
-  maximum: number
-): number {
+export function shatterStormMaximumAmmo(context: SelectedContentContext, skill: MesmerSkill, maximum: number): number {
   // Slot identity is authored on the selected skill; capacity selection never needs a live controller registry.
   const isSlot1 = skill.shatter?.slot === 1 || skill.instrument?.slot === 1;
   return isSlot1 && context.hasTrait(TRAIT.SHATTER_STORM)

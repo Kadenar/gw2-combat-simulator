@@ -193,6 +193,9 @@ export const holosmithTooltips = {
           }
         ],
   skills: {
+    [ID.CAUTERIZE]: skillTooltip('Burn away conditions. Each removed condition burns you.'),
+    [ID.OVERHEAT]: skillTooltip('Overheat at maximum heat. Photon Forge locks until you cool down.'),
+    [ID.HOLOFORGE_OVERHEATED]: skillTooltip('Photon Forge is locked while you cool down.'),
     [ID.PHOTON_WALL]: armFlipTooltip,
     [ID.GLEAM_SABER]: gleamSaberTooltip,
     [ID.ENGAGE_PHOTON_FORGE]: photonForgeEnterTooltip,

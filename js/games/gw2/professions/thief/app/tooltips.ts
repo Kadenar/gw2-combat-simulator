@@ -5,10 +5,18 @@ import { daredevilTooltips } from '#gw2/professions/thief/app/tooltips/daredevil
 import { deadeyeTooltips } from '#gw2/professions/thief/app/tooltips/deadeye.js';
 import { thiefModifierDescriptions } from '#gw2/professions/thief/app/tooltips/modifiers.js';
 import { specterTooltips } from '#gw2/professions/thief/app/tooltips/specter.js';
+import { additiveStealRecharge } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 /** Combine owner-local descriptions while keeping presentation separate from runtime behavior. */
 export const thiefTooltips: ProfessionTooltips = {
   modifiers: thiefModifierDescriptions,
+  skillCosts(context, skill, selection) {
+    if (skill.id !== ID.SIPHON) return;
+
+    const cooldown = additiveStealRecharge(context.catalog, selection.hasTrait, skill.cooldown ?? 0);
+    return cooldown !== skill.cooldown ? { cooldown } : undefined;
+  },
   skillFacts: thiefCoreTooltips.skillFacts,
   skills: {
     ...thiefCoreTooltips.skills,

@@ -3,6 +3,7 @@ import {
   fromSkill,
   outsideScopeTooltip,
   skillTooltip,
+  tooltipDecimal,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
@@ -16,6 +17,7 @@ import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializa
 /** Describe chronomancer tooltips from the selected balance data. */
 export const chronomancerTooltips = {
   skills: {
+    [ID.WELL_OF_ETERNITY]: skillTooltip('Cleanse allies in the well and heal them when it ends.'),
     ...Object.fromEntries(Object.keys(MESMER_CHRONOMANCER_SHATTERS).map((id) => [Number(id), shatterTooltip])),
     [ID.CONTINUUM_SPLIT]: skillTooltip(
       'Spend your clones to start Continuum Split. Its duration increases for you and each clone spent. When it ends, restore your starting cooldowns and ammunition. Autoattack chains continue normally. Clones, damage, and boons are not restored. Fragmentation extends the duration.',
@@ -74,8 +76,11 @@ export const chronomancerTooltips = {
       'base duration before tiers'
     ),
     [TRAIT.CHRONOPHANTASMA]: traitTooltip(
-      'Phantasms attack again before becoming clones. Resummoned phantasms deal normal strike damage. Their condition-duration reduction is unknown and not yet applied.',
-      [['damageMultiplier', 'Phantasm strike damage', tooltipFactorChange]]
+      'Phantasms attack again before becoming clones. The repeat attack applies shorter conditions, including bleeding from Sharper Images.',
+      [
+        ['damageMultiplier', 'Repeat strike damage multiplier', (value) => tooltipDecimal(value) + '\u00d7'],
+        ['conditionDurationMultiplier', 'Repeat condition duration', tooltipFactorChange]
+      ]
     )
   }
 } satisfies ProfessionTooltips;

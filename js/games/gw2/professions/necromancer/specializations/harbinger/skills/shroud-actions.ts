@@ -1,9 +1,11 @@
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { spendBlight } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight.js';
 import { harbingerCastEmissionPolicy } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/cast-emission-policy.js';
 import { doomApproachesControl } from '#gw2/professions/necromancer/specializations/harbinger/traits/behavior.js';
@@ -25,7 +27,7 @@ function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast<Necromanc
     effects: [
       ...effects,
       ...(empowered ? (cast.skill.effects?.filter((effect) => effect.type === 'control') ?? []) : [])
-    ].map((effect) => doomApproachesControl(runtime, effect)),
+    ].map((effect) => doomApproachesControl(hasTrait(runtime, TRAIT.DOOM_APPROACHES), effect)),
     ...harbingerCastEmissionPolicy(cast, cast.skill, { necromancerBlight: blight })
   });
 }

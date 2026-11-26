@@ -233,6 +233,9 @@ export const necromancerCoreTooltips = {
             ]
       ),
   skills: {
+    [ID.WELL_OF_BLOOD]: skillTooltip('Create a well that heals allies standing inside it.'),
+    [ID.MARCH_OF_UNDEATH]: skillTooltip('Shadowstep to your Ripple of Horror and consume it.'),
+    [ID.DARK_PURSUIT]: skillTooltip('Shadowstep to the target marked by Dark Path.'),
     // Read execute tiers from their owning modifiers, including balance patches.
     [ID.SATIATE]: skillTooltip('Strike your target, dealing increased damage at low target health.', [
       fromModifier(

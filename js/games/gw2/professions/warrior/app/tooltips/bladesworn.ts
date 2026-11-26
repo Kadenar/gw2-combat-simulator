@@ -6,8 +6,10 @@ import {
   simulationEffectFacts,
   skillTooltip,
   tooltipDecimal,
+  tooltipHasTrait,
   tooltipNumber,
   tooltipPercent,
+  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type DescribeSimulationTooltip,
@@ -41,10 +43,15 @@ const artillerySlashTooltip: DescribeSimulationTooltip = (balanceContext, entity
   };
 };
 
-const dragonSlashTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+const dragonSlashTooltip: DescribeSimulationTooltip = (balanceContext, entity, _specialization, build) => {
   const selected: WarriorSkill | undefined = balanceContext.catalog.skillsById.get(entity.id);
 
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
+  const daring =
+    selected.id === ID.DRAGON_SLASH_FORCE && tooltipHasTrait(balanceContext, build, TRAIT.DARING_DRAGON)
+      ? tooltipProfile(balanceContext, TRAIT.DARING_DRAGON)
+      : undefined;
 
   return {
     description:
@@ -55,8 +62,15 @@ const dragonSlashTooltip: DescribeSimulationTooltip = (balanceContext, entity) =
         'minimum charge'
       ).facts,
       ...simulationEffectFacts(
-        [{ type: 'strike', coefficient: tooltipNumber(selected, 'dragonSlashMaximumCoefficient') }],
-        'maximum charges'
+        [
+          {
+            type: 'strike',
+            coefficient:
+              tooltipNumber(selected, 'dragonSlashMaximumCoefficient') *
+              (daring ? tooltipNumber(daring, 'coefficientMultiplier') : 1)
+          }
+        ],
+        daring ? 'maximum charges, estimated' : 'maximum charges'
       ).facts,
       ...(Number(selected.dragonSlashMinimumBurningDuration) > 0
         ? [
@@ -77,6 +91,7 @@ const dragonSlashTooltip: DescribeSimulationTooltip = (balanceContext, entity) =
 /** Describe bladesworn tooltips from the selected balance data. */
 export const bladeswornTooltips = {
   skills: {
+    [ID.FLICKER_STEP]: skillTooltip('Spend a charge to shadowstep during Dragon Trigger.'),
     [ID.ARTILLERY_SLASH]: artillerySlashTooltip,
     [ID.SHARP_ARTILLERY_SLASH]: artillerySlashTooltip,
     [ID.UNSHEATHE_GUNSABER]: skillTooltip(
@@ -87,12 +102,26 @@ export const bladeswornTooltips = {
     ),
     [ID.DRAGON_TRIGGER]: skillTooltip(
       'Enter Dragon Trigger, drawing the Gunsaber if needed. Spend Flow at each charging opportunity to build Dragon charges. Release with a Dragon Slash; recharge begins when you leave the trigger. Tactical Reload increases charges gained per opportunity.',
-      [
-        fromSkill(ID.DRAGON_TRIGGER, 'maximumCharges', 'Maximum Dragon charges'),
-        fromProfile(TRAIT.DARING_DRAGON, 'maximumStacks', 'Maximum charges with Daring Dragon'),
-        fromSkill(ID.DRAGON_TRIGGER, 'resourceCost', 'Base Flow cost per charge opportunity'),
-        fromSkill(ID.DRAGON_TRIGGER, 'duration', 'Maximum trigger duration', tooltipSeconds)
-      ]
+      (context, skill, build) => {
+        const trait = tooltipHasTrait(context, build, TRAIT.DARING_DRAGON)
+          ? tooltipProfile(context, TRAIT.DARING_DRAGON)
+          : undefined;
+        return [
+          {
+            name: 'Maximum Dragon charges',
+            detail: tooltipDecimal(
+              trait ? tooltipNumber(trait, 'maximumStacks') : tooltipNumber(skill, 'maximumCharges')
+            )
+          },
+          {
+            name: 'Flow per charging opportunity',
+            detail: tooltipDecimal(
+              tooltipNumber(skill, 'resourceCost') * (trait ? tooltipNumber(trait, 'resourceCostMultiplier') : 1)
+            )
+          },
+          { name: 'Maximum trigger duration', detail: tooltipSeconds(tooltipNumber(skill, 'duration')) }
+        ];
+      }
     ),
     [ID.DRAGON_SLASH_FORCE]: dragonSlashTooltip,
     [ID.DRAGON_SLASH_BOOST]: dragonSlashTooltip,

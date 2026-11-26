@@ -58,10 +58,7 @@ import {
 } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { activateVenom, applyActiveVenoms, emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { infiltratorsSignetLifecycle } from '#gw2/professions/thief/core/skills/slot-skills.js';
-import {
-  leadAttacksRechargeReduction,
-  sleightOfHandRechargeReduction
-} from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
+import { additiveStealRecharge } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/data/stolen-skills.js';
 import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -70,7 +67,7 @@ import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/profession
 function thiefRechargeWork(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill, work: number): number {
   if (!skill.stealTraitSkill || skill.stealRechargeMode !== 'additive') return work;
 
-  return work * (1 - leadAttacksRechargeReduction(runtime) - sleightOfHandRechargeReduction(runtime));
+  return additiveStealRecharge(runtime.helpers, (id) => hasTrait(runtime, id), work);
 }
 
 const THIEF_CORE_COMPLETE = 'thief.core-complete';

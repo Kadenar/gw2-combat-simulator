@@ -15,6 +15,8 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 /** Describe daredevil tooltips from the selected balance data. */
 export const daredevilTooltips = {
   skills: {
+    [ID.CHANNELED_VIGOR]: skillTooltip('Channel to restore endurance and heal yourself with each pulse.'),
+    [ID.BANDITS_DEFENSE]: skillTooltip('Briefly block incoming attacks. A counterattack requires an incoming hit.'),
     [ID.FIST_FLURRY]: skillTooltip('Land the completed flurry to unlock Palm Strike for a limited window.', [
       fromSkill(ID.FIST_FLURRY, 'flipDuration', 'Palm Strike window', tooltipSeconds)
     ]),

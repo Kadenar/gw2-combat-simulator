@@ -6,6 +6,9 @@ import {
   skillTooltip,
   tooltipDecimal,
   tooltipFactorChange,
+  tooltipHasTrait,
+  tooltipNumber,
+  tooltipProfile,
   tooltipSeconds,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
@@ -20,7 +23,7 @@ import { rangerNatureMagicTooltips } from '#gw2/professions/ranger/app/tooltips/
 import { rangerSkirmishingTooltips } from '#gw2/professions/ranger/app/tooltips/skirmishing.js';
 import { rangerWildernessSurvivalTooltips } from '#gw2/professions/ranger/app/tooltips/wilderness-survival.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 /** Spirit prose describes its slam marker; ordinary boon and combo facts still come from the selected catalog. */
 function spiritTooltip(description: string): DescribeSimulationTooltip {
@@ -49,6 +52,55 @@ export const rangerCoreTooltips = {
       : [])
   ],
   skills: {
+    [ID.TROLL_UNGUENT]: skillTooltip('Heal yourself and your pet over time.'),
+    [ID.COLD_SNAP]: skillTooltip('Command your frost spirit to cleanse conditions from nearby allies.'),
+    [ID.NATURES_RENEWAL]: skillTooltip('Command your spirit of nature to revive nearby downed allies.'),
+    [ID.SHAKE_IT_OFF]: skillTooltip('Have your bear cleanse a condition from nearby allies.'),
+    [ID.HOWL_OF_THE_PACK]: skillTooltip(
+      'Call hyenas to fight alongside your pet. Their attacks are outside the simulation.'
+    ),
+    [ID.FORAGE_SWORD]: skillTooltip('Have your pet forage for an improvised sword.'),
+    [ID.FORAGE_ROCK]: skillTooltip('Have your pet forage for a rock to throw.'),
+    [ID.FORAGE_SCALE]: skillTooltip('Have your pet forage for a scale.'),
+    [ID.FORAGE_FEATHERS]: skillTooltip('Have your pet forage for feathers.'),
+    [ID.AQUA_SURGE]: skillTooltip('Command your water spirit to send out a healing wave.'),
+    [ID.SMOKE_CLOUD]: skillTooltip('Create a smoke field around your smokescale.'),
+    [ID.ASTRAL_WISP]: skillTooltip('Send a wisp that attaches to allies and heals them over time.'),
+    [ID.RALLYING_ROAR]: skillTooltip(
+      'Your warclaw roars to grant nearby allies superspeed. Ally movement is outside the simulation.'
+    ),
+    [ID.OVERBEARING_SMASH]: (_context, skill) => ({
+      description: 'Strike and daze your target twice.',
+      facts: [],
+      factSections: [false, true].map((followUp) => ({
+        label: followUp ? 'Follow-up' : 'Opening hit',
+        facts: simulationEffectFacts(
+          skill.effects?.filter((effect) => (effect.sourceId === ID.OVERBEARING_SMASH_SECOND_STRIKE) === followUp)
+        ).facts
+      }))
+    }),
+    [ID.FLAME_TRAP]: (context, skill, _specialization, build) => {
+      // Extend each burning application and apply the trait's cripple once per activation.
+      const trait = tooltipHasTrait(context, build, TRAIT.TRAPPERS_EXPERTISE)
+        ? tooltipProfile(context, TRAIT.TRAPPERS_EXPERTISE)
+        : undefined;
+      const factor = trait ? tooltipNumber(trait, 'coefficientMultiplier') : 1;
+      const effects = skill.effects?.map((effect) =>
+        effect.type === 'condition'
+          ? {
+              ...effect,
+              duration: effect.duration == null ? undefined : effect.duration * factor,
+              ticks: effect.ticks?.map((tick) => ({ ...tick, duration: tick.duration * factor }))
+            }
+          : effect
+      );
+      const base = simulationEffectFacts(effects);
+      return {
+        ...base,
+        description: 'Set a fire trap that burns foes with each pulse.',
+        facts: [...base.facts, ...simulationEffectFacts(trait?.effects, 'once per activation').facts]
+      };
+    },
     [ID.CROSSFIRE]: skillTooltip('Apply Bleeding with the same duration regardless of flanking.'),
     [ID.POISON_VOLLEY]: skillTooltip(
       'Poison lasts longer against movement-impaired or defiant targets. Temporary disabled-target windows are not modeled.'

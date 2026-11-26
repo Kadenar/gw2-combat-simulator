@@ -52,6 +52,8 @@ const willbenderVirtueTooltip: DescribeSimulationTooltip = (balanceContext, enti
 /** Describe willbender tooltips from the selected balance data. */
 export const willbenderTooltips = {
   skills: {
+    [ID.REVERSAL_OF_FORTUNE]: skillTooltip('Guard against the next incoming strike and heal yourself.'),
+    [ID.REPOSE]: skillTooltip('Return to the starting point of Flash Combo to heal and cleanse conditions.'),
     ...Object.fromEntries(
       [ID.CRASHING_COURAGE, ID.FLOWING_RESOLVE, ID.RUSHING_JUSTICE].map((id) => [id, willbenderVirtueTooltip])
     ),

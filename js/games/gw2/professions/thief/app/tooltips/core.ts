@@ -2,6 +2,7 @@ import {
   fromModifier,
   fromSkill,
   modifierFact,
+  ordinarySkillDescription,
   simulationEffectFacts,
   skillFact,
   skillTooltip,
@@ -14,6 +15,7 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { equippedEliteSpecialization } from '#gw2/platform/builds/elite-specialization.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -27,6 +29,7 @@ import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resou
 import { findThiefStealthGrant } from '#gw2/professions/thief/core/skills/stealth-grant.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
+import { thievesGuildRoster } from '#gw2/professions/thief/family-state.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 const weaponSwapTooltip: DescribeSimulationTooltip = skillTooltip(
@@ -95,23 +98,31 @@ const assassinsSignetTooltip: DescribeSimulationTooltip = skillTooltip(
   ]
 );
 
-const thievesGuildTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
-  const profile = (balanceContext.catalog.skillsById.get(entity.id) as ThiefSkill).summonAttack!;
+const thievesGuildTooltip: DescribeSimulationTooltip = (balanceContext, entity, _spec, build) => {
+  const guild = balanceContext.catalog.skillsById.get(entity.id) as ThiefSkill;
+  const profile = guild.summonAttack!;
+  const roster = thievesGuildRoster(equippedEliteSpecialization(balanceContext.catalog, build), guild);
   return {
     description:
-      'Summon thieves that run their attack rotations while combat is active. The final thief depends on your specialization. Their strikes use fixed companion attributes; their conditions inherit your condition attributes. Lifetime begins when casting starts, including time before combat. Recasting replaces the previous guild.',
+      'Summon three thieves. Their lifetime starts when you begin casting, and they attack once combat starts. Their strikes use the attributes below. Their conditions use yours. Recasting replaces the guild.',
     facts: [
       skillFact(balanceContext, entity.id, 'duration', 'Lifetime', tooltipSeconds),
       { name: 'Companion power', detail: tooltipDecimal(profile.basePower) },
       { name: 'Companion critical chance', detail: tooltipPercent(profile.criticalChance) },
-      { name: 'Companion critical damage', detail: `${tooltipDecimal(profile.criticalDamage * 100)}%` },
-      ...profile.summons.flatMap((summon) =>
-        summon.attacks.flatMap((attack) => {
-          const skill = balanceContext.catalog.skillsById.get(attack.skillId)!;
-          return simulationEffectFacts(skill.effects, `${summon.name} - ${skill.name}`).facts;
-        })
-      )
-    ]
+      { name: 'Companion critical damage', detail: `${tooltipDecimal(profile.criticalDamage * 100)}%` }
+    ],
+    factSections: roster.map((summon) => ({
+      label: summon.displayName === 'Thief' ? summon.weapon + ' Thief' : summon.displayName || summon.name,
+      description:
+        summon.variant === 'Specter'
+          ? 'Each Well of Sorrow pulse applies one condition. It checks for missing poison, then bleeding, then torment. If the target has all three, it applies the fallback torment.'
+          : undefined,
+      // List each attack once even when the summon uses it several times in its rotation.
+      facts: [...new Set(summon.attacks.map((attack) => attack.skillId))].flatMap((skillId) => {
+        const skill = balanceContext.catalog.skillsById.get(skillId)!;
+        return simulationEffectFacts(skill.effects, skill.displayName || skill.name).facts;
+      })
+    }))
   };
 };
 
@@ -134,7 +145,7 @@ const spearChainTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
         ? 'Requires a lead attack; advances the spear chain to finishers.'
         : stage === 2
           ? 'Requires a follow-up attack; completes the spear chain and restores lead attacks.'
-          : "Apply this spear skill's supported effects.";
+          : ordinarySkillDescription(selected);
   const facts = [...simulationEffectFacts(selected.effects).facts];
 
   if (entity.id === ID.FALLING_SPIDER) {
@@ -194,6 +205,21 @@ export const thiefCoreTooltips = {
     ];
   },
   skills: {
+    [ID.WITHDRAW]: skillTooltip('Roll backward, evade attacks, cleanse conditions, and heal yourself.'),
+    [ID.SIGNET_OF_MALICE]: skillTooltip(
+      'Your attacks heal you while the signet is ready. Activate it to heal yourself.'
+    ),
+    [ID.INFILTRATORS_RETURN]: skillTooltip(
+      "Return to the starting point of Infiltrator's Strike and consume the follow-up."
+    ),
+    [ID.SKELK_VENOM]: skillTooltip('Heal yourself and coat your next attacks with a venom that heals on hit.'),
+    [ID.DEATHS_ADVANCE]: skillTooltip(
+      "Shadowstep forward and gain stealth. This consumes the follow-up from Sniper's Cover."
+    ),
+    [ID.SNIPERS_COVER]: skillTooltip("Block incoming projectiles and unlock Death's Advance while kneeling."),
+    [ID.SHADOW_VEIL]: skillTooltip(
+      'Block incoming attacks. Following a spear finisher lets you block additional attacks.'
+    ),
     // Read execute tiers from their owning modifiers, including balance patches.
     [ID.HEARTSEEKER]: skillTooltip('Leap at your target, dealing increased damage at low target health.', [
       fromModifier(

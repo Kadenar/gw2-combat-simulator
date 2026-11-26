@@ -4,6 +4,7 @@ import {
   skillTooltip,
   tooltipDecimal,
   tooltipFactorChange,
+  tooltipHasTrait,
   tooltipNumber,
   tooltipPercent,
   tooltipProfile,
@@ -11,8 +12,12 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { vindicatorDodgeTooltip } from '#gw2/professions/revenant/app/tooltips/shared.js';
+import { allianceSlots } from '#gw2/professions/revenant/data/alliance.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { VINDICATOR_DODGE_INPUT } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import { VINDICATOR_DODGE_AUTO_ACTION } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** The trait identifies the landing; its facts retain payload details without repeating that skill name. */
 function dodgeTraitFacts(skill: Skill) {
@@ -23,7 +28,24 @@ function dodgeTraitFacts(skill: Skill) {
 
 /** Describe vindicator tooltips from the selected balance data. */
 export const vindicatorTooltips = {
+  // Show what this cast can earn or refund without assuming the player has already earned it.
+  skillFacts(context, skill, build) {
+    if (!tooltipHasTrait(context, build, TRAIT.HEATED_RIVALRY) || skill.id === ID.DROP_URN_OF_SAINT_VIKTOR) return [];
+
+    const faction = allianceSlots(context.catalog.skillsById).factionBySkill.get(skill.id);
+
+    if (!faction) return [];
+
+    const cost = skill.energyCost ?? 0;
+    return [
+      { name: 'Heated Rivalry', detail: 'Counts as a ' + faction + ' skill' },
+      ...(cost > 0 ? [{ name: 'Energy refunded with Heated Rivalry ready', detail: tooltipDecimal(cost) }] : [])
+    ];
+  },
   skills: {
+    [VINDICATOR_DODGE_INPUT.id]: vindicatorDodgeTooltip,
+    [ID.LEGENDARY_ALLIANCE_STANCE_ID_62749]: skillTooltip('Invoke the Alliance to use its Luxon and Kurzick skills.'),
+    [ID.LEGENDARY_ALLIANCE_STANCE]: skillTooltip('Invoke the Alliance to use its Luxon and Kurzick skills.'),
     [ID.ARCHEMORUS_STRIKE]: skillTooltip(
       'Strike nearby foes, knock them down for 3 seconds, and finish a combo with a blast. Requires Friend of the Luxons and works with any equipped legends.'
     ),
@@ -57,19 +79,18 @@ export const vindicatorTooltips = {
         id,
         skillTooltip(
           "Restore endurance. Song of Arboreum replaces the base refund and grants vigor. Reaver's Curse empowers the next landing; Angsiyan's Trust also restores energy when used in combat.",
-          (balanceContext, entity) => [
-            { name: 'Base endurance restored', detail: tooltipDecimal(tooltipNumber(entity, 'resourceGain')) },
-            profileFact(
-              balanceContext,
-              TRAIT.SONG_OF_ARBOREUM,
-              'resourceGain',
-              'Endurance with Song of Arboreum instead'
-            ),
-            ...simulationEffectFacts(
-              tooltipProfile(balanceContext, TRAIT.SONG_OF_ARBOREUM).effects,
-              'with Song of Arboreum'
-            ).facts
-          ]
+          (context, skill, build) => {
+            const song = tooltipHasTrait(context, build, TRAIT.SONG_OF_ARBOREUM);
+            return [
+              song
+                ? profileFact(context, TRAIT.SONG_OF_ARBOREUM, 'resourceGain', 'Endurance restored')
+                : { name: 'Endurance restored', detail: tooltipDecimal(tooltipNumber(skill, 'resourceGain')) },
+              ...(song ? simulationEffectFacts(tooltipProfile(context, TRAIT.SONG_OF_ARBOREUM).effects).facts : []),
+              ...(tooltipHasTrait(context, build, TRAIT.ANGSIYANS_TRUST)
+                ? [profileFact(context, TRAIT.ANGSIYANS_TRUST, 'resourceGain', 'Energy gained in combat')]
+                : [])
+            ];
+          }
         )
       ])
     )
@@ -89,7 +110,8 @@ export const vindicatorTooltips = {
       [['damageIncrease', 'Strike damage during the bonus', tooltipPercent]]
     ),
     [TRAIT.HEATED_RIVALRY]: traitTooltip(
-      'Deferred: the trigger requires two faction skills in combat in PvE. Counter reset and refund consumption rules still need confirmation before implementing the counters, Tactics recharge, and opposite-faction energy refunds.'
+      'Complete skills from one Alliance faction in combat to recharge Alliance Tactics. Your next energy-spending skill from the other faction refunds its cost and counts toward the next reset. Raising the Urn counts as a Kurzick skill and preserves a ready refund.',
+      [['minimumStacks', 'Faction skills required']]
     ),
     [TRAIT.FRIEND_OF_THE_KURZICKS]: traitTooltip(
       'Healing after Kurzick skills, ally barrier, and projectile blocking are outside simulation scope. Shield of Saint Viktor and its light combo field are not implemented.'
@@ -130,4 +152,4 @@ export const vindicatorTooltips = {
       (context) => dodgeTraitFacts(context.catalog.skillsById.get(ID.SAINTS_SHIELD)!)
     )
   }
-} satisfies ProfessionTooltips;
+} satisfies ProfessionTooltips<RevenantSkill>;

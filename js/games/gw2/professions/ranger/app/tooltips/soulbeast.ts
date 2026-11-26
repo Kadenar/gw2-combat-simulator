@@ -18,6 +18,13 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 /** Compose soulbeast descriptions using the selected catalog's balance data. */
 export const soulbeastTooltips = {
   skills: {
+    [ID.DEVOURER_RETREAT]: skillTooltip('Tunnel backward to retreat.'),
+    [ID.DEFY_PAIN]: skillTooltip('Protect yourself from incoming strikes.'),
+    [ID.HARMONIC_CRY]: skillTooltip('Heal yourself and nearby allies with a cry.'),
+    [ID.BEAR_STANCE]: skillTooltip(
+      'Heal yourself and your pet. While the stance lasts, cleansing a condition heals you again.'
+    ),
+    [ID.UNFLINCHING_FORTITUDE]: skillTooltip('Shed movement-impairing conditions and withstand incoming attacks.'),
     [ID.BEASTMODE]: skillTooltip(
       'Merge with your active pet, replace its commands with Beastmode skills, and gain its archetype attributes. The pet stops acting independently while merged. Trigger applicable Beastmode traits.'
     ),

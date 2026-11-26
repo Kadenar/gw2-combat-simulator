@@ -5,6 +5,7 @@ import {
   skillTooltip,
   tooltipDecimal,
   tooltipFactorChange,
+  tooltipHasTrait,
   tooltipSeconds,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
@@ -33,6 +34,15 @@ const weaponSwapTooltip: DescribeSimulationTooltip = skillTooltip(
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const guardianCoreTooltips = {
   skills: {
+    [ID.RECEIVE_THE_LIGHT]: skillTooltip('Heal yourself and allies in front of you.'),
+    [ID.SHELTER]: skillTooltip('Block incoming attacks while healing yourself.'),
+    [ID.SANCTUARY]: skillTooltip('Create a healing shelter that keeps out foes and hostile projectiles.'),
+    [ID.LINE_OF_WARDING]: skillTooltip('Place a ward across the ground to block enemy movement.'),
+    [ID.SIGNET_OF_RESOLVE]: skillTooltip(
+      'Activate the signet to heal yourself and cleanse conditions. Its passive periodically cleanses a condition.'
+    ),
+    [ID.RING_OF_WARDING]: skillTooltip('Create a circular ward that foes cannot cross.'),
+    [ID.LITANY_OF_WRATH]: skillTooltip('Heal yourself, then recover health as you deal damage.'),
     // Use the selected trait's live multiplier and combat pulse extension for the displayed field and payloads.
     [ID.PURGING_FLAMES]: (context, skill, _specialization, build) => {
       const selected = selectedTraits(context.catalog, build?.specializations).some(
@@ -123,9 +133,27 @@ export const guardianCoreTooltips = {
         }
       ]
     ),
-    [ID.ZEALOTS_FLAME]: skillTooltip(
-      "Apply pulsing Burning and temporarily unlock Zealot's Fire. Radiant Fire changes its ammunition, recharge, Burning duration, and follow-up window."
-    ),
+    [ID.ZEALOTS_FLAME]: (context, skill, _specialization, build) => {
+      // Radiant Fire extends each pulse's base burning and the window for throwing the flame.
+      const scale = tooltipHasTrait(context, build, TRAIT.RADIANT_FIRE)
+        ? balanceNumber(context.catalog, TRAIT.RADIANT_FIRE, 'durationMultiplier')
+        : 1;
+      const effects = simulationEffectFacts(
+        skill.effects?.map((effect) =>
+          effect.type === 'condition'
+            ? { ...effect, ticks: effect.ticks?.map((tick) => ({ ...tick, duration: tick.duration * scale })) }
+            : effect
+        )
+      );
+      return {
+        ...effects,
+        description: "Burn nearby foes with each pulse. Throw Zealot's Fire while the flame is active.",
+        facts: [
+          ...effects.facts,
+          { name: "Zealot's Fire window", detail: tooltipSeconds(skillNumber(skill, 'flipDuration') * scale) }
+        ]
+      };
+    },
     [ID.ZEALOTS_FIRE]: skillTooltip(
       "Consume the Zealot's Flame follow-up to strike and burn your target. Its temporary reuse restriction ends when you perform another combat action."
     ),

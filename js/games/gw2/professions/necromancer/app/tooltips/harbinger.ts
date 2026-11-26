@@ -4,7 +4,9 @@ import {
   maximumBonusFact,
   profileFact,
   simulationEffectFacts,
+  skillTooltip,
   tooltipFactorChange,
+  tooltipHasTrait,
   tooltipNumber,
   tooltipPercent,
   tooltipProfile,
@@ -17,17 +19,25 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { lifeForce, shroudTooltip } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/dark-barrage.js';
+import { doomApproachesControl } from '#gw2/professions/necromancer/specializations/harbinger/traits/behavior.js';
 
 /** Base and empowered packets are alternatives; spending happens before the elixir grants fresh Blight. */
-const empoweredSkill: DescribeSimulationTooltip = (balanceContext, entity) => {
+const empoweredSkill: DescribeSimulationTooltip = (balanceContext, entity, _specialization, build) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
 
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
 
   const action = requireSkillAction(selected, 'empowered');
   const elixir = selected.skillFamily === 'Elixir';
-  const base = simulationEffectFacts(selected.effects);
-  const empowered = simulationEffectFacts(action.effects);
+  // Movement retains its control on empowered impacts. Doom Approaches replaces that control in both tabs.
+  const doom = tooltipHasTrait(balanceContext, build, TRAIT.DOOM_APPROACHES);
+  const control = elixir ? [] : (selected.effects ?? []).filter((effect) => effect.type === 'control');
+  const base = simulationEffectFacts(
+    (selected.effects ?? []).map((effect) => doomApproachesControl(!elixir && doom, effect))
+  );
+  const empowered = simulationEffectFacts(
+    [...action.effects, ...control].map((effect) => doomApproachesControl(!elixir && doom, effect))
+  );
   return {
     description: elixir
       ? "Throw an elixir. With enough Blight, consume the required stacks and use the empowered effects instead. Gain fresh Blight after the attack. Twisted Medicine shares the elixir's boons with your party."
@@ -79,6 +89,16 @@ const blightSkillTooltip: DescribeSimulationTooltip = empoweredSkill;
 /** Describe harbinger tooltips from the selected balance data. */
 export const harbingerTooltips = {
   skills: {
+    [ID.TAINTED_BOLTS]: skillTooltip('Fire bolts that inflict torment.', (context, _skill, build) =>
+      tooltipHasTrait(context, build, TRAIT.DOOM_APPROACHES)
+        ? simulationEffectFacts(
+            tooltipProfile(context, TRAIT.DOOM_APPROACHES).effects?.filter(
+              (effect) => effect.type === 'condition' && effect.condition === CONDITION.VULNERABILITY
+            ),
+            'first hit'
+          ).facts
+        : []
+    ),
     [ID.DARK_BARRAGE]: darkBarrageTooltip,
     [ID.ELIXIR_OF_BLISS]: elixirTooltip,
     [ID.ELIXIR_OF_RISK]: elixirTooltip,

@@ -33,6 +33,10 @@ export const galeshotTooltips = {
     )
   ],
   skills: {
+    [ID.WHIRLWIND]: skillTooltip('Ride a gust of wind forward.'),
+    [ID.SOOTHING_BREEZE]: skillTooltip(
+      'Heal yourself and your pet and grant superspeed. The simulation does not track movement speed.'
+    ),
     [ID.SUMMON_CYCLONE_BOW]: skillTooltip(
       'Equip the Cyclone Bow and replace your weapon skills. Trigger applicable weapon-swap effects. Arrows regenerate over time and are shared across its skills.',
       [

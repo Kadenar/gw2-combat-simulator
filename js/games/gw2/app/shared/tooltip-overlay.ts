@@ -29,10 +29,10 @@ export function skillTooltipAttributes(
   ]
     .filter(Boolean)
     .join('\n');
-  const recharge = tooltip.facts.find(
-    (fact) => fact.name === 'Base recharge' || fact.name === 'Base ammunition recharge'
+  const recharge = tooltip.facts.find((fact) =>
+    ['Base recharge', 'Base ammunition recharge', 'Recharge', 'Ammunition recharge'].includes(fact.name)
   );
-  const energy = tooltip.facts.find((fact) => fact.name === 'Base energy cost');
+  const energy = tooltip.facts.find((fact) => ['Base energy cost', 'Energy cost'].includes(fact.name));
   // Builder upkeep belongs beside cast timing; the skill effect list describes what the skill does.
   const upkeep =
     detailsTitle === 'Cast details'
@@ -50,8 +50,12 @@ export function skillTooltipAttributes(
       tooltip.factTabs,
       tooltip.factSections
     ) +
-    (energy && Number(energy.detail) > 0 ? ` data-wiki-energy="${esc(energy.detail)}"` : '') +
-    (recharge ? ` data-wiki-recharge="${esc(recharge.detail.replace(/s$/, ''))}"` : '') +
+    (energy && (Number(energy.detail) > 0 || energy.name === 'Energy cost')
+      ? ` data-wiki-energy="${esc(energy.detail)}" data-wiki-energy-label="${esc(energy.name)}"`
+      : '') +
+    (recharge
+      ? ` data-wiki-recharge="${esc(recharge.detail.replace(/s$/, ''))}" data-wiki-recharge-label="${esc(recharge.name)}"`
+      : '') +
     (detailLines ? ` data-wiki-details="${esc(detailLines)}" data-wiki-details-title="${esc(detailsTitle)}"` : '') +
     (notice ? ` data-wiki-notice="${esc(notice)}"` : '')
   );
@@ -277,16 +281,21 @@ export function bindWikiTooltips(): void {
       })
       .join('');
     // Clear the shared badge when the next skill has no positive energy cost.
+    // Keep the base qualifier visible when the heading stands in for the full fact row.
+    const energyLabel = element.dataset.wikiEnergyLabel || 'Energy cost';
+    const rechargeLabel = element.dataset.wikiRechargeLabel || 'Recharge';
+    energy.title = energyLabel;
+    recharge.title = rechargeLabel;
     energy.innerHTML = element.dataset.wikiEnergy
-      ? `${esc(element.dataset.wikiEnergy)} <img src="${esc(MODIFIER_EFFECT_ICONS['Energy cost'])}" alt="">`
+      ? `${energyLabel.startsWith('Base') ? 'Base ' : ''}${esc(element.dataset.wikiEnergy)} <img src="${esc(MODIFIER_EFFECT_ICONS['Energy cost'])}" alt="">`
       : '';
-    energy.setAttribute('aria-label', `Energy cost: ${element.dataset.wikiEnergy || 0}`);
+    energy.setAttribute('aria-label', `${energyLabel}: ${element.dataset.wikiEnergy || 0}`);
     energy.hidden = !element.dataset.wikiEnergy;
     // Use the same game recharge asset in the heading and qualified recharge fact rows.
     recharge.innerHTML = element.dataset.wikiRecharge
-      ? `${esc(element.dataset.wikiRecharge)} <img src="${esc(MODIFIER_EFFECT_ICONS.Recharge)}" alt="">`
+      ? `${rechargeLabel.startsWith('Base') ? 'Base ' : ''}${esc(element.dataset.wikiRecharge)} <img src="${esc(MODIFIER_EFFECT_ICONS.Recharge)}" alt="">`
       : '';
-    recharge.setAttribute('aria-label', `Recharge: ${element.dataset.wikiRecharge || 0} seconds`);
+    recharge.setAttribute('aria-label', `${rechargeLabel}: ${element.dataset.wikiRecharge || 0} seconds`);
     recharge.hidden = !element.dataset.wikiRecharge;
     const facts: TooltipFact[] = JSON.parse(element.dataset.wikiEffects || '[]');
     const factTabs: NonNullable<SimulationTooltip['factTabs']> = JSON.parse(element.dataset.wikiEffectTabs || '[]');

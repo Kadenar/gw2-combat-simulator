@@ -91,7 +91,9 @@ test('form cost tabs follow the equipped specialization and selected skill value
   const base = { id: 'fixture', name: 'Fixture', energyCost: 14, cooldown: 0, upkeepCost: 3 };
   const form = { ...base, mesmerEnergyCost: 2, mesmerRecharge: 6 };
   const describe = (skill, specialization) =>
-    describeSimulationSkill({ catalog: {} }, skill, revenantTooltips, { specializations: [{ name: specialization }] });
+    describeSimulationSkill({ catalog: { specializations: [] } }, skill, revenantTooltips, {
+      specializations: [{ name: specialization }]
+    });
   const details = (facts) => facts.map(({ detail }) => detail);
   const card = describe(form, 'Conduit');
   assert.deepEqual(

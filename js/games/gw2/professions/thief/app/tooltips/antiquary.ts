@@ -382,6 +382,12 @@ const doubleEdgeTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
 /** Describe antiquary tooltips from the selected balance data. */
 export const antiquaryTooltips = {
   skills: {
+    [ID.ANTIVENOM_DRAUGHT_BACKFIRED]: skillTooltip(
+      'The draught backfired. Wait for its recharge before using it again.'
+    ),
+    [ID.STONE_SUMMIT_CANNON_ID_77092]: skillTooltip(
+      'The cannon backfired. Wait for its recharge before using it again.'
+    ),
     ...Object.fromEntries(
       [ID.EXALTED_HAMMER, ID.CHAK_SHIELD, ID.ZEPHYRITE_SUN_CRYSTAL, ID.SUMMON_KRYPTIS_TURRET, ID.MISTBURN_MORTAR].map(
         (id) => [id, artifactTooltip]

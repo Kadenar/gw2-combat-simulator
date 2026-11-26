@@ -3,17 +3,36 @@ import {
   fromProfile,
   maximumBonusFact,
   outsideScopeTooltip,
+  simulationEffectFacts,
+  skillTooltip,
   tooltipDecimal,
   tooltipFactorChange,
+  tooltipHasTrait,
+  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
 /** Describe scrapper tooltips from the selected balance data. */
 export const scrapperTooltips = {
-  skills: {},
+  skills: {
+    [ID.BYPASS_COATING]: skillTooltip(
+      'Coat nearby allies to grant superspeed. The simulation does not track movement speed.'
+    ),
+    [ID.MEDIC_GYRO]: skillTooltip('Deploy a gyro that heals nearby allies.'),
+    [ID.SNEAK_GYRO]: skillTooltip('Deploy a gyro that conceals nearby allies in a smoke field.'),
+    // Function Gyro gains its finisher and control independently.
+    [ID.FUNCTION_GYRO]: skillTooltip('Strike your target and create a lightning field.', (context, _skill, build) => [
+      ...(tooltipHasTrait(context, build, TRAIT.SYSTEM_SHOCKER)
+        ? simulationEffectFacts(tooltipProfile(context, TRAIT.SYSTEM_SHOCKER).effects).facts
+        : []),
+      ...(tooltipHasTrait(context, build, TRAIT.KINETIC_ACCELERATORS)
+        ? [{ name: 'Combo finisher', detail: 'Blast' }]
+        : [])
+    ])
+  },
   traits: {
     [TRAIT.FUNCTION_GYRO]: traitTooltip('Unlock Function Gyro, which can trigger supported gyro and toolbelt traits.'),
     [TRAIT.SPEED_OF_SYNERGY]: traitTooltip(
@@ -21,7 +40,7 @@ export const scrapperTooltips = {
     ),
     [TRAIT.IMPACT_SAVANT]: outsideScopeTooltip,
     [TRAIT.GYROSCOPIC_ACCELERATION]: traitTooltip('Well skills and Function Gyro grant superspeed.'),
-    [TRAIT.SYSTEM_SHOCKER]: traitTooltip('Function Gyro applies a daze control event.'),
+    [TRAIT.SYSTEM_SHOCKER]: traitTooltip('Function Gyro dazes your target.'),
     [TRAIT.MASS_MOMENTUM]: traitTooltip(
       'Function Gyro grants stability. While stability is active, periodically gain might.',
       [['pulseInterval', 'Might interval', tooltipSeconds]]

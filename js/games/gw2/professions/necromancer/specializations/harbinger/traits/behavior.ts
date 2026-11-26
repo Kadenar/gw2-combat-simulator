@@ -8,8 +8,8 @@ import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
 /** Doom Approaches turns the shroud control into Fear so condition duration and Fear reactions apply. */
-export function doomApproachesControl(runtime: NecromancerRuntime, effect: SkillEffect): SkillEffect {
-  if (effect.type !== 'control' || !hasTrait(runtime, TRAIT.DOOM_APPROACHES)) return effect;
+export function doomApproachesControl(selected: boolean, effect: SkillEffect): SkillEffect {
+  if (effect.type !== 'control' || !selected) return effect;
 
   const fields = { ...effect };
   delete fields.controlKind;

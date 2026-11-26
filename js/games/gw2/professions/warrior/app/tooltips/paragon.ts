@@ -16,6 +16,7 @@ import { RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { paragonRefrains } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
 
 /** Commands describe their selected echo action; shared cadence remains command policy. */
 const commandTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
@@ -65,7 +66,23 @@ const chantTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
           : 'Freedom pulses swiftness, adds resolution at higher tiers, and adds protection at the highest tier.'),
     facts: [
       ...simulationEffectFacts(opening, 'on activation').facts,
-      ...simulationEffectFacts(refrain, 'on eligible refrain tier (Might per tier)').facts,
+      ...refrain.flatMap((effect) => {
+        if (effect.type !== 'boon') return [];
+
+        // Read the same tier recipe as the pulse so each boon carries its own threshold.
+        const tiers = [1, 2, 3].filter((tier) =>
+          paragonRefrains[Number(entity.id)].pulse(tier).kinds.includes(effect.boon)
+        );
+        return tiers.length
+          ? simulationEffectFacts(
+              [{ ...effect, name: undefined }],
+              (tiers.length === 3
+                ? 'every Motivation tier'
+                : 'Motivation tier ' + tiers[0] + (tiers.length > 1 ? ' and above' : '')) +
+                (effect.boon === 'might' ? ' (stacks per tier)' : '')
+            ).facts
+          : [];
+      }),
       skillFact(balanceContext, entity.id, 'resourceGain', 'Base Motivation gained'),
       profileFact(balanceContext, TRAIT.RALLY_THE_VALIANT, 'pulseInterval', 'Refrain pulse interval', tooltipSeconds),
       profileFact(balanceContext, TRAIT.RALLY_THE_VALIANT, 'minimumStacks', 'Motivation required for tier two'),

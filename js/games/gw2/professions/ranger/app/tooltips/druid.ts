@@ -17,6 +17,8 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 /** Compose druid descriptions using the selected catalog's balance data. */
 export const druidTooltips = {
   skills: {
+    [ID.GLYPH_OF_REJUVENATION]: skillTooltip('Heal yourself, your pet, and nearby allies.'),
+    [ID.GLYPH_OF_THE_STARS]: skillTooltip('Channel the glyph to protect allies in its area.'),
     [ID.LESSER_SEED_OF_LIFE]: skillTooltip(
       'Cultivated Synergy triggers this skill after a water blast. Blind the target and grant nearby allies alacrity if Grace of the Land is selected. Healing and cleansing are outside combat simulation scope.'
     ),

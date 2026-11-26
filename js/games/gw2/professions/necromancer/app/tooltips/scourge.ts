@@ -5,6 +5,7 @@ import {
   simulationEffectFacts,
   skillTooltip,
   tooltipFactorChange,
+  tooltipHasTrait,
   tooltipProfile,
   tooltipSeconds,
   traitTooltip,
@@ -21,7 +22,7 @@ const barrierTooltip: DescribeSimulationTooltip = skillTooltip(
   'Apply these effects and trigger selected Scourge traits that grant boons when you apply barrier. Barrier absorption and incoming damage are outside simulation scope.'
 );
 
-const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity, _specialization, build) => {
   const id = Number(entity.id);
   const description = (
     {
@@ -65,27 +66,32 @@ const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
         ? (
             [
               [ID.MANIFEST_SAND_SHADE, 'Sand shades'],
-              [TRAIT.SAND_SAVANT, 'With Sand Savant']
+              [TRAIT.SAND_SAVANT, 'Greater sand shades']
             ] as const
-          ).map(([profile, name]) => {
-            // Pair each shade limit with its own lifetime so alternative values stay compact and distinct.
-            const ordinary = profile === ID.MANIFEST_SAND_SHADE;
-            const owner = ordinary
-              ? requireSkill(balanceContext.catalog, profile)
-              : tooltipProfile(balanceContext, profile);
-            const capacity = { name, detail: String(skillNumber(owner, 'maximumStacks')) };
-            const lifetime = simulationEffectFacts(
-              (ordinary ? requireSkillAction(owner, 'shade').effects : owner.effects)?.filter(
-                (effect) => effect.type === 'buff' && effect.kind === 'active-shade'
-              )
-            );
-            return {
-              ...capacity,
-              detail: [`${capacity.detail} maximum`, ...lifetime.facts.map((fact) => `${fact.detail} duration`)].join(
-                ' · '
-              )
-            };
-          })
+          )
+            .filter(
+              ([profile]) =>
+                !build || (profile === TRAIT.SAND_SAVANT) === tooltipHasTrait(balanceContext, build, TRAIT.SAND_SAVANT)
+            )
+            .map(([profile, name]) => {
+              // Pair each shade limit with its own lifetime so alternative values stay compact and distinct.
+              const ordinary = profile === ID.MANIFEST_SAND_SHADE;
+              const owner = ordinary
+                ? requireSkill(balanceContext.catalog, profile)
+                : tooltipProfile(balanceContext, profile);
+              const capacity = { name, detail: String(skillNumber(owner, 'maximumStacks')) };
+              const lifetime = simulationEffectFacts(
+                (ordinary ? requireSkillAction(owner, 'shade').effects : owner.effects)?.filter(
+                  (effect) => effect.type === 'buff' && effect.kind === 'active-shade'
+                )
+              );
+              return {
+                ...capacity,
+                detail: [`${capacity.detail} maximum`, ...lifetime.facts.map((fact) => `${fact.detail} duration`)].join(
+                  ' · '
+                )
+              };
+            })
         : [])
     ]
   };

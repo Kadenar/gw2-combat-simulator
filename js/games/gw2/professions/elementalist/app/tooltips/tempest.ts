@@ -3,6 +3,7 @@ import {
   profileFact,
   simulationEffectFacts,
   skillTooltip,
+  tooltipHasTrait,
   tooltipPercent,
   tooltipSeconds,
   traitTooltip,
@@ -31,12 +32,14 @@ export const tempestTooltips = {
         id,
         skillTooltip(
           'Channel the current attunement after its overload has become available. Apply its pulses and eligible overload traits; leaving this attunement afterward incurs its overload recharge. Fire, Air, and Earth overloads fully charge active spear etchings. Air completion adds Lightning Jolt and arms a copy on the active elemental.',
-          (balanceContext, skill) => [
+          (balanceContext, skill, build) => [
             profileFact(
               balanceContext,
-              TRAIT.SINGULARITY,
+              tooltipHasTrait(balanceContext, build, TRAIT.TRANSCENDENT_TEMPEST)
+                ? TRAIT.TRANSCENDENT_TEMPEST
+                : TRAIT.SINGULARITY,
               'duration',
-              'Base time in attunement before overload',
+              'Time in attunement before overload',
               tooltipSeconds
             ),
             ...(id === ID.OVERLOAD_AIR

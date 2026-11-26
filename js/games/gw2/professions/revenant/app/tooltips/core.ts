@@ -201,6 +201,18 @@ export const revenantCoreTooltips = {
       : [{ name: 'Energy exhaustion cooldown', detail: tooltipSeconds(tooltipNumber(entity, 'starvationCooldown')) }])
   ],
   skills: {
+    [ID.PHANTOMS_ONSLAUGHT_ID_62713]: skillTooltip(
+      "Combat logs use this skill ID for the hit from Phantom's Onslaught."
+    ),
+    [ID.RITE_OF_THE_GREAT_DWARF]: skillTooltip('Reduce incoming damage for yourself and nearby allies.'),
+    [ID.LEGENDARY_ASSASSIN_STANCE]: skillTooltip('Invoke Shiro to use the Legendary Assassin skills.'),
+    [ID.LEGENDARY_CENTAUR_STANCE]: skillTooltip('Invoke Ventari to use the tablet and Legendary Centaur skills.'),
+    [ID.CRYSTAL_HIBERNATION]: skillTooltip('Channel a protective shield to block attacks and heal nearby allies.'),
+    [ID.LEGENDARY_DWARF_STANCE]: skillTooltip('Invoke Jalis to use the Legendary Dwarf skills.'),
+    [ID.VENTARIS_WILL]: skillTooltip("Move Ventari's tablet to the chosen location."),
+    [ID.LEGENDARY_DEMON_STANCE]: skillTooltip('Invoke Mallyx to use the Legendary Demon skills.'),
+    [ID.RENEWING_WAVE]: skillTooltip('Heal nearby allies and cleanse their conditions.'),
+    [ID.DEACTIVATE_OTHERWORLDLY_BOND]: skillTooltip('End your scepter tether and release its upkeep.'),
     [ID.SPIRITCRUSH]: spiritcrushTooltip,
     [ID.FRIGID_BLITZ]: skillTooltip('Teleport and strike, applying Chilled and Torment together.'),
     [ID.FORCED_ENGAGEMENT]: skillTooltip(

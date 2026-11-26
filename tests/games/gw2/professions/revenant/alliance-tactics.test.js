@@ -91,6 +91,67 @@ test('switching factions preserves independent skill cooldowns', () => {
   );
 });
 
+// An earned refund pays for one opposite-faction skill, which still counts toward the next reset.
+test('Heated Rivalry refreshes Alliance Tactics in both directions and refunds one cast', () => {
+  const selected = { selectedTraitIds: [TRAIT.HEATED_RIVALRY], initialEnergy: 70 };
+  const first = ['__combat_start', 'Alliance Tactics', 'Tree Song'];
+  const threshold = [...first, 'Battle Dance'];
+  const ready = (rotation) => {
+    const result = run(rotation, selected);
+    assert.deepEqual(result.warnings, []);
+    const runtime = observedRuntime(result);
+    return (runtime.cooldownController.readyAt(SKILL.ALLIANCE_TACTICS) ?? 0) <= runtime.time;
+  };
+
+  assert.equal(ready(first), false);
+  assert.equal(ready(threshold), true);
+  // Align both rotations after the ordinary recharge so energy regeneration is identical.
+  const luxon = [...threshold, wait(3000), 'Alliance Tactics', 'Scavenger Burst'];
+  assert.equal(ready(luxon), false);
+  assert.equal(ready([...luxon, "Nomad's Advance"]), true);
+  const cost = profession.resolvePatch({ id: 'current' }).catalog.skillsById.get(SKILL.SCAVENGER_BURST).energyCost;
+  for (const rotation of [luxon, [...luxon, "Nomad's Advance"]]) {
+    const energy = (selectedTraitIds) => {
+      const result = run(rotation, { ...selected, selectedTraitIds });
+      assert.deepEqual(result.warnings, []);
+      return result.planningState.profession[STATE.ENERGY].value;
+    };
+
+    assert.ok(Math.abs(energy(selected.selectedTraitIds) - energy([]) - cost) < 1e-9);
+  }
+});
+
+test('raising the Urn counts toward Heated Rivalry and preserves its ready energy refund', () => {
+  const setup = [
+    '__combat_start',
+    "Nomad's Advance",
+    'Scavenger Burst',
+    'Alliance Tactics',
+    'Urn of Saint Viktor',
+    'Drop Urn of Saint Viktor'
+  ];
+  const options = { initialEnergy: 70, selectedTraitIds: [TRAIT.HEATED_RIVALRY] };
+  const released = run(setup, options);
+  assert.deepEqual(released.warnings, []);
+  const before = observedRuntime(released);
+  assert.ok(before.cooldownController.readyAt(SKILL.ALLIANCE_TACTICS) > before.time);
+  const finish = [...setup, 'Tree Song'];
+  const result = run(finish, options);
+  const baseline = run(finish, { ...options, selectedTraitIds: [] });
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(baseline.warnings, []);
+  const after = observedRuntime(result);
+  assert.ok((after.cooldownController.readyAt(SKILL.ALLIANCE_TACTICS) ?? 0) <= after.time);
+  const refund = after.helpers.skillsById.get(SKILL.TREE_SONG).energyCost;
+  assert.ok(
+    Math.abs(
+      result.planningState.profession[STATE.ENERGY].value -
+        baseline.planningState.profession[STATE.ENERGY].value -
+        refund
+    ) < 1e-9
+  );
+});
+
 test('Kurzick boons apply and Tree Song restores endurance only on completion', () => {
   const rotation = ['Alliance Tactics', 'Battle Dance', 'Awakening', 'Tree Song'];
   const result = run(rotation, { initialEndurance: 0 });

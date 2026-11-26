@@ -127,6 +127,17 @@ const devastatorTooltip: DescribeSimulationTooltip = skillTooltip(
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const engineerCoreTooltips = {
   skills: {
+    [ID.SUPER_ELIXIR]: skillTooltip('Fire a healing orb that leaves a field of healing vapors.'),
+    [ID.SUPER_ELIXIR_CHAIN_SKILL]: skillTooltip('Burst the orb to heal nearby allies and leave healing vapors.'),
+    [ID.MAGNETIC_AURA_TRAIT_SKILL]: skillTooltip('Reflect incoming projectiles with a magnetic aura.'),
+    [ID.A_E_D]: skillTooltip('Arm a delayed heal. Taking lethal damage would trigger the heal early.'),
+    [ID.MED_PACK_DROP]: skillTooltip('Drop med packs for allies to pick up.'),
+    [ID.BANDAGE_SELF]: skillTooltip('Bandage your wounds to heal yourself.'),
+    [ID.ELIXIR_SHELL]: skillTooltip('Fire a healing shell into the target area.'),
+    [ID.OVERCHARGE_SUPPLY_CRATE]: skillTooltip('Overcharge the turrets deployed by Supply Crate.'),
+    [ID.MED_BLASTER]: skillTooltip('Pulse healing energy toward allies. Allies with more boons receive more healing.'),
+    [ID.CLEANSING_FIELD]: skillTooltip('Create a field that cleanses conditions from allies with each pulse.'),
+    [ID.VITAL_BURST]: skillTooltip('Release healing vapors around you.'),
     // Describe the physical swap input, which first leaves an active kit.
     [SHARED_SKILL_IDS.SWAP_WEAPONS]: skillTooltip(
       'Stow an active kit, or swap equipped weapon sets before combat begins.'

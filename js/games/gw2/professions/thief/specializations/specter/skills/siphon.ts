@@ -1,7 +1,8 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import { balanceNumber, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { commitThiefSteal, storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { improvisationShadowForceMultiplier } from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
@@ -11,16 +12,23 @@ import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 /** Siphon's force grant stays between steal traits and completion so sibling mechanics observe the same balance. */
 export function completeSiphon(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   commitThiefSteal(runtime, cast, () => {
-    runtime.resourceController.grant('shadowForce', siphonShadowForceGain(runtime, cast.skill));
+    runtime.resourceController.grant(
+      'shadowForce',
+      siphonShadowForceGain(runtime.helpers, (id) => hasTrait(runtime, id), cast.skill)
+    );
     storeThiefStolenSkillChoices(runtime, []);
   });
 }
 
 /** Resolve Siphon's selected tuning without mutation: add Amplified Siphoning before multiplying by Improvisation. */
-function siphonShadowForceGain(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): number {
+export function siphonShadowForceGain(
+  source: BalanceProfileSource,
+  selected: (id: SkillId) => boolean,
+  skill: Skill
+): number {
   const base = skillNumber(skill, 'shadowForceGain');
-  const amplified = hasTrait(runtime, TRAIT.AMPLIFIED_SIPHONING)
-    ? balanceNumber(runtime.helpers, TRAIT.AMPLIFIED_SIPHONING, 'resourceGain')
+  const amplified = selected(TRAIT.AMPLIFIED_SIPHONING)
+    ? balanceNumber(source, TRAIT.AMPLIFIED_SIPHONING, 'resourceGain')
     : 0;
-  return (base + amplified) * improvisationShadowForceMultiplier(runtime);
+  return (base + amplified) * improvisationShadowForceMultiplier(source, selected(TRAIT.IMPROVISATION));
 }

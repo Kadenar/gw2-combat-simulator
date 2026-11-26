@@ -339,6 +339,8 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     // Debit on commitment before the earned Swift Scholar refund.
     cost: { resource: 'tomePages', amount: 1, spendOn: 'castCommit' },
     castTimeMs: 200,
+    // Finishers can use the water field from cast completion through the river's four-second pulse window.
+    comboFields: [{ ownerId: 'guardian', fieldType: COMBO_FIELD.WATER, duration: 4, startAnchor: 'castEnd' }],
     effects: [
       {
         type: 'boon',

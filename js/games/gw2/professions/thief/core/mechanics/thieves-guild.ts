@@ -27,6 +27,15 @@ export interface ThiefGuildContribution {
   readonly conditions?: (runtime: ThiefRuntime, skill: Skill) => readonly ConditionEffect[];
 }
 
+// Runtime and inspection use the same two shared actors and the selected third thief.
+export function guildRoster(
+  summons: readonly ThiefSummonDefinition[],
+  thirdActor?: ThiefSummonDefinition
+): ThiefSummonDefinition[] {
+  const third = thirdActor ?? summons.find((summon) => summon.variant === 'Core Thief');
+  return [...summons.filter((summon) => summon.variant == null), ...(third ? [third] : [])];
+}
+
 /** Bind one guild policy per selected runtime while keeping lifetime and scheduling in Core. */
 export function createThievesGuildHooks(
   contribution: ThiefGuildContribution | null
@@ -38,8 +47,7 @@ export function createThievesGuildHooks(
 
     if (!profile) return [];
 
-    const third = contribution ? contribution.actor : profile.summons.find((summon) => summon.variant === 'Core Thief');
-    return [...profile.summons.filter((summon) => summon.variant == null), ...(third ? [third] : [])];
+    return guildRoster(profile.summons, contribution?.actor);
   }
 
   /** A committed summon replaces any active guild; its streams start with combat. */

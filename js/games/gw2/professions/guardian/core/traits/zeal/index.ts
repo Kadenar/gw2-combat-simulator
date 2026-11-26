@@ -2,7 +2,7 @@ import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, CONDITION, WEAPON } from '#gw2/platform/constants.js';
-import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { SelectedContentContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
@@ -266,7 +266,7 @@ function placeZealotsResolutionSymbol(
 }
 
 /** Spirit weapons gain their extra capacity before the runtime constructs ammunition pools. */
-function eternalArmoryMaximumAmmo(context: MaximumAmmoContext<object>, skill: Skill, maximum: number): number {
+export function eternalArmoryMaximumAmmo(context: SelectedContentContext, skill: Skill, maximum: number): number {
   return skill.skillFamily === 'SpiritWeapon' && context.hasTrait(TRAIT.ETERNAL_ARMORY)
     ? maximum + balanceProfileNumber(context.requireBalanceProfile(TRAIT.ETERNAL_ARMORY), 'resourceGain')
     : maximum;

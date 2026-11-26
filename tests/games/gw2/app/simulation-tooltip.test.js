@@ -45,6 +45,33 @@ test('skill cards cache by selection and balance context while row details stay 
   assert.equal(row('row-one'), saved);
 });
 
+// A selected trait may remove a cost entirely or add charges. Row and heading values must agree.
+test('adjusted skill costs follow the selected trait and revert when it is removed', () => {
+  const skill = { id: 'fixture', name: 'Fixture', cooldown: 8, ammo: 1, energyCost: 4 };
+  const trait = { id: 'adjustment' };
+  const catalog = { specializations: [{ name: 'line', minorTraits: [], majorTraits: [[trait]] }] };
+  const presentation = {
+    traits: {},
+    skillFacts: () => [{ name: 'Base energy cost', detail: String(skill.energyCost) }],
+    skillCosts: (_context, _skill, selection) =>
+      selection.hasTrait(trait.id) ? { cooldown: 6, ammo: 2, energyCost: 0 } : undefined
+  };
+  const describe = (traits) =>
+    describeSimulationSkill({ catalog }, skill, presentation, { specializations: [{ name: 'line', traits }] });
+  const adjusted = describe('1-0-0');
+  assert.deepEqual(
+    adjusted.facts.map((fact) => fact.detail),
+    ['6s', '2', '0']
+  );
+  const heading = skillTooltipAttributes(skill, adjusted);
+  assert.match(heading, /data-wiki-energy="0"/);
+  assert.match(heading, /data-wiki-recharge="6"/);
+  assert.deepEqual(
+    describe('0-0-0').facts.map((fact) => fact.detail),
+    ['8s', '1', '4']
+  );
+});
+
 test('a custom skill formatter reads the effect payload once', () => {
   let reads = 0;
   const skill = {

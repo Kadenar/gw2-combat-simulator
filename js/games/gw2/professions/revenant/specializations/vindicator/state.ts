@@ -9,6 +9,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 export interface VindicatorState {
   reaversCurseUntil: number;
   allianceFaction: AllianceFaction;
+  rivalry: Record<AllianceFaction, { casts: number; refundReady: boolean }>;
 }
 
 function createVindicatorState(): VindicatorState {
@@ -16,7 +17,8 @@ function createVindicatorState(): VindicatorState {
     // Timestamp-based flags: 0 means inactive; compared against event.at so 0 is safely "never".
     reaversCurseUntil: 0,
     // Alliance remembers its selected faction across ordinary legend swaps.
-    allianceFaction: 'Luxon'
+    allianceFaction: 'Luxon',
+    rivalry: { Luxon: { casts: 0, refundReady: false }, Kurzick: { casts: 0, refundReady: false } }
   };
 }
 

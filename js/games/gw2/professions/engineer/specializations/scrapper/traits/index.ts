@@ -5,7 +5,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONTROL, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
 import { type SimulationEvent } from '#gw2/platform/events/events.js';
-import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { SelectedContentContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
@@ -29,7 +29,7 @@ import {
 
 // Ex Machina (adept trait): Function Gyro gets a minimum of 2 ammo charges.
 
-function scrapperMaximumAmmo(context: MaximumAmmoContext<object>, skill: EngineerSkill, maximum: number): number {
+export function scrapperMaximumAmmo(context: SelectedContentContext, skill: EngineerSkill, maximum: number): number {
   return skill.id === ID.FUNCTION_GYRO && context.hasTrait(TRAIT.EX_MACHINA)
     ? Math.max(balanceProfileNumber(context.requireBalanceProfile(TRAIT.EX_MACHINA), 'maximumAmmo'), maximum || 0)
     : maximum;

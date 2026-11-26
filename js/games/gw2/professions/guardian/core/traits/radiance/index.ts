@@ -6,7 +6,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, AURA, BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { SelectedContentContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -450,7 +450,7 @@ function grantJusticeAura(runtime: GuardianRuntime, data: unknown): void {
 }
 
 /** Selected Radiant Fire raises Zealot's Flame capacity without reducing a larger authored capacity. */
-function radiantFireMaximumAmmo(context: MaximumAmmoContext<object>, skill: Skill, maximum: number): number {
+export function radiantFireMaximumAmmo(context: SelectedContentContext, skill: Skill, maximum: number): number {
   return skill.id === ID.ZEALOTS_FLAME && context.hasTrait(TRAIT.RADIANT_FIRE)
     ? Math.max(maximum, balanceProfileNumber(context.requireBalanceProfile(TRAIT.RADIANT_FIRE), 'maximumStacks'))
     : maximum;

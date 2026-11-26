@@ -39,31 +39,32 @@ export const mirageTooltips = {
             // Describe repeated statuses with the same independent cadence used by the runtime.
             const { player } = mesmerSelectedAmbush(balanceContext.catalog, selected.id);
             const playerPackets = (player.ticks ?? player.statusAtMs)?.length ?? 1;
-            const facts = (selected.effects || [])
-              .filter((effect) => effect.type !== 'control')
-              .flatMap((effect) => {
-                const clone = effect.source === 'Clone';
-                const projected = effect.source === 'Player' || effect.name === CONDITION.VULNERABILITY;
-                const repeated = projected && (effect.type === 'boon' || effect.name === CONDITION.VULNERABILITY);
-                return simulationEffectFacts(
-                  [
-                    {
-                      ...effect,
-                      actorType: clone ? ACTOR.SUMMON : ACTOR.PLAYER,
-                      applications: (effect.applications ?? 1) * (repeated ? playerPackets : 1),
-                      ...(effect.type === 'boon' && (clone || projected)
-                        ? {
-                            audience: {
-                              recipients: clone || selected.id === ID.CHAOS_VORTEX ? RECIPIENT.PARTY : RECIPIENT.SELF,
-                              ...(clone || selected.id === ID.CHAOS_VORTEX ? { maximumRecipients: 5 } : {})
+            // Group identical applications within each actor's ambush.
+            const facts = [false, true].flatMap(
+              (clone) =>
+                simulationEffectFacts(
+                  (selected.effects || [])
+                    .filter((effect) => effect.type !== 'control' && (effect.source === 'Clone') === clone)
+                    .map((effect) => {
+                      const projected = effect.source === 'Player' || effect.name === CONDITION.VULNERABILITY;
+                      const repeated = projected && (effect.type === 'boon' || effect.name === CONDITION.VULNERABILITY);
+                      return {
+                        ...effect,
+                        actorType: clone ? ACTOR.SUMMON : ACTOR.PLAYER,
+                        applications: (effect.applications ?? 1) * (repeated ? playerPackets : 1),
+                        ...(effect.type === 'boon' && (clone || projected)
+                          ? {
+                              audience: {
+                                recipients: clone || selected.id === ID.CHAOS_VORTEX ? RECIPIENT.PARTY : RECIPIENT.SELF,
+                                ...(clone || selected.id === ID.CHAOS_VORTEX ? { maximumRecipients: 5 } : {})
+                              }
                             }
-                          }
-                        : {})
-                    }
-                  ],
+                          : {})
+                      };
+                    }),
                   clone ? 'per clone with Infinite Horizon, when cloak is granted' : 'player ambush'
-                ).facts;
-              });
+                ).facts
+            );
             facts.push(...simulationEffectFacts(selected.effects?.filter((effect) => effect.type === 'control')).facts);
             return {
               description:

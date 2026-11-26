@@ -7,7 +7,9 @@ import {
   skillTooltip,
   tooltipDecimal,
   tooltipFactorChange,
+  tooltipHasTrait,
   tooltipNumber,
+  tooltipProfile,
   tooltipSeconds,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
@@ -15,6 +17,7 @@ import {
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { skillActionEffects } from '#gw2/platform/effects/actions.js';
+import { attributeBonusNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { elementalistAirTooltips } from '#gw2/professions/elementalist/app/tooltips/air.js';
 import { elementalistArcaneTooltips } from '#gw2/professions/elementalist/app/tooltips/arcane.js';
@@ -32,7 +35,8 @@ import { ELEMENTALIST_ETCHING_CHARGES, etchingRoot } from '#gw2/professions/elem
 import { ELEMENTALIST_CORE_SKILLS } from '#gw2/professions/elementalist/core/skills/index.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
-  ELEMENTALIST_SKILL_IDS as ID
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
@@ -70,11 +74,44 @@ const mechanicSkillTooltip: DescribeSimulationTooltip<ElementalistSkill, Element
 
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const elementalistCoreTooltips = {
-  skillFacts: (balanceContext, entity) => {
+  skillFacts: (balanceContext, entity, build) => {
     const conjure = entity.type === 'Weapon' ? undefined : conjureSkill(balanceContext.catalog, entity);
     const orbs = hammerOrbElements(entity);
 
+    const arcane =
+      entity.skillFamily === 'Arcane' && tooltipHasTrait(balanceContext, build, TRAIT.ARCANE_LIGHTNING)
+        ? tooltipProfile(balanceContext, TRAIT.ARCANE_LIGHTNING)
+        : undefined;
+    const ferocity = arcane?.effects?.find((effect) => effect.type === 'buff' && effect.name === 'Arcane Lightning');
+
     return [
+      // Each signet grants its own aura and each arcane cast grants its matching trait effect.
+      ...(entity.skillFamily === 'Signet' && tooltipHasTrait(balanceContext, build, TRAIT.WRITTEN_IN_STONE)
+        ? simulationEffectFacts(
+            tooltipProfile(balanceContext, TRAIT.WRITTEN_IN_STONE).effects?.filter(
+              (effect) => effect.sourceId === entity.id
+            ),
+            'Written in Stone'
+          ).facts
+        : []),
+      ...(arcane && ferocity
+        ? [
+            {
+              name: 'Ferocity from Arcane Lightning',
+              detail:
+                '+' +
+                tooltipDecimal(attributeBonusNumber(balanceContext.catalog, TRAIT.ARCANE_LIGHTNING, 'ferocity')) +
+                ' for ' +
+                tooltipSeconds(tooltipNumber(ferocity, 'duration'))
+            }
+          ]
+        : []),
+      ...simulationEffectFacts(
+        arcane?.effects
+          ?.filter((effect) => effect.name === entity.name)
+          .map((effect) => ({ ...effect, name: undefined })),
+        'Arcane Lightning'
+      ).facts,
       ...(orbs ? [skillFact(balanceContext, entity.id, 'orbDuration', 'Refreshed orb duration', tooltipSeconds)] : []),
       ...(entity.resourceGain == null
         ? []
@@ -132,6 +169,26 @@ export const elementalistCoreTooltips = {
     ];
   },
   skills: {
+    [SHARED_SKILL_IDS.SWAP_WEAPONS]: skillTooltip(
+      'If you are holding a conjured weapon, drop it to return to your equipped weapon skills, even in combat. Otherwise, switch weapon sets outside combat.'
+    ),
+    [ID.OBSIDIAN_FLESH]: skillTooltip('Cover yourself in stone to prevent incoming damage.'),
+    [ID.SWIRLING_WINDS]: skillTooltip('Surround yourself with wind that blocks incoming projectiles.'),
+    [ID.CLEANSING_WAVE]: skillTooltip('Send out a wave that heals allies and cleanses conditions.'),
+    [ID.GEYSER]: skillTooltip('Create a healing water field at the target location.'),
+    [ID.CLEANSING_WAVE_TRAIT]: skillTooltip(
+      'Heal nearby allies and cleanse a condition when Evasive Arcana triggers in water.'
+    ),
+    [ID.WATER_GLOBE]: skillTooltip('Send a healing water field forward.'),
+    [ID.GLYPH_OF_ELEMENTAL_POWER_EARTH]: skillTooltip(
+      'Grant barrier to nearby allies. All attunements share this recharge.'
+    ),
+    [ID.GLYPH_OF_ELEMENTAL_POWER_WATER]: skillTooltip(
+      'Cleanse conditions from nearby allies. All attunements share this recharge.'
+    ),
+    [ID.IMMUTABLE_STONE]: skillTooltip(
+      'Block the next attack. The barrier and attunement aura require an incoming hit.'
+    ),
     // Equipment selects the glyph; the accepted cast owns its elemental payload and recharge.
     [ID.GLYPH_OF_STORMS]: skillTooltip(
       'Create the storm for your primary attunement when the cast begins. Its elemental effects remain fixed for that activation, and all elements share the resulting recharge.'
@@ -187,6 +244,9 @@ export const elementalistCoreTooltips = {
     ),
     [ID.HURL]: skillTooltip(
       "Release the stored Rock Barrier as projectiles, consume the follow-up, and begin Rock Barrier's recharge."
+    ),
+    [ID.SIGNET_OF_RESTORATION]: skillTooltip(
+      'Activate your healing signet. Written in Stone grants Frost Aura when the cast completes.'
     ),
     [ID.SIGNET_OF_FIRE]: skillTooltip(
       'Passively gain precision while the signet is ready. Activate to burn your target; the passive is disabled during recharge unless Written in Stone is selected.',

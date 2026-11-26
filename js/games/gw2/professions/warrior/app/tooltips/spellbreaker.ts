@@ -19,6 +19,7 @@ import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/profes
 /** Describe spellbreaker tooltips from the selected balance data. */
 export const spellbreakerTooltips = {
   skills: {
+    [ID.NATURAL_HEALING]: skillTooltip('Heal yourself for a portion of your maximum health.'),
     [ID.EARTHSHAKER_ID_40601]: resourceTooltip,
     [ID.SKULL_CRACK_ID_41110]: resourceTooltip,
     [ID.ARCING_SLICE_ID_42707]: skillTooltip('Spend adrenaline to perform a burst strike and gain Fury.', [

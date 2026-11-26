@@ -6,6 +6,7 @@ import {
   skillFact,
   skillTooltip,
   tooltipFactorChange,
+  tooltipHasTrait,
   tooltipNumber,
   tooltipPercent,
   tooltipSeconds,
@@ -28,10 +29,23 @@ function improvedMechInheritanceFacts(balanceContext: ProfessionBalanceContext, 
 const overclockSignetTooltip: DescribeSimulationTooltip = skillTooltip(
   "Command the active mech to fire Jade Buster Cannon. Its basic attack loop pauses during the burst; mech quickness changes its attack rate. The signet's passive reduces other signet recharges, subject to its passive availability rules.",
   // The commanded skill owns the entire burst; the signet owns its passive.
-  (balanceContext) => [
-    ...simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.JADE_BUSTER_CANNON)!.effects, 'companion effect')
-      .facts,
-    skillFact(balanceContext, ID.OVERCLOCK_SIGNET, 'rechargeMultiplier', 'Signet recharge', tooltipFactorChange)
+  (balanceContext, _skill, build) => [
+    ...simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.JADE_BUSTER_CANNON)!.effects).facts,
+    tooltipHasTrait(balanceContext, build, TRAIT.MECH_CORE_J_DRIVE)
+      ? profileFact(
+          balanceContext,
+          TRAIT.MECH_CORE_J_DRIVE,
+          'rechargeMultiplier',
+          'Other signet recharge',
+          tooltipFactorChange
+        )
+      : skillFact(
+          balanceContext,
+          ID.OVERCLOCK_SIGNET,
+          'rechargeMultiplier',
+          'Other signet recharge',
+          tooltipFactorChange
+        )
   ]
 );
 
@@ -67,24 +81,43 @@ function supportCommandTooltip(_context: ProfessionBalanceContext, skill: Skill)
 /** Describe mechanist tooltips from the selected balance data. */
 export const mechanistTooltips = {
   skills: {
+    [ID.RECTIFIER_SIGNET]: skillTooltip('Heal yourself and your mech. The passive also heals you both over time.'),
+    [ID.SHIFT_SIGNET]: skillTooltip(
+      'Copy boons you gain to your mech while the passive is active. Activate the signet to shadowstep together.'
+    ),
+    [ID.BARRIER_SIGNET]: skillTooltip(
+      'Project a dome that blocks missiles and grants barrier. An active mech carries the dome.'
+    ),
     [ID.BARRIER_BURST]: supportCommandTooltip,
     [ID.CRISIS_ZONE]: supportCommandTooltip,
     [ID.OVERCLOCK_SIGNET]: overclockSignetTooltip,
     // Passive facts follow the signet owner; J-Drive's optional replacement remains a separate trait fact.
     [ID.FORCE_SIGNET]: skillTooltip(
       'Strike and knock back the target. The equipped passive increases strike damage while available.',
-      (context) => [skillFact(context, ID.FORCE_SIGNET, 'damageIncrease', 'Passive strike damage', tooltipPercent)]
+      (context, _skill, build) => [
+        tooltipHasTrait(context, build, TRAIT.MECH_CORE_J_DRIVE)
+          ? profileFact(context, TRAIT.MECH_CORE_J_DRIVE, 'damageIncrease', 'Passive strike damage', tooltipPercent)
+          : skillFact(context, ID.FORCE_SIGNET, 'damageIncrease', 'Passive strike damage', tooltipPercent)
+      ]
     ),
     [ID.SUPERCONDUCTING_SIGNET]: skillTooltip(
       'Create a damaging lightning field. The equipped passive increases condition damage while available.',
-      (context) => [
-        skillFact(
-          context,
-          ID.SUPERCONDUCTING_SIGNET,
-          'conditionDamageIncrease',
-          'Passive condition damage',
-          tooltipPercent
-        )
+      (context, _skill, build) => [
+        tooltipHasTrait(context, build, TRAIT.MECH_CORE_J_DRIVE)
+          ? profileFact(
+              context,
+              TRAIT.MECH_CORE_J_DRIVE,
+              'conditionDamageIncrease',
+              'Passive condition damage',
+              tooltipPercent
+            )
+          : skillFact(
+              context,
+              ID.SUPERCONDUCTING_SIGNET,
+              'conditionDamageIncrease',
+              'Passive condition damage',
+              tooltipPercent
+            )
       ]
     )
   },
@@ -153,7 +186,7 @@ export const mechanistTooltips = {
       [['interval', 'Barrier interval', tooltipSeconds]]
     ),
     [TRAIT.MECH_CORE_J_DRIVE]: traitTooltip(
-      "Select Sky Circus as the third mech command. Supported signet passives remain active during recharge and gain their enhanced bonuses; Overclock Signet's recharge changes.",
+      'Select Sky Circus as the third mech command. Supported signet passives remain active during recharge and gain their enhanced bonuses; Overclock Signet further reduces the recharge of your other equipped signets.',
       [
         fromProfile(TRAIT.MECH_CORE_J_DRIVE, 'damageIncrease', 'Force Signet strike bonus', tooltipPercent),
         fromProfile(

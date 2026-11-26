@@ -5,6 +5,7 @@ import {
   simulationEffectFacts,
   skillTooltip,
   tooltipFactorChange,
+  tooltipHasTrait,
   tooltipNumber,
   tooltipPercent,
   tooltipProfile,
@@ -143,6 +144,14 @@ const ordersFromAboveTooltip: DescribeSimulationTooltip = (context, entity, _spe
 /** Describe renegade tooltips from the selected balance data. */
 export const renegadeTooltips = {
   skills: {
+    [ID.LEGENDARY_RENEGADE_STANCE]: skillTooltip('Invoke Kalla to call members of her warband.'),
+    [ID.CITADEL_BOMBARDMENT]: skillTooltip(
+      'Bombard the target with burning artillery strikes.',
+      (context, _skill, build) =>
+        tooltipHasTrait(context, build, TRAIT.VINDICATION)
+          ? simulationEffectFacts(tooltipProfile(context, TRAIT.VINDICATION).effects, 'first impact').facts
+          : []
+    ),
     [ID.DISMISS_LIEUTENANT_SOULCLEAVE]: upkeepReleaseTooltip,
     ...Object.fromEntries(
       [ID.ICERAZORS_IRE, ID.DARKRAZORS_DARING, ID.RAZORCLAWS_RAGE, ID.BREAKRAZORS_BASTION].map((id) => [
@@ -223,7 +232,7 @@ export const renegadeTooltips = {
     [TRAIT.ALL_FOR_ONE]: traitTooltip('An empowered Band Together skill recharges faster.', [
       ['rechargeMultiplier', 'Empowered summon recharge duration', tooltipFactorChange]
     ]),
-    [TRAIT.VINDICATION]: traitTooltip("Citadel Bombardment's first impact applies a daze control event."),
+    [TRAIT.VINDICATION]: traitTooltip("Citadel Bombardment's first impact dazes the target."),
     [TRAIT.LASTING_LEGACY]: traitTooltip(
       "Kalla's Fervor lasts longer and grants stronger damage bonuses. Heroic Command grants additional might per Fervor stack.",
       [

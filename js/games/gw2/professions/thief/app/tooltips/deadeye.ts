@@ -69,6 +69,9 @@ const deadeyeStolenSkillTooltip: DescribeSimulationTooltip = (balanceContext, en
 /** Describe deadeye tooltips from the selected balance data. */
 export const deadeyeTooltips = {
   skills: {
+    [ID.MALICIOUS_RESTORATION]: skillTooltip(
+      'Heal yourself and transfer conditions to your marked target. This cast has no simulated condition transfer.'
+    ),
     ...Object.fromEntries(
       [
         ID.MALICIOUS_DEATHS_JUDGMENT,

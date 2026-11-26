@@ -108,6 +108,7 @@ function radiantWeaponFacts(context: ProfessionBalanceContext, id: SkillId) {
 /** Describe luminary tooltips from the selected balance data. */
 export const luminaryTooltips = {
   skills: {
+    [ID.RESOLUTE_STANCE]: skillTooltip('Heal as you cleanse conditions, then heal and cleanse nearby allies.'),
     [ID.GLARING_BURST]: glaringBurstTooltip,
     ...Object.fromEntries([ID.ENTER_RADIANT_FORGE, ID.EXIT_RADIANT_FORGE].map((id) => [id, radiantForgeTooltip])),
     ...Object.fromEntries(

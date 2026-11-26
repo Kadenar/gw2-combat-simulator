@@ -6,6 +6,7 @@ import {
   simulationEffectFacts,
   skillTooltip,
   tooltipDecimal,
+  tooltipHasTrait,
   tooltipNumber,
   tooltipPercent,
   tooltipSeconds,
@@ -14,6 +15,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { upkeepTooltip } from '#gw2/professions/revenant/app/tooltips/shared.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
@@ -24,6 +26,7 @@ const facetConsumeTooltip: DescribeSimulationTooltip = skillTooltip(
 /** Describe herald tooltips from the selected balance data. */
 export const heraldTooltips = {
   skills: {
+    [ID.LEGENDARY_DRAGON_STANCE]: skillTooltip('Invoke Glint to use the Legendary Dragon facets.'),
     ...Object.fromEntries(
       [ID.FACET_OF_STRENGTH, ID.FACET_OF_ELEMENTS, ID.FACET_OF_LIGHT, ID.FACET_OF_CHAOS, ID.FACET_OF_DARKNESS].map(
         (id) => [id, upkeepTooltip]
@@ -57,14 +60,24 @@ export const heraldTooltips = {
         }
       ]
     ),
-    [ID.TRUE_NATURE_DRAGON]: (balanceContext, entity) => {
+    [ID.TRUE_NATURE_DRAGON]: (balanceContext, entity, _specialization, build) => {
       const extension = balanceContext.catalog.skillsById
         .get(entity.id)!
         .effects?.find((effect) => effect.type === 'custom');
       return {
         description:
           'Consume Facet of Nature to extend existing party boons. The consume ends upkeep and starts the shared facet cooldown; Draconic Echo can retain its passive.',
-        facts: [{ name: 'Party boon extension', detail: tooltipSeconds(tooltipNumber(extension?.event, 'duration')) }]
+        facts: [
+          {
+            name: 'Party boon extension',
+            detail: tooltipSeconds(
+              tooltipNumber(extension?.event, 'duration') +
+                (tooltipHasTrait(balanceContext, build, TRAIT.CORE_VALUE)
+                  ? balanceNumber(balanceContext.catalog, TRAIT.CORE_VALUE, 'duration')
+                  : 0)
+            )
+          }
+        ]
       };
     }
   },

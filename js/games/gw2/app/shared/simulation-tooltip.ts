@@ -8,6 +8,10 @@ import { ACTOR, BOON, BOON_NAMES, COMBO_FINISHER, RECIPIENT } from '#gw2/platfor
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import {
+  createSelectedContentContext,
+  type SelectedContentContext
+} from '#gw2/platform/profession-definition/runtime-context.js';
+import {
   attributeBonusNumber,
   balanceNumber,
   requireSkill,
@@ -15,6 +19,26 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { displayedSkill } from '#gw2/platform/skills/selectors.js';
 import type { BalanceProfile, CatalogEntity, Skill, SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
+
+type TooltipBuild = Pick<Gw2CanonicalBuild, 'specializations'>;
+
+/** Read trait positions from the same patch layout as the build editor. */
+export function tooltipSelection(context: ProfessionBalanceContext, build?: TooltipBuild): SelectedContentContext {
+  const traits = build?.specializations.length ? selectedTraits(context.catalog, build.specializations) : [];
+  return createSelectedContentContext(new Set(traits.map((trait) => trait.id)), context.catalog);
+}
+
+export function tooltipHasTrait(
+  context: ProfessionBalanceContext,
+  build: TooltipBuild | undefined,
+  id: SkillId
+): boolean {
+  return (
+    !!build?.specializations.length &&
+    selectedTraits(context.catalog, build.specializations).some((trait) => trait.id === id)
+  );
+}
 
 export interface SimulationTooltip {
   readonly description: string;
@@ -50,7 +74,17 @@ export interface ProfessionTooltips<TSkill extends Skill = Skill> {
   readonly reworks?: Readonly<Record<string, Pick<ProfessionTooltips<TSkill>, 'traits' | 'skills' | 'modifiers'>>>;
   readonly skills?: Readonly<Record<string, DescribeSimulationTooltip<TSkill, TSkill>>>;
   /** Profession resources supplement both ordinary skills and explicitly described skills. */
-  readonly skillFacts?: (context: ProfessionBalanceContext<TSkill>, skill: TSkill) => readonly TooltipFact[];
+  readonly skillFacts?: (
+    context: ProfessionBalanceContext<TSkill>,
+    skill: TSkill,
+    build?: TooltipBuild
+  ) => readonly TooltipFact[];
+  /** Selected traits can change the charges, recharge work or energy required for the next cast. */
+  readonly skillCosts?: (
+    context: ProfessionBalanceContext<TSkill>,
+    skill: TSkill,
+    selection: SelectedContentContext
+  ) => { ammo?: number; cooldown?: number; energyCost?: number } | undefined;
   /** Group the completed skill facts when an equipped specialization changes how the skill works. */
   readonly groupSkillFacts?: (
     model: SimulationTooltip,
@@ -117,7 +151,8 @@ export type FactSpec =
 
 /** Computed payloads still need callbacks; scalar declarations can use facts directly. */
 type TooltipFacts<T, TSkill extends Skill = Skill> =
-  readonly FactSpec[] | ((context: ProfessionBalanceContext<TSkill>, entity: T) => readonly TooltipFact[]);
+  | readonly FactSpec[]
+  | ((context: ProfessionBalanceContext<TSkill>, entity: T, build?: TooltipBuild) => readonly TooltipFact[]);
 
 /** Select another profile while reusing the balance context for authored rows. */
 export const fromProfile = (
@@ -345,13 +380,13 @@ export function skillTooltip<TSkill extends Skill = Skill>(
   description: string,
   facts: TooltipFacts<TSkill, TSkill> = []
 ): DescribeSimulationTooltip<TSkill> {
-  return (context, entity) => {
+  return (context, entity, _specialization, build) => {
     const skill = context.catalog.skillsById.get(entity.id);
 
     if (!skill) throw new Error(`Missing tooltip skill: ${entity.id}`);
 
     const effects = simulationEffectFacts(skill.effects);
-    const custom = typeof facts === 'function' ? facts(context, skill) : resolveFacts(context, skill.id, facts);
+    const custom = typeof facts === 'function' ? facts(context, skill, build) : resolveFacts(context, skill.id, facts);
     return { ...effects, description, facts: [...effects.facts, ...custom] };
   };
 }
@@ -579,7 +614,7 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
 }
 
 /** Ordinary descriptions summarize declared effects; skill overrides retain their locally authored explanations. */
-function ordinarySkillDescription(skill: Skill): string {
+export function ordinarySkillDescription(skill: Skill): string {
   const effects = skill.effects || [];
   const sentences: string[] = [];
   const strikes = effects.filter((effect) => effect.type === 'strike');
@@ -731,24 +766,33 @@ export function describeSimulationSkill(
   }
 
   const facts: TooltipFact[] = [];
-  const recharge = gw2BaseRecharge(skill);
+  const costs = build ? presentation.skillCosts?.(context, skill, tooltipSelection(context, build)) : undefined;
+  const recharge = costs?.cooldown ?? gw2BaseRecharge(skill);
+  const ammunition = costs?.ammo ?? skill.ammo ?? 0;
 
-  if (recharge > 0)
-    facts.push({
-      name: Number(skill.ammo) > 0 ? 'Base ammunition recharge' : 'Base recharge',
-      detail: `${tooltipDecimal(recharge)}s`
-    });
+  if (recharge > 0) {
+    const rechargeName = ammunition > 0 ? 'ammunition recharge' : 'recharge';
+    const name = costs?.cooldown == null ? 'Base ' + rechargeName : ammunition > 0 ? 'Ammunition recharge' : 'Recharge';
+    facts.push({ name, detail: tooltipSeconds(recharge) });
+  }
 
-  if (Number(skill.ammo) > 0) facts.push({ name: 'Ammunition', detail: tooltipDecimal(tooltipNumber(skill, 'ammo')) });
+  if (ammunition > 0) facts.push({ name: 'Ammunition', detail: tooltipDecimal(ammunition) });
 
   facts.push(...simulationComboFacts(skill, model));
 
+  const resourceFacts = presentation.skillFacts?.(context, skill, build) ?? [];
   const tooltip = {
     ...model,
-    facts: [...facts, ...model.facts, ...(presentation.skillFacts?.(context, skill) || [])].map((fact) => ({
-      ...fact,
-      icon: fact.icon || tooltipFactIcon(fact.name)
-    }))
+    facts: [...facts, ...model.facts, ...resourceFacts]
+      .map((fact) =>
+        fact.name === 'Base energy cost' && costs?.energyCost != null
+          ? { ...fact, name: 'Energy cost', detail: tooltipDecimal(costs.energyCost) }
+          : fact
+      )
+      .map((fact) => ({
+        ...fact,
+        icon: fact.icon || tooltipFactIcon(fact.name)
+      }))
   };
   return presentation.groupSkillFacts?.(tooltip, skill, build) ?? tooltip;
 }

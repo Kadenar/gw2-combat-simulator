@@ -160,6 +160,11 @@ const plasmaticStateTooltip: DescribeSimulationTooltip = skillTooltip(
 /** Describe amalgam tooltips from the selected balance data. */
 export const amalgamTooltips = {
   skills: {
+    [ID.SYMBIOTIC_SHIELDING]: skillTooltip('Shield yourself with barrier and a projectile-reflecting aura.'),
+    [ID.MITOTIC_STATE]: skillTooltip('Heal over time. Having barrier increases the healing.'),
+    [ID.LOCKED]: skillTooltip('Choose a protocol for this slot in the build editor.'),
+    [ID.LOCKED_ID_77107]: skillTooltip('Choose a protocol for this slot in the build editor.'),
+    [ID.LOCKED_ID_77388]: skillTooltip('Choose a protocol for this slot in the build editor.'),
     ...Object.fromEntries(Object.keys(AMALGAM_PROTOCOL_SKILL_MECHANICS).map((id) => [id, amalgamMorphTooltip])),
     ...Object.fromEntries([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX].map((id) => [id, evolveTooltip])),
     [ID.PLASMATIC_STATE]: plasmaticStateTooltip

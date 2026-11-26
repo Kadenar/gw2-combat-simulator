@@ -79,15 +79,16 @@ const phantasmTooltip: DescribeSimulationTooltip = (balanceContext, entity, _spe
 
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const mesmerCoreTooltips = {
-  skillFacts: (_c, entity) => {
+  skillFacts: (context, entity, build) => {
     const selected = entity as MesmerSkill;
+    const resource = mesmerResourceKind(equippedEliteSpecialization(context.catalog, build));
     // Follow-up facts use the runtime's window and fraction of parent base recharge.
     return [
       ...(selected.resource?.mode === 'add'
         ? [
             {
               name: 'Resources generated',
-              detail: `${tooltipDecimal(tooltipNumber(selected.resource, 'count'))} clones, blades, or notes according to specialization`
+              detail: `${tooltipDecimal(tooltipNumber(selected.resource, 'count'))} ${selected.resource.count === 1 ? resource.slice(0, -1) : resource}`
             }
           ]
         : []),
@@ -108,6 +109,25 @@ export const mesmerCoreTooltips = {
     ];
   },
   skills: {
+    [ID.ETHER_FEAST]: skillTooltip('Heal yourself and cleanse conditions. Active clones improve the heal.'),
+    [ID.MIRROR]: skillTooltip('Reflect incoming projectiles while healing yourself.'),
+    [ID.TEMPORAL_CURTAIN]: skillTooltip('Place a curtain and unlock Into the Void to pull foes through it.'),
+    [ID.MIRROR_IMAGES]: skillTooltip("Create images of yourself and gain your specialization's illusion resource."),
+    [ID.MANTRA_OF_PAIN]: skillTooltip('Prepare Power Spike and refill its charges.'),
+    [ID.MANTRA_OF_RECOVERY]: skillTooltip('Prepare Power Return and refill its charges.'),
+    [ID.POWER_RETURN]: skillTooltip('Spend a prepared charge to heal yourself.'),
+    [ID.MASS_INVISIBILITY]: skillTooltip('Hide yourself and nearby allies. This cast has no simulated stealth effect.'),
+    [ID.ILLUSIONARY_COUNTER]: skillTooltip('Raise a block and unlock Counterspell.'),
+    [ID.ILLUSIONARY_RIPOSTE]: skillTooltip('Raise a block and unlock Counter Blade.'),
+    [ID.FEEDBACK]: skillTooltip('Create a dome that reflects incoming projectiles.'),
+    [ID.PHASE_RETREAT]: skillTooltip(
+      "Teleport away from your target and gain your specialization's illusion resource."
+    ),
+    [ID.SWAP]: skillTooltip('Trade places with your clone and unlock Disenchant.'),
+    [ID.DIMENSIONAL_APERTURE]: skillTooltip(
+      "Collapse the singularity to open a portal and lengthen Singularity Shot's recharge."
+    ),
+    [ID.SINGULARITY_SHOT]: skillTooltip('Place a singularity and unlock Dimensional Aperture.'),
     // The skill card and modifier reference share Mind Stab's selected intrinsic rule parameters.
     [ID.MIND_STAB]: skillTooltip(
       "Strike your target. Gain an additional damage bonus per Vulnerability stack, multiplying separately from the target's ordinary Vulnerability bonus.",

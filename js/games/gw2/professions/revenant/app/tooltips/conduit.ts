@@ -143,6 +143,10 @@ export const conduitTooltips = {
     };
   },
   skills: {
+    [ID.LEGENDARY_ENTITY_STANCE]: skillTooltip('Invoke Razah to use the Legendary Entity skills.'),
+    [ID.SHIELDING_HANDS]: skillTooltip(
+      'Channel a pulsing heal and reduce incoming damage. With Legendary Centaur Stance equipped, the pulses also heal nearby allies.'
+    ),
     [ID.BEGUILING_HAZE]: beguilingHazeTooltip,
     [ID.HEX_EATER_VORTEX]: hexEaterVortexTooltip,
     [ID.GLADIATORS_DEFENSE]: gladiatorsDefenseTooltip,

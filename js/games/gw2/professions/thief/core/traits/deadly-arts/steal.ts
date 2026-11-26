@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -11,10 +10,8 @@ export function improvisationStolenUses(source: BalanceProfileSource, context: u
 }
 
 /** Apply the selected shadow-force gain at the existing Siphon resource boundary. */
-export function improvisationShadowForceMultiplier(runtime: MechanicQueriesOf<ThiefRuntime>): number {
-  return hasTrait(runtime, TRAIT.IMPROVISATION)
-    ? 1 + balanceNumber(runtime.helpers, TRAIT.IMPROVISATION, 'lifeForceGain')
-    : 1;
+export function improvisationShadowForceMultiplier(source: BalanceProfileSource, enabled: boolean): number {
+  return enabled ? 1 + balanceNumber(source, TRAIT.IMPROVISATION, 'lifeForceGain') : 1;
 }
 
 /** Only Swipe pilfers receive Improvisation's extra use. */

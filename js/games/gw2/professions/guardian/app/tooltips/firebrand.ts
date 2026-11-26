@@ -48,10 +48,6 @@ const stowTomeTooltip: DescribeSimulationTooltip = skillTooltip(
   'Close the active tome and restore your weapon skills. This ends the current consecutive-page sequence for Swift Scholar.'
 );
 
-const tomePageTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Use a page from the matching open tome and apply these effects. Pages are shared across tomes and regenerate after spending begins. Applicable tome traits can add boons or refund pages; the tome stays open until stowed.'
-);
-
 /** Describe firebrand tooltips from the selected balance data. */
 export const firebrandTooltips = {
   skillFacts: (_c, entity) =>
@@ -61,24 +57,20 @@ export const firebrandTooltips = {
       : [{ name: 'Tome pages spent', detail: tooltipDecimal(entity.cost.amount) }],
   skills: {
     [ID.STOW_TOME]: stowTomeTooltip,
-    ...Object.fromEntries(
-      [
-        ID.AZURE_SUN,
-        ID.DARING_CHALLENGE,
-        ID.DESERT_BLOOM,
-        ID.ETERNAL_OASIS,
-        ID.HEATED_REBUKE,
-        ID.IGNITING_BURST,
-        ID.RADIANT_RECOVERY,
-        ID.SCORCHED_AFTERMATH,
-        ID.SEARING_SPELL,
-        ID.SHINING_RIVER,
-        ID.STALWART_STAND,
-        ID.UNBROKEN_LINES,
-        ID.UNFLINCHING_CHARGE,
-        ID.VALIANT_BULWARK
-      ].map((id) => [id, tomePageTooltip])
+    // Each chapter describes its own effects. The tome card owns the shared page rules.
+    [ID.DESERT_BLOOM]: skillTooltip('Heal allies in front of you.'),
+    [ID.RADIANT_RECOVERY]: skillTooltip('Cleanse conditions from nearby allies.'),
+    [ID.VALIANT_BULWARK]: skillTooltip('Create a dome that reflects projectiles.'),
+    [ID.ETERNAL_OASIS]: skillTooltip(
+      'Convert conditions on nearby allies into boons and increase the healing those allies receive.'
     ),
+    [ID.AZURE_SUN]: skillTooltip('Grant nearby allies vigor, regeneration, and swiftness.'),
+    [ID.UNFLINCHING_CHARGE]: skillTooltip('Grant nearby allies protection and swiftness.'),
+    [ID.UNBROKEN_LINES]: skillTooltip('Grant nearby allies toughness, protection, stability, and aegis.'),
+    [ID.SHINING_RIVER]: skillTooltip('Create a healing water field that grants swiftness.'),
+    [ID.STALWART_STAND]: skillTooltip('Pulse resistance to nearby allies.'),
+    [ID.DARING_CHALLENGE]: skillTooltip('Taunt nearby foes and grant resolution to allies.'),
+    [ID.IGNITING_BURST]: skillTooltip('Burn and weaken your target with a burst of flame.'),
     ...Object.fromEntries(
       [ID.TOME_OF_JUSTICE, ID.TOME_OF_RESOLVE, ID.TOME_OF_COURAGE].map((id) => [
         id,

@@ -5,6 +5,8 @@ import {
   profileFact,
   simulationEffectFacts,
   skillTooltip,
+  tooltipHasTrait,
+  tooltipNumber,
   tooltipPercent,
   tooltipProfile,
   tooltipSeconds,
@@ -33,6 +35,10 @@ const ambushTooltip: DescribeSimulationTooltip = (context, entity) => {
 /** Compose untamed descriptions using the selected catalog's balance data. */
 export const untamedTooltips = {
   skills: {
+    [ID.NATURES_BINDING]: skillTooltip(
+      'Trap nearby foes inside a cage of vines. The simulation does not track their movement.'
+    ),
+    [ID.PERILOUS_GIFT]: skillTooltip('Prevent incoming damage, then heal based on your missing health.'),
     [ID.UNLEASH_RANGER]: skillTooltip(
       "Unleash yourself and restore your pet's ordinary commands. Open a temporary unleashed-ambush window when the shared ambush cooldown is ready.",
       [
@@ -48,7 +54,19 @@ export const untamedTooltips = {
       'Strike, poison, and control the target. Gain might if you were unleashed at cast start, or protection if your pet was unleashed.'
     ),
     [ID.VENOMOUS_OUTBURST]: skillTooltip(
-      'Your unleashed pet attacks. It additionally applies vulnerability against a defiant target.'
+      'Your unleashed pet strikes and poisons its target. A defiant target also gains vulnerability.',
+      (context, _skill, build) =>
+        tooltipHasTrait(context, build, TRAIT.BLINDING_OUTBURST)
+          ? [
+              ...simulationEffectFacts(tooltipProfile(context, TRAIT.BLINDING_OUTBURST).effects).facts,
+              {
+                name: 'Strike damage bonus',
+                detail: tooltipPercent(
+                  tooltipNumber(tooltipProfile(context, TRAIT.BLINDING_OUTBURST), 'damageIncrease')
+                )
+              }
+            ]
+          : []
     )
   },
   traits: {

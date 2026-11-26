@@ -3,7 +3,7 @@ import { thiefAvailability } from '#gw2/professions/thief/core/mechanics/availab
 import type { BonusStealthAttackCharges } from '#gw2/professions/thief/core/mechanics/bonus-stealth-attacks.js';
 import { beginThiefStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import type { ThiefGuildContribution } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
-import { createThievesGuildHooks } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
+import { createThievesGuildHooks, guildRoster } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
 import { ANTIQUARY_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/antiquary/mechanics/thieves-guild.js';
 import { metalLegionGuitarCharges } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { DAREDEVIL_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/daredevil/mechanics/thieves-guild.js';
@@ -27,6 +27,11 @@ const contributions: Readonly<Record<string, ThiefFamilyContribution>> = Object.
   Deadeye: { guild: { actor: DEADEYE_THIEVES_GUILD_ACTOR }, charges: silentScopeCharges },
   Specter: { guild: { actor: SPECTER_THIEVES_GUILD_ACTOR, conditions: guildAttackConditions } }
 });
+
+// Resolve a build's guild members without constructing a combat runtime.
+export function thievesGuildRoster(specialization: string, skill: ThiefSkill) {
+  return guildRoster(skill.summonAttack!.summons, contributions[specialization].guild?.actor);
+}
 
 /** Bind cast eligibility and spending to the same active elite for the lifetime of this runtime. */
 export function thiefFamilyRuntimeHooks(specialization: string) {

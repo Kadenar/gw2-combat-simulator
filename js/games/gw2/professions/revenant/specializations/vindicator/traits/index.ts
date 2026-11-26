@@ -15,7 +15,13 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { revenantEnergyUnpaid } from '#gw2/professions/revenant/core/mechanics/resources.js';
+import { allianceSlots } from '#gw2/professions/revenant/data/alliance.js';
+import {
+  REVENANT_SKILL_IDS as ID,
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_TRAIT_IDS as TRAIT
+} from '#gw2/professions/revenant/data/ids.js';
 import {
   energyMeldCompleted,
   energyMeldEnduranceGranted,
@@ -226,6 +232,49 @@ const friendOfTheLuxons = defineTrait({
   ]
 });
 
+// Each completed faction cast counts once, including the cast that spends an earned refund.
+const heatedRivalry = defineTrait<RevenantSkill>({
+  id: TRAIT.HEATED_RIVALRY,
+  balance: { minimumStacks: 2 },
+  triggers: [
+    {
+      on: 'castCommit',
+      run(runtime: RevenantRuntime, cast) {
+        if (
+          !runtime.engagement.active ||
+          !runtime.engagement.combatMechanicsAllowed() ||
+          runtime.profession.core.activeLegendId !== LEGEND.ALLIANCE ||
+          revenantEnergyUnpaid(runtime, cast.id)
+        )
+          return;
+
+        const faction = allianceSlots(runtime.helpers.skillsById).factionBySkill.get(cast.skill.id);
+
+        // Raising the Urn counts toward the next refund. Dropping it neither counts nor spends a refund.
+        if (!faction || cast.skill.id === ID.DROP_URN_OF_SAINT_VIKTOR) return;
+
+        const rivalry = vindicatorState.from(runtime.profession).rivalry;
+        const current = rivalry[faction];
+
+        const cost = cast.skill.energyCost ?? 0;
+
+        if (current.refundReady && cost > 0) {
+          current.refundReady = false;
+          runtime.resourceController.grant('energy', cost);
+        }
+
+        current.casts++;
+
+        if (current.casts >= balanceNumber(runtime.helpers, TRAIT.HEATED_RIVALRY, 'minimumStacks')) {
+          current.casts = 0;
+          rivalry[faction === 'Luxon' ? 'Kurzick' : 'Luxon'].refundReady = true;
+          runtime.cooldownController.clear(ID.ALLIANCE_TACTICS);
+        }
+      }
+    }
+  ]
+});
+
 export const traitDefinitions = [
   songOfArboreum,
   reaversCurse,
@@ -233,7 +282,7 @@ export const traitDefinitions = [
   balanceInDiscord,
   riseToTheOccasion,
   friendOfTheLuxons,
-  defineTrait({ id: TRAIT.HEATED_RIVALRY, balance: { minimumStacks: 2 } }),
+  heatedRivalry,
   defineTrait({ id: TRAIT.FRIEND_OF_THE_KURZICKS }),
   forerunnerOfDeath,
   saintOfZuHeltzer,
