@@ -15,7 +15,6 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { lifeForce, shroudTooltip } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -23,6 +22,10 @@ import {
   RITUALIST_SPIRIT_SKILL_IDS,
   spiritDefinition
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
+import {
+  weaponSpellChargeEffects,
+  weaponSpellGrant
+} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/weapon-spells.js';
 import { painfulBondSkill } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 
@@ -39,27 +42,31 @@ const weaponSpellTooltip: DescribeSimulationTooltip = (balanceContext, entity, _
   const empowered = selectedTraits(balanceContext.catalog, build?.specializations).some(
     ({ id }) => id === TRAIT.WIELDERS_BOON
   );
-  const effects = (skill.effects ?? []).map((effect) => {
-    if (effect.type !== 'buff' || !['nightmare-weapon', 'splinter-weapon'].includes(String(effect.kind)))
-      return simulationEffectFacts([effect]);
+  const grant = weaponSpellGrant(skill, empowered);
 
-    const personal = tooltipNumber(effect, 'stacks');
-    const allied = empowered ? personal : tooltipNumber(effect, 'allyStacks');
-    return simulationEffectFacts(
-      [{ ...effect, allyStacks: undefined }],
-      `${personal} charges on yourself · ${allied} charges on each ally`
-    );
-  });
+  if (!grant) return { description: 'This skill grants no weapon-spell charges in the selected balance.', facts: [] };
+
+  const grantFacts = simulationEffectFacts(
+    [{ ...grant.effect, allyStacks: undefined }],
+    `${grant.personal} charges on yourself · ${grant.allied} charges on each ally`
+  );
+  const facts = [...grantFacts.facts];
+  const output = weaponSpellChargeEffects(skill);
+  let description = 'Grant charges to yourself and eligible party recipients.';
+
+  if (output.length) {
+    description += ' Each recipient spends a charge on a qualifying strike and has a separate trigger interval.';
+    facts.push(...simulationEffectFacts(output, 'per charge spent').facts, {
+      name: 'Minimum interval per recipient',
+      detail: tooltipSeconds(tooltipNumber(skill, 'internalCooldown'))
+    });
+  } else if (skill.id === ID.RESILIENT_WEAPON) description += ' These defensive charges deal no damage.';
+  else description += ' Strikes leave these charges available until expiry.';
+
   return {
-    description:
-      'Grant weapon-spell charges to yourself and eligible party recipients. Their qualifying strikes spend charges to trigger the listed attack, with an independent interval for each recipient.' +
-      (empowered ? " Wielder's Boon is selected: allies receive your full charge count." : ''),
-    incomplete: effects.some((model) => model.incomplete),
-    facts: [
-      ...effects.flatMap((model) => model.facts),
-      ...simulationEffectFacts(requireSkillAction(skill, 'triggered').effects, 'per charge spent').facts,
-      { name: 'Minimum interval per recipient', detail: tooltipSeconds(tooltipNumber(skill, 'internalCooldown')) }
-    ]
+    description: description + (empowered ? " Wielder's Boon grants each ally your full charge count." : ''),
+    incomplete: grantFacts.incomplete,
+    facts
   };
 };
 
@@ -147,16 +154,14 @@ export const ritualistTooltips = {
     [ID.INNERVATE_ANGUISH]: innervateTooltip,
     [ID.NIGHTMARE_WEAPON]: weaponSpellTooltip,
     [ID.SPLINTER_WEAPON]: weaponSpellTooltip,
+    [ID.RESILIENT_WEAPON]: weaponSpellTooltip,
     [ID.SUMMON_SPIRITS]: ritualistTooltip,
     [ID.PRESERVATION]: ritualistTooltip,
     [ID.ANGUISH]: ritualistTooltip,
     [ID.WANDERLUST]: ritualistTooltip,
     [ID.ESSENCE_BLAST]: ritualistTooltip,
     [ID.EXIT_RITUALISTS_SHROUD]: shroudTooltip,
-    [ID.RITUALISTS_SHROUD]: shroudTooltip,
-    [ID.RESILIENT_WEAPON]: skillTooltip(
-      "Grant Resilient Weapon charges to yourself and eligible party recipients. Wielder's Boon grants allies your full charge count. Its defensive effects add no damage within simulation scope."
-    )
+    [ID.RITUALISTS_SHROUD]: shroudTooltip
   },
   traits: {
     [TRAIT.SPAWNING_POWER]: traitTooltip(
@@ -180,18 +185,21 @@ export const ritualistTooltips = {
       ['damageMultiplier', 'Creature strike damage', tooltipFactorChange]
     ]),
     [TRAIT.WIELDERS_BOON]: traitTooltip(
-      'Nightmare Weapon and Splinter Weapon grant each eligible ally as many charges as you receive, replacing their reduced ally charge count. Your own charge count stays the same.',
-      // Read both counts from the selected skills so the explanation also follows balance previews.
+      'Your weapon spells grant each eligible ally as many charges as you receive.',
       (context) =>
-        [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON].flatMap((id) => {
+        [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON, ID.RESILIENT_WEAPON].flatMap((id) => {
           const skill = context.catalog.skillsById.get(id)!;
-          return (skill.effects ?? [])
-            .filter((effect) => effect.type === 'buff')
-            .map((effect) => ({
-              name: skill.name,
-              icon: skill.icon,
-              detail: `${tooltipNumber(effect, 'allyStacks')} → ${tooltipNumber(effect, 'stacks')} charges per ally`
-            }));
+          const base = weaponSpellGrant(skill, false);
+          const empowered = weaponSpellGrant(skill, true);
+          return base && empowered
+            ? [
+                {
+                  name: skill.name,
+                  icon: skill.icon,
+                  detail: `${base.allied} → ${empowered.allied} charges per ally`
+                }
+              ]
+            : [];
         })
     ),
     [TRAIT.LINGERING_SPIRITS]: traitTooltip(

@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { buffApplicationExpiry } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
@@ -5,19 +6,19 @@ import { createChargeGrant, type ChargeGrant } from '#gw2/platform/combat/resour
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import { type StatusEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   ritualistResolverEventReactions,
   triggerRitualistWeaponSpell
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
+import { weaponSpellGrant } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/weapon-spells.js';
 import { painfulBondSkill } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import { wieldersBoonCharges } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -95,10 +96,11 @@ function grantWeaponSpell(
   cast: RuntimeCast<NecromancerSkill>,
   spell: 'nightmare' | 'splinter' | 'resilient'
 ): void {
-  const effect = cast.skill.effects?.find((effect): effect is StatusEffect => effect.type === 'buff');
+  const grant = weaponSpellGrant(cast.skill, hasTrait(runtime, TRAIT.WIELDERS_BOON));
 
-  if (!effect) return;
+  if (!grant) return;
 
+  const { effect, allied, personal } = grant;
   const state = ritualistState.from(runtime.profession);
   const previous = state.weaponSpells[spell];
 
@@ -106,21 +108,20 @@ function grantWeaponSpell(
 
   const generation = ++state.weaponSpellGeneration;
   const expiresAt = gw2Time(runtime.time + effect.duration);
-  const allyStacks = wieldersBoonCharges(runtime, effect);
   const audience = gw2AlliedEffectRecipients(runtime.config, {
     ...effect.audience,
     recipients: RECIPIENT.PARTY,
     eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
   });
   const recipients: Record<string, ChargeGrant> = {
-    player: createChargeGrant(effect.stacks ?? 0, expiresAt)
+    player: createChargeGrant(personal, expiresAt)
   };
-  for (const key of audience.companionIds) recipients[key] = createChargeGrant(allyStacks, expiresAt);
+  for (const key of audience.companionIds) recipients[key] = createChargeGrant(allied, expiresAt);
 
   // Defensive grants retain allied effect windows independently of the party's offensive strike cadence.
   if (spell === 'resilient')
     for (let index = 1; index <= audience.alliedPlayerCount; index++)
-      recipients[`ally:${audience.alliedPlayerIndex ?? index}`] = createChargeGrant(allyStacks, expiresAt);
+      recipients[`ally:${audience.alliedPlayerIndex ?? index}`] = createChargeGrant(allied, expiresAt);
 
   state.weaponSpells[spell] = {
     generation,
@@ -141,14 +142,14 @@ function grantWeaponSpell(
       activationId: cast.id,
       kind: String(effect.kind),
       duration: effect.duration,
-      stacks: effect.stacks ?? 0,
+      stacks: personal,
       resolvedAudience: audience
     }
   });
   // Charges stay spendable by hits tied to the deadline; the spell retires after that timestamp's gameplay.
   runtime.scheduleExpiry(EXPIRE, expiresAt, { spell, generation }, { owner: owner(spell, generation), priority: -20 });
 
-  if (spell !== 'resilient') grantAlliedWeaponSpell(runtime, spell, audience.alliedPlayerCount, allyStacks, expiresAt);
+  if (spell !== 'resilient') grantAlliedWeaponSpell(runtime, spell, audience.alliedPlayerCount, allied, expiresAt);
 }
 
 /** Existing per-recipient spell grants inspect one common strike; replacing a grant never moves its cadence. */

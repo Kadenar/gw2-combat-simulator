@@ -1,4 +1,5 @@
 /** Own complete spirit summons and actions while keeping creature, attack, and independent effect lifetimes distinct. */
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { ACTOR, CONTROL } from '#gw2/platform/constants.js';
@@ -27,7 +28,6 @@ import {
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import { painfulBondSkill } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import { lingeringSpiritsActive } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -365,7 +365,7 @@ function initializeRitualistSpiritLifecycle(runtime: NecromancerRuntime): void {
       startRitualistSpirits(runtime);
     },
     onExit: () => {
-      if (!lingeringSpiritsActive(runtime)) clearSpirits(runtime);
+      if (!hasTrait(runtime, TRAIT.LINGERING_SPIRITS)) clearSpirits(runtime);
     },
     onDepletion: () => clearSpirits(runtime)
   });
@@ -401,7 +401,7 @@ export const ritualistSpiritHooks: RuntimeHooks<NecromancerRuntimeState, Necroma
         if (
           !runtime.profession.core.activeShroud &&
           Object.keys(ritualistState.from(runtime.profession).activeSpirits).length &&
-          lingeringSpiritsActive(runtime)
+          hasTrait(runtime, TRAIT.LINGERING_SPIRITS)
         )
           return (
             (-runtime.profession.core.lifeForce.maximum *

@@ -1,24 +1,24 @@
 /** Compose spirit execution, player actions, and independent weapon-spell effects through their runtime hooks. */
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
-import { requireSkill as damageSkill } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireSkill as damageSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { setNecromancerCreatureStrikeScaling } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_SKILL_IDS as DAMAGE_SKILL } from '#gw2/professions/necromancer/data/ids.js';
+import {
+  NECROMANCER_SKILL_IDS as DAMAGE_SKILL,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/professions/necromancer/data/ids.js';
 import { ritualistBuffPolicies } from '#gw2/professions/necromancer/specializations/ritualist/effect-state.js';
 import {
   emitPainfulBond,
   ritualistSpellHooks
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spells.js';
-import {
-  queueNightmareWeapon,
-  queueSplinterWeapon
-} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
+import { queueWeaponSpellCharge } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
 import { ritualistSpiritHooks } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-lifecycle.js';
 import { ritualistPlayerActionHooks } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-actions.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import { spiritsStrengthCreatureMultiplier } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Expose independent effect previews and grants, and apply Ritualist scaling to the shared creature owner. */
@@ -42,7 +42,7 @@ const ritualistEffectHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSki
       unit: 'charge',
       sourceIds: [DAMAGE_SKILL.NIGHTMARE_WEAPON],
       emit: (runtime) =>
-        queueNightmareWeapon(
+        queueWeaponSpellCharge(
           runtime,
           damageInputEvent(runtime),
           damageSkill(runtime.helpers, DAMAGE_SKILL.NIGHTMARE_WEAPON),
@@ -56,10 +56,11 @@ const ritualistEffectHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSki
       unit: 'charge',
       sourceIds: [DAMAGE_SKILL.SPLINTER_WEAPON],
       emit: (runtime) =>
-        queueSplinterWeapon(
+        queueWeaponSpellCharge(
           runtime,
           damageInputEvent(runtime),
-          damageSkill(runtime.helpers, DAMAGE_SKILL.SPLINTER_WEAPON)
+          damageSkill(runtime.helpers, DAMAGE_SKILL.SPLINTER_WEAPON),
+          'personal'
         )
     }
   ],
@@ -81,7 +82,12 @@ const ritualistEffectHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSki
     );
   },
   initialize(runtime) {
-    setNecromancerCreatureStrikeScaling(runtime, () => spiritsStrengthCreatureMultiplier(runtime.queries));
+    // Creatures sample Spirits' Strength when they commit a strike.
+    setNecromancerCreatureStrikeScaling(runtime, () =>
+      hasTrait(runtime.queries, TRAIT.SPIRITS_STRENGTH)
+        ? balanceNumber(runtime.queries.helpers, TRAIT.SPIRITS_STRENGTH, 'damageMultiplier')
+        : 1
+    );
   }
 };
 

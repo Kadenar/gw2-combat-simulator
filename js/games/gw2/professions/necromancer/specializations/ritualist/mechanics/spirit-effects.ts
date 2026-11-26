@@ -1,10 +1,10 @@
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { weaponSpellChargeEffects } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/weapon-spells.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
@@ -18,145 +18,65 @@ function recipientKeys(event: NecromancerResolverEvent): string[] {
   return [];
 }
 
-function spellIcon(context: NecromancerResolverContext, skillId: SkillId): string {
-  return context.helpers.skillsById.get(skillId)?.icon || '';
-}
-
-// Resolve a Nightmare Weapon stack as a non-critical life steal plus vulnerability,
-// preserving whether the triggering strike belonged to an ally.
-export function queueNightmareWeapon(
+/** Live hits and single-charge previews emit the same packets. Only live hits spend a recipient's charge. */
+export function queueWeaponSpellCharge(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  definition: Skill,
-  recipient: 'personal' | 'shared'
+  skill: Skill,
+  recipient: 'personal' | 'shared',
+  effects = weaponSpellChargeEffects(skill)
 ): void {
-  // Attribute damage to the consumed grant: ally-triggered Splinter can still spend a personal Nightmare charge.
-  const breakdownName = `Nightmare Weapon (${recipient === 'personal' ? 'Personal' : 'Shared'})`;
-  const strike = requireEffect(definition, 'strike', 'Strike', requireSkillAction(definition, 'triggered'));
-  const vulnerability = requireEffect(
-    definition,
-    'condition',
-    CONDITION.VULNERABILITY,
-    requireSkillAction(definition, 'triggered')
-  );
+  if (!effects.length) return;
 
-  // Materialize both components at the triggering strike's timestamp before recording the combined proc; each
-  // survives the other's removal.
-  if (strike)
+  const source = {
+    at: event.at,
+    skillName: skill.name,
+    procType: 'profession' as const,
+    icon: skill.icon || '',
+    source: 'Weapon Spell',
+    sourceId: skill.id,
+    triggeredBy: event.skillName,
+    ...(event.metadata?.triggeredByAlly == null
+      ? {}
+      : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
+  };
+
+  for (const effect of effects) {
+    if (effect.type === 'condition') {
+      context.effects.emit({
+        kind: 'packet',
+        event: buildResolverCondition({ ...effect, ...source, name: skill.name })
+      });
+      continue;
+    }
+
+    // Splinter belongs to the caster even on an ally hit. Only personal siphons inherit the caster's bonuses.
+    const siphon = skill.id === ID.NIGHTMARE_WEAPON;
+    const name = siphon ? `${skill.name} (${recipient === 'personal' ? 'Personal' : 'Shared'})` : skill.name;
+    const { type: _type, ...strike } = effect;
     context.effects.emit({
       kind: 'packet',
       event: buildResolverStrike({
-        at: event.at,
-
-        skillName: 'Nightmare Weapon',
-        name: breakdownName,
-        damageBreakdownName: breakdownName,
-        // Weapon spells own the damage of their consumed charges, including allied opportunities.
-        procType: 'profession',
-        icon: spellIcon(context, ID.NIGHTMARE_WEAPON),
-        coefficient: 0,
-        flatStrikeBase: effectNumber(definition, strike, 'flatStrikeBase'),
-        flatStrikePowerCoeff: effectNumber(definition, strike, 'flatStrikePowerCoeff'),
-
-        source: 'Weapon Spell',
-        sourceId: ID.NIGHTMARE_WEAPON,
-        actorType: ACTOR.EFFECT,
-        // Personal siphons inherit the caster's life-steal bonuses; shared grants belong to their recipients.
-        ...(recipient === 'personal' ? { ownerActorType: ACTOR.PLAYER } : {}),
-        skillId: ID.NIGHTMARE_WEAPON,
-        skillWeapon: 'Unequipped',
-        canCrit: false,
-        damageKind: 'life-steal',
-        triggeredBy: event.skillName,
-        // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
-        ...(event.metadata?.triggeredByAlly == null
-          ? {}
-          : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
+        ...strike,
+        ...source,
+        name,
+        ...(siphon ? { damageBreakdownName: name } : {}),
+        ...(!siphon || recipient === 'personal' ? { ownerActorType: ACTOR.PLAYER } : {}),
+        skillId: skill.id,
+        skillWeapon: 'Unequipped'
       })
     });
-
-  if (vulnerability)
-    context.effects.emit({
-      kind: 'packet',
-      event: buildResolverCondition({
-        at: event.at,
-        name: 'Nightmare Weapon',
-        skillName: 'Nightmare Weapon',
-        procType: 'profession',
-        icon: spellIcon(context, ID.NIGHTMARE_WEAPON),
-        condition: String(vulnerability.condition),
-        stacks: effectNumber(definition, vulnerability, 'stacks'),
-        duration: effectNumber(definition, vulnerability, 'duration'),
-        source: 'Weapon Spell',
-        sourceId: ID.NIGHTMARE_WEAPON,
-        actorType: ACTOR.EFFECT,
-        triggeredBy: event.skillName,
-        // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
-        ...(event.metadata?.triggeredByAlly == null
-          ? {}
-          : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
-      })
-    });
+  }
 
   context.effects.emit({
     kind: 'announcement',
     announcement: {
       type: 'skill',
-      name: 'Nightmare Weapon',
+      name: skill.name,
       at: event.at,
       sourceSkill: event.skillName,
       detail: '',
-      icon: spellIcon(context, ID.NIGHTMARE_WEAPON)
-    }
-  });
-}
-
-// Resolve a Splinter Weapon stack as a derived strike while preserving ally
-// trigger attribution and proc logging.
-export function queueSplinterWeapon(
-  context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
-  definition: Skill
-): void {
-  const strike = requireEffect(definition, 'strike', 'Strike', requireSkillAction(definition, 'triggered'));
-
-  if (!strike) return;
-
-  // Queue the derived strike first, then expose the same trigger through proc reporting.
-  context.effects.emit({
-    kind: 'packet',
-    event: buildResolverStrike({
-      at: event.at,
-
-      skillName: 'Splinter Weapon',
-      // The consuming attack is a trigger, while the weapon spell remains the damage owner.
-      procType: 'profession',
-      icon: spellIcon(context, ID.SPLINTER_WEAPON),
-      coefficient: effectNumber(definition, strike, 'coefficient'),
-
-      source: 'Weapon Spell',
-      sourceId: ID.SPLINTER_WEAPON,
-      actorType: ACTOR.EFFECT,
-      // The caster owns Splinter damage even when a companion or ally consumes the grant.
-      ownerActorType: ACTOR.PLAYER,
-      skillId: ID.SPLINTER_WEAPON,
-      skillWeapon: 'Unequipped',
-      triggeredBy: event.skillName,
-      // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
-      ...(event.metadata?.triggeredByAlly == null
-        ? {}
-        : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
-    })
-  });
-  context.effects.emit({
-    kind: 'announcement',
-    announcement: {
-      type: 'skill',
-      name: 'Splinter Weapon',
-      at: event.at,
-      sourceSkill: event.skillName,
-      detail: '',
-      icon: spellIcon(context, ID.SPLINTER_WEAPON)
+      icon: source.icon
     }
   });
 }
@@ -192,22 +112,15 @@ export function triggerRitualistWeaponSpell(
   if (!active) return;
 
   const definition = requireSkill(context.helpers, spell === 'nightmare' ? ID.NIGHTMARE_WEAPON : ID.SPLINTER_WEAPON);
-  // A removed proc retains its charges; the surviving component of Nightmare can still consume one.
-  const hasOutput =
-    requireEffect(definition, 'strike', 'Strike', requireSkillAction(definition, 'triggered')) !== undefined ||
-    (spell === 'nightmare' &&
-      requireEffect(definition, 'condition', CONDITION.VULNERABILITY, requireSkillAction(definition, 'triggered')) !==
-        undefined);
+  const effects = weaponSpellChargeEffects(definition);
 
-  if (!hasOutput) return;
+  if (!effects.length) return;
 
   const internalCooldown = skillNumber(definition, 'internalCooldown');
   for (const key of keys) {
     if (!consumeCharge(active.recipients[key], event.at, internalCooldown)) continue;
 
-    if (spell === 'nightmare')
-      queueNightmareWeapon(context, event, definition, key === ACTOR.PLAYER ? 'personal' : 'shared');
-    else queueSplinterWeapon(context, event, definition);
+    queueWeaponSpellCharge(context, event, definition, key === ACTOR.PLAYER ? 'personal' : 'shared', effects);
   }
 }
 
