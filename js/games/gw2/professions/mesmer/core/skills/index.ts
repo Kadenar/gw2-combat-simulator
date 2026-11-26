@@ -39,14 +39,6 @@ const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinition<Mesm
   MESMER_WEAPONS_TORCH_SKILL_MECHANICS
 );
 
-// Tooltips and runtime share the timelines authored by each summoning skill.
-export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, NonNullable<MesmerSkill['phantasmTiming']>>> =
-  Object.fromEntries(
-    Object.entries(MESMER_CORE_SKILL_MECHANICS).flatMap(([id, skill]) =>
-      skill.phantasmTiming ? [[Number(id), skill.phantasmTiming]] : []
-    )
-  );
-
 /** One complete module collection includes authored skills, generated attacks, and simulator actions. */
 export const MESMER_CORE_SKILLS = Object.freeze([
   ...materializeSkillDefinitions(MESMER_CORE_SKILL_MECHANICS),

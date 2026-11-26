@@ -1,6 +1,7 @@
 import { ACTOR, COMBO_FINISHER } from '#gw2/platform/constants.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { phantasmAttackCycle } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasm-attack-cycle.js';
 import type { MesmerPhantasmExecution } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import {
   buildMesmerConditions,
@@ -66,16 +67,14 @@ export function schedulePhantasmStrike(
   const repeatAttackName = group.parentSkillName ? groupName : execution.skill.name;
 
   // Measured phantasm timings position the authored damage packets without changing their formulas.
-  const measuredTicks =
-    execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[groupName] ??
-    (Array.isArray(execution.timing.damageTicks?.[groupName]) ? execution.timing.damageTicks[groupName] : null);
-  const fixedTicks = damageGroup.ticks?.length ? damageGroup.ticks : null;
+  const cycle = phantasmAttackCycle(execution.skill, execution.timing, execution.entityIndex, group);
+  const fixedTicks = group.ticks;
   let initialEvents: readonly SimulationEventBase[];
 
-  if (measuredTicks?.length) {
-    const coefficients = fixedTicks?.map((tick) => tick.coefficient) ?? [damageGroup.coefficient || 0];
+  if (cycle.initial?.length) {
+    const coefficients = fixedTicks?.length ? fixedTicks.map((tick) => tick.coefficient) : [group.coefficient || 0];
 
-    if (measuredTicks.length !== coefficients.length) {
+    if (cycle.initial.length !== coefficients.length) {
       throw new TypeError(
         `Phantasm strike ${execution.skill.id} packet count does not match its measured timing metadata.`
       );
@@ -87,31 +86,13 @@ export function schedulePhantasmStrike(
       hits: undefined,
       atMs: undefined,
       intervalMs: undefined,
-      ticks: measuredTicks.map((packet, index) => ({
-        atMs: (execution.endpoint(packet.atMs) - castStart) * 1000,
+      ticks: cycle.initial.map((tick, index) => ({
+        ...tick,
+        atMs: (execution.endpoint(tick.atMs) - castStart) * 1000,
         coefficient: coefficients[index]
       })),
       timingAnchor: 'castStart',
       timingScale: 'fixed'
-    }).map((packet) => {
-      emitAttackPacket(state, execution, packet);
-      return packet;
-    });
-  } else if (fixedTicks?.length) {
-    initialEvents = buildMesmerStrikes(state, execution.skill, castStart, {
-      ...damageGroup,
-      atMs: undefined,
-      intervalMs: undefined,
-      // Skill-owned phantasm packets use the same measured offsets as the phantasm timeline.
-      ticks: fixedTicks.map((tick) => ({
-        ...tick,
-        atMs: (execution.endpoint(tick.atMs) - castStart) * 1000
-      })),
-      timingAnchor: 'castStart',
-      timingScale: 'fixed'
-    }).map((packet) => {
-      emitAttackPacket(state, execution, packet);
-      return packet;
     });
   } else {
     initialEvents = buildMesmerStrikes(
@@ -125,11 +106,10 @@ export function schedulePhantasmStrike(
         timingAnchor: undefined,
         timingScale: undefined
       }
-    ).map((packet) => {
-      emitAttackPacket(state, execution, packet);
-      return packet;
-    });
+    );
   }
+
+  for (const packet of initialEvents) emitAttackPacket(state, execution, packet);
 
   const initialHitTimes = initialEvents.map((event) => event.at);
 
@@ -138,13 +118,10 @@ export function schedulePhantasmStrike(
   if (repeatPolicy) {
     // Prefer dedicated repeat tick data; fall back to shifting the initial
     // hit pattern by the delta between repeatDamageAt and damageAt.
-    const repeatMeasuredTicks =
-      execution.timing.repeatDamageTicksByEntity?.[execution.entityIndex]?.[groupName] ??
-      execution.timing.repeatDamageTicks?.[groupName] ??
-      null;
+    const repeatMeasuredTicks = cycle.repeat;
 
     if (repeatMeasuredTicks?.length) {
-      const coefficients = fixedTicks?.map((tick) => tick.coefficient) ?? [damageGroup.coefficient || 0];
+      const coefficients = fixedTicks?.length ? fixedTicks.map((tick) => tick.coefficient) : [group.coefficient || 0];
 
       if (repeatMeasuredTicks.length !== coefficients.length) {
         throw new TypeError(
@@ -236,141 +213,65 @@ export function schedulePhantasmStatuses(
     actorType: ACTOR.SUMMON,
     summonKind: 'phantasm' as const
   };
-  const authoredDamageTicks = (label: string) =>
-    execution.skill.effects?.find(
-      (candidate): candidate is MesmerStrikeEffect => candidate.type === 'strike' && candidate.name === label
-    )?.ticks;
-  for (const effect of entityConditions) {
-    const condition = effect;
-    // packetLabel ties the condition's application times to a named damage-tick sequence,
-    // so conditions that apply on each hit are synchronized with the actual hit packets.
-    const authoredTicks = condition.packetLabel ? authoredDamageTicks(condition.packetLabel) : null;
-    const conditionTicks = condition.packetLabel
-      ? (execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[condition.packetLabel] ??
-        execution.timing.damageTicks?.[condition.packetLabel] ??
-        authoredTicks ??
-        null)
-      : null;
+  const groups = entityConditions.map((condition) => ({
+    condition,
+    cycle: condition.packetLabel
+      ? phantasmAttackCycle(execution.skill, execution.timing, execution.entityIndex, condition.packetLabel)
+      : undefined
+  }));
 
-    if (conditionTicks && conditionTicks.length > 0) {
-      // Split stacks evenly across application packets.
-      const packetStacks = (condition.stacks ?? 1) / conditionTicks.length;
-      const applicationTimes = conditionTicks.map((tick) => execution.endpoint(tick.atMs));
-      const conditionOrigin = Math.min(...applicationTimes);
-      buildMesmerConditions(
-        state,
-        execution.skill.name,
-        conditionOrigin,
-        {
+  const scheduleCycle = (repeat?: NonNullable<typeof execution.policy.repeat>) => {
+    const impactAt = repeat ? execution.repeatDamageAt : execution.damageAt;
+    for (const { condition, cycle } of groups) {
+      const repeatTicks = repeat && cycle?.repeat;
+      const ticks = repeatTicks ?? cycle?.initial;
+      let origin = impactAt;
+      let effect = condition;
+
+      if (ticks?.length) {
+        // A repeat without dedicated packets replays the initial pattern relative to its own impact.
+        const offset = repeat && !repeatTicks ? impactAt - execution.damageAt : 0;
+        const times = ticks.map((tick) => execution.endpoint(tick.atMs) + offset);
+        origin = Math.min(...times);
+        effect = {
           ...condition,
           stacks: undefined,
-          ticks: applicationTimes.map((applicationAt) => ({
-            atMs: (applicationAt - conditionOrigin) * 1000,
+          ticks: times.map((at) => ({
+            atMs: (at - origin) * 1000,
             condition: condition.condition,
             duration: condition.duration,
-            stacks: packetStacks
+            stacks: (condition.stacks ?? 1) / ticks.length
           })),
           timingAnchor: 'castStart',
           timingScale: 'fixed'
-        },
-        'Phantasm',
-        '',
-        conditionEventExtra
-      ).forEach((packet) => {
-        emitAttackPacket(state, execution, packet);
-      });
-    } else {
-      buildMesmerConditions(
+        };
+      }
+
+      const packets = buildMesmerConditions(
         state,
         execution.skill.name,
-        execution.damageAt,
-        condition,
+        origin,
+        effect,
         'Phantasm',
-        '',
+        repeat ? `${execution.skill.name} - ${repeat.label}` : '',
         conditionEventExtra
-      ).forEach((packet) => {
-        emitAttackPacket(state, execution, packet);
-      });
-    }
-  }
-
-  // Queue controls after initial conditions so on-disable consumers observe the attack's newly applied stacks.
-  schedulePhantasmControls(state, execution, execution.damageAt);
-
-  const repeatPolicy = execution.policy.repeat;
-
-  if (!repeatPolicy) return;
-
-  // Repeat cycle: prefer dedicated repeat tick data; fall back to shifting
-  // initial tick timestamps by the delta between the two damage windows.
-  const repeatOffset = execution.repeatDamageAt - execution.damageAt;
-  for (const effect of entityConditions) {
-    const condition = effect;
-    const initialConditionTicks = condition.packetLabel
-      ? (execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[condition.packetLabel] ??
-        execution.timing.damageTicks?.[condition.packetLabel] ??
-        authoredDamageTicks(condition.packetLabel) ??
-        null)
-      : null;
-    const repeatConditionTicks = condition.packetLabel
-      ? (execution.timing.repeatDamageTicksByEntity?.[execution.entityIndex]?.[condition.packetLabel] ??
-        execution.timing.repeatDamageTicks?.[condition.packetLabel] ??
-        null)
-      : null;
-    // Use repeat-specific ticks if available; otherwise fall back to shifted initial ticks.
-    const conditionTicks = repeatConditionTicks ?? initialConditionTicks;
-
-    if (conditionTicks && conditionTicks.length > 0) {
-      const packetStacks = (condition.stacks ?? 1) / conditionTicks.length;
-      const applicationTimes = conditionTicks.map((tick) =>
-        repeatConditionTicks ? execution.endpoint(tick.atMs) : execution.endpoint(tick.atMs) + repeatOffset
       );
-      const conditionOrigin = Math.min(...applicationTimes);
-      buildMesmerConditions(
-        state,
-        execution.skill.name,
-        conditionOrigin,
-        {
-          ...condition,
-          stacks: undefined,
-          ticks: applicationTimes.map((applicationAt) => ({
-            atMs: (applicationAt - conditionOrigin) * 1000,
-            condition: condition.condition,
-            duration: condition.duration,
-            stacks: packetStacks
-          })),
-          timingAnchor: 'castStart',
-          timingScale: 'fixed'
-        },
-        'Phantasm',
-        `${execution.skill.name} - ${repeatPolicy.label}`,
-        conditionEventExtra
-      ).forEach((packet) => {
-        // Scale each materialized duration so authored ticks and ordinary conditions share the repeat penalty.
-        emitAttackPacket(state, execution, {
-          ...packet,
-          duration: Number(packet.duration) * repeatPolicy.conditionDurationMultiplier
-        });
-      });
-    } else {
-      buildMesmerConditions(
-        state,
-        execution.skill.name,
-        execution.repeatDamageAt,
-        condition,
-        'Phantasm',
-        `${execution.skill.name} - ${repeatPolicy.label}`,
-        conditionEventExtra
-      ).forEach((packet) => {
-        emitAttackPacket(state, execution, {
-          ...packet,
-          duration: Number(packet.duration) * repeatPolicy.conditionDurationMultiplier
-        });
-      });
+      for (const packet of packets) {
+        emitAttackPacket(
+          state,
+          execution,
+          repeat ? { ...packet, duration: Number(packet.duration) * repeat.conditionDurationMultiplier } : packet
+        );
+      }
     }
-  }
 
-  schedulePhantasmControls(state, execution, execution.repeatDamageAt);
+    // A disable in this cycle can trigger effects that read the conditions it just applied.
+    schedulePhantasmControls(state, execution, impactAt);
+  };
+
+  scheduleCycle();
+
+  if (execution.policy.repeat) scheduleCycle(execution.policy.repeat);
 }
 
 /** Each attack cycle disables after its conditions, retaining the phantasm's ownership and committed delivery. */

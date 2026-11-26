@@ -7,6 +7,7 @@ import type {
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { bountifulBladesSpawnModifiers } from '#gw2/professions/mesmer/core/traits/domination/index.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
@@ -26,6 +27,19 @@ export function mesmerShatterDefinition(context: MesmerRuntime, id: SkillId): Me
   );
 }
 
+/** Overlay only the active elite's timing fields on the selected catalog skill. */
+export function mesmerPhantasmTiming(skill: MesmerSkill, specialization: string) {
+  const overrides =
+    specialization === 'Chronomancer'
+      ? MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS
+      : specialization === 'Virtuoso'
+        ? MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS
+        : undefined;
+  const override = overrides?.[skill.id];
+  return (override ? { ...skill.phantasmTiming, ...override } : skill.phantasmTiming) as
+    MesmerPhantasmAttackTiming | undefined;
+}
+
 /** Select phantasm content and policies for this call without storing controllers or tables on a run registry. */
 export function createMesmerSkillEffects(context: MesmerRuntime) {
   const specialization = context.profession.specialization.kind;
@@ -33,20 +47,10 @@ export function createMesmerSkillEffects(context: MesmerRuntime) {
     spawnModifiers: bountifulBladesSpawnModifiers(context),
     conversionTiming: specialization === 'Virtuoso' ? 'blade-tick' : 'spawn'
   };
-  const overrides =
-    specialization === 'Chronomancer'
-      ? MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS
-      : specialization === 'Virtuoso'
-        ? MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS
-        : undefined;
   return createPhantasmCastScheduler({
     state: context,
     // Resolve only the requested summon from this run's catalog; elite overrides retain their field precedence.
-    phantasmTimingFor: (skillId) => {
-      const timing = context.helpers.skillsById.get(skillId)?.phantasmTiming;
-      const override = overrides?.[skillId];
-      return (override ? { ...timing, ...override } : timing) as MesmerPhantasmAttackTiming | undefined;
-    },
+    phantasmTimingFor: (skill) => mesmerPhantasmTiming(skill, specialization),
     phantasmPolicy: () => policy,
     queueResources: createMesmerIllusionRewards(context).queueResources
   });

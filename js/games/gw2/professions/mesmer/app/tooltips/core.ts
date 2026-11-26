@@ -15,57 +15,70 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { mesmerChaosTooltips } from '#gw2/professions/mesmer/app/tooltips/chaos.js';
 import { mesmerDominationTooltips } from '#gw2/professions/mesmer/app/tooltips/domination.js';
 import { mesmerDuelingTooltips } from '#gw2/professions/mesmer/app/tooltips/dueling.js';
 import { mesmerIllusionsTooltips } from '#gw2/professions/mesmer/app/tooltips/illusions.js';
 import { mesmerInspirationTooltips } from '#gw2/professions/mesmer/app/tooltips/inspiration.js';
 import { chaosStormPoisonFacts, shatterTooltip } from '#gw2/professions/mesmer/app/tooltips/shared.js';
-import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
+import { phantasmAttackCycle } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasm-attack-cycle.js';
+import { MESMER_CORE_SKILLS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { mesmerPhantasmTiming } from '#gw2/professions/mesmer/family-mechanics.js';
 import { mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
-import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 
-/** Name the resource produced by the selected build, sharing the profession's resource terminology. */
-function tooltipResource(build?: Pick<Gw2CanonicalBuild, 'specializations'>) {
-  return mesmerResourceKind(
-    build?.specializations.find(({ name }) => name === 'Virtuoso' || name === 'Troubadour')?.name ?? 'Core'
+/** Use the equipped elite for both phantasm timing and the resource granted on conversion. */
+function tooltipSpecialization(catalog: CanonicalCatalog, build?: Pick<Gw2CanonicalBuild, 'specializations'>) {
+  return (
+    build?.specializations.find(({ name }) => catalog.specializations.some((spec) => spec.elite && spec.name === name))
+      ?.name ?? 'Core'
   );
 }
 
 // Phantasm condition budgets are distributed across their authored hit packets, independently for each summoned entity.
 const phantasmTooltip: DescribeSimulationTooltip = (balanceContext, entity, _specialization, build) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id)! as MesmerSkill;
-  const timing = { ...MESMER_CORE_PHANTASM_ATTACK_TIMINGS, ...MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS }[
-    selected.id
-  ];
+  const specialization = tooltipSpecialization(balanceContext.catalog, build);
+  const timing = mesmerPhantasmTiming(selected, specialization);
   const facts = (selected.effects || []).flatMap((effect) => {
     const companion = effect.actorType === ACTOR.SUMMON;
     const entityIndex = effect.type === 'condition' ? effect.phantasmEntityIndex : undefined;
-    const packetLabel = effect.type === 'condition' ? effect.packetLabel : undefined;
-    const packetCount = packetLabel
-      ? (
-          timing?.damageTicksByEntity?.[entityIndex ?? 0]?.[packetLabel] ??
-          timing?.damageTicks?.[packetLabel] ??
-          selected.effects?.filter((effect) => effect.type === 'strike').find((effect) => effect.name === packetLabel)
-            ?.ticks
-        )?.length
-      : undefined;
-    const formatted =
-      effect.type === 'condition' && packetCount
-        ? { ...effect, stacks: (effect.stacks ?? 1) / packetCount, applications: packetCount }
-        : effect;
-    return simulationEffectFacts(
-      [formatted],
-      companion ? (entityIndex == null ? 'per phantasm' : `phantasm ${entityIndex + 1} only`) : 'player effect'
-    ).facts;
+    const qualifier = companion
+      ? entityIndex == null
+        ? 'per phantasm'
+        : `phantasm ${entityIndex + 1} only`
+      : 'player effect';
+
+    if (effect.type !== 'condition' || !effect.packetLabel) return simulationEffectFacts([effect], qualifier).facts;
+
+    const label = effect.packetLabel;
+    const packetCount = (index: number) => phantasmAttackCycle(selected, timing, index, label).initial?.length;
+    const factsFor = (count: number | undefined, recipient: string) =>
+      simulationEffectFacts(
+        [count ? { ...effect, ticks: undefined, stacks: (effect.stacks ?? 1) / count, applications: count } : effect],
+        recipient
+      ).facts;
+
+    if (entityIndex != null) return factsFor(packetCount(entityIndex), qualifier);
+
+    // Co-summoned phantasms share one fact only when they apply the same number of packets.
+    const entities = Math.max(
+      selected.resource?.count ?? 1,
+      selected.resource?.clarityCount ?? 0,
+      timing?.damageTicksByEntity?.length ?? 0
+    );
+    const counts = Array.from({ length: entities }, (_, index) => packetCount(index));
+    return counts.every((count) => count === counts[0])
+      ? factsFor(counts[0], qualifier)
+      : counts.flatMap((count, index) => factsFor(count, `phantasm ${index + 1}`));
   });
   facts.push({ name: 'Base phantasms summoned', detail: tooltipDecimal(tooltipNumber(selected.resource!, 'count')) });
   return {
     description:
-      `Summon phantasms to attack your target and generate ${tooltipResource(build)}. Effects from your character apply once per cast; phantasm effects are listed per summon. Traits can summon extra phantasms or make them attack again.` +
+      `Summon phantasms to attack your target and generate ${mesmerResourceKind(specialization)}. Effects from your character apply once per cast; phantasm effects are listed per summon. Traits can summon extra phantasms or make them attack again.` +
       (selected.id === ID.PHANTASMAL_LANCER
         ? ' Consuming Clarity summons an additional Lancer; only that second phantasm immobilizes.'
         : ''),
@@ -115,7 +128,9 @@ export const mesmerCoreTooltips = {
         )
       ]
     ),
-    ...Object.fromEntries(Object.keys(MESMER_CORE_PHANTASM_ATTACK_TIMINGS).map((id) => [Number(id), phantasmTooltip])),
+    ...Object.fromEntries(
+      MESMER_CORE_SKILLS.filter((skill) => skill.phantasmTiming).map((skill) => [skill.id, phantasmTooltip])
+    ),
     ...Object.fromEntries(Object.keys(MESMER_CORE_SHATTERS).map((id) => [Number(id), shatterTooltip])),
     [SHARED_SKILL_IDS.SWAP_WEAPONS]: skillTooltip(
       'Switch weapon sets. Existing illusions keep their own weapons and attack patterns.'
@@ -138,7 +153,7 @@ export const mesmerCoreTooltips = {
         )
     ),
     [ID.SIGNET_OF_ILLUSIONS]: (context, entity, _specialization, build) => {
-      const resource = tooltipResource(build);
+      const resource = mesmerResourceKind(tooltipSpecialization(context.catalog, build));
       return skillTooltip(
         `Signet Passive: Generate ${resource} while equipped and recharged. Signet Active: Reset shatter and instrument cooldowns, restoring one ammunition charge where applicable. Continuum Split is excluded. The passive resumes when the signet recharges.`,
         [

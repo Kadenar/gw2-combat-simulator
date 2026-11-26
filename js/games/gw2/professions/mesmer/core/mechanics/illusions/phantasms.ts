@@ -39,7 +39,7 @@ interface PhantasmScheduleOptions {
 
 interface PhantasmCastSchedulerOptions {
   readonly state: MesmerRuntime;
-  readonly phantasmTimingFor: (skillId: number) => MesmerPhantasmAttackTiming | undefined;
+  readonly phantasmTimingFor: (skill: MesmerSkill) => MesmerPhantasmAttackTiming | undefined;
   readonly phantasmPolicy: () => MesmerPhantasmPolicy;
   readonly queueResources: MesmerQueueResources;
 }
@@ -80,7 +80,7 @@ export function createPhantasmCastScheduler({
       (spawnModifier?.countMultiplier ?? 1);
 
     // One resolved timing record belongs to this activation's entire summon batch.
-    const timing = phantasmTimingFor(skill.id);
+    const timing = phantasmTimingFor(skill);
 
     if (!timing) {
       throw new TypeError(`Phantasm skill ${skill.id} requires attack timing metadata.`);

@@ -11,11 +11,9 @@ import {
   validateMesmerBuild
 } from '#gw2/professions/mesmer/build/build.js';
 import { MESMER_CLONE_ATTACK_TASK } from '#gw2/professions/mesmer/core/mechanics/illusions/clones.js';
-import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerPhantasmTiming } from '#gw2/professions/mesmer/family-mechanics.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
-import { MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 const MECHANIC_SKILLS = Object.freeze({
@@ -38,24 +36,6 @@ const MECHANIC_SKILLS = Object.freeze({
   ])
 });
 
-const phantasmTimingIds = new Set([
-  ...Object.keys(MESMER_CORE_PHANTASM_ATTACK_TIMINGS),
-  ...Object.keys(MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS),
-  ...Object.keys(MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS)
-]);
-const PHANTASM_ATTACK_TIMINGS = Object.freeze(
-  Object.fromEntries(
-    [...phantasmTimingIds].map((id) => [
-      Number(id),
-      {
-        ...MESMER_CORE_PHANTASM_ATTACK_TIMINGS[Number(id)],
-        ...MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS[Number(id)],
-        ...MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS[Number(id)]
-      }
-    ])
-  )
-);
-
 test('Chronomancer owns its Continuum Shift palette projection', () => {
   const group = mesmerProfession.ui.paletteGroups({
     specialization: 'Chronomancer',
@@ -66,29 +46,33 @@ test('Chronomancer owns its Continuum Shift palette projection', () => {
   assert.equal(group.includeActionSkills, true);
 });
 
-test('every cataloged phantasm has an attack timing before clone conversion', () => {
-  const phantasms = mesmerCatalog.skills.filter((skill) => skill.resource?.mode === 'phantasm');
+test('every cataloged phantasm finishes its attack before conversion', () => {
+  for (const specialization of ['Core', 'Chronomancer', 'Virtuoso']) {
+    const { catalog } = mesmerProfession.runtimeFor({ specialization });
+    for (const skill of catalog.skills.filter((skill) => skill.resource?.mode === 'phantasm')) {
+      const timing = mesmerPhantasmTiming(skill, specialization);
+      const name = `${specialization} ${skill.name}`;
+      assert.ok(timing, `${name} is missing a phantasm attack timing`);
+      assert.ok(timing.damageAtMs > 0, `${name} has an invalid damage time`);
+      assert.ok(timing.spawnAtMs >= timing.damageAtMs, `${name} converts before damage ends`);
+      for (const [index, damageAtMs] of timing.damageAtMsByEntity?.entries() ?? []) {
+        assert.ok((timing.spawnAtMsByEntity?.[index] ?? timing.spawnAtMs) >= damageAtMs, `${name} entity ${index}`);
+      }
 
-  for (const skill of phantasms) {
-    const timing = PHANTASM_ATTACK_TIMINGS[skill.id];
-
-    assert.ok(timing, `${skill.name} is missing a phantasm attack timing`);
-    assert.ok(timing.damageAtMs > 0, `${skill.name} has an invalid damage time`);
-    assert.ok(timing.spawnAtMs >= timing.damageAtMs, `${skill.name} converts before damage ends`);
-    assert.ok(timing.repeatDamageAtMs >= timing.damageAtMs, `${skill.name} has an invalid Chronophantasma damage time`);
-    assert.ok(timing.repeatSpawnAtMs >= timing.repeatDamageAtMs, `${skill.name} converts before its repeat ends`);
-    for (const [index, damageAtMs] of timing.damageAtMsByEntity?.entries() ?? []) {
-      assert.ok(
-        (timing.spawnAtMsByEntity?.[index] ?? timing.spawnAtMs) >= damageAtMs,
-        `${skill.name} entity ${index} converts before damage ends`
-      );
-    }
-
-    for (const [index, damageAtMs] of timing.repeatDamageAtMsByEntity?.entries() ?? []) {
-      assert.ok(
-        (timing.repeatSpawnAtMsByEntity?.[index] ?? timing.repeatSpawnAtMs) >= damageAtMs,
-        `${skill.name} repeat entity ${index} converts before damage ends`
-      );
+      if (specialization === 'Virtuoso') {
+        for (const [index, tick] of timing.conversionTicks?.entries() ?? []) {
+          assert.ok(tick.atMs >= (timing.damageAtMsByEntity?.[index] ?? timing.damageAtMs), `${name} blade ${index}`);
+        }
+      } else if (specialization === 'Chronomancer') {
+        assert.ok(timing.repeatDamageAtMs >= timing.damageAtMs, `${name} repeats before its first attack ends`);
+        assert.ok(timing.repeatSpawnAtMs >= timing.repeatDamageAtMs, `${name} converts before its repeat ends`);
+        for (const [index, damageAtMs] of timing.repeatDamageAtMsByEntity?.entries() ?? []) {
+          assert.ok(
+            (timing.repeatSpawnAtMsByEntity?.[index] ?? timing.repeatSpawnAtMs) >= damageAtMs,
+            `${name} repeated entity ${index}`
+          );
+        }
+      }
     }
   }
 });
