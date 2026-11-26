@@ -18,12 +18,12 @@ function recipientKeys(event: NecromancerResolverEvent): string[] {
   return [];
 }
 
-/** Live hits and single-charge previews emit the same packets. Only live hits spend a recipient's charge. */
+/** Previews use a personal charge. Live hits spend the triggering recipient's charge before emitting these packets. */
 export function queueWeaponSpellCharge(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
   skill: Skill,
-  recipient: 'personal' | 'shared',
+  recipient: 'personal' | 'shared' = 'personal',
   effects = weaponSpellChargeEffects(skill)
 ): void {
   if (!effects.length) return;

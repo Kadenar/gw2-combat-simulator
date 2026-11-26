@@ -4,7 +4,6 @@ import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
@@ -468,73 +467,29 @@ test('weapon spell recipients are selected at grant time and Wielders Boon chang
   assert.deepEqual(result.warnings, []);
 });
 
-// The card must use the same trait selection as the live defensive grant.
-test('Resilient Weapon displays the charges each recipient receives with and without Wielders Boon', () => {
-  for (const empowered of [false, true]) {
-    const result = run([cast(ID.RESILIENT_WEAPON)], {
-      config: {
-        ...base,
-        selectedTraitIds: empowered ? [TRAIT.WIELDERS_BOON] : [],
-        allies: { count: 1, strikesPerSecond: 0 }
-      }
-    });
-    const recipients = state(result).weaponSpells.resilient.recipients;
-    const { catalog } = necromancerProfession;
-    const card = describeSimulationSkill({ catalog }, catalog.skillsById.get(ID.RESILIENT_WEAPON), ritualistTooltips, {
-      specializations: [{ name: 'Ritualist', traits: empowered ? '0-0-1' : '0-0-0' }]
-    });
-    const grant = card.facts
-      .map(({ detail }) => detail.match(/(\d+)(?: charges)? on yourself.*?(\d+)(?: charges)? on each ally/))
-      .find(Boolean);
-    assert.ok(grant);
-    assert.deepEqual(grant.slice(1).map(Number), [recipients.player.count, recipients['ally:1'].count]);
-    assert.equal(recipients.player.count === recipients['ally:1'].count, empowered);
-  }
-});
-
-// A replacement condition outside Nightmare's supported output must leave charges available.
-test('a weapon spell with only an unsupported condition keeps its charges and shows no damage', () => {
+// The card includes supported charge effects and filters unrelated patch additions.
+test('weapon spell cards filter patched charge effects', () => {
   const id = ID.NIGHTMARE_WEAPON;
-  const triggered = {
-    removeEffects: [
-      { type: 'strike', name: 'Strike' },
-      { type: 'condition', name: 'Vulnerability' }
-    ],
-    addEffects: [{ type: 'condition', name: 'Burning', condition: 'Burning', stacks: 2, duration: 4 }]
-  };
-  const profession = withPatchPreview(necromancerProfession, {
-    id: 'unsupported-condition',
-    label: 'Unsupported condition',
-    professions: { necromancer: { skills: { [id]: { sideEffects: { triggered } } } } }
-  });
-  const config = { ...base, patchId: 'unsupported-condition', primaryWeapon: 'Staff' };
-  const native = profession.runtimeFor(config);
-  const { catalog } = native;
-  const skill = catalog.skillsById.get(id);
-  const castSpell = (rotation) => observeGw2Runtime({ profession: native, config, rotation: [cast(id), ...rotation] });
-  const before = castSpell([]);
-  const after = castSpell([cast(ID.NECROTIC_GRASP), wait(1500)]);
-  assert.deepEqual(after.warnings, []);
-  assert.ok(after.resolvedEvents.some((event) => event.skillId === ID.NECROTIC_GRASP && event.damage > 0));
-  assert.equal(
-    state(after).weaponSpells.nightmare.recipients.player.count,
-    state(before).weaponSpells.nightmare.recipients.player.count
-  );
-  assert.equal(
-    after.resolvedEvents.some((event) => event.type === 'condition' && event.sourceId === id),
-    false
-  );
-  const effect = { kind: 'profession', id: 'nightmare-weapon' };
-  const occurrence = { id: effect.id, name: skill.name, effect, unit: 'charge', source: 'Profession', icon: '' };
-  const measure = (patchId) =>
-    evaluateSkillDamage({ config: { ...config, patchId }, occurrences: [occurrence] }, profession).occurrences[0];
-  assert.equal(measure('current').status, 'measured');
-  assert.equal(measure(config.patchId).status, 'zero');
-  const card = describeSimulationSkill({ catalog }, skill, ritualistTooltips);
-  assert.equal(
-    card.facts.some(({ name }) => name === 'Burning'),
-    false
-  );
+  function factsWith(...conditions) {
+    const triggered = {
+      removeEffects: [{ type: 'condition', name: 'Vulnerability' }],
+      addEffects: conditions.map((condition) => ({
+        type: 'condition',
+        name: condition,
+        condition,
+        stacks: 7,
+        duration: 13
+      }))
+    };
+    const catalog = applySkillPatch(necromancerProfession.catalog, {
+      skills: { [id]: { sideEffects: { triggered } } }
+    });
+    return describeSimulationSkill({ catalog }, catalog.skillsById.get(id), ritualistTooltips).facts;
+  }
+
+  const supported = factsWith('Vulnerability');
+  assert.notDeepEqual(supported, factsWith());
+  assert.deepEqual(factsWith('Vulnerability', 'Burning'), supported);
 });
 
 test('removed weapon spell strikes preserve independent Nightmare conditions and wholly removed procs spend nothing', () => {

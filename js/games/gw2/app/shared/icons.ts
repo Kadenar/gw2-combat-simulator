@@ -76,6 +76,7 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Rot Wallow Venom': 'https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png',
   // Weapon-spell charge grants use the icon of the spell that provides them.
   'Nightmare Weapon': 'https://render.guildwars2.com/file/B3CF370B0E35DA07C023A4BFAA791809C6A67437/3680180.png',
+  'Resilient Weapon': 'https://render.guildwars2.com/file/53691A78554BFDCB132CA93F3D3639CC3E4EB2D6/3680169.png',
   'Splinter Weapon': 'https://render.guildwars2.com/file/04294CE6BE3BBB314032BD430A631BC614D1E279/3680182.png',
   Berserk: 'https://render.guildwars2.com/file/1354D8FC07F9F859DC7F0E7B61C0724FD4927C4E/1058638.png',
   'Fierce as Fire': 'https://render.guildwars2.com/file/630362D11956CB69199DE9CE0EEA03232DC9DA38/2491547.png',

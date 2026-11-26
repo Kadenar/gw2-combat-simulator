@@ -45,8 +45,7 @@ const ritualistEffectHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSki
         queueWeaponSpellCharge(
           runtime,
           damageInputEvent(runtime),
-          damageSkill(runtime.helpers, DAMAGE_SKILL.NIGHTMARE_WEAPON),
-          'personal'
+          damageSkill(runtime.helpers, DAMAGE_SKILL.NIGHTMARE_WEAPON)
         )
     },
     {
@@ -59,8 +58,7 @@ const ritualistEffectHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSki
         queueWeaponSpellCharge(
           runtime,
           damageInputEvent(runtime),
-          damageSkill(runtime.helpers, DAMAGE_SKILL.SPLINTER_WEAPON),
-          'personal'
+          damageSkill(runtime.helpers, DAMAGE_SKILL.SPLINTER_WEAPON)
         )
     }
   ],

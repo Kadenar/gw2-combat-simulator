@@ -198,6 +198,7 @@ effectNames.set('lethal-tempo', 'Lethal Tempo');
 effectNames.set('enchanted-daggers', 'Enchanted Daggers');
 // Resolve weapon-spell charge kinds to their named skill icons.
 effectNames.set('nightmare-weapon', 'Nightmare Weapon');
+effectNames.set('resilient-weapon', 'Resilient Weapon');
 effectNames.set('splinter-weapon', 'Splinter Weapon');
 effectNames.set('burst-of-strength', 'Burst of Strength');
 effectNames.set('explosive-temper', 'Explosive Temper');
