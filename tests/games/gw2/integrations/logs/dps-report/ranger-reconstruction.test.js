@@ -37,7 +37,9 @@ test('Untamed prefers pet F1/F2/F3 animations while Soulbeast retains the player
     s31451: { name: 'Furious Pounce' },
     s12694: { name: 'Bite' },
     s12657: { name: 'Maul' },
-    s12655: { name: 'Slash', autoAttack: true }
+    s12655: { name: 'Slash', autoAttack: true },
+    s31312: { name: 'Bite' },
+    s31854: { name: 'Smoke Assault' }
   };
   const minions = [
     {
@@ -48,6 +50,14 @@ test('Untamed prefers pet F1/F2/F3 animations while Soulbeast retains the player
         { id: 12655, skills: [{ castTime: 3000, duration: 1200 }] },
         { id: 31451, skills: [{ castTime: 500, duration: 1200 }] }
       ]
+    },
+    {
+      // Smokescale's basic attack has recharge and can appear without an autoattack label.
+      name: 'Juvenile Smokescale',
+      rotation: [
+        { id: 31312, skills: [{ castTime: 5000, duration: 1000 }] },
+        { id: 31854, skills: [{ castTime: 6000, duration: 1000 }] }
+      ]
     }
   ];
   for (const specialization of ['Untamed', 'Soulbeast']) {
@@ -56,13 +66,13 @@ test('Untamed prefers pet F1/F2/F3 animations while Soulbeast retains the player
     const casts = result.rotation.filter((command) => command.type === 'cast');
     assert.deepEqual(
       casts.map((command) => command.skillId),
-      specialization === 'Untamed' ? [63335, 12694, 31451, 12657] : [63335, 31451]
+      specialization === 'Untamed' ? [63335, 12694, 31451, 12657, 31854] : [63335, 31451]
     );
 
     if (specialization === 'Untamed') {
       assert.deepEqual(
         result.sourceActions.map((action) => action.startMs),
-        [0, 100, 500, 1500]
+        [0, 100, 500, 1500, 6000]
       );
       assert.ok(casts.slice(1).every((command) => command.concurrentOffsetMs != null));
     } else {

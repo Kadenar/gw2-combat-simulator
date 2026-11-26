@@ -15,9 +15,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.FELINE_PHASE_POUNCE]: definePetSkill({
     name: 'Phase Pounce',
     icon: 'https://render.guildwars2.com/file/F16B4742E83542D8406DDAEBD7BE06EEA8061E16/2604865.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['White Tiger'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -46,7 +43,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.MIGHTY_ROAR]: definePetSkill({
     name: 'Mighty Roar',
     icon: 'https://render.guildwars2.com/file/FC1F050E63ACD1504A2E71FD01C279ED26CFE423/103240.png',
-    petNames: ['Jungle Stalker'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -67,7 +63,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.RENDING_POUNCE]: definePetSkill({
     name: 'Rending Pounce',
     icon: 'https://render.guildwars2.com/file/43210A51F17CF8FA6E600CD8D0495458471C4CDA/103959.png',
-    petNames: ['Lynx'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -95,7 +90,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.ICY_POUNCE]: definePetSkill({
     name: 'Icy Pounce',
     icon: 'https://render.guildwars2.com/file/43210A51F17CF8FA6E600CD8D0495458471C4CDA/103959.png',
-    petNames: ['Snow Leopard'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -123,7 +117,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.STALK]: definePetSkill({
     name: 'Stalk',
     icon: 'https://render.guildwars2.com/file/15780BCEBC0C20E7403191DEA92DB365AB380AE6/103960.png',
-    petNames: ['Jaguar'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -135,7 +128,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.FURIOUS_POUNCE]: definePetSkill({
     name: 'Furious Pounce',
     icon: 'https://render.guildwars2.com/file/ACDDD2A75BEE6C4FDDA26D0C9F3D4F94C85C9412/1128614.png',
-    petNames: ['Tiger'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -165,9 +157,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.FELINE_SLASH]: definePetSkill({
     name: 'Slash',
     icon: 'https://render.guildwars2.com/file/D5420B910EE4DA1D2F63AEC71F4DF862E414D6E1/103515.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Tiger', 'Jungle Stalker', 'Lynx', 'Snow Leopard', 'Jaguar', 'Cheetah', 'Sand Lion', 'White Tiger'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -188,9 +177,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.FELINE_BITE]: definePetSkill({
     name: 'Bite',
     icon: 'https://render.guildwars2.com/file/520693759A79FD464CA7AD08947D10B4B50F7A96/103516.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Tiger', 'Jungle Stalker', 'Lynx', 'Snow Leopard', 'Jaguar', 'Cheetah', 'Sand Lion', 'White Tiger'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -218,9 +204,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.FELINE_MAUL]: definePetSkill({
     name: 'Maul',
     icon: 'https://render.guildwars2.com/file/D5420B910EE4DA1D2F63AEC71F4DF862E414D6E1/103515.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Tiger', 'Jungle Stalker', 'Lynx', 'Snow Leopard', 'Jaguar', 'Cheetah', 'Sand Lion'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -249,7 +232,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.SAVANNAH_STRIKE]: definePetSkill({
     name: 'Savannah Strike',
     icon: 'https://render.guildwars2.com/file/2FC4CC6A29447D5DAE0557DA747CADA35B09A1AE/1770565.png',
-    petNames: ['Cheetah'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -278,7 +260,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.BLINDING_ROAR]: definePetSkill({
     name: 'Blinding Roar',
     icon: 'https://render.guildwars2.com/file/06EFCDD57F325D6A5E472660E993BF62E0CADD0A/1770552.png',
-    petNames: ['Sand Lion'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -298,7 +279,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.GUARDIANS_ROAR]: definePetSkill({
     name: "Guardian's Roar",
     icon: 'https://render.guildwars2.com/file/AC019F149969B613AF6245F8715CBFE132B20239/2604864.png',
-    petNames: ['White Tiger'],
     type: 'Profession',
     slot: 'Profession_2',
 

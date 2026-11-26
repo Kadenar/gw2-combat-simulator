@@ -2,7 +2,7 @@ import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
-import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import { rangerRecordedPetCommand } from '#gw2/professions/ranger/data/pet-commands.js';
 
 const PET_MARKER_TOLERANCE_MS = 50;
 
@@ -20,7 +20,7 @@ export function selectRangerPetCommands({
   const petCasts = log.agents
     .filter((agent) => agent.elite === 0xffffffff && evidence.owners.get(agent.address) === playerAddress)
     .flatMap((agent) => evidence.animationsFor(agent.address))
-    .filter((cast) => rangerPetSkillCommandable(catalog.skillsById.get(cast.rawSkillId), profile.specializationName));
+    .filter((cast) => rangerRecordedPetCommand(catalog.skillsById.get(cast.rawSkillId), profile.specializationName));
 
   if (!petCasts.length) return recordedActions;
 

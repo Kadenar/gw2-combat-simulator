@@ -13,9 +13,6 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.WARCLAW_SLASH]: definePetSkill({
     name: 'Slash',
     icon: new URL('@images/wiki/slash-warclaw.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Warclaw'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -35,9 +32,6 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.WARCLAW_BATTLE_MAUL]: definePetSkill({
     name: 'Battle Maul',
     icon: new URL('@images/wiki/battle-maul-juvenile-warclaw.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Warclaw'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -65,9 +59,6 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.WARCLAW_BOP]: definePetSkill({
     name: 'Bop',
     icon: 'https://render.guildwars2.com/file/B7474B75A6C14CE0FF295523AADCA5A5F2C1621B/3379168.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Warclaw'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -92,7 +83,6 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.RALLYING_ROAR]: definePetSkill({
     name: 'Rallying Roar',
     icon: 'https://render.guildwars2.com/file/C20B41C6C7E2E512BF73ABB968A17F61690517AF/3379169.png',
-    petNames: ['Warclaw'],
     type: 'Profession',
     slot: 'Profession_2',
 

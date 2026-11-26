@@ -13,9 +13,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.URSINE_SLASH]: definePetSkill({
     name: 'Slash',
     icon: new URL('@images/wiki/slash-bear.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Brown Bear', 'Murellow', 'Black Bear', 'Polar Bear', 'Arctodus'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -34,7 +31,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.SHAKE_IT_OFF]: definePetSkill({
     name: 'Shake It Off',
     icon: 'https://render.guildwars2.com/file/4D234DA072DE77DEFC0605ED401CB93EDC2AC84B/103009.png',
-    petNames: ['Brown Bear'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -45,7 +41,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.POISON_CLOUD_MURELLOW]: definePetSkill({
     name: 'Poison Cloud',
     icon: 'https://render.guildwars2.com/file/F80934FEC30547EAE2022A22D06E00CFDBB4B328/104038.png',
-    petNames: ['Murellow'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -72,7 +67,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.ENFEEBLING_ROAR]: definePetSkill({
     name: 'Enfeebling Roar',
     icon: 'https://render.guildwars2.com/file/F4ECC4EA13941443755D0F9B3344C4B015F1DAA7/103927.png',
-    petNames: ['Black Bear'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -99,7 +93,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.ICY_ROAR]: definePetSkill({
     name: 'Icy Roar',
     icon: 'https://render.guildwars2.com/file/F4ECC4EA13941443755D0F9B3344C4B015F1DAA7/103927.png',
-    petNames: ['Polar Bear'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -126,7 +119,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.RENDING_MAUL]: definePetSkill({
     name: 'Rending Maul',
     icon: 'https://render.guildwars2.com/file/695DA2E83CF23F527DD9109333CCB5239053DB94/104027.png',
-    petNames: ['Arctodus'],
     type: 'Profession',
     slot: 'Profession_2',
 

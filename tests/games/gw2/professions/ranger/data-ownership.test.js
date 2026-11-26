@@ -12,8 +12,14 @@ import { SOULBEAST_STANCE_SKILL_MECHANICS } from '#gw2/professions/ranger/specia
 
 const professionRoot = new URL('../../../../../js/games/gw2/professions/ranger/', import.meta.url);
 
-function familiesUsing(skillId, field) {
-  return [...new Set(RANGER_PETS.filter((pet) => pet[field].includes(Number(skillId))).map((pet) => pet.family))];
+function petSkillIds(pet) {
+  return [pet.basicSkillId, ...pet.specialSkillIds, pet.beastSkillId].filter((id) => id != null);
+}
+
+function familiesUsing(skillId, skillsForPet) {
+  return [
+    ...new Set(RANGER_PETS.filter((pet) => skillsForPet(pet).includes(Number(skillId))).map((pet) => pet.family))
+  ];
 }
 
 function archetypesUsing(skillId) {
@@ -58,11 +64,11 @@ function assertDisjointComposition(aggregate, fragments) {
 test('Core Ranger pet catalogs follow maintained pet-family ownership', async () => {
   const fragments = await familyFragments('core/skills/pets/');
   for (const [, mechanics] of fragments) {
-    for (const skillId of Object.keys(mechanics)) assert.equal(familiesUsing(skillId, 'skillIds').length, 1, skillId);
+    for (const skillId of Object.keys(mechanics)) assert.equal(familiesUsing(skillId, petSkillIds).length, 1, skillId);
   }
 
   for (const pet of RANGER_PETS) {
-    for (const id of pet.skillIds) assert.ok(RANGER_CORE_PET_SKILL_MECHANICS[id], pet.name + ':' + id);
+    for (const id of petSkillIds(pet)) assert.ok(RANGER_CORE_PET_SKILL_MECHANICS[id], pet.name + ':' + id);
   }
 
   assertDisjointComposition(RANGER_CORE_PET_SKILL_MECHANICS, fragments);
@@ -81,7 +87,7 @@ test('Soulbeast Beast catalogs follow family and archetype ownership', async () 
 
   for (const [, mechanics] of fragments) {
     for (const skillId of Object.keys(mechanics)) {
-      const owners = familiesUsing(skillId, 'beastmodeSkillIds');
+      const owners = familiesUsing(skillId, (pet) => pet.beastmodeSkillIds);
       assert.ok(owners.length > 0, skillId);
 
       if (owners.length > 1 && archetypesUsing(skillId).length > 1)

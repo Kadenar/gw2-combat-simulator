@@ -13,9 +13,6 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
   [ID.ROCK_GAZELLE_HEADBUTT]: definePetSkill({
     name: 'Headbutt',
     icon: new URL('@images/wiki/headbutt-gazelle.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Rock Gazelle'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -35,9 +32,6 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
   [ID.ROCK_GAZELLE_KICK]: definePetSkill({
     name: 'Kick',
     icon: 'https://render.guildwars2.com/file/2ADAEF05DE5D0F031ACE310DB425E01CE7180416/1770575.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Rock Gazelle'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -67,9 +61,6 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
   [ID.ROCK_GAZELLE_CHARGE]: definePetSkill({
     name: 'Charge',
     icon: 'https://render.guildwars2.com/file/9E1718ECB696EBE63CF7EE700306D2090DD8084B/1770573.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Rock Gazelle'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -101,7 +92,6 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
   [ID.HEAD_TOSS]: definePetSkill({
     name: 'Head Toss',
     icon: 'https://render.guildwars2.com/file/313824ACD4211D7E76011D07B7B814C1B995E9CA/1770560.png',
-    petNames: ['Rock Gazelle'],
     type: 'Profession',
     slot: 'Profession_2',
 

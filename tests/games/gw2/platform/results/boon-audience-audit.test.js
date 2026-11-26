@@ -244,7 +244,7 @@ for (const id of [
   R.HUNKER_DOWN,
   R.QUICKENING_SCREECH_PET
 ]) {
-  const pet = RANGER_PETS.find((pet) => pet.skillIds.includes(id));
+  const pet = RANGER_PETS.find((pet) => pet.beastSkillId === id || pet.specialSkillIds.includes(id));
   test(`pet boon ${id} prioritizes players and reaches its caster in a smaller party`, () => {
     for (const count of [0, 4]) {
       const result = run('ranger', [id], {

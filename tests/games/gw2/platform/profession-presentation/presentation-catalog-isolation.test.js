@@ -105,12 +105,10 @@ test('Engineer Forge and protocol controls retain their local skill lists and lo
 });
 
 test('all Ranger pet palettes use the catalog supplied to their own factory', () => {
-  // Commandability requires a pet skill; varying only its autonomous flag isolates each factory's catalog lookup.
+  // Only one catalog contains the selected pet's beast command.
   const petState = { petNames: ['Lynx', 'Pig'], activePetSlot: 1 };
-  const skillId = rangerPetForState(petState).skillIds.at(-1);
-  const catalogs = [false, true].map((petAutonomousSkill) =>
-    catalogOf(skill(skillId, 'Pet attack', { petSkill: true, petAutonomousSkill }))
-  );
+  const skillId = rangerPetForState(petState).beastSkillId;
+  const catalogs = [catalogOf(skill(skillId, 'Pet attack', { petSkill: true })), catalogOf()];
   const context = {
     professionState: {
       [STATE.PET_NAMES]: petState.petNames,

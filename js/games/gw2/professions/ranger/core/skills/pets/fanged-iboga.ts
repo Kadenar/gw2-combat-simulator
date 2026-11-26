@@ -18,7 +18,6 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
   [ID.FANG_GRAPPLE]: definePetSkill({
     name: 'Fang Grapple',
     icon: 'https://render.guildwars2.com/file/35FD907EDEF66355A431696550722AEBE5D65360/1770559.png',
-    petNames: ['Fanged Iboga'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -50,9 +49,6 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
   [ID.CONSUMING_BITE]: definePetSkill({
     name: 'Consuming Bite',
     icon: new URL('@images/wiki/consuming-bite.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Fanged Iboga'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -94,9 +90,6 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
   [ID.CRIPPLING_ANGUISH_PET]: definePetSkill({
     name: 'Crippling Anguish',
     icon: 'https://render.guildwars2.com/file/DF000038FF639A0601ECBC46222467D6FECE7046/1770580.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Fanged Iboga'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -132,9 +125,6 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
   [ID.NARCOTIC_SPORES_PET]: definePetSkill({
     name: 'Narcotic Spores',
     icon: 'https://render.guildwars2.com/file/510AE44E0E0452005337386A66526522F817424E/1770581.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Fanged Iboga'],
     type: 'Profession',
     slot: 'Profession_2',
 

@@ -5,7 +5,7 @@ import type {
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
 import { mergeCompositeActions, mergedActionStatus } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import { rangerRotationSkillAllowed } from '#gw2/professions/ranger/data/pet-commands.js';
 import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
 const UNLEASHED_OVERBEARING_SMASH_FINISH_ID = 63_224;
@@ -83,10 +83,7 @@ function normalizeRangerSignals(
 
       const skill: RangerSkill | null = recordedActionSkill(action, context);
       // Natural F1/F3 pet skills are explicit replay inputs only for Untamed.
-      return (
-        skill?.petAutonomousSkill !== true ||
-        (context.profile.specializationId === 'untamed' && rangerPetSkillCommandable(skill ?? undefined, 'Untamed'))
-      );
+      return rangerRotationSkillAllowed(skill, context.profile.specializationName);
     })
     .map((action) =>
       action.rawSkillId === RANGER_PET_SPAWNED_ID

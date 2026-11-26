@@ -13,9 +13,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.CANINE_BITE]: definePetSkill({
     name: 'Bite',
     icon: new URL('@images/wiki/bite-canine.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Krytan Drakehound', 'Alpine Wolf', 'Fern Hound', 'Hyena', 'Wolf'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -35,9 +32,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.CANINE_CRIPPLING_LEAP]: definePetSkill({
     name: 'Crippling Leap',
     icon: 'https://render.guildwars2.com/file/09990305A163E3BC2DF2E9D1D2BA93F2ECE8BA3E/103610.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Krytan Drakehound', 'Alpine Wolf', 'Fern Hound', 'Hyena', 'Wolf'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -72,9 +66,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.CANINE_BRUTAL_CHARGE]: definePetSkill({
     name: 'Brutal Charge',
     icon: 'https://render.guildwars2.com/file/06614FF537DBD771DE67B341BA0CA565B24F0A67/103239.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Krytan Drakehound', 'Alpine Wolf', 'Fern Hound', 'Hyena', 'Wolf'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -99,7 +90,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.INTIMIDATING_HOWL]: definePetSkill({
     name: 'Intimidating Howl',
     icon: 'https://render.guildwars2.com/file/45E153B2939D037C4E6FDE1FEF42CF6456280D3E/104046.png',
-    petNames: ['Krytan Drakehound'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -128,7 +118,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.CHILLING_HOWL]: definePetSkill({
     name: 'Chilling Howl',
     icon: 'https://render.guildwars2.com/file/5D97691719F5D52AAA610CCECB13B0F2056A0E08/103607.png',
-    petNames: ['Alpine Wolf'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -155,7 +144,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.REGENERATE_FERN_HOUND]: definePetSkill({
     name: 'Regenerate',
     icon: 'https://render.guildwars2.com/file/3CD0D15B0C0E9CB7BD6709E773DFB2FCFEC25823/103609.png',
-    petNames: ['Fern Hound'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -176,7 +164,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.HOWL_OF_THE_PACK]: definePetSkill({
     name: 'Howl of the Pack',
     icon: 'https://render.guildwars2.com/file/B824F20C4F5F7B739A0634DD79EE0EA2A82D7FC3/103237.png',
-    petNames: ['Hyena'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -187,7 +174,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.TERRIFYING_HOWL]: definePetSkill({
     name: 'Terrifying Howl',
     icon: 'https://render.guildwars2.com/file/C016B80FBD257CDD09EACFE7EBC611DF0A7040D6/103520.png',
-    petNames: ['Wolf'],
     type: 'Profession',
     slot: 'Profession_2',
 

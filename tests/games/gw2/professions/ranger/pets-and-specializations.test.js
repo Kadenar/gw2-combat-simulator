@@ -294,17 +294,13 @@ test('Ranger Ice projectile finishers resolve each projectile without triggering
 });
 
 test('Core Ranger exposes only the selected pet Beast skill', () => {
-  assert.equal(RANGER_PETS.find((pet) => pet.name === 'Lynx').skillIds.includes(ID.RENDING_POUNCE), true);
   const result = simulate('Core', ['Rapid Fire', 'Rending Pounce'], {
     primaryWeapon: 'Longbow'
   });
 
   assert.deepEqual(result.warnings, []);
   assert.equal(activeRangerUiPet({ professionState: result.planningState.profession }).name, 'Lynx');
-  assert.equal(
-    activeRangerUiPet({ professionState: result.planningState.profession }).skillIds.includes(ID.RENDING_POUNCE),
-    true
-  );
+  assert.equal(activeRangerUiPet({ professionState: result.planningState.profession }).beastSkillId, ID.RENDING_POUNCE);
   assert.equal(result.totalDamage > 0, true);
 
   const swapped = simulate('Core', ['Swap Weapons'], { primaryWeapon: 'Longbow', weaponSet2Primary: 'Axe' });
@@ -1172,13 +1168,18 @@ test('Untamed exposes and executes all three natural pet commands only with the 
     assert.match(blocked.warnings.map(({ message }) => message).join(' '), /Unleash Ranger first/);
   }
 
-  const loaded = migrateRangerBuild({ ...build, rotation: [...commands, ID.FELINE_SLASH] });
+  // A saved swap keeps the second pet's special while both pets supply their own basic attacks.
+  const loaded = migrateRangerBuild({
+    ...build,
+    selectedPet2: 'Smokescale',
+    rotation: [...commands, ID.FELINE_SLASH, ID.PET_SWAP, ID.SMOKESCALE_BITE, ID.SMOKESCALE_SMOKE_ASSAULT]
+  });
   assert.deepEqual(
     loaded.rotation.map((command) => command.skillId),
-    commands
+    [...commands, ID.PET_SWAP, ID.SMOKESCALE_SMOKE_ASSAULT]
   );
   assert.match(
-    simulate('Untamed', [ID.FELINE_SLASH], config)
+    simulate('Untamed', [ID.SMOKESCALE_BITE], { ...config, selectedPet: 'Smokescale' })
       .warnings.map(({ message }) => message)
       .join(' '),
     /automatically/

@@ -1,7 +1,7 @@
 import type { DpsReportPlayer, DpsReportRotationGroup } from '#gw2/integrations/logs/dps-report/types.js';
 import type { RotationCatalog } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import { rangerRecordedPetCommand } from '#gw2/professions/ranger/data/pet-commands.js';
 
 /**
  * Owned pet casts replace player markers for the same skill. EI delays F2 markers, so replaying them would let
@@ -18,7 +18,7 @@ export function rangerSourceGroups(
     (minion.rotation ?? []).filter(
       (group) =>
         group.skills.length > 0 &&
-        rangerPetSkillCommandable(catalog.skillsById.get(group.id), profile.specializationName)
+        rangerRecordedPetCommand(catalog.skillsById.get(group.id), profile.specializationName)
     )
   );
   const petSkillIds = new Set(petGroups.map((group) => group.id));

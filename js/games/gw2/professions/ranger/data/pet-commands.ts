@@ -1,32 +1,48 @@
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { RangerSkill } from '#gw2/professions/ranger/types.js';
+import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import type { RangerPetDefinition, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Untamed reserves natural F1/F2/F3 skills for explicit commands in either unleash state. */
 export function rangerPetSkillsRequireCommands(specialization: string): boolean {
   return specialization === 'Untamed';
 }
 
-/** Untamed can command natural pet skills with recharge, while basic attacks remain automatic. */
-export function rangerPetSkillCommandable(skill: RangerSkill | undefined, specialization: string): boolean {
+/** The beast command is available to every specialization. Untamed can also command its pet's recharging specials. */
+export function rangerPetSkillCommandable(
+  pet: RangerPetDefinition,
+  skill: RangerSkill | undefined,
+  specialization: string
+): boolean {
   return Boolean(
     skill?.petSkill &&
-    (!skill.petAutonomousSkill || (rangerPetSkillsRequireCommands(specialization) && (skill.cooldown || 0) > 0))
+    (pet.beastSkillId === skill.id ||
+      (rangerPetSkillsRequireCommands(specialization) &&
+        pet.specialSkillIds.includes(skill.id) &&
+        (skill.cooldown ?? 0) > 0))
   );
 }
 
-/**
- * The active pet's commandable skills in bar order: natural F1/F3 family skills with the beast command placed
- * between them in F2. Combat input resolution and the palette share this order.
- */
+/** Log sources can omit the pet's identity. Match its command against the roster before replay. */
+export function rangerRecordedPetCommand(skill: RangerSkill | undefined, specialization: string): boolean {
+  return Boolean(skill?.petSkill && RANGER_PETS.some((pet) => rangerPetSkillCommandable(pet, skill, specialization)));
+}
+
+/** A rotation can contain commands from either side of a pet swap. */
+export function rangerRotationSkillAllowed(skill: RangerSkill | null | undefined, specialization: string): boolean {
+  return !skill?.petSkill || rangerRecordedPetCommand(skill, specialization);
+}
+
+/** An empty F1 or F3 leaves the beast command on F2. Only the palette compacts empty slots. */
+export function rangerPetCommandSlots(pet: RangerPetDefinition) {
+  return [pet.specialSkillIds[0], pet.beastSkillId, pet.specialSkillIds[1]] as const;
+}
+
 export function rangerPetCommandBar(
-  petSkillIds: readonly SkillId[],
+  pet: RangerPetDefinition,
   skillsById: ReadonlyMap<SkillId, RangerSkill>,
   specialization: string
 ): SkillId[] {
-  const skillIds = petSkillIds.filter((id) => rangerPetSkillCommandable(skillsById.get(id), specialization));
-  const beastIndex = skillIds.findIndex((id) => !skillsById.get(id)?.petAutonomousSkill);
-
-  if (beastIndex > 1) skillIds.splice(1, 0, ...skillIds.splice(beastIndex, 1));
-
-  return skillIds;
+  return rangerPetCommandSlots(pet).filter(
+    (id): id is SkillId => id != null && rangerPetSkillCommandable(pet, skillsById.get(id), specialization)
+  );
 }

@@ -13,9 +13,6 @@ export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.PHOENIX_WICKED_BITE]: definePetSkill({
     name: 'Wicked Bite',
     icon: new URL('@images/wiki/wicked-bite.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Phoenix'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -43,9 +40,6 @@ export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.PHOENIX_DASH]: definePetSkill({
     name: 'Dash',
     icon: 'https://render.guildwars2.com/file/321CD26F340F3B930A04104D61E40F0C37589BB8/2604862.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Phoenix'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -65,9 +59,6 @@ export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.PHOENIX_WING_BUFFET]: definePetSkill({
     name: 'Wing Buffet',
     icon: new URL('@images/wiki/wing-buffet-phoenix.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Phoenix'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -92,7 +83,6 @@ export const RANGER_CORE_PHOENIX_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.GALE_BREATH]: definePetSkill({
     name: 'Gale Breath',
     icon: 'https://render.guildwars2.com/file/BB3497B9BE4A985F99D5ADC3FE32A3DF679B38D6/2604861.png',
-    petNames: ['Phoenix'],
     type: 'Profession',
     slot: 'Profession_2',
 

@@ -2,6 +2,8 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import { rangerPetSkillTiming } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { isRangerPetName, rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
+import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import type { RangerPetDefinition } from '#gw2/professions/ranger/types.js';
 
 export interface RangerPetAttributes {
   readonly power: number;
@@ -101,138 +103,81 @@ function measured(petName: string, id: SkillId): PetAutoSkill {
   return { id, recovery: timing.recoveryMs / 1000 };
 }
 
-/** Natural skill priority: the basic attack first, then specials in the order the AI prefers them when ready. */
-function profile(petName: string, actions: readonly SkillId[]): PetAutoProfile {
-  const skills = actions.map((id) => measured(petName, id));
-  return {
-    ...(skills[0]!.id === ID.WYVERN_WING_SWIPE ? { weaponStrength: 2615.5 } : {}),
-    openingDelay: 0.44,
-    basic: skills[0]!,
-    specials: skills.slice(1),
-    commandRecovery: {}
-  };
+/** Keep the remaining catalog order when a pet prefers one special over the others. */
+function preferSpecial(specials: readonly SkillId[], preferred: SkillId): readonly SkillId[] {
+  return specials.includes(preferred) ? [preferred, ...specials.filter((id) => id !== preferred)] : specials;
 }
 
-// Measured pets derive recovery from the timing table, including their commanded skills. Only unmeasured attacks
-// and commands declare a recovery here.
-const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> = Object.freeze({
-  // Untamed commands the specials; other specializations use the shared ready-special scheduler.
-  Boar: profile('Boar', [ID.PORCINE_JAB, ID.PORCINE_MAUL, ID.PORCINE_BRUTAL_CHARGE]),
-  'Aether Hunter': profile('Aether Hunter', [
-    ID.AETHER_HUNTER_BITE,
-    ID.AETHER_HUNTER_LUNGE,
-    ID.AETHER_HUNTER_LEY_LINE_VORTEX
-  ]),
-  'Raptor Swiftwing': profile('Raptor Swiftwing', [
-    ID.RAPTOR_SWIFTWING_CLAW,
-    ID.RAPTOR_SWIFTWING_SAURIAN_MIGHT,
-    ID.RAPTOR_SWIFTWING_LEAPING_LIZARD
-  ]),
-  // The command-controlled log measures cadence; autonomous pets use the existing ready-special priority.
-  Hawk: profile('Hawk', [ID.BIRD_SLASH, ID.BIRD_SWOOP, ID.QUICKENING_SCREECH_PET]),
-  Wallow: profile('Wallow', [ID.VAMPIRIC_BITE, ID.WALLOW_MAUL, ID.UNDEAD_PLAGUE_PET]),
-  'Carrion Devourer': {
-    openingDelay: 0.44,
-    openingRecoveryDelay: 0.8,
-    basic: { id: ID.TWIN_DARTS, recovery: 1.88 },
-    specials: [{ id: ID.PET_TAIL_LASH, recovery: 2.4 }],
-    commandRecovery: { [ID.POISONOUS_CLOUD]: 2.08 }
-  },
-  'Fanged Iboga': {
-    openingDelay: 0.44,
-    quicknessOpeningRecoveryDelay: 0.8,
-    basic: { id: ID.CONSUMING_BITE, recovery: 1.8 },
-    // Autonomous recharge exceptions live with the Iboga skills. Fang Grapple remains an explicit command.
-    specials: [
-      { id: ID.NARCOTIC_SPORES_PET, recovery: 1.56 },
-      { id: ID.CRIPPLING_ANGUISH_PET, recovery: 1.8 }
-    ],
-    commandRecovery: { [ID.FANG_GRAPPLE]: 2.4 }
-  },
-  // The Tiger opens with Bite and ignores Alacrity on its autonomous recharges.
-  Tiger: {
-    ...profile('Tiger', [ID.FELINE_SLASH, ID.FELINE_MAUL, ID.FELINE_BITE]),
-    ignoresAlacrity: true,
-    openingDelay: 0.48,
-    opening: measured('Tiger', ID.FELINE_BITE)
-  },
-  Jacaranda: {
-    openingDelay: 0.44,
-    // Root Slap repeats every 1.64 s in the unbuffed pet-only and benchmark logs.
-    basic: { id: ID.JACARANDA_ROOT_SLAP, recovery: 1.64 },
-    // Damage-only AI has no healing demand; Photosynthesize remains available to explicit pet commands.
-    // Call Lightning shares the 12 s recharge an Untamed command shows (9.6 s with Pack Alpha).
-    specials: [{ id: ID.JACARANDA_CALL_LIGHTNING, recovery: 1.48 }],
-    commandRecovery: { [ID.JACARANDAS_EMBRACE]: 1.48 }
-  },
-  'Jungle Stalker': profile('Jungle Stalker', [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL]),
-  Lynx: profile('Lynx', [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL]),
-  'Krytan Drakehound': profile('Krytan Drakehound', [
-    ID.CANINE_BITE,
-    ID.CANINE_CRIPPLING_LEAP,
-    ID.CANINE_BRUTAL_CHARGE
-  ]),
-  'Brown Bear': profile('Brown Bear', [ID.URSINE_SLASH]),
-  'Salamander Drake': profile('Salamander Drake', [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE]),
-  'Alpine Wolf': profile('Alpine Wolf', [ID.CANINE_BITE, ID.CANINE_CRIPPLING_LEAP, ID.CANINE_BRUTAL_CHARGE]),
-  'Snow Leopard': profile('Snow Leopard', [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL]),
-  Raven: profile('Raven', [ID.BIRD_SLASH, ID.BIRD_SWOOP, ID.QUICKENING_SCREECH_PET]),
-  Jaguar: profile('Jaguar', [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL]),
-  'Marsh Drake': profile('Marsh Drake', [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE]),
-  'Blue Moa': profile('Blue Moa', [ID.MOA_PECK, ID.MOA_FRENZIED_ATTACK]),
-  'Pink Moa': profile('Pink Moa', [ID.MOA_PECK, ID.MOA_FRENZIED_ATTACK]),
-  'Black Moa': profile('Black Moa', [ID.MOA_PECK, ID.MOA_FRENZIED_ATTACK]),
-  'Red Moa': profile('Red Moa', [ID.MOA_PECK, ID.MOA_FRENZIED_ATTACK]),
-  'Ice Drake': profile('Ice Drake', [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE]),
-  'River Drake': profile('River Drake', [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE]),
-  Murellow: profile('Murellow', [ID.URSINE_SLASH]),
-  'Fern Hound': profile('Fern Hound', [ID.CANINE_BITE, ID.CANINE_CRIPPLING_LEAP, ID.CANINE_BRUTAL_CHARGE]),
-  'Black Bear': profile('Black Bear', [ID.URSINE_SLASH]),
-  'Polar Bear': profile('Polar Bear', [ID.URSINE_SLASH]),
-  Arctodus: profile('Arctodus', [ID.URSINE_SLASH]),
-  'Whiptail Devourer': profile('Whiptail Devourer', [ID.TWIN_DARTS]),
-  'Lashtail Devourer': profile('Lashtail Devourer', [ID.TWIN_DARTS]),
-  Hyena: profile('Hyena', [ID.CANINE_BITE, ID.CANINE_CRIPPLING_LEAP, ID.CANINE_BRUTAL_CHARGE]),
-  Wolf: profile('Wolf', [ID.CANINE_BITE, ID.CANINE_CRIPPLING_LEAP, ID.CANINE_BRUTAL_CHARGE]),
-  Owl: profile('Owl', [ID.BIRD_SLASH, ID.BIRD_SWOOP, ID.QUICKENING_SCREECH_PET]),
-  Eagle: profile('Eagle', [ID.BIRD_SLASH, ID.BIRD_SWOOP, ID.QUICKENING_SCREECH_PET]),
-  'White Raven': profile('White Raven', [ID.BIRD_SLASH, ID.BIRD_SWOOP, ID.QUICKENING_SCREECH_PET]),
-  'Forest Spider': profile('Forest Spider', [ID.SPIT, ID.SPIDER_POISON_GAS, ID.SPIDER_ENTANGLING_WEB]),
-  'Jungle Spider': profile('Jungle Spider', [ID.SPIT, ID.SPIDER_POISON_GAS, ID.SPIDER_ENTANGLING_WEB]),
-  'Cave Spider': profile('Cave Spider', [ID.SPIT, ID.SPIDER_POISON_GAS, ID.SPIDER_ENTANGLING_WEB]),
-  'Black Widow Spider': profile('Black Widow Spider', [ID.SPIT, ID.SPIDER_POISON_GAS, ID.SPIDER_ENTANGLING_WEB]),
-  Warthog: profile('Warthog', [ID.PORCINE_JAB, ID.PORCINE_MAUL, ID.PORCINE_BRUTAL_CHARGE]),
-  Siamoth: profile('Siamoth', [ID.PORCINE_JAB, ID.PORCINE_MAUL, ID.PORCINE_BRUTAL_CHARGE]),
-  Pig: profile('Pig', [ID.PORCINE_JAB, ID.PORCINE_MAUL, ID.PORCINE_BRUTAL_CHARGE]),
-  'Reef Drake': profile('Reef Drake', [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE]),
-  Smokescale: profile('Smokescale', [ID.SMOKESCALE_BITE, ID.SMOKESCALE_TAKEDOWN, ID.SMOKESCALE_SMOKE_ASSAULT]),
-  'Electric Wyvern': profile('Electric Wyvern', [ID.WYVERN_WING_SWIPE, ID.WYVERN_TAIL_LASH, ID.WYVERN_WING_BUFFET]),
-  'Fire Wyvern': profile('Fire Wyvern', [ID.WYVERN_WING_SWIPE, ID.WYVERN_TAIL_LASH, ID.WYVERN_WING_BUFFET]),
-  Bristleback: profile('Bristleback', [
-    ID.BRISTLEBACK_SPIKE_SHOOT,
-    ID.BRISTLEBACK_SHARPEN_SPINES,
-    ID.BRISTLEBACK_RAIN_OF_SPIKES
-  ]),
-  Cheetah: profile('Cheetah', [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL]),
-  'Sand Lion': profile('Sand Lion', [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL]),
-  'Rock Gazelle': profile('Rock Gazelle', [ID.ROCK_GAZELLE_HEADBUTT, ID.ROCK_GAZELLE_KICK, ID.ROCK_GAZELLE_CHARGE]),
-  'White Tiger': profile('White Tiger', [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_PHASE_POUNCE]),
-  Phoenix: profile('Phoenix', [ID.PHOENIX_WICKED_BITE, ID.PHOENIX_DASH, ID.PHOENIX_WING_BUFFET]),
-  'Siege Turtle': profile('Siege Turtle', [ID.TURTLE_JADE_CANNON, ID.TURTLE_HEAVY_SHOT, ID.TURTLE_SLAM]),
-  'Sky-Chak Striker': profile('Sky-Chak Striker', [ID.CHAK_UNLEASH_ENERGY, ID.CHAK_ELECTROCUTE, ID.CHAK_SPIT_GOOP]),
-  Spinegazer: profile('Spinegazer', [
-    ID.SPINEGAZER_EVIL_EYE,
-    ID.SPINEGAZER_TORMENTING_VISIONS,
-    ID.SPINEGAZER_STARING_VOID
-  ]),
-  Warclaw: profile('Warclaw', [ID.WARCLAW_SLASH, ID.WARCLAW_BATTLE_MAUL, ID.WARCLAW_BOP]),
-  'Janthiri Bee': profile('Janthiri Bee', [
-    ID.JANTHIRI_BEE_NIBBLE,
-    ID.JANTHIRI_BEE_BUMBLE,
-    ID.JANTHIRI_BEE_STINGING_SORROW
-  ])
-});
+/** Use each pet's natural attacks in catalog order unless its AI has a different priority or recovery. */
+function buildPetAutoProfile(pet: RangerPetDefinition): PetAutoProfile | null {
+  const basicId = pet.basicSkillId;
+
+  if (basicId === null) return null;
+
+  const profile = (
+    specials = pet.specialSkillIds,
+    recovery: Readonly<Partial<Record<SkillId, number>>> = {}
+  ): PetAutoProfile => {
+    const action = (id: SkillId): PetAutoSkill => {
+      const seconds = recovery[id];
+      return seconds === undefined ? measured(pet.name, id) : { id, recovery: seconds };
+    };
+
+    return {
+      ...(pet.family === 'wyvern' ? { weaponStrength: 2615.5 } : {}),
+      openingDelay: 0.44,
+      basic: action(basicId),
+      specials: specials.map(action),
+      commandRecovery: {}
+    };
+  };
+
+  switch (pet.name) {
+    case 'Tiger': {
+      const tiger = profile(preferSpecial(pet.specialSkillIds, ID.FELINE_MAUL));
+      return {
+        ...tiger,
+        opening: tiger.specials.find((skill) => skill.id === ID.FELINE_BITE) ?? tiger.basic,
+        openingDelay: 0.48,
+        ignoresAlacrity: true
+      };
+    }
+
+    case 'Carrion Devourer':
+      return {
+        ...profile(pet.specialSkillIds, { [ID.TWIN_DARTS]: 1.88, [ID.PET_TAIL_LASH]: 2.4 }),
+        openingRecoveryDelay: 0.8,
+        commandRecovery: { [ID.POISONOUS_CLOUD]: 2.08 }
+      };
+    case 'Fanged Iboga':
+      return {
+        ...profile(preferSpecial(pet.specialSkillIds, ID.NARCOTIC_SPORES_PET), {
+          [ID.CONSUMING_BITE]: 1.8,
+          [ID.NARCOTIC_SPORES_PET]: 1.56,
+          [ID.CRIPPLING_ANGUISH_PET]: 1.8
+        }),
+        quicknessOpeningRecoveryDelay: 0.8,
+        commandRecovery: { [ID.FANG_GRAPPLE]: 2.4 }
+      };
+    case 'Jacaranda':
+      // The damage-only AI skips Photosynthesize. Untamed can still command the heal.
+      return {
+        ...profile(
+          pet.specialSkillIds.filter((id) => id !== ID.JACARANDA_PHOTOSYNTHESIZE),
+          {
+            [ID.JACARANDA_ROOT_SLAP]: 1.64,
+            [ID.JACARANDA_CALL_LIGHTNING]: 1.48
+          }
+        ),
+        commandRecovery: { [ID.JACARANDAS_EMBRACE]: 1.48 }
+      };
+    default:
+      return profile();
+  }
+}
+
+const PET_AUTO_PROFILES = new Map(RANGER_PETS.map((pet) => [pet.name, buildPetAutoProfile(pet)]));
 
 export function rangerPetAutoProfile(petName: string): PetAutoProfile | null {
-  return PET_AUTO_PROFILES[petName] || null;
+  return PET_AUTO_PROFILES.get(petName) ?? null;
 }

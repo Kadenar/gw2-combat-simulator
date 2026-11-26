@@ -21,9 +21,6 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.JACARANDA_PHOTOSYNTHESIZE]: definePetSkill({
     name: 'Photosynthesize',
     icon: 'https://render.guildwars2.com/file/976A0CC4EA0F36C8A4A705FDE22F03D65CD050D1/1770577.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Jacaranda'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -46,7 +43,6 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.JACARANDAS_EMBRACE]: definePetSkill({
     name: "Jacaranda's Embrace",
     icon: 'https://render.guildwars2.com/file/62C42A056E3B30C8770D5BA3E4301C06069BE21E/1770562.png',
-    petNames: ['Jacaranda'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -95,9 +91,6 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.JACARANDA_ROOT_SLAP]: definePetSkill({
     name: 'Root Slap',
     icon: new URL('@images/wiki/root-slap.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Jacaranda'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -118,9 +111,6 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.JACARANDA_CALL_LIGHTNING]: definePetSkill({
     name: 'Call Lightning',
     icon: 'https://render.guildwars2.com/file/731C0827CBB7E4015F3C45B4C49C58B42416BFA8/1770576.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Jacaranda'],
     type: 'Profession',
     slot: 'Profession_2',
 

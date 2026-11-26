@@ -13,9 +13,6 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.TURTLE_JADE_CANNON]: definePetSkill({
     name: 'Jade Cannon',
     icon: new URL('@images/wiki/jade-cannon-turtle.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Siege Turtle'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -36,9 +33,6 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.TURTLE_HEAVY_SHOT]: definePetSkill({
     name: 'Heavy Shot',
     icon: new URL('@images/wiki/heavy-shot.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Siege Turtle'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -65,9 +59,6 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.TURTLE_SLAM]: definePetSkill({
     name: 'Slam',
     icon: 'https://render.guildwars2.com/file/42093A336F337E45FD91B058E12864E738D83E42/2604868.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Siege Turtle'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -92,7 +83,6 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.HUNKER_DOWN]: definePetSkill({
     name: 'Hunker Down',
     icon: 'https://render.guildwars2.com/file/1D4ED81A5F0B21CABCD005C79A49E471F653A5CA/2604867.png',
-    petNames: ['Siege Turtle'],
     type: 'Profession',
     slot: 'Profession_2',
 

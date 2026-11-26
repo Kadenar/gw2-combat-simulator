@@ -1,4 +1,6 @@
-import type { SkillId } from '#gw2/platform/skills/types.js';
+import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 interface PetSkillTiming {
@@ -744,12 +746,32 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
   }
 });
 
-/** Resolve the selected pet's measurements through one table without extending them to unmeasured pets. */
-export function rangerPetSkillTiming(petName: string, skillId: SkillId): PetSkillTiming | undefined {
+/** A per-pet measurement replaces only its own field. Other cast times come from the selected skill. */
+export function rangerPetSkillTiming(petName: string, skillId: SkillId) {
   const definition = RANGER_PET_SKILL_TIMINGS[skillId];
 
   if (!definition || (definition.petNames && !definition.petNames.includes(petName))) return undefined;
 
-  const { petNames: _petNames, overridesSkillCastTime: _overrides, petOverrides, ...timing } = definition;
-  return { ...timing, ...petOverrides?.[petName] };
+  const pet = definition.petOverrides?.[petName];
+  const animation = definition.overridesSkillCastTime ? definition : undefined;
+  return {
+    castTimeMs: pet?.castTimeMs ?? animation?.castTimeMs,
+    quicknessCastTimeMs: pet?.quicknessCastTimeMs ?? animation?.quicknessCastTimeMs,
+    recoveryMs: pet?.recoveryMs ?? definition.recoveryMs,
+    quicknessRecoveryMs: pet?.quicknessRecoveryMs ?? definition.quicknessRecoveryMs,
+    unbuffedImpactMs: pet?.unbuffedImpactMs ?? definition.unbuffedImpactMs
+  };
+}
+
+/** Resolve the active pet's animation against its own Quickness and the selected catalog. */
+export function rangerPetAnimationMs(
+  skill: Skill,
+  quickness: boolean,
+  timing: ReturnType<typeof rangerPetSkillTiming>
+): number {
+  return quantizeGw2ActionDurationUp(
+    quickness
+      ? (timing?.quicknessCastTimeMs ?? summonQuicknessCastTimeMs(skill))
+      : (timing?.castTimeMs ?? skill.castTimeMs ?? 0)
+  );
 }

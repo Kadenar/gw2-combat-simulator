@@ -13,9 +13,6 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
   [ID.SMOKESCALE_BITE]: definePetSkill({
     name: 'Bite',
     icon: new URL('@images/wiki/bite-smokescale.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Smokescale'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -43,9 +40,6 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
   [ID.SMOKESCALE_TAKEDOWN]: definePetSkill({
     name: 'Takedown',
     icon: 'https://render.guildwars2.com/file/1B7A03496B93AEC937923F229E062F2AD14DFA24/1128611.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Smokescale'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -73,9 +67,6 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
   [ID.SMOKESCALE_SMOKE_ASSAULT]: definePetSkill({
     name: 'Smoke Assault',
     icon: 'https://render.guildwars2.com/file/9B9A0403F90E7C7C2367F2995923477F67B0077F/1128612.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Smokescale'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -107,7 +98,6 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
   [ID.SMOKE_CLOUD]: definePetSkill({
     name: 'Smoke Cloud',
     icon: 'https://render.guildwars2.com/file/B4AF20E830E205E81027A50663C275F2F920C32F/1128613.png',
-    petNames: ['Smokescale'],
     type: 'Profession',
     slot: 'Profession_2',
 

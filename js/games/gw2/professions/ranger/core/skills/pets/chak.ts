@@ -13,9 +13,6 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Skill
   [ID.CHAK_UNLEASH_ENERGY]: definePetSkill({
     name: 'Unleash Energy',
     icon: new URL('@images/wiki/unleash-energy.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Sky-Chak Striker'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -36,9 +33,6 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Skill
   [ID.CHAK_ELECTROCUTE]: definePetSkill({
     name: 'Electrocute',
     icon: 'https://render.guildwars2.com/file/5C800D284EF75CA76EE34868E35FEFD3F7964E22/3256377.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Sky-Chak Striker'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -67,9 +61,6 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Skill
   [ID.CHAK_SPIT_GOOP]: definePetSkill({
     name: 'Spit Goop',
     icon: 'https://render.guildwars2.com/file/43EE71676B2773FF9EA57A14653EEA3FFE32B0BF/3256379.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Sky-Chak Striker'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -97,7 +88,6 @@ export const RANGER_CORE_CHAK_PET_SKILL_MECHANICS: Readonly<Record<number, Skill
   [ID.LEY_ENERGY_PULSE]: definePetSkill({
     name: 'Ley Energy Pulse',
     icon: 'https://render.guildwars2.com/file/2FB236242D79B109DC0CF6D6BC64DE0738805C69/3256378.png',
-    petNames: ['Sky-Chak Striker'],
     type: 'Profession',
     slot: 'Profession_2',
 

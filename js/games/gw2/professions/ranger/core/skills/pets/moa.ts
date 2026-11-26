@@ -13,9 +13,6 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillD
   [ID.MOA_PECK]: definePetSkill({
     name: 'Peck',
     icon: new URL('@images/wiki/peck.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Blue Moa', 'Pink Moa', 'Black Moa', 'Red Moa'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -35,9 +32,6 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillD
   [ID.MOA_FRENZIED_ATTACK]: definePetSkill({
     name: 'Frenzied Attack',
     icon: 'https://render.guildwars2.com/file/E4C75BA1A9056A684EDDF0CBCB746B36D707A842/103007.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Blue Moa', 'Pink Moa', 'Black Moa', 'Red Moa'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -66,7 +60,6 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillD
   [ID.PROTECTING_SCREECH]: definePetSkill({
     name: 'Protecting Screech',
     icon: 'https://render.guildwars2.com/file/103BC1F43615CD02E416E04100022EB0AAEDD618/103238.png',
-    petNames: ['Blue Moa'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -87,7 +80,6 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillD
   [ID.DAZING_SCREECH]: definePetSkill({
     name: 'Dazing Screech',
     icon: 'https://render.guildwars2.com/file/103BC1F43615CD02E416E04100022EB0AAEDD618/103238.png',
-    petNames: ['Pink Moa'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -106,7 +98,6 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillD
   [ID.DAZING_SCREECH_ID_12709]: definePetSkill({
     name: 'Dazing Screech',
     icon: 'https://render.guildwars2.com/file/103BC1F43615CD02E416E04100022EB0AAEDD618/103238.png',
-    petNames: ['Black Moa'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -125,7 +116,6 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillD
   [ID.FURIOUS_SCREECH]: definePetSkill({
     name: 'Furious Screech',
     icon: 'https://render.guildwars2.com/file/103BC1F43615CD02E416E04100022EB0AAEDD618/103238.png',
-    petNames: ['Red Moa'],
     type: 'Profession',
     slot: 'Profession_2',
 

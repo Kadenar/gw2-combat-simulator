@@ -5,7 +5,8 @@ import { createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { rangerPetAutoProfile } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import { rangerPetCommandBar, rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { wait } from '#tests/helpers/commands.js';
@@ -14,20 +15,21 @@ import { runRanger } from '#tests/helpers/ranger-simulation.js';
 const petActions = (result) =>
   result.events.filter((event) => event.type === 'action' && event.source === 'ranger-pet');
 
-for (const name of RANGER_PETS.filter((pet) => rangerPetAutoProfile(pet.name)).map((pet) => pet.name)) {
+for (const pet of RANGER_PETS) {
+  const { name } = pet;
   const profile = rangerPetAutoProfile(name);
+
+  if (!profile) continue;
+
   // Every new selection must execute owned natural skills without spending its explicit Beast command.
   test(`${name} loads and autonomously uses only its natural skills`, () => {
-    const definition = RANGER_PETS.find((pet) => pet.name === name);
     const natural = [profile.basic, ...profile.specials];
     const result = runRanger(['__combat_start', wait(60000)], { selectedPet: name });
     assert.deepEqual(result.warnings, []);
     const actions = petActions(result);
     for (const action of natural) {
-      assert.ok(definition.skillIds.includes(action.id));
+      assert.ok(pet.basicSkillId === action.id || pet.specialSkillIds.includes(action.id));
       assert.ok(actions.some((event) => event.skillId === action.id));
-      const skill = rangerProfession.catalog.skillsById.get(action.id);
-      assert.equal(skill.petAutonomousSkill, true);
     }
 
     assert.ok(actions.every((event) => natural.some((skill) => skill.id === event.skillId)));
@@ -49,11 +51,39 @@ for (const name of RANGER_PETS.filter((pet) => rangerPetAutoProfile(pet.name)).m
     assert.ok(actions.every((event) => event.skillId === profile.basic.id));
     for (const special of profile.specials) {
       const skill = rangerProfession.catalog.skillsById.get(special.id);
-      assert.equal(rangerPetSkillCommandable(skill, 'Untamed'), true);
-      assert.equal(rangerPetSkillCommandable(skill, 'Core'), false);
+      assert.equal(rangerPetSkillCommandable(pet, skill, 'Untamed'), true);
+      assert.equal(rangerPetSkillCommandable(pet, skill, 'Core'), false);
     }
   });
 }
+
+// A basic attack's recharge cannot put it on the command bar or displace Smoke Assault from F3.
+test('Untamed leaves Smokescale Bite automatic and routes Smoke Assault to F3', () => {
+  const pet = rangerPetByName('Smokescale');
+  const bar = rangerPetCommandBar(pet, rangerProfession.catalog.skillsById, 'Untamed');
+  assert.ok(!bar.includes(ID.SMOKESCALE_BITE));
+  const result = runRanger(['__combat_start', ID.SMOKESCALE_SMOKE_ASSAULT, wait(3000)], {
+    selectedPet: pet.name,
+    specialization: 'Untamed',
+    initialUntamedState: 'Ranger'
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.inputTrace.actions.find((action) => action.skillId === ID.SMOKESCALE_SMOKE_ASSAULT)?.control,
+    'profession-3'
+  );
+});
+
+// The beast skill keeps F2 when neither neighboring command slot has a special.
+test('Untamed routes the Brown Bear command to F2', () => {
+  const result = runRanger(['__combat_start', ID.SHAKE_IT_OFF, wait(3000)], {
+    selectedPet: 'Brown Bear',
+    specialization: 'Untamed',
+    initialUntamedState: 'Ranger'
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.inputTrace.actions.find((action) => action.skillId === ID.SHAKE_IT_OFF)?.control, 'profession-2');
+});
 
 // Charge consumption is scoped to the current pet, and retirement must discard its unspent entitlement.
 test('Bristleback bleed charges expire, are spent, and cannot migrate through a swap', () => {

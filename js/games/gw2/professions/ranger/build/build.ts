@@ -8,7 +8,7 @@ import {
   RANGER_HAMMER_VARIANT_PAIRS
 } from '#gw2/professions/ranger/data/hammer-variants.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import { rangerRotationSkillAllowed } from '#gw2/professions/ranger/data/pet-commands.js';
 import { isRangerPetName, RANGER_DEFAULT_PET_NAMES } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerCanonicalBuild } from '#gw2/professions/ranger/types.js';
 import { createProfessionAssumptionDefaults, createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
@@ -16,14 +16,6 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
 
 const RANGER_BUILD_SCHEMA_VERSION = 5;
 const RANGER_PROFESSION_ID = 'ranger';
-
-function keepRangerRotationCommand(command: RangerCanonicalBuild['rotation'][number], untamed: boolean): boolean {
-  if (command.type !== 'cast') return true;
-
-  const skill = rangerCatalog.skillsById.get(command.skillId);
-  // Preserve Untamed's explicit natural pet commands when loading saved rotations.
-  return skill?.petAutonomousSkill !== true || (untamed && rangerPetSkillCommandable(skill, 'Untamed'));
-}
 
 // Seed a complete, schema-current Ranger preset so migration and UI code can
 // safely assume pet, hammer-variant, and specialization resources exist.
@@ -105,13 +97,13 @@ const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
     // Unknown or missing pet names fall back to each slot's default pet.
     const selectedPet = isRangerPetName(saved.selectedPet) ? saved.selectedPet : RANGER_DEFAULT_PET_NAMES[0];
     const selectedPet2 = isRangerPetName(saved.selectedPet2) ? saved.selectedPet2 : RANGER_DEFAULT_PET_NAMES[1];
+    const specialization = build.specializations.some((entry) => entry.name === 'Untamed') ? 'Untamed' : 'Core';
     return {
       ...build,
-      rotation: build.rotation.filter((command) =>
-        keepRangerRotationCommand(
-          command,
-          build.specializations.some((entry) => entry.name === 'Untamed')
-        )
+      rotation: build.rotation.filter(
+        (command) =>
+          command.type !== 'cast' ||
+          rangerRotationSkillAllowed(rangerCatalog.skillsById.get(command.skillId), specialization)
       ),
       selectedPet,
       selectedPet2,

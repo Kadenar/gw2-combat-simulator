@@ -21,9 +21,6 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
   [ID.BRISTLEBACK_SPIKE_SHOOT]: definePetSkill({
     name: 'Spike Shoot',
     icon: new URL('@images/wiki/spike-shoot.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Bristleback'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -44,9 +41,6 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
   [ID.BRISTLEBACK_SHARPEN_SPINES]: definePetSkill({
     name: 'Sharpen Spines',
     icon: 'https://render.guildwars2.com/file/D99AA4CC69C7D510A6632D9FC87852A13524BA7F/1128607.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Bristleback'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -88,9 +82,6 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
   [ID.BRISTLEBACK_RAIN_OF_SPIKES]: definePetSkill({
     name: 'Rain of Spikes',
     icon: 'https://render.guildwars2.com/file/081DA91623067F55251BA496B2BDB91E98CDC667/1128606.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Bristleback'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -118,7 +109,6 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
   [ID.SPIKE_BARRAGE]: definePetSkill({
     name: 'Spike Barrage',
     icon: 'https://render.guildwars2.com/file/D81C6616CA68357713C8CFEDB63E11AFF405ABAB/1128608.png',
-    petNames: ['Bristleback'],
     type: 'Profession',
     slot: 'Profession_2',
 

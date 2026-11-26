@@ -13,9 +13,6 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.WYVERN_WING_SWIPE]: definePetSkill({
     name: 'Wing Swipe',
     icon: new URL('@images/wiki/wing-swipe.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Electric Wyvern', 'Fire Wyvern'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -37,9 +34,6 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.WYVERN_TAIL_LASH]: definePetSkill({
     name: 'Tail Lash',
     icon: 'https://render.guildwars2.com/file/64AE4727D3ED086398704B9FD0DC7403F20535EA/1128617.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Electric Wyvern', 'Fire Wyvern'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -67,9 +61,6 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.WYVERN_WING_BUFFET]: definePetSkill({
     name: 'Wing Buffet',
     icon: 'https://render.guildwars2.com/file/92D7CB40ACE0A9061DD8F5722327E4F515BFCE35/1128618.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Electric Wyvern', 'Fire Wyvern'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -96,7 +87,6 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.LIGHTNING_ASSAULT]: definePetSkill({
     name: 'Lightning Assault',
     icon: 'https://render.guildwars2.com/file/B35FA64E076A65E11A2F03E61DD2373F5A20CEFD/1128616.png',
-    petNames: ['Electric Wyvern'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -115,7 +105,6 @@ export const RANGER_CORE_WYVERN_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.CONSUMING_FLAME]: definePetSkill({
     name: 'Consuming Flame',
     icon: 'https://render.guildwars2.com/file/08606C1E5DCAB32DF2A991A207083CCDF1BB7F51/1128615.png',
-    petNames: ['Fire Wyvern'],
     type: 'Profession',
     slot: 'Profession_2',
 

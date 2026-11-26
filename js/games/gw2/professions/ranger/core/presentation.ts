@@ -67,7 +67,7 @@ export function rangerUiState(context: Pick<RangerUiContext, 'professionState'>)
 }
 
 function commandablePetSkillIds(catalog: Readonly<CanonicalCatalog<RangerSkill>>, context: RangerUiContext): SkillId[] {
-  return rangerPetCommandBar(activeRangerUiPet(context).skillIds, catalog.skillsById, uiSpecialization(context));
+  return rangerPetCommandBar(activeRangerUiPet(context), catalog.skillsById, uiSpecialization(context));
 }
 
 interface RangerPetPaletteGroupOptions {

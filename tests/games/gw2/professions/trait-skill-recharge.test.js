@@ -146,7 +146,7 @@ const cases = [
     RS.LESSER_SIC_EM,
     10,
     (r) => {
-      const skillId = rangerPetForState(r.profession.core).skillIds.at(-1);
+      const skillId = rangerPetForState(r.profession.core).beastSkillId;
       r.fireTrigger(strike, { event: { ...hit(r), actorType: 'summon', skillId } });
     }
   ],

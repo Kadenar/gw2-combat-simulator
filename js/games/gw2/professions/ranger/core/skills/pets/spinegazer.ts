@@ -13,9 +13,6 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
   [ID.SPINEGAZER_EVIL_EYE]: definePetSkill({
     name: 'Evil Eye',
     icon: new URL('@images/wiki/evil-eye.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Spinegazer'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -44,9 +41,6 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
   [ID.SPINEGAZER_TORMENTING_VISIONS]: definePetSkill({
     name: 'Tormenting Visions',
     icon: 'https://render.guildwars2.com/file/CE7504440B0506240A599CF3C4F2B99D67354278/3307110.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Spinegazer'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -77,9 +71,6 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
   [ID.SPINEGAZER_STARING_VOID]: definePetSkill({
     name: 'Staring Void',
     icon: 'https://render.guildwars2.com/file/777947803A61702E26031830CC27634B5A1EA756/3307109.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Spinegazer'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -114,7 +105,6 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
   [ID.PANOPTICON]: definePetSkill({
     name: 'Panopticon',
     icon: 'https://render.guildwars2.com/file/B17905FB0792790A7EC1C52D193DC89F0F603BC3/3307108.png',
-    petNames: ['Spinegazer'],
     type: 'Profession',
     slot: 'Profession_2',
 

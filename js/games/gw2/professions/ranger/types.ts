@@ -46,7 +46,11 @@ export interface RangerPetDefinition {
   readonly description: string;
   readonly family: string;
   readonly archetype: string;
-  readonly skillIds: readonly SkillId[];
+  /** Pets without modeled autonomous attacks still have a beast command. */
+  readonly basicSkillId: SkillId | null;
+  /** Untamed uses catalog order. Other specializations may have a different AI priority. */
+  readonly specialSkillIds: readonly SkillId[];
+  readonly beastSkillId: SkillId;
   readonly beastmodeSkillIds: readonly SkillId[];
 }
 
@@ -84,9 +88,6 @@ export interface RangerSkill
   extends Skill, NumericSkillFields<typeof GALESHOT_SKILL_FIELDS>, NumericSkillFields<typeof RANGER_CORE_SKILL_FIELDS> {
   /** Executed by the pet rather than the player. */
   readonly petSkill?: boolean;
-  /** Belongs to the selected pet family's skill set. */
-  readonly petFamilySkill?: boolean;
-  readonly petAutonomousSkill?: boolean;
   /** Available only while Celestial Avatar is active. */
   readonly celestialAvatarSkill?: boolean;
   /** Available only while merged with the pet. */
@@ -97,8 +98,6 @@ export interface RangerSkill
   /** Spear attack available while stealthed; the rotation palette highlights it like other stealth attacks. */
   readonly stealthAttack?: boolean;
   readonly cycloneBowSkill?: boolean;
-  /** Pets that own this skill. */
-  readonly petNames?: readonly string[];
 }
 
 /** Modifier context whose config is the Ranger's, so rules can read its pet selection. */

@@ -17,7 +17,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
   [ID.POISONOUS_CLOUD]: definePetSkill({
     name: 'Poisonous Cloud',
     icon: 'https://render.guildwars2.com/file/36A3327C0EEA1D5C03EAA5587C73692580A42BB5/104031.png',
-    petNames: ['Carrion Devourer'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -69,7 +68,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
   [ID.POISON_BARBS]: definePetSkill({
     name: 'Poison Barbs',
     icon: 'https://render.guildwars2.com/file/9A033F36CC4EEB19F6FCDE440D7CCB150A169BB5/104030.png',
-    petNames: ['Whiptail Devourer'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -96,7 +94,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
   [ID.RENDING_BARBS]: definePetSkill({
     name: 'Rending Barbs',
     icon: 'https://render.guildwars2.com/file/5A56036047B5A211D8470C4F65F56FAC0550006D/104032.png',
-    petNames: ['Lashtail Devourer'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -124,9 +121,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
   [ID.TWIN_DARTS]: definePetSkill({
     name: 'Twin Darts',
     icon: 'https://render.guildwars2.com/file/9D3C1CD36EAFF4F4F5E4EB7B41C318771E579C78/103583.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Carrion Devourer', 'Whiptail Devourer', 'Lashtail Devourer'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -164,9 +158,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
   [ID.PET_TAIL_LASH]: definePetSkill({
     name: 'Tail Lash',
     icon: 'https://render.guildwars2.com/file/086363EFF41571AD74CD1B506DF2B2F6F1F038D1/104029.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Carrion Devourer', 'Whiptail Devourer', 'Lashtail Devourer'],
     type: 'Profession',
     slot: 'Profession_2',
 

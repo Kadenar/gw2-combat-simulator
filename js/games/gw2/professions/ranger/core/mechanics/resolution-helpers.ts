@@ -10,11 +10,14 @@ import {
   rangerPetCompanionId
 } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
+import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import type { RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 
-/** Commandable pet Beast skills exclude their independently delivered family skills. */
+const beastSkillIds = new Set(RANGER_PETS.map((pet) => pet.beastSkillId));
+
+/** Classify a beast skill by its source even if the Ranger has since swapped pets. */
 export function isBeastSkill(skill: RangerSkill): boolean {
-  return Boolean(skill.petSkill && !skill.petFamilySkill);
+  return Boolean(skill.petSkill && beastSkillIds.has(skill.id));
 }
 
 /** Pet-sourced packets, including Ranger-stat effects that a pet skill launched. */

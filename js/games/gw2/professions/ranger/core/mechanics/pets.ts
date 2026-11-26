@@ -11,11 +11,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitCastEffects, type CastEffectDelivery } from '#gw2/platform/execution/cast-effect-delivery.js';
 import { cancelledBeforeEffectCommit } from '#gw2/platform/execution/cast-effects.js';
-import {
-  castWasInterrupted,
-  GW2_QUICKNESS_ACTION_RATE,
-  summonQuicknessCastTimeMs
-} from '#gw2/platform/execution/cast-timing.js';
+import { castWasInterrupted, GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -29,7 +25,7 @@ import {
   type PetAutoSkill
 } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import {
-  RANGER_PET_SKILL_TIMINGS,
+  rangerPetAnimationMs,
   rangerPetSkillTiming
 } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 import {
@@ -112,22 +108,11 @@ function rangerPetCastDurationMs(
   if (!skill.petSkill) return durationMs;
 
   const petName = rangerPetForState(context.profession.core).name;
-  const definition = RANGER_PET_SKILL_TIMINGS[skill.id];
-  // Measured animations and per-pet overrides replace cast metadata; other skills retain their authored tuning.
-  const timing =
-    definition?.overridesSkillCastTime || definition?.petOverrides?.[petName]
-      ? rangerPetSkillTiming(petName, skill.id)
-      : undefined;
-  return quantizeGw2ActionDurationUp(
-    petBoonActive(context, BOON.QUICKNESS)
-      ? (timing?.quicknessCastTimeMs ?? summonQuicknessCastTimeMs(skill))
-      : (timing?.castTimeMs ?? skill.castTimeMs ?? 0)
-  );
+  return rangerPetAnimationMs(skill, petBoonActive(context, BOON.QUICKNESS), rangerPetSkillTiming(petName, skill.id));
 }
 
 /** Measured recovery overrides include decision gaps; unmeasured attacks retain their authored action-rate model. */
-function petRecovery(petName: string, skillId: string | number, recovery: number, quickness: boolean): number {
-  const timing = rangerPetSkillTiming(petName, skillId);
+function petRecovery(timing: ReturnType<typeof rangerPetSkillTiming>, recovery: number, quickness: boolean): number {
   return (
     quantizeGw2ActionDurationUp(
       timing
@@ -145,9 +130,9 @@ function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast<RangerSkil
   const profile = rangerPetAutoProfile(petName);
   const skillId = cast.skill.id;
   const special = profile?.specials.find((entry) => entry.id === skillId);
+  const timing = rangerPetSkillTiming(petName, skillId);
 
-  if (rangerPetSkillTiming(petName, skillId) || special)
-    return petRecovery(petName, skillId, special?.recovery ?? 0, petBoonActive(context, BOON.QUICKNESS));
+  if (timing || special) return petRecovery(timing, special?.recovery ?? 0, petBoonActive(context, BOON.QUICKNESS));
 
   return (
     quantizeGw2ActionDurationUp((profile?.commandRecovery[String(skillId)] ?? cast.effectiveEnd - cast.start) * 1000) /
@@ -392,14 +377,18 @@ function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
 function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   const skill = cast.skill;
 
-  if (!rangerPetSkillCommandable(skill, context.config.specialization || 'Core') || !context.profession.core.pet)
+  const state = context.profession.core;
+
+  if (
+    !state.pet ||
+    !rangerPetSkillCommandable(rangerPetForState(state), skill, context.config.specialization || 'Core')
+  )
     return;
 
-  const state = context.profession.core;
   const start = petCommandStart(context, skill);
   const recovery = petCommandRecovery(context, cast);
   // Reserve before queuing the task so two player commands cannot both claim the same future opening.
-  state.pet!.commandReadyAt = gw2Time(start + recovery);
+  state.pet.commandReadyAt = gw2Time(start + recovery);
 
   context.scheduleForCast(PET_COMMAND_START_TASK, start, cast, {}, owner(context));
 }
@@ -425,13 +414,13 @@ const rangerPetTasks = {
     const quickness = petBoonActive(context, BOON.QUICKNESS);
     const selected = autonomousSkill(context, profile);
     const skill = context.helpers.skillsById.get(selected.id);
-    const recovery = petRecovery(petName, selected.id, selected.recovery, quickness);
+    const timing = rangerPetSkillTiming(petName, selected.id);
+    const recovery = petRecovery(timing, selected.recovery, quickness);
+    const fullEnd = gw2CooldownReadyAt(
+      context.time + (skill && timing ? rangerPetAnimationMs(skill, quickness, timing) / 1000 : recovery)
+    );
 
     if (skill) {
-      const fullEnd = gw2CooldownReadyAt(
-        context.time +
-          (rangerPetSkillTiming(petName, selected.id) ? rangerPetCastDurationMs(context, skill, 0) / 1000 : recovery)
-      );
       // Combat activation identity is independent of event and announcement allocation.
       const activationId = `${state.pet.id}:action:${++state.pet.sequence}`;
       context.effects.emit({
@@ -455,7 +444,8 @@ const rangerPetTasks = {
       emitRangerPetSkill(context, skill, context.time, fullEnd, activationId);
     }
 
-    state.pet.busyUntil = gw2Time(context.time + recovery);
+    // The next autonomous attack waits for both recovery and the current animation to finish.
+    state.pet.busyUntil = Math.max(fullEnd, gw2Time(context.time + recovery));
 
     if (skill) {
       // Ordinary recharge follows the active catalog; the Iboga owns its measured autonomous exceptions.

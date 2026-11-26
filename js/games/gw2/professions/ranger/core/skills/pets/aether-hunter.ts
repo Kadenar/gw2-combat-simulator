@@ -13,9 +13,6 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
   [ID.AETHER_HUNTER_BITE]: definePetSkill({
     name: 'Bite',
     icon: new URL('@images/wiki/bite-aether-hunter.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Aether Hunter'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -38,9 +35,6 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
   [ID.AETHER_HUNTER_LUNGE]: definePetSkill({
     name: 'Lunge',
     icon: 'https://render.guildwars2.com/file/B65ECEBB72F4F10C4144510777E899E477DEE5B2/3124960.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Aether Hunter'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -63,9 +57,6 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
   [ID.AETHER_HUNTER_LEY_LINE_VORTEX]: definePetSkill({
     name: 'Ley-Line Vortex',
     icon: 'https://render.guildwars2.com/file/030E7AB1CB18A4B348FD17B54B2B68FDABDB1DBC/3124961.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Aether Hunter'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -96,7 +87,6 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
   [ID.DIMENSION_BREACH]: definePetSkill({
     name: 'Dimension Breach',
     icon: 'https://render.guildwars2.com/file/090FC4C97ADB55985F67F1FE225803784B3E6FAE/3124959.png',
-    petNames: ['Aether Hunter'],
     type: 'Profession',
     slot: 'Profession_2',
 

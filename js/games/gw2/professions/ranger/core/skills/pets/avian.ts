@@ -13,9 +13,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.BIRD_SLASH]: definePetSkill({
     name: 'Slash',
     icon: new URL('@images/wiki/slash-bird.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Hawk', 'Raven', 'Owl', 'Eagle', 'White Raven'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -35,9 +32,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.BIRD_SWOOP]: definePetSkill({
     name: 'Swoop',
     icon: 'https://render.guildwars2.com/file/FCCA3C61C308E1D625C70BD4CCB9F05051AE6F6F/104047.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Hawk', 'Raven', 'Owl', 'Eagle', 'White Raven'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -66,9 +60,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.QUICKENING_SCREECH_PET]: definePetSkill({
     name: 'Quickening Screech',
     icon: 'https://render.guildwars2.com/file/69F1291534027E0937A5C020FFEBCC96F301EC54/104048.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Hawk', 'Raven', 'Owl', 'Eagle', 'White Raven'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -91,7 +82,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.BLINDING_SLASH]: definePetSkill({
     name: 'Blinding Slash',
     icon: 'https://render.guildwars2.com/file/6A3CA8D32FDD9EB0A8546FDC4DB39FA8EE740059/104049.png',
-    petNames: ['Raven', 'White Raven'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -111,7 +101,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.CHILLING_SLASH]: definePetSkill({
     name: 'Chilling Slash',
     icon: 'https://render.guildwars2.com/file/6A3CA8D32FDD9EB0A8546FDC4DB39FA8EE740059/104049.png',
-    petNames: ['Owl'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -139,7 +128,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.BRASH_SLASH]: definePetSkill({
     name: 'Brash Slash',
     icon: 'https://render.guildwars2.com/file/6A3CA8D32FDD9EB0A8546FDC4DB39FA8EE740059/104049.png',
-    petNames: ['Eagle'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -167,7 +155,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.LACERATING_SLASH]: definePetSkill({
     name: 'Lacerating Slash',
     icon: 'https://render.guildwars2.com/file/6A3CA8D32FDD9EB0A8546FDC4DB39FA8EE740059/104049.png',
-    petNames: ['Hawk'],
     type: 'Profession',
     slot: 'Profession_2',
 

@@ -36,12 +36,11 @@ export type RangerSkillFlowAssertions = [
 // Casts and ID/name/list lookups expose the same typed mechanics to runtime helpers.
 export function rangerHookSkillReads(runtime: RangerRuntime, cast: Parameters<EliteCast>[1]): void {
   const cost: number | undefined = cast.skill.arrowCost;
-  const flag: readonly string[] | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.petNames;
   const indexed: number | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.arrowCost;
   const listed: boolean | undefined = runtime.helpers.skills[0]?.petSkill;
   // @ts-expect-error Numeric mechanics must not lose their type at runtime.
   const invalid: string = cast.skill.arrowCost;
-  void [cost, flag, indexed, listed, invalid];
+  void [cost, indexed, listed, invalid];
 }
 
 const invalidDefinitions: Record<string, SkillDefinition<RangerSkill>> = {
@@ -63,5 +62,5 @@ definePetSkill({
   name: 'Fixture',
   icon: 'fixture.png',
   // @ts-expect-error Misspelled pet fields fail at the declaration.
-  petFamilySkil: true
+  petSkil: true
 });

@@ -20,9 +20,6 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.SPIDER_POISON_GAS]: definePetSkill({
     name: 'Poison Gas',
     icon: new URL('@images/wiki/poison-gas.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Forest Spider', 'Jungle Spider', 'Cave Spider', 'Black Widow Spider'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -57,9 +54,6 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.SPIDER_ENTANGLING_WEB]: definePetSkill({
     name: 'Entangling Web',
     icon: new URL('@images/wiki/entangling-web.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Forest Spider', 'Jungle Spider', 'Cave Spider', 'Black Widow Spider'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -87,7 +81,6 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.DEADLY_VENOM]: definePetSkill({
     name: 'Deadly Venom',
     icon: 'https://render.guildwars2.com/file/D8AAF1C759E0E4F0A4C85A9462DF75055EB5BF92/104052.png',
-    petNames: ['Forest Spider'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -107,7 +100,6 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.PARALYZING_VENOM]: definePetSkill({
     name: 'Paralyzing Venom',
     icon: 'https://render.guildwars2.com/file/D8AAF1C759E0E4F0A4C85A9462DF75055EB5BF92/104052.png',
-    petNames: ['Jungle Spider', 'Black Widow Spider'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -152,7 +144,6 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.WEAKENING_VENOM]: definePetSkill({
     name: 'Weakening Venom',
     icon: 'https://render.guildwars2.com/file/D8AAF1C759E0E4F0A4C85A9462DF75055EB5BF92/104052.png',
-    petNames: ['Cave Spider'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -188,9 +179,6 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.SPIT]: definePetSkill({
     name: 'Spit',
     icon: 'https://render.guildwars2.com/file/B7A1AB65571565525A5C35DBCBEF0326DF65C3FA/104050.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Forest Spider', 'Jungle Spider', 'Cave Spider', 'Black Widow Spider'],
     type: 'Profession',
     slot: 'Profession_2',
 

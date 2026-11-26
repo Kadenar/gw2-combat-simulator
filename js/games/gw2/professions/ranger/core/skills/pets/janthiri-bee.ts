@@ -13,9 +13,6 @@ export const RANGER_CORE_JANTHIRI_BEE_PET_SKILL_MECHANICS: Readonly<Record<numbe
   [ID.JANTHIRI_BEE_NIBBLE]: definePetSkill({
     name: 'Nibble',
     icon: new URL('@images/wiki/nibble.png', import.meta.url).href,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Janthiri Bee'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -35,9 +32,6 @@ export const RANGER_CORE_JANTHIRI_BEE_PET_SKILL_MECHANICS: Readonly<Record<numbe
   [ID.JANTHIRI_BEE_BUMBLE]: definePetSkill({
     name: 'Bumble',
     icon: 'https://render.guildwars2.com/file/DCA96000060D21F6E4A9600DB3D8A90CE8AB574B/3594073.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Janthiri Bee'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -63,9 +57,6 @@ export const RANGER_CORE_JANTHIRI_BEE_PET_SKILL_MECHANICS: Readonly<Record<numbe
   [ID.JANTHIRI_BEE_STINGING_SORROW]: definePetSkill({
     name: 'Stinging Sorrow',
     icon: 'https://render.guildwars2.com/file/7869ABC7D2937825AD34ECEEF9014801BA11EB53/3594076.png',
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Janthiri Bee'],
     type: 'Profession',
     slot: 'Profession_2',
 
@@ -94,7 +85,6 @@ export const RANGER_CORE_JANTHIRI_BEE_PET_SKILL_MECHANICS: Readonly<Record<numbe
   [ID.HONEY_TOSS]: definePetSkill({
     name: 'Honey Toss',
     icon: 'https://render.guildwars2.com/file/A498FD1BEC7AA69FE91B010516050B084DB42626/3594074.png',
-    petNames: ['Janthiri Bee'],
     type: 'Profession',
     slot: 'Profession_2',
 

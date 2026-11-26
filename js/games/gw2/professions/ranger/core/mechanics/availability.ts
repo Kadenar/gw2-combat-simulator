@@ -74,16 +74,17 @@ export function rangerCoreCastAvailability(
 
   if (!skill.petSkill) return { ready: true };
 
-  if (!rangerPetSkillCommandable(skill, context.config.specialization || 'Core')) {
-    return denySkillCast(skill, 'ranger.pet-autonomous', 'the active pet uses this skill automatically.');
-  }
-
   if (!state.pet) {
     return denySkillCast(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');
   }
 
-  if (!rangerPetForState(state).skillIds.includes(skill.id)) {
-    return denySkillCast(skill, 'ranger.inactive-pet', 'select the pet that owns this Beast skill.');
+  const pet = rangerPetForState(state);
+
+  if (!rangerPetSkillCommandable(pet, skill, context.config.specialization || 'Core')) {
+    if (skill.id === pet.basicSkillId || pet.specialSkillIds.includes(skill.id))
+      return denySkillCast(skill, 'ranger.pet-autonomous', 'the active pet uses this skill automatically.');
+
+    return denySkillCast(skill, 'ranger.inactive-pet', 'select the pet that owns this skill.');
   }
 
   return { ready: true };

@@ -358,9 +358,9 @@ function applyRangerCommandTraits(
 function triggerGoForTheThroat(context: RangerRuntime, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context.profession);
   const skill = skillForEvent(context.helpers, event);
-  const beastSkillId = rangerPetForState(state).skillIds.at(-1);
+  const beastSkillId = rangerPetForState(state).beastSkillId;
 
-  if (event.skillId !== beastSkillId || !skill?.petSkill || skill.petFamilySkill) {
+  if (event.skillId !== beastSkillId || !skill?.petSkill) {
     return;
   }
 

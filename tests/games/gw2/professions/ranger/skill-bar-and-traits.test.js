@@ -720,8 +720,8 @@ test('Ranger pet-swap and Marksmanship traits resolve at their combat timings', 
   assert.equal(activeRangerUiPet({ professionState: swapped.planningState.profession }).name, 'Fanged Iboga');
   assert.deepEqual(swapped.planningState.profession[STATE.PET_NAMES], ['Carrion Devourer', 'Fanged Iboga']);
   assert.equal(
-    activeRangerUiPet({ professionState: swapped.planningState.profession }).skillIds.includes(ID.CONSUMING_BITE),
-    true
+    activeRangerUiPet({ professionState: swapped.planningState.profession }).basicSkillId,
+    ID.CONSUMING_BITE
   );
   assert.equal(
     swapped.events.some(
