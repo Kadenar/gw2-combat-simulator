@@ -31,6 +31,10 @@ interface DurationStackOptions<T> {
 const GW2_BOON_DURATION_CAP_SECONDS = 30;
 const GW2_SWIFTNESS_DURATION_CAP_SECONDS = 60;
 
+// The Technician pulses with 10-second boon grants.
+// The simulation starts on a pulse because builds do not record the console's precombat phase.
+export const TRAINING_CONSOLE = Object.freeze({ intervalSeconds: 10, boonDurationSeconds: 10 });
+
 export const MAX_MIGHT_STACKS = 25;
 // Standard metadata is shared by combat queries and effect reporting.
 const STANDARD_BOON_DEFINITIONS: Readonly<Record<string, StandardBoonPresentation>> = Object.freeze({

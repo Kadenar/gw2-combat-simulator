@@ -4,7 +4,7 @@
  */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { isStandardBoon, TRAINING_CONSOLE } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, COMBO_FIELD, CONDITION, CONTROL, RECIPIENT, type BoonId } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -223,9 +223,6 @@ function shiftSignetPassive(context: EngineerRuntime): boolean {
 }
 
 const CONSOLE_PULSE_TASK = 'engineer.shift-signet-console';
-// The training technician grants ten seconds of each enabled boon every ten seconds.
-const CONSOLE_PULSE_SECONDS = 10;
-const CONSOLE_BOON_DURATION_SECONDS = 10;
 
 /** The mech receives its own copy with the source's final duration and stack count. */
 function copyShiftSignetBoon(
@@ -279,13 +276,20 @@ export const shiftSignetHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill>
               runtime.time,
               boon,
               Number(value),
-              CONSOLE_BOON_DURATION_SECONDS,
+              TRAINING_CONSOLE.boonDurationSeconds,
               'Training console'
             );
         }
       }
 
-      runtime.schedule(CONSOLE_PULSE_TASK, runtime.time + CONSOLE_PULSE_SECONDS, null, undefined, 0, 'buffs');
+      runtime.schedule(
+        CONSOLE_PULSE_TASK,
+        runtime.time + TRAINING_CONSOLE.intervalSeconds,
+        null,
+        undefined,
+        0,
+        'buffs'
+      );
     }
   },
   reactions: {

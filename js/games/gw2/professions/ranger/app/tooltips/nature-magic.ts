@@ -8,6 +8,7 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { TRAINING_CONSOLE } from '#gw2/platform/combat/boons.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
@@ -20,7 +21,7 @@ export const rangerNatureMagicTooltips = {
   ),
   [TRAIT.FORTIFYING_BOND]: traitTooltip(
     "Boons received from players are shared with your active pet using the ranger's boon duration. Permanent boon settings represent training-console pulses and also trigger sharing. Inactive in Beastmode; other NPC boons do not trigger sharing.",
-    [['pulseInterval', 'Configured boon refresh interval', tooltipSeconds]],
+    () => [{ name: 'Configured boon refresh interval', detail: tooltipSeconds(TRAINING_CONSOLE.intervalSeconds) }],
     RECIPIENT.SUMMONS
   ),
   [TRAIT.LINGERING_MAGIC]: traitTooltip('Gain concentration.', [['attributeBonuses.concentration', 'Concentration']]),

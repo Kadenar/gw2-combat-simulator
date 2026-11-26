@@ -221,3 +221,15 @@ test('a summon self-buff includes its caster without affecting the simulated pla
     }
   );
 });
+
+test('a summon can receive its own party boon when players leave a slot', () => {
+  // The sharing setting applies to player grants. A summon can use a spare slot for its own grant.
+  const config = { allies: { count: 3 }, sharePlayerBoonsWithSummons: false };
+  const audience = { recipients: 'party', maximumRecipients: 5 };
+  const playerGrant = { actorType: 'player', audience: { ...audience, eligibleCompanionIds: ['pet:one'] } };
+  const summonGrant = { actorType: 'summon', summonOwner: 'pet:one', audience };
+
+  assert.deepEqual(gw2BoonApplicationRecipients(config, playerGrant).companionIds, []);
+  assert.deepEqual(gw2BoonApplicationRecipients(config, summonGrant).companionIds, ['pet:one']);
+  assert.deepEqual(gw2BoonApplicationRecipients({ ...config, allies: { count: 4 } }, summonGrant).companionIds, []);
+});

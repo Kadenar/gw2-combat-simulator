@@ -228,55 +228,6 @@ test('configured boons reach the mech on eligible console applications', () => {
   }
 });
 
-// Player party grants use the sharing flag. Mech party grants can reach their caster in a spare slot.
-test('direct boons reach a mech without Shift according to source and party cap', () => {
-  const run = createProfessionSimulator(engineerProfession);
-  for (const [share, allies, playerGrant, mechGrant] of [
-    [false, 0, false, true],
-    [true, 0, true, true],
-    [true, 4, false, false]
-  ]) {
-    const result = run(
-      [{ type: 'wait', durationMs: 1000 }],
-      {
-        specialization: 'Mechanist',
-        selectedSkillIds: [],
-        allies: { count: allies },
-        sharePlayerBoonsWithSummons: share
-      },
-      {
-        initialize(runtime) {
-          for (const actorType of ['player', 'summon'])
-            runtime.effects.emit({
-              kind: 'packet',
-              event: {
-                type: 'buff',
-                kind: 'fury',
-                stacks: 1,
-                duration: 2,
-                at: 0,
-                source: 'test',
-                sourceId: 'party-fury',
-                actorType,
-                ...(actorType === 'summon' ? { summonOwner: 'engineer.mech' } : {}),
-                audience: { recipients: 'party', maximumRecipients: 5 }
-              }
-            });
-        }
-      }
-    );
-    assert.deepEqual(result.warnings, []);
-    const grants = result.events.filter((event) => event.sourceId === 'party-fury');
-    for (const [actor, expected] of [
-      ['player', playerGrant],
-      ['summon', mechGrant]
-    ]) {
-      const grant = grants.find((event) => event.actorType === actor);
-      assert.equal(grant.resolvedAudience.companionIds.includes('engineer.mech'), expected);
-    }
-  }
-});
-
 // The selected frame determines which of the player's attributes the mech inherits.
 test('mech frames change inheritance only for their own attributes', () => {
   const player = {

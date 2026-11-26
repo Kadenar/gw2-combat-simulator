@@ -4,6 +4,7 @@ import test from 'node:test';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { TRAINING_CONSOLE } from '#gw2/platform/combat/boons.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
@@ -116,8 +117,9 @@ test('Vicious Quarry leaves independent pet critical chance unchanged', () => {
 
 // Console boons reach the ranger first; Bond refreshes the pet independently of direct party delivery.
 test('Fortifying Bond copies configured console boons on each pulse, except in Beastmode', () => {
+  const nextPulse = TRAINING_CONSOLE.intervalSeconds;
   for (const specialization of ['Untamed', 'Soulbeast']) {
-    const result = runRanger([{ type: 'wait', durationMs: 6500 }], {
+    const result = runRanger([{ type: 'wait', durationMs: nextPulse * 1000 + 500 }], {
       specialization,
       selectedTraitIds: [TRAIT.FORTIFYING_BOND],
       sharePlayerBoonsWithSummons: false,
@@ -137,10 +139,8 @@ test('Fortifying Bond copies configured console boons on each pulse, except in B
       [
         [0, 'alacrity', 1, 4.5],
         [0, 'might', 25, 15],
-        [3, 'alacrity', 1, 4.5],
-        [3, 'might', 25, 15],
-        [6, 'alacrity', 1, 4.5],
-        [6, 'might', 25, 15]
+        [nextPulse, 'alacrity', 1, 4.5],
+        [nextPulse, 'might', 25, 15]
       ]
     );
     assert.ok(shared.every((event) => event.resolvedAudience.includesSummons && !event.resolvedAudience.includesSelf));

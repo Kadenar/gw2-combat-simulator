@@ -209,7 +209,7 @@ export function createGw2CombatQuery({
 
   let query: Readonly<Gw2CombatQuery> | null = null;
 
-  /** Companions can receive their own boons while inheriting the player's attributes. */
+  /** Ordinary summons ignore the player's configured boons. The mech also uses its own boons while inheriting attributes. */
   const isBoonIsolatedSummonEvent = (event: SimulationEvent | null | undefined): boolean =>
     gw2EventActorType(event) === ACTOR.SUMMON &&
     (event?.summonUsesOwnBoons === true || (event?.summonInheritsAttributes !== true && !isGw2PhantasmEvent(event)));

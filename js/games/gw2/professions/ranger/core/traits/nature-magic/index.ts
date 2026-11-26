@@ -1,6 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import type { Gw2AttributeContext, Gw2AttributeContributions } from '#gw2/platform/attributes/types.js';
-import { isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { isStandardBoon, TRAINING_CONSOLE } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2EventOwnerActorType, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, RECIPIENT, WEAPON, type BoonId } from '#gw2/platform/constants.js';
@@ -63,7 +63,6 @@ function shareFortifyingBond(runtime: RangerRuntime, kind: string, stacks: numbe
 export const fortifyingBond = defineTrait({
   id: TRAIT.FORTIFYING_BOND,
   balance: {
-    pulseInterval: 3,
     effects: (
       Object.entries({
         [BOON.AEGIS]: 5,
@@ -113,14 +112,17 @@ export const fortifyingBond = defineTrait({
   lifetime: {
     tasks: {
       'ranger.fortifying-bond-console'(runtime: RangerRuntime) {
-        // Model configured console boons as three-second refreshes, each of which triggers Bond.
-        // Emit only the trait's pet grant: the configured player boon already exists in the permanent-boon layer.
+        // The console refreshes the player's configured boons. Bond grants the pet its own durations.
         for (const [kind, value] of Object.entries(runtime.config.boons ?? {}))
           if (isStandardBoon(kind) && Number(value) > 0) shareFortifyingBond(runtime, kind, Number(value));
-        const interval = balanceNumber(runtime.helpers, TRAIT.FORTIFYING_BOND, 'pulseInterval');
-
-        if (interval > 0)
-          runtime.schedule('ranger.fortifying-bond-console', runtime.time + interval, null, undefined, 0, 'buffs');
+        runtime.schedule(
+          'ranger.fortifying-bond-console',
+          runtime.time + TRAINING_CONSOLE.intervalSeconds,
+          null,
+          undefined,
+          0,
+          'buffs'
+        );
       }
     }
   }

@@ -5,7 +5,7 @@
     "benchmarkDurationSeconds": 116.257,
     "benchmarkDamage": 3906075,
     "benchmarkDps": 33599,
-    "notes": "The precombat Forest's Fortification timing is inferred from its opening buff. Missing spirit summons use the spirit's animations; missing weapon casts use damage records, chain prerequisites, and available animation gaps. Repair timestamps are milliseconds relative to combat start. Simulation time begins 2600 ms before combat. Permanent player boons are modeled as three-second console pulses through Fortifying Bond to the pet; exact precombat pulse phase is not recorded; direct party sharing is enabled. No pet cooldown overrides are used. Only zero-cast-time skills use concurrent offsets. Independent pet commands use normal scheduling and can execute earlier than their recorded timestamps when those timestamps fall inside a player cast.",
+    "notes": "The precombat Forest's Fortification timing is inferred from its opening buff. Missing spirit summons use the spirit's animations; missing weapon casts use damage records, chain prerequisites, and available animation gaps. Repair timestamps are milliseconds relative to combat start. Simulation time begins 2600 ms before combat. Fortifying Bond shares the console's boons with the pet. The simulation starts on a console pulse because the log does not record its precombat phase. Direct party sharing is enabled. No pet cooldown overrides are used. Only zero-cast-time skills use concurrent offsets. Independent pet commands use normal scheduling and can execute earlier than their recorded timestamps when those timestamps fall inside a player cast.",
     "repairs": [
       {
         "skillId": 63163,
