@@ -214,12 +214,12 @@ test('Twin Fangs refreshes its eight-second window only from qualifying hits', (
   }
 });
 
-// Passive chance applies before the triggering hit; the earned bonus applies to later hits until expiry.
-test('Twin Fangs adds passive critical chance before its active window and after expiry', () => {
+// The triggering hit earns the only chance bonus, which applies to later hits until expiry.
+test('Twin Fangs grants critical chance only during its earned buff window', () => {
   for (const [selected, defiant, expected] of [
     [false, true, [0.05, 0.05, 0.05]],
-    [true, false, [0.12, 0.12, 0.12]],
-    [true, true, [0.12, 0.19, 0.12]]
+    [true, false, [0.05, 0.05, 0.05]],
+    [true, true, [0.05, 0.12, 0.05]]
   ]) {
     const chances = [];
     const result = runThief(
@@ -248,5 +248,35 @@ test('Twin Fangs adds passive critical chance before its active window and after
     assert.deepEqual(result.warnings, []);
     assert.equal(chances.length, expected.length);
     chances.forEach((chance, index) => assert.ok(Math.abs(chance - expected[index]) < 1e-8));
+  }
+});
+
+test('Twin Fangs always grants its combined seven-percent critical damage bonus in combat', () => {
+  for (const defiant of [false, true]) {
+    const results = [false, true].map((selected) =>
+      runThief(
+        [wait(12000)],
+        {
+          selectedTraitIds: selected ? [TRAIT.TWIN_FANGS] : [],
+          attributeInputs: baseAttributeInputs({ power: 1000, precision: 4000 }),
+          target: { armor: 2597, defiant, conditions: {} }
+        },
+        {
+          initialize(runtime) {
+            for (const at of [1, 2, 11]) runtime.effects.emit({ kind: 'packet', event: thiefHit(at) });
+          }
+        }
+      )
+    );
+    const hits = results.map((result) => {
+      assert.deepEqual(result.warnings, []);
+      return result.resolvedEvents.filter((event) => event.type === 'damage' && event.source === 'fixture');
+    });
+    assert.equal(hits[0].length, 3);
+    assert.equal(hits[1].length, 3);
+    hits[1].forEach((hit, index) => {
+      assert.ok(Math.abs(hit.criticalDamage / hits[0][index].criticalDamage - 1.07) < 1e-8);
+      assert.ok(hit.damage > hits[0][index].damage);
+    });
   }
 });

@@ -264,40 +264,31 @@ export const sunderingShade = defineTrait({
   ]
 });
 
-/** Selection grants passive critical chance; qualifying hits add a separate timed critical-chance bonus. */
+/** Critical damage is passive; qualifying hits grant the timed critical-chance bonus. */
 export const twinFangs = defineTrait({
   id: TRAIT.TWIN_FANGS,
   balance: {
     duration: 8,
     threshold: 0.5,
-    criticalDamage: 1.07,
-    lowHealthCriticalDamage: 1.05,
-    thiefTwinFangsPassiveCriticalChance: 0.07,
+    criticalDamage: 1.05,
+    highHealthCriticalDamage: 0.02,
     criticalChance: 0.07
   },
   modifierRules: [
-    {
-      order: 4,
-      id: 'thief.twin-fangs-passive-critical-chance',
-      target: MODIFIER_TARGET.CRITICAL_CHANCE,
-      operation: 'add',
-      amount: (context) => balanceNumber(context.catalog, TRAIT.TWIN_FANGS, 'thiefTwinFangsPassiveCriticalChance'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
-    },
     {
       order: 4,
       id: 'thief.twin-fangs-critical-damage',
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: 'multiply',
       // Preserve low-health stat previews; simulation queries always return full player health.
-      factor: (context) =>
-        balanceNumber(
-          context.catalog,
-          TRAIT.TWIN_FANGS,
-          playerHealthFraction(context) > balanceNumber(context.catalog, TRAIT.TWIN_FANGS, 'threshold')
-            ? 'criticalDamage'
-            : 'lowHealthCriticalDamage'
-        ),
+      factor: (context) => {
+        const profile = requireBalanceProfile(context.catalog, TRAIT.TWIN_FANGS);
+        const highHealthBonus =
+          playerHealthFraction(context) > balanceProfileNumber(profile, 'threshold')
+            ? balanceProfileNumber(profile, 'highHealthCriticalDamage')
+            : 0;
+        return balanceProfileNumber(profile, 'criticalDamage') + highHealthBonus;
+      },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     },
     {

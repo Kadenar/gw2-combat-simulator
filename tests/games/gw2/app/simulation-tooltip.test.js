@@ -159,6 +159,24 @@ test('invalid inputs are rejected and only declared effects supply generated fac
   assert.throws(() => describeSimulationTrait(context, { id: 'missing' }, presentation), /Missing trait tooltip/);
 });
 
+test('Twin Fangs tooltip separates passive critical damage from its earned critical-chance buff', async () => {
+  const adapter = await professionRegistry.find(({ id }) => id === 'thief').loadAppAdapter();
+  const patch = adapter.profession.resolvePatch({ id: 'current' });
+  const trait = patch.balanceContext.catalog.traits.find(({ name }) => name === 'Twin Fangs');
+  const model = adapter.traitTooltip(trait, patch);
+  assert.deepEqual(
+    model.facts.map(({ name, detail }) => [name, detail]),
+    [
+      ['Health threshold', '50%'],
+      ['Critical damage increase', '+5%'],
+      ['High-health critical damage increase', '+2%'],
+      ['Critical chance increase while active', '+7%'],
+      ['Bonus duration', '8s']
+    ]
+  );
+  assert.doesNotMatch(model.description, /passive critical chance|full-health/);
+});
+
 // Walk the registry so new professions and catalog entries receive the same construction check.
 for (const { id, loadAppAdapter } of professionRegistry) {
   test(`${id} skill and trait declarations produce complete tooltips`, async () => {
