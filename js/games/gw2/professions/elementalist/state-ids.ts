@@ -7,7 +7,6 @@ export const ELEMENTALIST_STATE_IDS = Object.freeze({
   PERFECT_WEAVE_UNTIL: 'gw2.weaver.perfect-weave-until',
   FERVENT_STANCE_UNTIL: 'gw2.weaver.fervent-stance-until',
   ATTUNEMENT_ENTERED_AT: 'gw2.elementalist.attunement-entered-at',
-  AUTOATTACK_CARRYOVER: 'gw2.elementalist.autoattack-carryover',
   ACTIVE_AURAS: 'gw2.elementalist.active-auras',
   PISTOL_BULLETS: 'gw2.elementalist.pistol-bullets',
   HAMMER_ORBS: 'gw2.elementalist.hammer-orbs',

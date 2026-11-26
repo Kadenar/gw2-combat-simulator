@@ -104,17 +104,6 @@ test('cooldown reset also resets native attunement recharge', () => {
 });
 
 test('autoattack chains carry across attunements until their third strike', () => {
-  const fireRoot = elementalistCatalog.skillsById.get(39964).id;
-  const fireSecond = elementalistCatalog.skillsById.get(40326);
-  const airRoot = elementalistCatalog.skillsById.get(44681).id;
-
-  assert.deepEqual(
-    elementalistCatalog.autoattackChains
-      .find((chain) => chain[0] === fireRoot)
-      .map((id) => elementalistCatalog.skillsById.get(id).name),
-    ['Fire Strike', 'Fire Swipe', 'Searing Slash']
-  );
-
   const carried = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
     rotation: ['Fire Strike', 'Air Attunement'],
@@ -123,12 +112,9 @@ test('autoattack chains carry across attunements until their third strike', () =
   });
 
   assert.deepEqual(carried.warnings, []);
-  assert.deepEqual(carried.planningState.profession[STATE.AUTOATTACK_CARRYOVER], {
-    root: fireRoot,
-    attunement: 'Fire'
-  });
-  assert.equal(carried.planningState.profession[STATE.AUTOATTACK_CHAINS][fireRoot], fireSecond.id);
-  assert.equal(carried.planningState.availability[fireSecond.id].ready, true);
+  assert.equal(carried.planningState.availability[ID.FIRE_SWIPE].ready, true);
+  assert.equal(carried.planningState.availability[ID.FIRE_STRIKE].ready, false);
+  assert.equal(carried.planningState.availability[ID.SEARING_SLASH].ready, false);
 
   const completed = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
@@ -138,11 +124,8 @@ test('autoattack chains carry across attunements until their third strike', () =
   });
 
   assert.deepEqual(completed.warnings, []);
-  assert.equal(completed.planningState.profession[STATE.AUTOATTACK_CARRYOVER], null);
-  assert.equal(
-    completed.planningState.profession[STATE.AUTOATTACK_CHAINS][airRoot],
-    elementalistCatalog.skillsById.get(45259).id
-  );
+  assert.equal(completed.planningState.availability[ID.FIRE_SWIPE].ready, false);
+  assert.equal(completed.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.CHARGED_STRIKE], ID.POLARIC_SLASH);
 });
 
 test('a skill in the new attunement interrupts autoattack carryover', () => {
@@ -153,7 +136,7 @@ test('a skill in the new attunement interrupts autoattack carryover', () => {
     weapons: ['Sword', 'Dagger']
   });
 
-  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CARRYOVER], null);
+  assert.equal(result.planningState.availability[ID.FIRE_SWIPE].ready, false);
   assert.equal(
     result.events.some((event) => event.type === 'action' && event.skillName === 'Fire Swipe'),
     false
@@ -163,6 +146,38 @@ test('a skill in the new attunement interrupts autoattack carryover', () => {
     true
   );
 });
+
+for (const specialization of ['Arcane', 'Weaver']) {
+  test(`${specialization} keeps the earned autoattack through an instant utility and another attunement swap`, () => {
+    const result = runNative({
+      lines: [['Fire'], ['Air'], [specialization]],
+      startAttunement: 'Fire',
+      secondaryAttunement: 'Fire',
+      weapons: ['Sword', 'Dagger'],
+      selectedSkillIds: { Utility1: ID.ARCANE_BLAST },
+      rotation: ['Fire Strike', 'Air Attunement', 'Arcane Blast', 'Water Attunement', 'Fire Swipe']
+    });
+
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.availability[ID.SEARING_SLASH].ready, true);
+  });
+
+  test(`${specialization} loses the carried chain when a conjure resets it`, () => {
+    const result = runNative({
+      lines: [['Fire'], ['Air'], [specialization]],
+      startAttunement: 'Fire',
+      secondaryAttunement: 'Fire',
+      weapons: ['Sword', 'Dagger'],
+      selectedSkillIds: { Utility1: ID.CONJURE_LIGHTNING_HAMMER },
+      rotation: ['Fire Strike', 'Air Attunement', 'Conjure Lightning Hammer', '__drop_bundle', 'Fire Strike']
+    });
+
+    assert.equal(result.planningState.availability[ID.FIRE_SWIPE].ready, false);
+    assert.equal(result.planningState.availability[ID.FIRE_STRIKE].ready, false);
+    assert.equal(result.warnings.length, 1);
+    assert.match(result.warnings[0].message, /Fire Strike/);
+  });
+}
 
 test('a concurrent attunement swap preserves the in-flight auto chain', () => {
   const airAttunement = elementalistCatalog.skillsById.get(5494);
@@ -307,7 +322,6 @@ test('Aerial Agility cannot gain attunement carryover before or after its cast c
 
     assert.deepEqual(result.warnings, []);
     assert.equal(result.planningState.profession[STATE.PRIMARY_ATTUNEMENT], 'Fire');
-    assert.equal(result.planningState.profession[STATE.AUTOATTACK_CARRYOVER], null);
     assert.equal(result.planningState.availability[ID.AERIAL_AGILITY_CHAIN].ready, false);
   }
 });

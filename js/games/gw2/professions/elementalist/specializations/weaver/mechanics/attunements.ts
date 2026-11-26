@@ -22,6 +22,7 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { dualHammerOrbAvailability } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
+import { isCarriedAutoattack } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import { weaverWeaponAttunementAvailable } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
 import {
@@ -60,13 +61,7 @@ function weaverAvailability(
 
   // Only the preserved next autoattack link may bypass hand checks after a swap.
   const core = professionCoreState(context.profession);
-  const chainPosition = context.helpers.autoattackChainPositions.get(Number(skill.id));
-  const carriedLink =
-    chainPosition &&
-    Number(skill.id) !== chainPosition.rootSkillId &&
-    core.autoattackCarryover?.root === chainPosition.rootSkillId &&
-    core.autoattackCarryover.attunement === skill.attunement &&
-    context.autoattackController.read(chainPosition.rootSkillId) === Number(skill.id);
+  const carriedLink = isCarriedAutoattack(skill, core.primaryAttunement, context.autoattackController.read);
 
   if (skill.type === 'Weapon' && skill.attunement && !carriedLink) {
     const state = weaverState.from(context.profession);

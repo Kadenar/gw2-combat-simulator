@@ -7,10 +7,6 @@ import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/
 import { queueElementalistTransition } from '#gw2/professions/elementalist/core/mechanics/attunement-transition.js';
 import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { attunementChanged } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
-import {
-  inFlightAutoattackCarryover,
-  progressedAutoattackCarryover
-} from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { elementalEnchantmentRecharge } from '#gw2/professions/elementalist/core/traits/arcane/index.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
@@ -55,11 +51,7 @@ export function elementalistAttunementRechargeDuration(
   return adjusted / context.cooldownController.rate(skill);
 }
 
-/**
- * Commits a completed attunement swap: carries autoattack chain progress across
- * the swap, arms the attunement recharges, publishes the attunement and sigil
- * swap events, and fires the shared on-entry trait effects once combat started.
- */
+/** Starts attunement recharges and fires swap and entry effects when the new attunement takes effect. */
 export function onAttunementComplete(
   context: ElementalistRuntime,
   cast: RuntimeCast<ElementalistSkill>,
@@ -76,10 +68,6 @@ export function onAttunementComplete(
       context.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[element]) ?? 0
     ])
   ) as Record<ElementalistAttunement, number>;
-  // Preserve chain progress for the attunement being left; a cast still in flight
-  // is only held as pending until it commits.
-  state.autoattackCarryover = progressedAutoattackCarryover(context, previous);
-  state.pendingAutoattackCarryover = state.autoattackCarryover ? null : inFlightAutoattackCarryover(context, previous);
   // Specializations may supply their own transition and recharge policy while Core keeps shared entry effects here.
   const dualAttunement = transition.rechargeDuration != null;
 

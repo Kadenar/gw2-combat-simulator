@@ -5,11 +5,11 @@ import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import { paletteView, projectPalette } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { ELEMENTALIST_WEAVER_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { ELEMENTALIST_WEAVER_SKILL_IDS, ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { inertContainer } from '#tests/helpers/dom.js';
-import { runNative } from '#tests/helpers/elementalist-simulation.js';
+import { createNativeApp, runNative } from '#tests/helpers/elementalist-simulation.js';
 
 function weaverBuild(traits) {
   return elementalistAppAdapter.toApplicationBuild({
@@ -118,8 +118,7 @@ for (const primaryAttunement of ['Fire', 'Air']) {
               profession: {
                 [STATE.PRIMARY_ATTUNEMENT]: primaryAttunement,
                 [STATE.SECONDARY_ATTUNEMENT]: 'Air',
-                [STATE.AUTOATTACK_CHAINS]: { [airRoot]: airFollowup.id },
-                [STATE.AUTOATTACK_CARRYOVER]: { root: airRoot, attunement: 'Air' }
+                [STATE.AUTOATTACK_CHAINS]: { [airRoot]: airFollowup.id }
               }
             }
           }
@@ -164,6 +163,40 @@ for (const primaryAttunement of ['Fire', 'Air']) {
     }
   });
 }
+
+function weaverWeaponOneSkills(rotation) {
+  const options = {
+    lines: [['Fire'], ['Air'], ['Weaver']],
+    startAttunement: 'Fire',
+    secondaryAttunement: 'Fire',
+    weapons: ['Sword', 'Dagger'],
+    selectedSkillIds: { Utility1: ID.CONJURE_LIGHTNING_HAMMER },
+    rotation
+  };
+  const { app } = createNativeApp(options);
+  app.weaponData = app.adapter.weaponData;
+  app.analysis.needsPatchComparison = () => false;
+  app.analysis.state.results = runNative(options);
+
+  assert.deepEqual(app.analysis.state.results.warnings, []);
+  const { skills } = projectPalette(capturePaletteInput(app)).customWeaponPalette;
+  return skills.filter((tile) => tile.hotkeyAction === 'weapon-1').map((tile) => tile.skillId);
+}
+
+test('dropping a conjure restores the current attunement to Weaver weapon-1', () => {
+  const skills = weaverWeaponOneSkills(['Fire Strike', 'Air Attunement', 'Conjure Lightning Hammer', '__drop_bundle']);
+  assert.deepEqual(skills, [ID.CHARGED_STRIKE]);
+});
+
+test('Weaver offers both earned attacks when a delayed strike preserves the earlier chain', () => {
+  const skills = weaverWeaponOneSkills([
+    'Fire Strike',
+    'Air Attunement',
+    { type: 'cast', skillId: ID.CHARGED_STRIKE, impactDelayMs: 800 },
+    'Water Attunement'
+  ]);
+  assert.deepEqual(new Set(skills), new Set([ID.FIRE_SWIPE, ID.POLARIC_SLASH, ID.SEICHE]));
+});
 
 test('Weaver active state reads Elements of Rage at the inspected rotation point', () => {
   // Inspecting an earlier cursor must show its live buff even when the completed rotation has expired it.

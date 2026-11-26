@@ -45,14 +45,6 @@ interface ElementalistSummonedElementalState {
 export interface ElementalistCoreState {
   primaryAttunement: ElementalistAttunement;
   attunementEnteredAt: number;
-  autoattackCarryover: {
-    root: number;
-    attunement: ElementalistAttunement;
-  } | null;
-  pendingAutoattackCarryover: {
-    root: number;
-    attunement: ElementalistAttunement;
-  } | null;
   freshAirCandidates: number[];
   bountifulPowerProgress: number;
   endurance: ResourceClock;
@@ -93,8 +85,6 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
   return {
     primaryAttunement: primary,
     attunementEnteredAt: PRE_DWELLED_ATTUNEMENT_ENTERED_AT,
-    autoattackCarryover: null,
-    pendingAutoattackCarryover: null,
     freshAirCandidates: [],
     bountifulPowerProgress: 0,
     endurance: createResourceClock(ENDURANCE.maximum),
@@ -145,7 +135,6 @@ export function projectElementalistCorePlanningState(input: Gw2PlanningStateInpu
   return {
     [STATE.PRIMARY_ATTUNEMENT]: state.primaryAttunement,
     [STATE.ATTUNEMENT_ENTERED_AT]: state.attunementEnteredAt,
-    [STATE.AUTOATTACK_CARRYOVER]: state.autoattackCarryover,
     [STATE.ENDURANCE]: state.endurance,
     [STATE.ACTIVE_AURAS]: state.activeAuras,
     [STATE.PISTOL_BULLETS]: state.pistolBullets,

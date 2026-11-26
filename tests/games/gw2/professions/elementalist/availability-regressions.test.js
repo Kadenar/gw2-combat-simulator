@@ -103,6 +103,7 @@ test('only the selected Weaver delegates weapon eligibility and supplies a secon
       profession: { core, specialization: { kind, state: { secondaryAttunement: 'Air' } } },
       config: {},
       helpers: elementalistCatalog,
+      autoattackController: createAutoattackChainController(elementalistCatalog).queries,
       time: 0
     };
     assert.equal(elementalistCoreAvailability(context, weapon).ready, kind === 'Weaver');
@@ -131,6 +132,7 @@ test('Weaver runtime and palette share hand eligibility through Unravel and full
     const runtime = {
       profession: { core, specialization: { kind: 'Weaver', state } },
       helpers: elementalistCatalog,
+      autoattackController: createAutoattackChainController(elementalistCatalog).queries,
       time: 1
     };
     for (let slot = 1; slot <= 5; slot++) {
@@ -516,7 +518,7 @@ test('Weaver preserves the next autoattack link across completed and concurrent 
       result.events.some((event) => event.type === 'action' && event.skillName === 'Searing Slash'),
       true
     );
-    assert.equal(result.planningState.profession[STATE.AUTOATTACK_CARRYOVER], null);
+    assert.equal(result.planningState.availability[ID.FIRE_SWIPE].ready, false);
     assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][root], root);
   }
 });

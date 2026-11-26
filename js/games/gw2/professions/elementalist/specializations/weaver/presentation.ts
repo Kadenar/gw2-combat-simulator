@@ -25,6 +25,7 @@ import type {
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ElementalistBuildSpecialization } from '#gw2/professions/elementalist/build/types.js';
+import { isCarriedAutoattack } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { elementalistUiState } from '#gw2/professions/elementalist/core/presentation.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
@@ -54,26 +55,6 @@ function hasElementsOfRage(context: ElementalistUiContext): boolean {
   return selectedTraits(context.catalog, build?.specializations || []).some(
     (trait) => trait.id === TRAIT.ELEMENTS_OF_RAGE
   );
-}
-
-// An attunement swap changes Weaver's primary-hand bar immediately, but GW2
-// leaves the previous element's progressed autoattack on slot 1 until its chain resolves.
-function isCarriedAutoattackSkill(
-  context: ElementalistUiContext & Partial<Pick<ProfessionWeaponPaletteContext, 'autoattackChains'>>,
-  skill: ElementalistSkill
-): boolean {
-  const state = elementalistUiState(context);
-  const carryover = state[STATE.AUTOATTACK_CARRYOVER];
-  const root = Number(carryover?.root);
-
-  if (!Number.isFinite(root) || Number(skill.chainRoot) !== root) return false;
-
-  if ((carryover?.attunement || '') !== (skill.attunement || '')) return false;
-
-  const chains: ProfessionWeaponPaletteContext['autoattackChains'] =
-    state[STATE.AUTOATTACK_CHAINS] || context.autoattackChains || {};
-  const expected = chains[String(root)] ?? root;
-  return skill.id === expected;
 }
 
 // Project Unravel and attunement casts into compact primary/secondary labels
@@ -262,23 +243,11 @@ function projectWeaverWeaponPalette(
       )
     );
   const currentPrimarySkills = layout.primaryRows.find((row) => row.attunement === primaryAttunement)?.skills || [];
-  const carriedAutoattack = skills.find((skill) => isCarriedAutoattackSkill(context, skill));
-  let placedCarriedAutoattack = false;
-  const primarySkills = currentPrimarySkills.flatMap((skill) => {
-    if (!carriedAutoattack || placedCarriedAutoattack || skill.slot !== 'Weapon_1') return [skill];
-
-    placedCarriedAutoattack = true;
-
-    // Matching attunements can already display the carried step in this slot; keep that occurrence once.
-    if (carriedAutoattack.id === skill.id) return [skill];
-
-    // Keep the carried step first for normal weapon-1 input, while exposing the
-    // current root beside it as an explicit way to cancel and restart the chain.
-    return [carriedAutoattack, skill];
-  });
-
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- The flatMap callback above mutates placedCarriedAutoattack.
-  if (carriedAutoattack && !placedCarriedAutoattack) primarySkills.unshift(carriedAutoattack);
+  // Weapon-1 input prefers a carried attack. Each surviving chain and the current element remain selectable.
+  const carriedAutoattacks = skills.filter((skill) =>
+    isCarriedAutoattack(skill, primaryAttunement, (root) => autoattackChains[root])
+  );
+  const primarySkills = [...carriedAutoattacks, ...currentPrimarySkills];
 
   const slotThreeSkills = active([...layout.sameAttunementSkills, ...layout.dualSkills]);
   const secondarySkills = active(layout.secondaryRows.flatMap((row) => row.skills));

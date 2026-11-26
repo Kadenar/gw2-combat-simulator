@@ -170,8 +170,8 @@ export interface ProfessionWeaponPaletteContext<
   TProfessionState = unknown
 > extends ProfessionPaletteContext<TProfessionState> {
   readonly skills: readonly Skill[];
-  /** Active autoattack chain step by chain root id or name. */
-  readonly autoattackChains: Readonly<Record<string, unknown>>;
+  /** Expected skill ID for each autoattack chain root. */
+  readonly autoattackChains: Readonly<Record<string, SkillId>>;
   readonly isSkillAvailable: (skill: Skill) => boolean;
 }
 
