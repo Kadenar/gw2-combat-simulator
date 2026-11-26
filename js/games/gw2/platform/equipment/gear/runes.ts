@@ -3,10 +3,16 @@
 // ─── Rune Data ────────────────────────────────────────────────────────────────
 // stats: flat attribute bonuses (feed into conversion pool, treated as "converted")
 // durations: percentage bonuses stored as numbers (e.g. 25 = 25%)
+// description: display-only bonuses that are not simulated
 export const RUNE_DATA = {
   // ── Power ──
   Dragonhunter: { stats: { Power: 100, Ferocity: 300 }, durations: {} },
   Scholar: { stats: { Power: 175, Ferocity: 225 }, durations: {} },
+  Mesmer: {
+    stats: { Power: 175, Precision: 100 },
+    durations: {},
+    description: '+33% Daze Duration (not simulated)'
+  },
   // ── Precision ──
   Deadeye: {
     stats: { Power: 175, Precision: 125, Ferocity: 100 },
@@ -155,7 +161,7 @@ export const RUNE_DATA = {
 export const RUNE_NAMES = [...Object.keys(RUNE_DATA)].sort((a, b) => a.localeCompare(b));
 
 export const RUNE_GROUPS = [
-  { label: 'Power', items: ['Dragonhunter', 'Scholar'] },
+  { label: 'Power', items: ['Dragonhunter', 'Scholar', 'Mesmer'] },
   {
     label: 'Precision',
     items: ['Deadeye', 'Infiltration', 'Thief', 'Eagle', 'Golemancer']

@@ -93,10 +93,13 @@ export function equipmentTooltipAttributes(kind: string, name: string, descripti
 
   if (/rune/i.test(kind)) {
     const rune = runeData[name];
-    return equipmentCardAttributes(`${wikiName} (6/6)`, 'Six-piece set bonuses', wikiName, EQUIPMENT_ICONS[name], [
-      ...attributeFacts(rune?.stats),
-      ...attributeFacts(rune?.durations, true)
-    ]);
+    return equipmentCardAttributes(
+      `${wikiName} (6/6)`,
+      `Six-piece set bonuses${rune?.description ? `. ${rune.description}` : ''}`,
+      wikiName,
+      EQUIPMENT_ICONS[name],
+      [...attributeFacts(rune?.stats), ...attributeFacts(rune?.durations, true)]
+    );
   }
 
   if (/sig/i.test(kind)) {
@@ -175,7 +178,9 @@ type UnknownValues = Readonly<Record<string, unknown>>;
 const gearStats = GEAR_STATS as Readonly<Record<string, Readonly<Record<string, NumericValues>>>>;
 const foodData = FOOD_DATA as Readonly<Record<string, UnknownValues>>;
 const relicData = RELIC_DATA as Readonly<Record<string, UnknownValues>>;
-const runeData = RUNE_DATA as Readonly<Record<string, { stats: NumericValues; durations: NumericValues }>>;
+const runeData = RUNE_DATA as Readonly<
+  Record<string, { stats: NumericValues; durations: NumericValues; description?: string }>
+>;
 const utilityData = UTILITY_DATA as Readonly<
   Record<string, readonly { readonly from: string; readonly to: string; readonly percent: number }[]>
 >;
@@ -204,7 +209,11 @@ export function prefixOptionLabel(name: string, slot?: string): string {
 
 export function runeOptionLabel(name: string): string {
   const rune = runeData[name];
-  return optionLabel(name, [...attributeDetails(rune?.stats), ...attributeDetails(rune?.durations, true)]);
+  return optionLabel(name, [
+    ...attributeDetails(rune?.stats),
+    ...attributeDetails(rune?.durations, true),
+    ...(rune?.description ? [rune.description] : [])
+  ]);
 }
 
 function foodProcDetail(proc: UnknownValues | undefined): string {

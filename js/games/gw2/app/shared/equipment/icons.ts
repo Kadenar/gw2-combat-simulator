@@ -82,6 +82,7 @@ export const EQUIPMENT_ICONS: Readonly<Record<string, string>> = {
   Krait: 'https://render.guildwars2.com/file/F0932EF967413023BE0CC1EEF5E2536B2764E65A/220711.png',
   Leadership: 'https://render.guildwars2.com/file/0CD614069C9917057D1BEC5B060E689E18E8EE51/1201517.png',
   'Mad King': 'https://render.guildwars2.com/file/0A0E6F80DA16D7764FFEA33893B66051FBE07A3F/499379.png',
+  Mesmer: 'https://render.guildwars2.com/file/D4099559DA2558F9B172EFB306EE0C942193B66F/220727.png',
   Pack: 'https://render.guildwars2.com/file/FEF77764F24C0548271F29337268970C092DA5D3/220717.png',
   Perplexity: 'https://render.guildwars2.com/file/F67A922A4624470EBAD493920DC1EE2616769E9D/619716.png',
   Rage: 'https://render.guildwars2.com/file/5F65FDA9D721B6BA5654E5ED29A42B01C04DF2DA/220719.png',
