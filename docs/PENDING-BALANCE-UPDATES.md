@@ -38,8 +38,6 @@ Current limitations are recorded in the [Core tooltips](../js/games/gw2/professi
 
 - [ ] **Friend of the Luxons.** Confirm damage stacking and refresh behavior against combat logs. See
       [live traits](../js/games/gw2/professions/revenant/specializations/vindicator/traits/index.ts).
-- [ ] **Heated Rivalry.** Faction counters, Alliance Tactics recharge, and the next opposite-faction skill's energy
-      refund still need implementation. Confirm counter reset and refund consumption rules.
 - [ ] **Shield of Saint Viktor integration.** Its light combo field and any interaction with Heated Rivalry remain
       unimplemented.
 - [ ] **Vindicator trait identities.** Replace local grandmaster IDs and update moved trait IDs from the live API.

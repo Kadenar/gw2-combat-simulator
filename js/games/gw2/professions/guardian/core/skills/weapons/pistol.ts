@@ -253,19 +253,17 @@ export function guardianIgnitionFields(runtime: MechanicQueriesOf<GuardianRuntim
 }
 
 const guardianIgnitionActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
-  'guardian.place-ignition'(runtime) {
-    const skill = requireSkill(runtime.helpers, ID.SYMBOL_OF_IGNITION);
-    const field = requireEffect(
-      skill,
-      'buff',
-      'guardian-symbol-of-ignition-field',
-      requireSkillAction(skill, 'ignition')
-    );
+  'guardian.place-ignition'(runtime, context) {
+    if (context.kind !== 'cast') return;
+
+    // Start Burning eligibility at commitment using the Light field duration selected for this cast, including Writ.
+    const action = runtime.facts.actionFor(context.cast.id);
+    const field = action?.comboFields?.find((field) => field.fieldType === COMBO_FIELD.LIGHT);
 
     if (!field) return;
 
     runtime.profession.core.symbolIgnitionStartsAt = runtime.time;
-    runtime.profession.core.symbolIgnitionUntil = gw2Time(runtime.time + effectNumber(skill, field, 'duration'));
+    runtime.profession.core.symbolIgnitionUntil = gw2Time(runtime.time + Number(field.duration));
   }
 };
 

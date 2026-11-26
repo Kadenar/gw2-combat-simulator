@@ -1446,16 +1446,38 @@ test('Writ and Consecration extensions keep cast ownership and do not survive an
   }
 });
 
-// Symbol of Ignition's field is selected at cast time, so Writ must extend the selected field, not the catalog one.
-test('Writ of Persistence extends the Symbol of Ignition field selected at cast time', () => {
-  const fieldDuration = (selectedTraitIds) => {
-    const result = run([ID.SYMBOL_OF_IGNITION, wait(8000)], { primaryWeapon: 'Pistol', selectedTraitIds });
+// Player projectiles probe the extended field before, at, and after its ignition deadline.
+test('Writ of Persistence extends Symbol of Ignition Burning through the selected field endpoint', () => {
+  const probe = (selectedTraitIds) => {
+    const result = run(
+      [ID.SYMBOL_OF_IGNITION, wait(4280), ID.THROUGH_THE_HEART, wait(760), ID.THROUGH_THE_HEART, ID.THROUGH_THE_HEART],
+      { primaryWeapon: 'Pistol', selectedTraitIds }
+    );
     assert.deepEqual(result.warnings, []);
     const field = result.events.find((event) => event.type === 'combo_field');
-    return field.expiresAt - field.at;
+    const hits = result.resolvedEvents
+      .filter((event) => event.type === 'damage' && event.skillId === ID.THROUGH_THE_HEART)
+      .map((event) => event.at);
+    const burns = result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === 'condition' && event.skillId === ID.SYMBOL_OF_IGNITION && event.condition === 'Burning'
+      )
+      .map((event) => event.at);
+    return { field, hits, burns };
   };
 
-  assert.equal(fieldDuration([TRAIT.WRIT_OF_PERSISTENCE]), fieldDuration([]) + 2);
+  const base = probe([]);
+  const writ = probe([TRAIT.WRIT_OF_PERSISTENCE]);
+  assert.equal(writ.field.at, base.field.at);
+  assert.equal(writ.field.expiresAt, base.field.expiresAt + 2);
+  assert.deepEqual(base.hits, writ.hits);
+  const [inside, endpoint, outside] = writ.hits;
+  assert.ok(base.field.expiresAt < inside && inside < writ.field.expiresAt);
+  assert.equal(endpoint, writ.field.expiresAt);
+  assert.ok(outside > writ.field.expiresAt);
+  assert.deepEqual(base.burns, []);
+  assert.deepEqual(writ.burns, [inside, endpoint]);
 });
 
 // Reset clears the invoked symbol's cooldown; its next invocation starts fresh player-Alacrity recharge.
