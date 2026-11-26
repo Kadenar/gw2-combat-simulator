@@ -58,10 +58,11 @@ test('Positive Flow state and displayed expiry agree after off-grid waits', () =
     const skillId = source === 'trait' ? ID.UNSHEATHE_GUNSABER : ID.FLOW_STABILIZER;
     const result = run('Bladesworn', [combat, wait(1), skillId], [TRAIT.RIVERS_FLOW]);
     const [buff] = timedBuffApplicationsAt(result.events, 'positive-flow', 0.04);
-    const until =
-      source === 'trait' ? state(result).traitPositiveFlowUntil : state(result).flowStabilizerWindows[0].expiresAt;
-    assert.equal(until, source === 'trait' ? 5.04 : 8.04);
-    assert.equal(buff.expiresAt, until);
+    // The permanent combat stack has no deadline. Both temporary grants should match their emitted buffs.
+    const positiveFlow = result.planningState.effects.find((effect) => effect.kind === 'positive-flow');
+    const temporary = positiveFlow.windows.find((window) => window.stacks > 0 && window.expiresAt != null);
+    assert.equal(temporary.expiresAt, source === 'trait' ? 5.04 : 8.04);
+    assert.equal(buff.expiresAt, temporary.expiresAt);
   }
 });
 

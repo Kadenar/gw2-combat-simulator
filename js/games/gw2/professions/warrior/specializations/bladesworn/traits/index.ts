@@ -1,9 +1,8 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2Time } from '#gw2/platform/combat/clock.js';
-import { gw2EffectExpiresAt, gw2TimerDeadline } from '#gw2/platform/combat/effect-timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -26,6 +25,7 @@ import {
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { dragonSlashRelease } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { grantPositiveFlow } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
 import { gunsaberEntered } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
 import {
   ammunitionCommitted,
@@ -278,8 +278,6 @@ export const warriorBladeswornTraits = [
 function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, trait: number): void {
   if (runtime.engagement.explicit && !runtime.engagement.active) return;
 
-  const state = bladeswornState.from(runtime.profession);
-
   if (!isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.bladesworn.gunsaberSwapTrait'))) return;
 
   if (trait === TRAIT.UNSEEN_SWORD && !runtime.engagement.active) return;
@@ -371,11 +369,9 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
 
   if (!flow) return;
 
-  if (!buffDeadlineActive(state.traitPositiveFlowUntil, runtime.time)) state.traitPositiveFlowStartedAt = runtime.time;
-
   const duration = effectNumber(profile, flow, 'duration');
-  state.traitPositiveFlowUntil = gw2TimerDeadline(runtime.time, duration);
-  state.traitPositiveFlowStacks = effectNumber(profile, flow, 'stacks');
+  const stacks = effectNumber(profile, flow, 'stacks');
+  grantPositiveFlow(runtime, 'gunsaber', stacks, duration);
   runtime.effects.emit({
     kind: 'packet',
     event: {
@@ -383,7 +379,7 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
       type: 'buff',
       name: 'Positive Flow',
       kind: 'positive-flow',
-      stacks: state.traitPositiveFlowStacks,
+      stacks,
       duration
     }
   });

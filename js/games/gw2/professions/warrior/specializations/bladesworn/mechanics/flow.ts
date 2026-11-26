@@ -1,5 +1,6 @@
-import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
+import { buffDeadlineActive, buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
 import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
@@ -11,6 +12,50 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 
 const FLOW_TICK = 'warrior.flow-tick';
 
+interface PositiveFlowWindow {
+  startedAt: number;
+  expiresAt: number | null;
+  stacks: number;
+}
+
+export interface PositiveFlowGrant extends PositiveFlowWindow {
+  source: 'combat' | 'stabilizer' | 'gunsaber';
+}
+
+/** Stabilizer casts stack independently. Gunsaber entry refreshes the existing trait grant. */
+export function grantPositiveFlow(
+  runtime: WarriorRuntime,
+  source: 'stabilizer' | 'gunsaber',
+  stacks: number,
+  duration: number
+): void {
+  const grants = bladeswornState.from(runtime.profession).positiveFlow;
+  const at = runtime.time;
+  const expiresAt = gw2EffectExpiresAt(at, duration);
+  const index = source === 'gunsaber' ? grants.findIndex((grant) => grant.source === source) : -1;
+  const previous = index >= 0 ? grants.splice(index, 1)[0] : undefined;
+
+  if (expiresAt <= at) return;
+
+  const startedAt =
+    previous && buffWindowActive(at, previous.startedAt, previous.expiresAt ?? Infinity) ? previous.startedAt : at;
+  grants.push({ source, startedAt, expiresAt, stacks });
+}
+
+/** The row counts grants at both endpoints and shows the first temporary stack due to expire. */
+export function positiveFlowAt(windows: readonly PositiveFlowWindow[], at: number) {
+  let stacks = 0;
+  let nextExpiry = Infinity;
+  for (const window of windows) {
+    if (window.stacks <= 0 || !buffWindowActive(at, window.startedAt, window.expiresAt ?? Infinity)) continue;
+
+    stacks += window.stacks;
+    nextExpiry = Math.min(nextExpiry, window.expiresAt ?? Infinity);
+  }
+
+  return { stacks, remaining: nextExpiry === Infinity ? null : nextExpiry - at };
+}
+
 /** Flow uses the absolute action grid; a grant at a tick cannot receive regeneration for that same tick. */
 function scheduleFlowTick(runtime: WarriorRuntime): void {
   const tick = Math.floor(timeKey(runtime.time) / (GW2_TICK_MS * 1000)) + 1;
@@ -21,27 +66,18 @@ function scheduleFlowTick(runtime: WarriorRuntime): void {
 function flowTick(runtime: WarriorRuntime): void {
   const state = bladeswornState.from(runtime.profession);
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.GUN_X_SWORD);
-  const active = (start: number, end: number) => start < runtime.time && runtime.time <= end;
-  const stabilizers = state.flowStabilizerWindows.filter((window) => active(window.startedAt, window.expiresAt));
+  // Keep the final tick at expiry. A grant starting on this tick only earns Flow on the next one.
+  state.positiveFlow = state.positiveFlow.filter(
+    (grant) => grant.expiresAt == null || buffDeadlineActive(grant.expiresAt, runtime.time)
+  );
+  const temporaryStacks = state.positiveFlow.reduce(
+    (total, grant) => total + (grant.source !== 'combat' && grant.startedAt < runtime.time ? grant.stacks : 0),
+    0
+  );
   const rate =
     (runtime.engagement.active ? balanceProfileNumber(profile, 'energyRegenerationPerSecond') : 0) +
-    // Skill and trait Positive Flow share one per-stack regeneration rate.
-    stabilizers.reduce((total, window) => total + window.stacks, 0) *
-      balanceProfileNumber(profile, 'attributePerStack') +
-    (active(state.traitPositiveFlowStartedAt, state.traitPositiveFlowUntil)
-      ? state.traitPositiveFlowStacks * balanceProfileNumber(profile, 'attributePerStack')
-      : 0);
+    temporaryStacks * balanceProfileNumber(profile, 'attributePerStack');
   runtime.resourceController.grant('flow', rate * (GW2_TICK_MS / 1000));
-  // Keep tied grants visible to gameplay; the next tick can discard their expired records.
-  state.flowStabilizerWindows = state.flowStabilizerWindows.filter((window) =>
-    buffDeadlineActive(window.expiresAt, runtime.time)
-  );
-
-  if (!buffDeadlineActive(state.traitPositiveFlowUntil, runtime.time)) {
-    state.traitPositiveFlowStartedAt = 0;
-    state.traitPositiveFlowUntil = 0;
-    state.traitPositiveFlowStacks = 0;
-  }
 
   scheduleFlowTick(runtime);
 }
@@ -61,5 +97,13 @@ const bladeswornFlowPolicy: ResourcePolicy<WarriorRuntime> = {
 export const bladeswornFlowLifecycle = {
   resources: { flow: bladeswornFlowPolicy },
   initialize: scheduleFlowTick,
+  onCombatStart(runtime) {
+    bladeswornState.from(runtime.profession).positiveFlow.push({
+      source: 'combat',
+      startedAt: runtime.time,
+      expiresAt: null,
+      stacks: 1
+    });
+  },
   tasks: flowTasks
 } satisfies RuntimeHooks<WarriorRuntimeState, WarriorSkill>;

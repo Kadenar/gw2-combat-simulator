@@ -1,5 +1,4 @@
 import { buffWindowActive } from '#gw2/platform/combat/buff-expiry.js';
-import { isCombatEntryEvent } from '#gw2/platform/combat/state/targets.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   SkillDamagePreviewContext,
@@ -24,6 +23,7 @@ import {
 } from '#gw2/professions/warrior/core/presentation.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { maximumDragonCharges } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { positiveFlowAt } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
 import {
   dragonSlashEditor,
   dragonSlashOccupiedInterval,
@@ -244,7 +244,6 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);
     const items: RotationStateSnapshotItem[] = [];
-    const result = context.result;
     // Bladesworn's trait buffs live on the resolved buff timeline, which keeps
     // this snapshot aligned with the damage and ferocity modifier gates.
     const maximum = balanceNumber(context.balanceContext.catalog, TRAIT.FIERCE_AS_FIRE, 'maximumStacks');
@@ -285,36 +284,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
       });
     }
 
-    const positiveFlowSources = (state[STATE.FLOW_STABILIZER_WINDOWS] || [])
-      .filter((candidate) => buffWindowActive(at, candidate.startedAt, candidate.expiresAt))
-      .map((candidate) => ({
-        stacks: candidate.stacks,
-        expiresAt: candidate.expiresAt
-      }));
-
-    if (
-      (state[STATE.TRAIT_POSITIVE_FLOW_STARTED_AT] || 0) <= at &&
-      (state[STATE.TRAIT_POSITIVE_FLOW_UNTIL] || 0) > at
-    ) {
-      positiveFlowSources.push({
-        stacks: Number(state[STATE.TRAIT_POSITIVE_FLOW_STACKS]),
-        expiresAt: Number(state[STATE.TRAIT_POSITIVE_FLOW_UNTIL])
-      });
-    }
-
-    // Keep Flow visible after temporary stacks expire; the base stack starts at the combat boundary.
-    const baseStacks = result?.events.some(
-      (event) =>
-        event.at <= at &&
-        (!result.hasExplicitCombatStart || event.at >= (result.combatStartTime ?? Infinity)) &&
-        isCombatEntryEvent(event)
-    )
-      ? 1
-      : 0;
-    const stacks = positiveFlowSources.reduce((total, source) => total + source.stacks, baseStacks);
-    const remaining = positiveFlowSources.length
-      ? Math.min(...positiveFlowSources.map((source) => source.expiresAt)) - at
-      : null;
+    const { stacks, remaining } = positiveFlowAt(state[STATE.POSITIVE_FLOW_WINDOWS] ?? [], at);
     const stackLabel = `${stacks} ${stacks === 1 ? 'stack' : 'stacks'}`;
     items.push({
       id: 'positive-flow',

@@ -9,20 +9,12 @@ import {
   createDragonTriggerState,
   type DragonTriggerState
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger-state.js';
+import type { PositiveFlowGrant } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
 import { createResourceClock, type ResourceClock } from '#kernel/resources/accrual.js';
 
 export interface BladeswornState extends DragonTriggerState {
   flow: ResourceClock;
-  /** Each skill window retains its selected grant for resource recovery and observations. */
-  flowStabilizerWindows: Array<{
-    stacks: number;
-    startedAt: number;
-    expiresAt: number;
-  }>;
-  traitPositiveFlowStartedAt: number;
-  traitPositiveFlowUntil: number;
-  /** Retain the applied trait's stacks so regeneration and its display use the same amount. */
-  traitPositiveFlowStacks: number;
+  positiveFlow: PositiveFlowGrant[];
 
   gunsaberActive: boolean;
   tacticalReloadUntil: number;
@@ -39,10 +31,7 @@ export interface BladeswornState extends DragonTriggerState {
 function createBladeswornState(): BladeswornState {
   return {
     flow: createResourceClock(),
-    flowStabilizerWindows: [],
-    traitPositiveFlowStartedAt: 0,
-    traitPositiveFlowUntil: 0,
-    traitPositiveFlowStacks: 0,
+    positiveFlow: [],
 
     gunsaberActive: false,
     ...createDragonTriggerState(),
@@ -53,6 +42,11 @@ function createBladeswornState(): BladeswornState {
 }
 
 export const bladeswornState = defineProfessionSpecializationState('Bladesworn', createBladeswornState);
+
+/** Observers need grant times and counts. Only the Flow module uses the source to refresh a grant. */
+export function positiveFlowWindows(state: BladeswornState) {
+  return state.positiveFlow.map(({ startedAt, expiresAt, stacks }) => ({ startedAt, expiresAt, stacks }));
+}
 
 /** The most recent live cartridge occurrence supplies both the strike bonus and Burning payload. */
 export function activeCartridgeWindow(
@@ -74,10 +68,7 @@ export function projectBladeswornPlanningState(input: Gw2PlanningStateInput<Spec
   return {
     [STATE.FLOW]: state.flow,
     [STATE.DRAGON_CHARGES]: state.dragonCharges,
-    [STATE.FLOW_STABILIZER_WINDOWS]: state.flowStabilizerWindows,
-    [STATE.TRAIT_POSITIVE_FLOW_STARTED_AT]: state.traitPositiveFlowStartedAt,
-    [STATE.TRAIT_POSITIVE_FLOW_UNTIL]: state.traitPositiveFlowUntil,
-    [STATE.TRAIT_POSITIVE_FLOW_STACKS]: state.traitPositiveFlowStacks,
+    [STATE.POSITIVE_FLOW_WINDOWS]: positiveFlowWindows(state),
     [STATE.GUNSABER_ACTIVE]: state.gunsaberActive,
     [STATE.OVERCHARGED_CARTRIDGE_WINDOWS]: state.overchargedCartridgeWindows.filter((window) =>
       buffDeadlineActive(window.expiresAt, input.time)

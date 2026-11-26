@@ -19,6 +19,7 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { slashEffects } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { grantPositiveFlow } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
 import { activeCartridgeWindow, bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
@@ -950,14 +951,12 @@ const bladeswornSkillActions: RuntimeHooks<WarriorRuntimeState, WarriorSkill>['s
     const effect = requireEffect(cast.skill, 'buff', 'Positive Flow');
 
     if (effect) {
-      const expiresAt = gw2EffectExpiresAt(runtime.time, effectNumber(cast.skill, effect, 'duration'));
-
-      if (expiresAt > runtime.time)
-        bladeswornState.from(runtime.profession).flowStabilizerWindows.push({
-          startedAt: runtime.time,
-          expiresAt,
-          stacks: effectNumber(cast.skill, effect, 'stacks')
-        });
+      grantPositiveFlow(
+        runtime,
+        'stabilizer',
+        effectNumber(cast.skill, effect, 'stacks'),
+        effectNumber(cast.skill, effect, 'duration')
+      );
     }
   }
 };

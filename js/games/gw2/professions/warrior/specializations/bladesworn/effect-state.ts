@@ -3,7 +3,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import { balanceNumber, balanceProfile, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
+import { bladeswornState, positiveFlowWindows } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Only the selected elite contributes its buff caps and observations. */
@@ -31,11 +31,7 @@ export function bladeswornEffectStates(runtime: MechanicQueriesOf<WarriorRuntime
       measure: 'remaining-duration',
       durationLimit: maximum
     }),
-    timedEffectState('positive-flow', [
-      ...(runtime.engagement.active ? [{ stacks: 1, expiresAt: null }] : []),
-      ...state.flowStabilizerWindows.map((window) => ({ stacks: window.stacks, expiresAt: window.expiresAt })),
-      { stacks: state.traitPositiveFlowStacks, expiresAt: state.traitPositiveFlowUntil }
-    ]),
+    timedEffectState('positive-flow', positiveFlowWindows(state)),
     ...(['overcharged-cartridges', 'supercharged-cartridges'] as const).map((kind) =>
       timedEffectState(
         kind,

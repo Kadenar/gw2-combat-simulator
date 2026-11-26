@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -172,8 +173,8 @@ for (const trait of [TRAIT.UNSEEN_SWORD, TRAIT.SHARP_AS_THE_WIND, TRAIT.RIVERS_F
       ['__combat_start', { type: 'wait', durationMs: 1000 }, ID.UNSHEATHE_GUNSABER],
       { selectedTraitIds: [trait] }
     );
-    const state = observedRuntime(result).profession.specialization.state;
-    assert.equal(state.traitPositiveFlowUntil, 0);
+    // Combat supplies one permanent stack after the patch removes the trait's grant.
+    assert.equal(planningBuffStacks(result.planningState, 'positive-flow'), 1);
     assert.equal(observedRuntime(result).procs.deadline('warrior.bladesworn.gunsaberSwapTrait'), 5);
     assert.ok(result.events.some((event) => event.sourceId === trait));
     assert.equal(
@@ -193,7 +194,7 @@ test('Flow Stabilizer removed window preserves its Fury packet', () => {
       [ID.FLOW_STABILIZER]: remove('buff', 'Positive Flow')
     }
   );
-  assert.deepEqual(result.planningState.profession[STATE.FLOW_STABILIZER_WINDOWS], []);
+  assert.equal(planningBuffStacks(result.planningState, 'positive-flow'), 0);
   assert.ok(result.events.some((e) => e.kind === 'fury'));
 });
 

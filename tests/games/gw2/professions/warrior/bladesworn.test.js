@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -29,6 +30,26 @@ const slash = (charges, extra = {}) => ({ skillId: ID.DRAGON_SLASH_FORCE, releas
 const state = (result) => observedRuntime(result).profession.specialization.state;
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
 
+function positiveFlowCount(result, at = result.planningState.atSeconds) {
+  const effect = result.planningState.effects.find((entry) => entry.kind === 'positive-flow');
+  return effectStateValue(effect, at).count;
+}
+
+function positiveFlowDisplay(
+  result,
+  atSeconds = result.planningState.atSeconds,
+  source = withPatchPreview(warriorProfession)
+) {
+  const items = source.ui.rotationStateSnapshot({
+    balanceContext: source.resolvePatch({ id: observedRuntime(result).config.patchId }).balanceContext,
+    specialization: 'Bladesworn',
+    professionState: result.planningState.profession,
+    atSeconds,
+    result
+  });
+  return items.find((item) => item.id === 'positive-flow').value;
+}
+
 test('Flow waits for accepted combat and preserves the absolute 40 ms cadence', () => {
   close(state(run([wait(1000), combat])).flow.value, 0);
   close(state(run([wait(39), combat, wait(1)])).flow.value, 0.08);
@@ -51,14 +72,18 @@ test('precombat control leaves base Flow inactive in execution and presentation 
     [result.combatStartTime - 0.001, '0 stacks'],
     [result.combatStartTime, '1 stack']
   ]) {
-    const display = warriorProfession.ui.rotationStateSnapshot({
-      balanceContext: withPatchPreview(warriorProfession).resolvePatch().balanceContext,
-      specialization: 'Bladesworn',
-      professionState: result.planningState.profession,
-      atSeconds,
-      result
-    });
-    assert.equal(display.find((item) => item.id === 'positive-flow').value, value);
+    assert.equal(positiveFlowDisplay(result, atSeconds), value);
+  }
+});
+
+// The result records missed strikes so targeting edits can replay them. Only an accepted strike starts Flow.
+test('an off-target opening strike leaves base Flow inactive in the rotation snapshot', () => {
+  for (const offTarget of [true, false]) {
+    const result = run([{ name: 'Chop', offTarget }, wait(1000)]);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(state(result).flow.value > 0, !offTarget);
+    assert.equal(positiveFlowCount(result), offTarget ? 0 : 1);
+    assert.equal(positiveFlowDisplay(result), offTarget ? '0 stacks' : '1 stack');
   }
 });
 
@@ -69,7 +94,7 @@ test('Flow Stabilizer requires preexisting Fury and overlapping windows add inde
   const result = run(['Flow Stabilizer', wait(1000), 'Flow Stabilizer', wait(1000), combat], config);
   assert.deepEqual(result.warnings, []);
   close(state(result).flow.value, 27);
-  assert.equal(state(result).flowStabilizerWindows.length, 2);
+  assert.equal(positiveFlowCount(result), 5);
 });
 
 test('Positive Flow works before combat and grants its final tick before its window expires', () => {
@@ -78,14 +103,27 @@ test('Positive Flow works before combat and grants its final tick before its win
     const result = run(['Flow Stabilizer', wait(duration), combat], config);
     assert.deepEqual(result.warnings, []);
     close(state(result).flow.value, 32);
-    assert.deepEqual(
-      state(result).flowStabilizerWindows.filter((window) => window.expiresAt > observedRuntime(result).time),
-      []
-    );
+    assert.equal(positiveFlowCount(result), duration === 8000 ? 3 : 1);
   }
 
   const offGrid = run([wait(1), 'Flow Stabilizer', wait(8039), combat], config);
   close(state(offGrid).flow.value, 32);
+});
+
+// The trait and both Stabilizer grants contribute on their deadlines. The display shows the next temporary expiry.
+test('overlapping Positive Flow grants agree at the trait deadline and after each source expires', () => {
+  const config = { selectedSkillIds: [ID.FLOW_STABILIZER], selectedTraitIds: [TRAIT.RIVERS_FLOW] };
+  const setup = ['Flow Stabilizer', wait(1000), 'Flow Stabilizer', wait(1000), combat, 'Unsheathe Gunsaber'];
+  for (const [delay, stacks, remaining] of [
+    [5000, 7, '0.0s'],
+    [5040, 5, '1.0s'],
+    [6040, 3, '1.0s']
+  ]) {
+    const result = run([...setup, wait(delay)], config);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(positiveFlowCount(result), stacks);
+    assert.equal(positiveFlowDisplay(result), `${stacks} stacks · ${remaining}`);
+  }
 });
 
 test('Bladesworn redirects trait and signet grants while ordinary hits produce no Flow', () => {
@@ -131,7 +169,7 @@ test('removing Positive Flow suppresses regeneration independently of the condit
   );
   assert.deepEqual(result.warnings, []);
   close(state(result).flow.value, 15);
-  assert.deepEqual(state(result).flowStabilizerWindows, []);
+  assert.equal(positiveFlowCount(result), 1);
 });
 
 test('Gunsaber transitions share recharge, reset chains, and retain the configured weapon set', () => {
@@ -207,7 +245,7 @@ test('Gunsaber entry traits respect actual combat and explicit precombat does no
   for (const trait of [TRAIT.UNSEEN_SWORD, TRAIT.SHARP_AS_THE_WIND, TRAIT.RIVERS_FLOW]) {
     const result = run(['Unsheathe Gunsaber', combat], { selectedTraitIds: [trait] });
     assert.equal(observedRuntime(result).procs.deadline('warrior.bladesworn.gunsaberSwapTrait'), 0);
-    assert.equal(state(result).traitPositiveFlowUntil, 0);
+    assert.equal(positiveFlowCount(result), 1);
   }
 
   const idle = run(['Unsheathe Gunsaber'], { selectedTraitIds: [TRAIT.UNSEEN_SWORD] });
@@ -216,7 +254,7 @@ test('Gunsaber entry traits respect actual combat and explicit precombat does no
   assert.deepEqual(active.warnings, []);
   assert.ok(active.resolvedEvents.some((event) => event.sourceId === TRAIT.UNSEEN_SWORD && event.type === 'damage'));
   close(state(active).flow.value, 30);
-  assert.ok(state(active).traitPositiveFlowUntil <= observedRuntime(active).time);
+  assert.equal(positiveFlowCount(active), 3);
 });
 
 test('Unseen Sword defers impact without delaying its entry rewards or extending the observation window', () => {
@@ -230,7 +268,7 @@ test('Unseen Sword defers impact without delaying its entry rewards or extending
       false
     );
     close(before.observationEndTime, 0.68);
-    assert.equal(state(before).traitPositiveFlowUntil, 5);
+    assert.equal(positiveFlowCount(before), 3);
     assert.equal(observedRuntime(before).procs.deadline('warrior.bladesworn.gunsaberSwapTrait'), 4);
     const impact = run([combat, entry, wait(720)], config);
     const hits = impact.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === 62847);
@@ -307,11 +345,13 @@ test('Gunsaber entry cooldown is exclusive and a later accepted entry refreshes 
   const rotation = [combat, 'Unsheathe Gunsaber', wait(4000), 'Sheathe Gunsaber', 'Unsheathe Gunsaber'];
   const boundary = run(rotation, config, patched);
   assert.deepEqual(boundary.warnings, []);
-  assert.equal(state(boundary).traitPositiveFlowUntil, 5);
+  assert.equal(positiveFlowCount(boundary, 5.04), 1);
   const later = run([...rotation, wait(40), 'Sheathe Gunsaber', 'Unsheathe Gunsaber'], config, patched);
   assert.deepEqual(later.warnings, []);
-  close(state(later).traitPositiveFlowUntil, 9.04);
-  assert.equal(state(later).traitPositiveFlowStartedAt, 0);
+  assert.match(positiveFlowDisplay(later, 1, patched), /^3 stacks/);
+  assert.equal(positiveFlowCount(later), 3);
+  assert.equal(positiveFlowCount(later, 9.04), 3);
+  assert.equal(positiveFlowCount(later, 9.08), 1);
 });
 
 test('Dragon Trigger spends entry Flow once and owns actual charge ticks without starting recharge', () => {
@@ -838,9 +878,7 @@ test('release choices honor observed regeneration, trait variants, and already r
 });
 
 // Selected Positive Flow counts survive independently until each window expires, in resources and observations.
-test('Flow Stabilizer uses authored stacks for regeneration and both observations', async () => {
-  const { bladeswornEffectStates } =
-    await import('#gw2/professions/warrior/specializations/bladesworn/effect-state.js');
+test('Flow Stabilizer uses authored stacks for regeneration and both observations', () => {
   const source = withPatchPreview(warriorProfession, {
     id: 'flow-count',
     label: 'Flow count',
@@ -854,27 +892,12 @@ test('Flow Stabilizer uses authored stacks for regeneration and both observation
   const result = run(['Flow Stabilizer', wait(400), 'Flow Stabilizer', wait(800)], config, source);
   assert.deepEqual(result.warnings, []);
   close(state(result).flow.value, 25.8);
-  assert.equal(state(result).flowStabilizerWindows.length, 1);
-  assert.equal(state(result).flowStabilizerWindows[0].stacks, 3);
-  const effects = bladeswornEffectStates(observedRuntime(result));
-  assert.equal(
-    effects.find((effect) => effect.kind === 'positive-flow').windows.find((entry) => entry.expiresAt > 1.2).stacks,
-    3
-  );
-  const display = source.ui.rotationStateSnapshot({
-    balanceContext: source.resolvePatch({ id: 'flow-count' }).balanceContext,
-    specialization: 'Bladesworn',
-    professionState: result.planningState.profession,
-    atSeconds: 1.2,
-    result
-  });
-  assert.match(display.find((item) => item.id === 'positive-flow').value, /^3 stacks/);
+  assert.equal(positiveFlowCount(result), 3);
+  assert.match(positiveFlowDisplay(result, 1.2, source), /^3 stacks/);
   const expired = run(['Flow Stabilizer', wait(400), 'Flow Stabilizer', wait(1000)], config, source);
   close(state(expired).flow.value, 27);
-  assert.deepEqual(
-    state(expired).flowStabilizerWindows.filter((window) => window.expiresAt > observedRuntime(expired).time),
-    []
-  );
+  assert.equal(positiveFlowCount(expired), 3);
+  assert.equal(positiveFlowCount(expired, observedRuntime(expired).time + 0.04), 0);
 });
 
 // Ammunition spent multiplies the selected trait grant rather than replacing it.
