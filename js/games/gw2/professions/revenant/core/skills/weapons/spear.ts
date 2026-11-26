@@ -453,6 +453,7 @@ function revenantAbyssalRazeImpact(runtime: RevenantRuntime, data: unknown): voi
 
   const maximum = Math.max(0, skill.maximumStacks || 0);
   const duration = Math.max(0, effect.duration || 0);
+
   if (!maximum || !duration) return;
 
   // Every Raze hit restarts the whole stack timer, including hits at the cap.
