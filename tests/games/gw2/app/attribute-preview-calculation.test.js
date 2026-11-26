@@ -377,6 +377,20 @@ test('player health changes only the isolated stat preview', () => {
   assert.deepEqual(simulationConfig(), config);
 });
 
+test('Twin Fangs previews its five-percent base, two-percent high-health bonus and earned critical chance', () => {
+  const app = previewApp('thief', ['Twin Fangs']);
+  const baseline = previewApp('thief', ['Keen Observer']);
+  for (const health of [0, 50, 51, 100]) {
+    const without = stats(baseline, { playerHealth: health });
+    const inactive = stats(app, { playerHealth: health });
+    const active = stats(app, { playerHealth: health, twinFangs: true });
+    close(inactive['Critical Chance'].final, without['Critical Chance'].final);
+    close(active['Critical Chance'].final - inactive['Critical Chance'].final, 7);
+    close(inactive['Critical Damage'].final / without['Critical Damage'].final, health > 50 ? 1.07 : 1.05);
+    close(active['Critical Damage'].final, inactive['Critical Damage'].final);
+  }
+});
+
 test('all professions remove legacy player-health assumptions and expose no simulation health input', () => {
   // Exercise actual adapters so migration and simulation configuration share the same scope.
   for (const profession of Object.keys(adapters)) {

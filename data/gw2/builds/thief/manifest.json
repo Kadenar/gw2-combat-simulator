@@ -24,13 +24,13 @@
         "rotation": "data/gw2/rotations/thief/r-power-deadeye-rifle-dagger-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-deadeye-m7-rifle-dagger-dagger",
         "upToDate": false,
-        "benchmarkDps": 42256,
+        "benchmarkDps": 42249,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40614, "phase": 40614 },
-          "80-60": { "cumulative": 39195, "phase": 37793 },
-          "60-40": { "cumulative": 39263, "phase": 39402 },
-          "40-20": { "cumulative": 40458, "phase": 44662 },
-          "20-0": { "cumulative": 42256, "phase": 51437 }
+          "100-80": { "cumulative": 40579, "phase": 40579 },
+          "80-60": { "cumulative": 39178, "phase": 37793 },
+          "60-40": { "cumulative": 39251, "phase": 39402 },
+          "40-20": { "cumulative": 40448, "phase": 44662 },
+          "20-0": { "cumulative": 42249, "phase": 51437 }
         },
         "benchmarkApm": 114
       },
@@ -40,13 +40,13 @@
         "rotation": "data/gw2/rotations/thief/r-power-deadeye-rifle-dagger-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-deadeye-m7-rifle-dagger-dagger",
         "upToDate": true,
-        "benchmarkDps": 44018,
+        "benchmarkDps": 44008,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 41971, "phase": 41971 },
-          "80-60": { "cumulative": 40918, "phase": 39904 },
-          "60-40": { "cumulative": 41812, "phase": 43736 },
-          "40-20": { "cumulative": 42724, "phase": 45551 },
-          "20-0": { "cumulative": 44018, "phase": 50825 }
+          "100-80": { "cumulative": 41926, "phase": 41926 },
+          "80-60": { "cumulative": 40895, "phase": 39904 },
+          "60-40": { "cumulative": 41796, "phase": 43736 },
+          "40-20": { "cumulative": 42713, "phase": 45551 },
+          "20-0": { "cumulative": 44008, "phase": 50825 }
         },
         "benchmarkApm": 96.1
       },
@@ -54,16 +54,16 @@
         "label": "Power Quickness (Axe / Pistol + Dagger / Pistol)",
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-axe-pistol-dagger-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-axe-pistol-dagger-pistol-bench.json",
-        "benchmarkDps": 41021,
+        "benchmarkDps": 40629,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-axe-pistol-dagger",
         "benchmarkApm": 88.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40778, "phase": 40778 },
-          "80-60": { "cumulative": 40217, "phase": 39668 },
-          "60-40": { "cumulative": 39726, "phase": 38780 },
-          "40-20": { "cumulative": 40642, "phase": 43558 },
-          "20-0": { "cumulative": 41021, "phase": 42687 }
+          "100-80": { "cumulative": 40788, "phase": 40788 },
+          "80-60": { "cumulative": 40148, "phase": 39522 },
+          "60-40": { "cumulative": 39237, "phase": 37519 },
+          "40-20": { "cumulative": 40344, "phase": 44010 },
+          "20-0": { "cumulative": 40629, "phase": 41865 }
         }
       },
       {
