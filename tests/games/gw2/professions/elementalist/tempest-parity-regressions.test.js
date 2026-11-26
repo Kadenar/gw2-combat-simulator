@@ -221,7 +221,7 @@ test('Overload Air grants separate non-critical Lightning Jolts to the player an
   assert.equal(elementalJolt.weaponStrengthProfileId, playerJolt.weaponStrengthProfileId);
   assert.equal(elementalJolt.criticalChance, 0);
   assert.equal(elementalJolt.independentSummonStrike, true);
-  assert.equal(elementalJolt.summonUsesMight, false);
+  assert.equal(elementalJolt.summonIgnoresBoons, true);
   assert.equal(elementalJolt.summonUsesProfessionModifiers, false);
   assert.ok(elementalJolt.at > playerJolt.at);
   assert.ok(triggeringElementalStrike);

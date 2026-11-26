@@ -4,16 +4,13 @@ import { describe, test } from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { engineerMechHasQuickness } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
-import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
-import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 
@@ -127,66 +124,157 @@ test('Overclock reduces other signet recharges only while its passive is availab
   assert.equal(mechanistRechargeWork(context, context.skill, 90), 90);
 });
 
-test('mech Quickness uses its own boon audience and retains copied applications', () => {
-  // The player's permanent boon alone is insufficient; copied timed boons retain their own expiry.
-  const context = {
-    helpers: engineerCatalog,
-    liveEffects: createTestLiveEffects(),
-
-    config: { boons: { quickness: true }, selectedSkillIds: [63253] },
-    cooldowns: new Map(),
-    cooldownController: {
-      readyAt: (id) => context.cooldowns.get(id),
-      setReadyAt: (id, at) => context.cooldowns.set(id, at)
-    }
-  };
-  context.combat = createMechanicCombatServices(context, createTestConditionResolution(), {
-    liveEffects: context.liveEffects,
-    combo: createGw2ComboController()
-  });
-  context.facts = { read: () => assert.fail('Live mech queries must use accepted applications') };
-  assert.equal(engineerMechHasQuickness(context, 0), false);
-  context.config.selectedSkillIds = [63111];
-  assert.equal(engineerMechHasQuickness(context, 0), true);
-  context.cooldownController.setReadyAt(ID.SHIFT_SIGNET, 25);
-  assert.equal(engineerMechHasQuickness(context, 1), false);
-  context.config.selectedTraitIds = [TRAIT.MECH_CORE_J_DRIVE];
-  assert.equal(engineerMechHasQuickness(context, 1), true);
-  context.config = { boons: {}, selectedSkillIds: [] };
-  grantTestEffect(context.liveEffects, {
-    source: 'fixture',
-    sourceId: 'boon',
-    actorType: 'player',
+// Shift copies a player grant once at its original duration, even with direct party sharing disabled.
+test('casting Shift Signet preserves earlier copies and skips new player boons until ready', () => {
+  const run = createProfessionSimulator(engineerProfession);
+  const quickness = [];
+  const playerGrant = (at) => ({
     type: 'buff',
     kind: 'quickness',
-    at: 1,
+    source: 'test',
+    sourceId: 'self-boon',
+    actorType: 'player',
+    at,
     duration: 2,
     stacks: 1,
-    resolvedAudience: { includesSelf: false, includesSummons: true, companionIds: ['engineer.mech'] }
+    fixedDuration: true,
+    audience: { recipients: 'self' }
   });
-  assert.equal(engineerMechHasQuickness(context, 0), false);
-  assert.equal(engineerMechHasQuickness(context, 2), true);
-  assert.equal(engineerMechHasQuickness(context, 3.000001), false);
-
-  const result = simulate(
-    'Mechanist',
-    ['Jade Mortar', { type: 'wait', durationMs: 1800 }, 'Shift Signet', { type: 'wait', durationMs: 4000 }],
+  const result = run(
+    [
+      '__combat_start',
+      { type: 'wait', durationMs: 1000 },
+      'Shift Signet',
+      { type: 'wait', durationMs: 2500 },
+      { type: 'cooldown-reset' },
+      { type: 'wait', durationMs: 2000 }
+    ],
     {
-      selectedSkillIds: [63111],
-      selectedTraitIds: [TRAIT.MECH_CORE_JADE_DYNAMO],
-      target: { conditions: {} }
+      specialization: 'Mechanist',
+      selectedSkillIds: [ID.SHIFT_SIGNET],
+      sharePlayerBoonsWithSummons: false,
+      attributeInputs: baseAttributeInputs({ concentration: 750 }),
+      boons: {}
+    },
+    {
+      initialize(runtime) {
+        for (const at of [0.25, 1.5, 4.5]) runtime.effects.emit({ kind: 'packet', event: playerGrant(at) });
+      },
+      probes: [1.25, 2.75, 4, 4.75].map((at) => [
+        at,
+        (runtime) => quickness.push(engineerMechHasQuickness(runtime.mechanics.queries, runtime.time))
+      ])
     }
   );
-  const copied = result.events.find(
-    (event) => event.type === 'buff' && event.sourceId === ID.SHIFT_SIGNET && event.kind === 'quickness'
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(quickness, [true, false, false, true]);
+  const copies = result.events.filter((event) => event.type === 'buff' && event.sourceId === ID.SHIFT_SIGNET);
+  assert.deepEqual(
+    copies.map((event) => event.duration),
+    [2, 2]
   );
-  assert.ok(copied?.resolvedAudience.includesSummons);
-  assert.equal(copied.resolvedAudience.includesSelf, false);
-  // Isolate the actual copied grant so the old fixture cannot satisfy the assertions.
-  context.liveEffects = createTestLiveEffects();
-  grantTestEffect(context.liveEffects, copied);
-  assert.equal(engineerMechHasQuickness(context, copied.at + 0.2), true);
-  assert.equal(engineerMechHasQuickness(context, copied.at + copied.duration + 0.1), false);
+  assert.ok(
+    copies.every(
+      (event) => !event.resolvedAudience.includesSelf && event.resolvedAudience.companionIds.includes('engineer.mech')
+    )
+  );
+});
+
+test('configured boons reach the mech on eligible console applications', () => {
+  // Observe the opening grant, a missed refresh, readiness between refreshes, and the next application.
+  const run = createProfessionSimulator(engineerProfession);
+  const mech = { actor: 'companion', companionId: 'engineer.mech' };
+  const rotation = [
+    '__combat_start',
+    { type: 'wait', durationMs: 1000 },
+    'Shift Signet',
+    { type: 'wait', durationMs: 13000 },
+    { type: 'cooldown-reset' },
+    { type: 'wait', durationMs: 7000 }
+  ];
+  for (const [selectedSkillIds, selectedTraitIds, expected] of [
+    [[], [], [false, false, false, false]],
+    [[ID.SHIFT_SIGNET], [], [true, false, false, true]],
+    [[ID.SHIFT_SIGNET], [TRAIT.MECH_CORE_J_DRIVE], [true, true, true, true]]
+  ]) {
+    const observations = [];
+    const result = run(
+      selectedSkillIds.length ? rotation : [{ type: 'wait', durationMs: 21000 }],
+      {
+        specialization: 'Mechanist',
+        selectedSkillIds,
+        selectedTraitIds,
+        boons: { might: 7, resistance: true },
+        sharePlayerBoonsWithSummons: false
+      },
+      {
+        probes: [1.5, 10.5, 14.5, 20.5].map((at) => [
+          at,
+          (runtime) => {
+            const combat = runtime.mechanics.queries.combat;
+            observations.push([
+              combat.activeBoonStacks('might', runtime.time, 25, mech),
+              combat.activeBoonStacks('resistance', runtime.time, 1, mech)
+            ]);
+          }
+        ])
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      observations,
+      expected.map((active) => (active ? [7, 1] : [0, 0]))
+    );
+  }
+});
+
+// Player party grants use the sharing flag. Mech party grants can reach their caster in a spare slot.
+test('direct boons reach a mech without Shift according to source and party cap', () => {
+  const run = createProfessionSimulator(engineerProfession);
+  for (const [share, allies, playerGrant, mechGrant] of [
+    [false, 0, false, true],
+    [true, 0, true, true],
+    [true, 4, false, false]
+  ]) {
+    const result = run(
+      [{ type: 'wait', durationMs: 1000 }],
+      {
+        specialization: 'Mechanist',
+        selectedSkillIds: [],
+        allies: { count: allies },
+        sharePlayerBoonsWithSummons: share
+      },
+      {
+        initialize(runtime) {
+          for (const actorType of ['player', 'summon'])
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'buff',
+                kind: 'fury',
+                stacks: 1,
+                duration: 2,
+                at: 0,
+                source: 'test',
+                sourceId: 'party-fury',
+                actorType,
+                ...(actorType === 'summon' ? { summonOwner: 'engineer.mech' } : {}),
+                audience: { recipients: 'party', maximumRecipients: 5 }
+              }
+            });
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const grants = result.events.filter((event) => event.sourceId === 'party-fury');
+    for (const [actor, expected] of [
+      ['player', playerGrant],
+      ['summon', mechGrant]
+    ]) {
+      const grant = grants.find((event) => event.actorType === actor);
+      assert.equal(grant.resolvedAudience.companionIds.includes('engineer.mech'), expected);
+    }
+  }
 });
 
 // The selected frame determines which of the player's attributes the mech inherits.

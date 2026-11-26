@@ -35,7 +35,6 @@ export type Gw2ResolverEvent = SimulationEvent &
     readonly summonBaseConditionDamage?: number;
     readonly summonBaseExpertise?: number;
     readonly summonIgnoresBoons?: boolean;
-    readonly summonUsesMight?: boolean;
     readonly summonUsesEquipmentModifiers?: boolean;
     readonly canTriggerCriticalTraits?: boolean;
     /**

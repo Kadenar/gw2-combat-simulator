@@ -549,7 +549,7 @@ test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () 
   // Autonomous fire attacks use companion attributes and may receive party buffs.
   assert.equal(flameBurst.summonInheritsAttributes, false);
   assert.equal(fireball.summonInheritsAttributes, false);
-  assert.notEqual(flameBurst.summonUsesMight, false);
+  assert.notEqual(flameBurst.summonIgnoresBoons, true);
   assert.notEqual(fireball.summonUsesEquipmentModifiers, false);
   // Both ownership rows retain Flame Burst's artwork without a player skill name lookup.
   const burstRows = skillBreakdownRows(result).filter((row) => row.name === 'Flame Burst');
@@ -626,7 +626,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
     firstBarrageDamage.every(
       (event) =>
         event.summonInheritsAttributes === false &&
-        event.summonUsesMight !== false &&
+        event.summonIgnoresBoons !== true &&
         event.summonUsesEquipmentModifiers === false
     )
   );

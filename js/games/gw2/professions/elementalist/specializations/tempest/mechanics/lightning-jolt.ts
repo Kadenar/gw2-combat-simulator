@@ -60,11 +60,11 @@ function consumeElementalLightningJolt(context: ElementalistRuntime, strike: Ele
       weaponStrengthProfileId: 'nonweapon.unequipped',
       independentSummonStrike: true,
       summonInheritsAttributes: false,
-      // Allied Jolt uses its own fixed damage scale, without inheriting player attributes or modifiers.
+      // The elemental's Jolt deals fixed damage even when the elemental receives Might or Fury.
       summonBasePower: (2500 * STANDARD_TARGET_ARMOR) / 690.5,
       summonBasePrecision: 1000,
       summonBaseFerocity: 0,
-      summonUsesMight: false,
+      summonIgnoresBoons: true,
       summonUsesEquipmentModifiers: false,
       summonUsesProfessionModifiers: false,
       summonOwner: strike.companionId

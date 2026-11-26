@@ -612,8 +612,8 @@ test('summon-targeted trait boons bypass disabled player boon sharing independen
   );
   assert.deepEqual(
     {
-      power: query.statsAt(1, { ...independentSummonEvent, summonUsesMight: false }).power,
-      conditionDamage: query.statsAt(1, { ...independentSummonEvent, summonUsesMight: false }).conditionDamage
+      power: query.statsAt(1, { ...independentSummonEvent, summonIgnoresBoons: true }).power,
+      conditionDamage: query.statsAt(1, { ...independentSummonEvent, summonIgnoresBoons: true }).conditionDamage
     },
     { power: 1524, conditionDamage: 1000 }
   );

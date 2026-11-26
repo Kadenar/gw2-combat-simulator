@@ -235,6 +235,8 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly comboFields?: readonly OwnedComboDescriptor[];
   readonly comboFinishers?: readonly OwnedComboDescriptor[];
   readonly summonKind?: string;
+  /** A companion with inherited attributes can still receive its own Might and Fury. */
+  readonly summonUsesOwnBoons?: boolean;
   /** Display owner captured at emission so named entities remain distinct after swaps. */
   readonly entityName?: string;
   /** Pets and mech keep their own condition rounding; other summons share the player packet. */

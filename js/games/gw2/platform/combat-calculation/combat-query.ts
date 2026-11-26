@@ -209,12 +209,10 @@ export function createGw2CombatQuery({
 
   let query: Readonly<Gw2CombatQuery> | null = null;
 
-  /**
-   * Player-configured permanent boons do not apply to ordinary summons.
-   * Explicitly inherited companion profiles retain their existing behavior.
-   */
+  /** Companions can receive their own boons while inheriting the player's attributes. */
   const isBoonIsolatedSummonEvent = (event: SimulationEvent | null | undefined): boolean =>
-    gw2EventActorType(event) === ACTOR.SUMMON && event?.summonInheritsAttributes !== true && !isGw2PhantasmEvent(event);
+    gw2EventActorType(event) === ACTOR.SUMMON &&
+    (event?.summonUsesOwnBoons === true || (event?.summonInheritsAttributes !== true && !isGw2PhantasmEvent(event)));
   const summonCompanionId = (event: SimulationEvent | null | undefined): string | null => {
     if (!event || gw2EventActorType(event) !== ACTOR.SUMMON) return null;
 
@@ -257,19 +255,12 @@ export function createGw2CombatQuery({
   ): boolean => {
     if (event?.summonIgnoresBoons === true) return false;
 
-    const isolatedSummon = isBoonIsolatedSummonEvent(event);
-    const inheritsOwnerCriticalState =
-      event?.summonInheritsAttributes === true || event?.summonInheritsCriticalAttributes === true;
-    // Illusions inherit the summoner's base crit chance but never the
-    // player-configured permanent Fury. They gain Fury only when a skill
-    // applies it dynamically (handled by the runtime/timeline branch below).
-    const illusionEvent = isGw2IllusionEvent(event);
-
-    if ((!isolatedSummon || inheritsOwnerCriticalState) && !illusionEvent && config.boons?.fury) {
-      return true;
-    }
-
-    if (illusionEvent || (isolatedSummon && !inheritsOwnerCriticalState)) {
+    // Fury follows the chosen recipient even when the companion inherits critical attributes.
+    if (
+      isGw2IllusionEvent(event) ||
+      (isBoonIsolatedSummonEvent(event) &&
+        (event?.summonUsesOwnBoons === true || event?.summonInheritsCriticalAttributes !== true))
+    ) {
       return (
         appliedEffectStacks({ runtime, timeline, time }, BOON.FURY, 1, {
           actor: 'companion',
@@ -278,7 +269,7 @@ export function createGw2CombatQuery({
       );
     }
 
-    return appliedEffectStacks({ runtime, timeline, time }, BOON.FURY, 1) > 0;
+    return Boolean(config.boons?.fury) || appliedEffectStacks({ runtime, timeline, time }, BOON.FURY, 1) > 0;
   };
 
   /**
@@ -395,8 +386,7 @@ export function createGw2CombatQuery({
 
     // Classify once per query; only independent profiles using Might sample their companion's live boon state.
     const independentProfile = hasIndependentSummonProfile(event);
-    const summonMightStacks =
-      independentProfile && event?.summonUsesMight !== false ? summonMightStacksAt(time, runtime, event) : 0;
+    const summonMightStacks = independentProfile ? summonMightStacksAt(time, runtime, event) : 0;
     const actorStats = projectIndependentSummonAttributes(event, equipmentStats, summonMightStacks, independentProfile);
 
     // Apply replacements once, after specialization bonuses, relics, and owner-specific stat profiles.

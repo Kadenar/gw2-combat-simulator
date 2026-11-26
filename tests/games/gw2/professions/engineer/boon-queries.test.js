@@ -1,14 +1,52 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { resolverBoonStacks } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { mechanistHooks } from '#gw2/professions/engineer/specializations/mechanist/hooks.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { createTestLiveEffects, grantTestEffect } from '#tests/helpers/live-effects.js';
+
+// A mech strike attributes Fury only while a grant addressed to the mech is active.
+test('mech critical chance follows its own Fury grants', () => {
+  const config = { specialization: 'Mechanist', boons: { fury: true } };
+  const profession = engineerProfession.runtimeFor(config);
+  const query = createGw2CombatQuery({ profession, config });
+  const strike = mechanistHooks.prepareEvent(
+    { helpers: profession.catalog },
+    { type: 'damage', actorType: 'summon', skillId: ID.HARD_STRIKE, coefficient: 1 }
+  );
+  const runtime = { liveEffects: createTestLiveEffects() };
+  grantTestEffect(runtime.liveEffects, {
+    kind: 'fury',
+    at: 0,
+    duration: 10,
+    resolvedAudience: { includesSelf: true }
+  });
+  grantTestEffect(runtime.liveEffects, {
+    kind: 'fury',
+    at: 1,
+    duration: 2,
+    resolvedAudience: { includesSummons: true, companionIds: ['engineer.mech'] }
+  });
+  for (const [at, expected] of [
+    [0, false],
+    [2, true],
+    [4, false]
+  ]) {
+    const critical = query.critical(strike, at, runtime);
+    assert.equal(critical.furyActive, expected);
+    assert.equal(
+      critical.contributors.some(({ id }) => id === 'fury'),
+      expected
+    );
+  }
+});
 
 // No Scope must keep its ferocity bonus through the whole live Fury pool.
 test('Engineer No Scope survives overlapping Fury packet expiries', () => {

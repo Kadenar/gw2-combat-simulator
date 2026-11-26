@@ -1,5 +1,4 @@
 // Private deadlines use the same 40 ms clock as scheduled events.
-import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
@@ -16,20 +15,13 @@ import { scaleCastBoundTiming, summonQuicknessCastTimeMs } from '#gw2/platform/e
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
-import { shiftSignetPassive } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { jadeCannonsAttack } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
-import type {
-  EngineerResolverEvent,
-  EngineerRuntime,
-  EngineerRuntimeState,
-  EngineerSkill
-} from '#gw2/professions/engineer/types.js';
+import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Initialization without deferred combat, or explicit combat entry, admits trait-owned background work. */
 export const mechanistCombatReady = defineTriggerPoint<Record<string, never>>('engineer.mechanist-combat-ready', [
@@ -145,8 +137,7 @@ export function engineerMechHasQuickness(context: MechanicQueriesOf<EngineerRunt
     context.combat.activeBoonStacks(BOON.QUICKNESS, at, 1, {
       actor: 'companion',
       companionId: 'engineer.mech'
-    }) > 0 ||
-    (Boolean(context.config.boons?.quickness) && shiftSignetPassive(context, at))
+    }) > 0
   );
 }
 
@@ -172,43 +163,6 @@ function emitMechAttack(context: EngineerRuntime, skillId: SkillId, at: number):
       metadata: { engineerMech: true }
     }
   });
-}
-
-/** Shift Signet emits copied boons through its profile, retaining their already-scaled duration. */
-export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerResolverEvent): void {
-  // Copy applications, not live player state: already-copied boons survive Shift going on cooldown.
-  if (
-    event.type === 'buff' &&
-    isStandardBoon(event.kind) &&
-    event.resolvedAudience?.includesSelf &&
-    shiftSignetPassive(context, event.at)
-  ) {
-    context.effects.emit({
-      kind: 'profile',
-      profile: requireSkill(context.helpers, ID.SHIFT_SIGNET),
-      at: event.at,
-      attribution: {
-        source: 'engineer',
-        sourceId: ID.SHIFT_SIGNET,
-        actorType: ACTOR.PLAYER
-      },
-      effects: [
-        {
-          type: 'boon',
-          boon: event.kind,
-          stacks: event.stacks || 1,
-          duration: event.duration || 0,
-          audience: {
-            recipients: RECIPIENT.SUMMONS,
-            affectsSelf: false,
-            maximumRecipients: 1,
-            eligibleCompanionIds: ['engineer.mech']
-          }
-        }
-      ],
-      transform: (packet) => ({ ...packet, name: `Shift Signet - ${event.kind}`, fixedDuration: true })
-    });
-  }
 }
 
 /** Capture the concrete mech owner before queued packets can outlive their originating activation. */
@@ -246,6 +200,7 @@ function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEve
     // All mech skills belong to the same concrete companion for shared condition rounding.
     summonOwner: 'engineer.mech',
     independentConditionOwner: true,
+    summonUsesOwnBoons: true,
     // Condition packets need the same inherited-stat input as strikes before mech attribute replacement.
     summonInheritsAttributes: true,
     metadata: { ...event.metadata, engineerMech: true }

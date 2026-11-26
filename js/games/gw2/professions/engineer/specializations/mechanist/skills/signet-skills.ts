@@ -4,16 +4,18 @@
  */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { ACTOR, COMBO_FIELD, CONDITION, CONTROL } from '#gw2/platform/constants.js';
+import { ACTOR, COMBO_FIELD, CONDITION, CONTROL, RECIPIENT, type BoonId } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumber, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 import type { MechanistSkill } from '#gw2/professions/engineer/specializations/mechanist/types.js';
-import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Supplies Mechanist signet definitions to specialization composition. */
 export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<MechanistSkill>>> = {
@@ -173,7 +175,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillDefi
 };
 
 /** Checks the normalized active loadout for a named Mechanist signet. */
-export function selectedSignet(context: Gw2ModifierContext, id: number): boolean {
+function selectedSignet(context: Pick<Gw2ModifierContext, 'config'>, id: number): boolean {
   return selectedSkillIdSet(context.config?.selectedSkillIds).has(id);
 }
 
@@ -213,12 +215,86 @@ function superconductingSignetDamage(context: Gw2ModifierContext): number {
 }
 
 /** J-Drive keeps Shift's boon copying available while the signet recharges. */
-export function shiftSignetPassive(context: MechanicQueriesOf<EngineerRuntime>, at: number): boolean {
+function shiftSignetPassive(context: EngineerRuntime): boolean {
   return (
-    selectedSkillIdSet(context.config.selectedSkillIds).has(ID.SHIFT_SIGNET) &&
-    signetPassiveAvailable(context.config, (context.cooldownController.readyAt(ID.SHIFT_SIGNET) || 0) <= at)
+    selectedSignet(context, ID.SHIFT_SIGNET) &&
+    signetPassiveAvailable(context.config, !context.cooldownController.isOnCooldown(ID.SHIFT_SIGNET))
   );
 }
+
+const CONSOLE_PULSE_TASK = 'engineer.shift-signet-console';
+// The training technician grants ten seconds of each enabled boon every ten seconds.
+const CONSOLE_PULSE_SECONDS = 10;
+const CONSOLE_BOON_DURATION_SECONDS = 10;
+
+/** The mech receives its own copy with the source's final duration and stack count. */
+function copyShiftSignetBoon(
+  runtime: EngineerRuntime,
+  at: number,
+  boon: BoonId,
+  stacks: number,
+  duration: number,
+  triggeredBy?: string
+): void {
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: requireSkill(runtime.helpers, ID.SHIFT_SIGNET),
+    at,
+    attribution: { source: 'engineer', sourceId: ID.SHIFT_SIGNET, actorType: ACTOR.PLAYER, triggeredBy },
+    effects: [
+      {
+        type: 'boon',
+        boon,
+        stacks,
+        duration,
+        audience: {
+          recipients: RECIPIENT.SUMMONS,
+          affectsSelf: false,
+          maximumRecipients: 1,
+          eligibleCompanionIds: ['engineer.mech']
+        }
+      }
+    ],
+    transform: (packet) => ({ ...packet, name: `Shift Signet - ${boon}`, fixedDuration: true })
+  });
+}
+
+/** Shift checks its passive on each application. Copies already on the mech retain their own expiry. */
+export const shiftSignetHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
+  initialize(runtime) {
+    if (
+      selectedSignet(runtime, ID.SHIFT_SIGNET) &&
+      Object.entries(runtime.config.boons ?? {}).some(([boon, value]) => isStandardBoon(boon) && Number(value) > 0)
+    )
+      runtime.schedule(CONSOLE_PULSE_TASK, 0, null, undefined, 0, 'buffs');
+  },
+  backgroundTasks: [CONSOLE_PULSE_TASK],
+  tasks: {
+    [CONSOLE_PULSE_TASK](runtime) {
+      if (shiftSignetPassive(runtime)) {
+        for (const [boon, value] of Object.entries(runtime.config.boons ?? {})) {
+          if (isStandardBoon(boon) && Number(value) > 0)
+            copyShiftSignetBoon(
+              runtime,
+              runtime.time,
+              boon,
+              Number(value),
+              CONSOLE_BOON_DURATION_SECONDS,
+              'Training console'
+            );
+        }
+      }
+
+      runtime.schedule(CONSOLE_PULSE_TASK, runtime.time + CONSOLE_PULSE_SECONDS, null, undefined, 0, 'buffs');
+    }
+  },
+  reactions: {
+    'buff.applied'(runtime, event) {
+      if (isStandardBoon(event.kind) && event.resolvedAudience?.includesSelf && shiftSignetPassive(runtime))
+        copyShiftSignetBoon(runtime, event.at, event.kind, event.stacks || 1, event.duration || 0);
+    }
+  }
+};
 
 /** Overclock's selected passive affects other signets; trait precedence is applied by the recharge owner. */
 function overclockSignetApplies(context: MechanicQueriesOf<EngineerRuntime>, skill: EngineerSkill): boolean {

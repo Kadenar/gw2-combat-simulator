@@ -7,9 +7,7 @@ import { BOON } from '#gw2/platform/constants.js';
 import { selectedFirearmsDurationBonuses } from '#gw2/professions/engineer/core/traits/firearms/index.js';
 import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.js';
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { isEngineerMechEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
-import { selectedSignet } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 
 // Inheritance only evaluates Core attribute declarations; unrelated traits have no source work.
@@ -31,10 +29,9 @@ export const mechanistAttributes: Gw2AttributeContributionCalculator = (context)
     byWeaponSet?.set(context.weaponSet, base);
   }
 
-  // Shift copies the player's configured Might. Direct grants and live Shift copies already target the mech.
-  const configuredMight = selectedSignet(context, ID.SHIFT_SIGNET) ? Number(context.config?.boons?.might || 0) : 0;
+  // Direct grants and Shift copies contribute until the mech's own Might expires.
   const mechMight = activeBoonStacks(context, BOON.MIGHT, 25, { actor: 'companion', companionId: 'engineer.mech' });
-  const might = Math.min(25, configuredMight + mechMight) * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
+  const might = mechMight * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
   return [
     {
       transforms: [

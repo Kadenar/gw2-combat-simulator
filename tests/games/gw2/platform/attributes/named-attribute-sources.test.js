@@ -117,7 +117,7 @@ test('mech inheritance tracks its own Might through grants, expiry and weapon ch
   assert.equal(sample().conditionDamage, 1210);
   assert.equal(sample().power, 1590);
   const shift = { ...context, config: { ...context.config, selectedSkillIds: [ENGINEER_SKILL_IDS.SHIFT_SIGNET] } };
-  assert.equal(sample(shift).power, base.power + 25 * 30);
+  assert.equal(sample(shift).power, sample().power);
   context.time = 2.000001;
   assert.equal(sample().conditionDamage, 1120);
   context.weaponSet = context.runtime.activeWeaponSet = 2;
