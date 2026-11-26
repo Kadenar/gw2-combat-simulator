@@ -10,12 +10,11 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
-import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { equippedEliteSpecialization } from '#gw2/platform/builds/elite-specialization.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { mesmerChaosTooltips } from '#gw2/professions/mesmer/app/tooltips/chaos.js';
 import { mesmerDominationTooltips } from '#gw2/professions/mesmer/app/tooltips/domination.js';
 import { mesmerDuelingTooltips } from '#gw2/professions/mesmer/app/tooltips/dueling.js';
@@ -30,18 +29,10 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerPhantasmTiming } from '#gw2/professions/mesmer/family-mechanics.js';
 import { mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 
-/** Use the equipped elite for both phantasm timing and the resource granted on conversion. */
-function tooltipSpecialization(catalog: CanonicalCatalog, build?: Pick<Gw2CanonicalBuild, 'specializations'>) {
-  return (
-    build?.specializations.find(({ name }) => catalog.specializations.some((spec) => spec.elite && spec.name === name))
-      ?.name ?? 'Core'
-  );
-}
-
 // Phantasm condition budgets are distributed across their authored hit packets, independently for each summoned entity.
 const phantasmTooltip: DescribeSimulationTooltip = (balanceContext, entity, _specialization, build) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id)! as MesmerSkill;
-  const specialization = tooltipSpecialization(balanceContext.catalog, build);
+  const specialization = equippedEliteSpecialization(balanceContext.catalog, build);
   const timing = mesmerPhantasmTiming(selected, specialization);
   const facts = (selected.effects || []).flatMap((effect) => {
     const companion = effect.actorType === ACTOR.SUMMON;
@@ -153,7 +144,7 @@ export const mesmerCoreTooltips = {
         )
     ),
     [ID.SIGNET_OF_ILLUSIONS]: (context, entity, _specialization, build) => {
-      const resource = mesmerResourceKind(tooltipSpecialization(context.catalog, build));
+      const resource = mesmerResourceKind(equippedEliteSpecialization(context.catalog, build));
       return skillTooltip(
         `Signet Passive: Generate ${resource} while equipped and recharged. Signet Active: Reset shatter and instrument cooldowns, restoring one ammunition charge where applicable. Continuum Split is excluded. The passive resumes when the signet recharges.`,
         [

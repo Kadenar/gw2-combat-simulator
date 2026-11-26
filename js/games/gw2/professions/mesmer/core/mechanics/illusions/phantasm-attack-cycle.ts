@@ -1,7 +1,11 @@
 import type { MesmerPhantasmAttackTiming } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 
-/** A named attack can retain its packet timings even when the selected patch removes its strike. */
+/**
+ * A condition's packetLabel ties its applications to the named strike's packets, even if a patch removes the strike.
+ * Initial timing uses the entity's measurements first, then shared measurements, with authored ticks as the fallback.
+ * Repeat ticks come only from measurements. Without them, the scheduler shifts the initial pattern to the repeat impact.
+ */
 export function phantasmAttackCycle(
   skill: MesmerSkill,
   timing: Partial<MesmerPhantasmAttackTiming> | undefined,

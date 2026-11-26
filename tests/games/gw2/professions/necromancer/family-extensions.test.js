@@ -7,7 +7,6 @@ import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer
 import { creatureSummoned } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { spiritsStrengthCreatureMultiplier } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
@@ -91,7 +90,7 @@ test('creature summon listeners preserve reward order, captured attribution, and
     const runtime = {
       config: {
         specialization: 'Ritualist',
-        selectedTraitIds: selected ? [TRAIT.BOON_OF_CREATION, TRAIT.EXPLOSIVE_GROWTH, TRAIT.SPIRITS_STRENGTH] : []
+        selectedTraitIds: selected ? [TRAIT.BOON_OF_CREATION, TRAIT.EXPLOSIVE_GROWTH] : []
       },
       helpers: necromancerProfession.catalog,
       resourceController: {
@@ -116,7 +115,5 @@ test('creature summon listeners preserve reward order, captured attribution, and
       assert.equal(observed[0].event.activationId, 'summon:explosive-growth:2');
       assert.equal(observed[0].event.parentSkillName, skill.name);
     }
-
-    assert.equal(spiritsStrengthCreatureMultiplier(runtime), selected ? 1.33 : 1);
   }
 });

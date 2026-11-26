@@ -16,7 +16,7 @@ import type {
 } from '#gw2/app/simulation/random-distribution/types.js';
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
 import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
-import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { equippedEliteSpecialization } from '#gw2/platform/builds/elite-specialization.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -26,16 +26,6 @@ export function createProfessionRuntime({
   profession,
   createBuildContext
 }: ProfessionRuntimeOptions): ProfessionRuntimeApi {
-  const eliteNames = new Set(
-    profession.catalog.specializations
-      .filter((specialization) => specialization.elite)
-      .map((specialization) => specialization.name)
-  );
-
-  function eliteSpecialization(build: Gw2CanonicalBuild): string {
-    return build.specializations.find((specialization) => eliteNames.has(specialization.name))?.name || 'Core';
-  }
-
   function calculateModifierContributions({ rotation, baselineDps, comparisons }: ModifierContributionRequest) {
     // Main-thread comparisons need only DPS, matching workers without constructing unused chart histories.
     return calculateContributionComparisons({ rotation, baselineDps, comparisons }, (rotation, config) =>
@@ -92,7 +82,7 @@ export function createProfessionRuntime({
   }
 
   const api: ProfessionRuntimeApi = {
-    eliteSpecialization,
+    eliteSpecialization: (build) => equippedEliteSpecialization(profession.catalog, build),
     createBuildContext,
     captureAnalysis: (input) => captureAnalysisRequestSnapshot(input, { profession, createBuildContext }),
     calculateModifierContributions,
