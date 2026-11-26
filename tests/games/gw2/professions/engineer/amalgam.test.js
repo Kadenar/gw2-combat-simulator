@@ -13,6 +13,7 @@ import { amalgamResolverEventReactions } from '#gw2/professions/engineer/special
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -193,20 +194,34 @@ test('Evolve cannot raise condition duration above the global cap', () => {
 });
 
 test('Evolve grants each selected protocol strain without leaking it to casts', () => {
-  const result = simulate('Amalgam', ['Evolve'], {
-    selectedMorphSkillIds: [77103, 77203, 76954]
-  });
-  const berserker = result.events.find(
-    (event) => event.type === 'buff' && event.skillName === 'Berserker Strain' && event.kind === 'stability'
+  const result = runEngineer(
+    ['Evolve'],
+    {
+      specialization: 'Amalgam',
+      selectedMorphSkillIds: [77103, 77203, 76954],
+      attributeInputs: baseAttributeInputs({ concentration: 750 })
+    },
+    {
+      // A longer Superspeed grant shares Predator's source ID. Only its Quickness sets the strain deadline.
+      catalog: (catalog) =>
+        applySkillPatch(catalog, {
+          skills: {
+            [ID.OFFENSIVE_PROTOCOL_SHRED]: {
+              sideEffects: { strain: { effects: [{ type: 'buff', name: 'Predator Strain', duration: 24 }] } }
+            }
+          }
+        })
+    }
   );
-
-  assert.equal(berserker.stacks, 5);
-  assert.equal(berserker.name, berserker.skillName);
-  assert.equal(berserker.duration, 8);
-  assert.equal(
-    result.planningState.profession[STATE.BERSERKER_UNTIL],
-    result.planningState.profession[STATE.EVOLVED_UNTIL]
-  );
+  assert.deepEqual(result.warnings, []);
+  const grant = (sourceId, kind) => result.events.find((event) => event.sourceId === sourceId && event.kind === kind);
+  const stability = grant('engineer.berserker-strain', 'stability');
+  const quickness = grant('engineer.predator-strain', 'quickness');
+  const superspeed = grant('engineer.predator-strain', 'superspeed');
+  assert.ok(superspeed.duration > quickness.duration);
+  const state = result.planningState.profession;
+  assert.equal(state[STATE.BERSERKER_UNTIL], stability.at + stability.duration);
+  assert.equal(state[STATE.PREDATOR_UNTIL], quickness.at + quickness.duration);
 
   const demolish = simulate('Amalgam', [76954], {
     selectedMorphSkillIds: [77103, 77203, 76954]

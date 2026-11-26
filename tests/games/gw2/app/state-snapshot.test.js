@@ -3,13 +3,17 @@ import test from 'node:test';
 
 import { criticalChanceTooltip, rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { ENGINEER_SKILL_IDS, ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { cursorPreviewCapture } from '#tests/helpers/cursor-preview.js';
 import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
+import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
@@ -372,4 +376,62 @@ test('Chronomancer active state shows only pending conversions from phantasms al
   const between = (conversions[0].at + conversions[1].at) / 2;
   assert.equal(snapshot(between)[0].value, `${(conversions[1].at - between).toFixed(3)}s`);
   assert.deepEqual(snapshot(conversions[1].at + 0.1), []);
+});
+
+test('Amalgam shows only strains granted through the selected rotation step', () => {
+  const cleanse = ENGINEER_SKILL_IDS.DEFENSIVE_PROTOCOL_CLEANSE_ID_76798;
+  const protect = ENGINEER_SKILL_IDS.DEFENSIVE_PROTOCOL_PROTECT_ID_77203;
+  const rotation = [{ type: 'wait', durationMs: 1000 }, cleanse, protect];
+  const config = {
+    specialization: 'Amalgam',
+    selectedMorphSkillIds: [cleanse, protect, ENGINEER_SKILL_IDS.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954],
+    selectedTraitIds: [ENGINEER_TRAIT_IDS.SILVER_LINING],
+    attributeInputs: baseAttributeInputs({ concentration: 750 })
+  };
+  const simulate = (commands) =>
+    runEngineer(commands, config, {
+      initialize(runtime) {
+        // Other sources can grant both boons before either protocol grants its strain.
+        for (const kind of ['alacrity', 'resistance'])
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              kind,
+              at: 0,
+              duration: 30,
+              stacks: 1,
+              source: 'test',
+              sourceId: 'other-source',
+              actorType: 'player'
+            }
+          });
+      }
+    });
+  const result = simulate(rotation);
+  assert.deepEqual(result.warnings, []);
+  const app = {
+    analysis: {
+      state: { results: result },
+      capture: cursorPreviewCapture(rotation, config)
+    },
+    patch: withPatchPreview(engineerProfession).resolvePatch(),
+    build: { rotation },
+    profession: engineerProfession,
+    adapter: { eliteSpecialization: () => 'Amalgam', calculateCursorPreview: ({ rotation }) => simulate(rotation) }
+  };
+  const at = (index) => {
+    app.rotationInsertionIndex = index;
+    const { items, timeMs } = rotationStateSnapshot(app);
+    return { strains: items.find((item) => item.id === 'amalgam-active-strains')?.value, timeMs };
+  };
+
+  const beforeCleanse = at(1);
+  const afterCleanse = at(2);
+  assert.equal(beforeCleanse.timeMs, afterCleanse.timeMs);
+  assert.equal(beforeCleanse.strains, undefined);
+  const alacrity = result.events.find((event) => event.sourceId === 'engineer.replicating-strain');
+  assert.equal(afterCleanse.strains, `Replicating ${alacrity.duration.toFixed(1)}s`);
+  const resistance = result.events.find((event) => event.sourceId === 'engineer.resiliant-strain');
+  assert.ok(at(3).strains.includes(`Resiliant ${resistance.duration.toFixed(1)}s`));
 });

@@ -360,37 +360,22 @@ test('Elementalist snapshots include Weaver and Catalyst stack/timer windows', (
   assert.equal(evoker['evoker-elemental-balance'], '2.5s');
 });
 
-test('Amalgam snapshot includes Evolve and all active duration-bearing strains', () => {
-  const values = valuesById(
-    snapshot(
-      engineerProfession,
-      'Amalgam',
-      { [STATE.EVOLVED_UNTIL]: 12, [STATE.RAPACIOUS_UNTIL]: 10, [STATE.TITANIC_UNTIL]: 11 },
-      5,
-      {
-        ...effectFields(
-          [
-            {
-              type: 'buff',
-              resolvedAudience: {
-                includesSelf: true,
-                includesSummons: false,
-                companionIds: [],
-                alliedPlayerCount: 0,
-                recipientCount: 1
-              },
-              sourceId: 'engineer.resiliant-strain',
-              at: 1,
-              duration: 8
-            }
-          ],
-          120
-        )
-      }
-    )
-  );
-  assert.equal(values['amalgam-evolve'], '7.0s');
-  assert.equal(values['amalgam-active-strains'], 'Resiliant 4.0s · Rapacious 5.0s · Titanic 6.0s');
+test('Amalgam shows Rapacious through its proc deadline and Titanic until its attribute bonus ends', () => {
+  const state = { [STATE.EVOLVED_UNTIL]: 12, [STATE.RAPACIOUS_UNTIL]: 8, [STATE.TITANIC_UNTIL]: 8 };
+  const at = (time) => valuesById(snapshot(engineerProfession, 'Amalgam', state, time));
+  assert.equal(at(7)['amalgam-active-strains'], 'Rapacious 1.0s · Titanic 1.0s');
+  const deadline = at(8);
+  assert.equal(deadline['amalgam-evolve'], '4.0s');
+  assert.equal(deadline['amalgam-active-strains'], 'Rapacious 0.0s');
+  assert.equal(at(8.04)['amalgam-active-strains'], undefined);
+});
+
+test('Amalgam shows a boon-backed strain through the instant its grant expires', () => {
+  for (const until of [STATE.RESILIANT_UNTIL, STATE.REPLICATING_UNTIL, STATE.PREDATOR_UNTIL, STATE.BERSERKER_UNTIL]) {
+    const at = (time) => valuesById(snapshot(engineerProfession, 'Amalgam', { [until]: 3 }, time));
+    assert.match(at(3)['amalgam-active-strains'], / 0\.0s$/);
+    assert.equal(at(3.001)['amalgam-active-strains'], undefined);
+  }
 });
 
 test('Guardian snapshots combine core and elite active state', () => {

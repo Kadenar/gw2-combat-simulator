@@ -1,11 +1,14 @@
 /** Amalgam strains own their granted effects, proc cooldowns, and attribute bonuses across protocol slots. */
 import type { Gw2AttributeContext } from '#gw2/platform/attributes/types.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2Time } from '#gw2/platform/combat/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { buildEngineerStrike } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
@@ -33,7 +36,6 @@ export function applyAmalgamStrain(context: EngineerRuntime, button: AmalgamSkil
     return;
   }
 
-  // The owner's packet supplies each effect and duration; state windows follow their associated boon.
   for (const effect of action.effects) {
     if (!effect.sourceId || !effect.name) throw new Error('Missing Amalgam strain identity');
 
@@ -52,13 +54,9 @@ export function applyAmalgamStrain(context: EngineerRuntime, button: AmalgamSkil
 
     if (effect.type !== 'boon' && effect.type !== 'buff') continue;
 
-    if (effect.type === 'boon') {
-      if (morphKind === 'obliterate') {
-        state.titanicUntil = gw2Time(Math.max(state.titanicUntil || 0, at + effect.duration));
-      } else if (morphKind === 'shred')
-        state.predatorUntil = gw2Time(Math.max(state.predatorUntil || 0, at + effect.duration));
-      else if (morphKind === 'demolish')
-        state.berserkerUntil = gw2Time(Math.max(state.berserkerUntil || 0, at + effect.duration));
+    // Titanic's attribute bonus uses the protocol's base duration.
+    if (effect.type === 'boon' && morphKind === 'obliterate') {
+      state.titanicUntil = gw2Time(Math.max(state.titanicUntil || 0, at + effect.duration));
     }
 
     // Each strain grant is a finite occurrence; profile emission retains its yield lineage for sustained generation.
@@ -79,6 +77,24 @@ export function applyAmalgamStrain(context: EngineerRuntime, button: AmalgamSkil
       transform: (event) => ({ ...event, name: effect.name })
     });
   }
+}
+
+const strainBoonTimers = new Map<SkillId, 'resiliantUntil' | 'replicatingUntil' | 'predatorUntil' | 'berserkerUntil'>([
+  ['engineer.resiliant-strain', 'resiliantUntil'],
+  ['engineer.replicating-strain', 'replicatingUntil'],
+  ['engineer.predator-strain', 'predatorUntil'],
+  ['engineer.berserker-strain', 'berserkerUntil']
+]);
+
+/** The inspector follows accepted self boons. Predator's Superspeed shares its source ID but has a separate duration. */
+export function observeAmalgamStrainGrant(context: EngineerRuntime, event: EngineerResolverEvent): void {
+  const timer = strainBoonTimers.get(event.sourceId);
+  const duration = event.duration ?? 0;
+
+  if (!timer || !isStandardBoon(event.kind) || !event.resolvedAudience?.includesSelf || !(duration > 0)) return;
+
+  const state = amalgamState.from(context.profession);
+  state[timer] = Math.max(state[timer], gw2EffectExpiresAt(event.at, duration));
 }
 
 /** Rapacious can trigger on another eligible strike throughout its grant. */

@@ -1,6 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
@@ -119,20 +118,6 @@ function updateAmalgamSkillBarSelection(
   return true;
 }
 
-/** Reconstructs a source buff's remaining duration from events at the inspected timestamp. */
-function activeBuffRemaining(context: Pick<EngineerUiContext, 'result'>, sourceId: string, at: number): number {
-  let remaining = 0;
-  for (const event of (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || []) {
-    if ((event.at || 0) > at) break;
-
-    if (event.type !== 'buff' || event.sourceId !== sourceId) continue;
-
-    remaining = Math.max(remaining, gw2EffectExpiresAt(event.at || 0, event.duration || 0) - at);
-  }
-
-  return Math.max(0, remaining);
-}
-
 /** Shows Evolve and each Silver Lining strain with a duration that is active at the inspected point. */
 function amalgamStateSnapshot(
   context: ProfessionStateSnapshotContext<EngineerUiContext['professionState']>
@@ -165,22 +150,26 @@ function amalgamStateSnapshot(
     });
   }
 
-  // Merge event-backed emitted buffs with timestamp-backed strains before presenting one active summary.
-  const strains: [string, number][] = [
-    ['Resiliant', activeBuffRemaining(context, 'engineer.resiliant-strain', at)],
-    ['Replicating', activeBuffRemaining(context, 'engineer.replicating-strain', at)],
-    ['Rapacious', (state[STATE.RAPACIOUS_UNTIL] || 0) - at],
-    ['Predator', (state[STATE.PREDATOR_UNTIL] || 0) - at],
-    ['Titanic', (state[STATE.TITANIC_UNTIL] || 0) - at],
-    ['Berserker', (state[STATE.BERSERKER_UNTIL] || 0) - at]
-  ];
-  const activeStrains = strains.filter(([, remaining]) => remaining > 0);
+  const strains = [
+    ['Resiliant', STATE.RESILIANT_UNTIL],
+    ['Replicating', STATE.REPLICATING_UNTIL],
+    ['Rapacious', STATE.RAPACIOUS_UNTIL],
+    ['Predator', STATE.PREDATOR_UNTIL],
+    ['Titanic', STATE.TITANIC_UNTIL],
+    ['Berserker', STATE.BERSERKER_UNTIL]
+  ] as const;
+  const activeStrains = strains.flatMap(([name, id]) => {
+    const until = state[id] ?? 0;
+    // Boons and Rapacious include their final instant. Titanic's attribute bonus ends at its deadline.
+    const active = id === STATE.TITANIC_UNTIL ? until > at : buffDeadlineActive(until, at);
+    return active ? [`${name} ${remainingLabel(Math.max(0, until - at))}`] : [];
+  });
 
   if (activeStrains.length) {
     items.push({
       id: 'amalgam-active-strains',
       label: 'Active Strains',
-      value: activeStrains.map(([name, remaining]) => `${name} ${remainingLabel(remaining)}`).join(' · '),
+      value: activeStrains.join(' · '),
       title: 'Duration-bearing strains currently granted by Evolve or Silver Lining'
     });
   }

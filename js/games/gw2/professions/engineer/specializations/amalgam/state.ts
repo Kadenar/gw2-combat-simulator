@@ -13,6 +13,8 @@ export interface AmalgamState {
   evolvedUntil: number;
   willingHostUntil: number;
   plasmaticStateUntil: number;
+  resiliantUntil: number;
+  replicatingUntil: number;
   rapaciousUntil: number;
   predatorUntil: number;
   titanicUntil: number;
@@ -38,9 +40,12 @@ function createAmalgamState(
     willingHostUntil: 0, // set by any morph cast (Willing Host trait)
     plasmaticStateUntil: 0, // set by Plasmatic State cast
     rapaciousUntil: 0, // Rapacious Strain (Thorns silver-lining strain)
-    predatorUntil: 0, // Predator Strain (Shred silver-lining strain)
     titanicUntil: 0, // Titanic Strain, Obliterate's Silver Lining strain, increases Might scaling.
-    berserkerUntil: 0 // Berserker Strain (Demolish silver-lining strain)
+    // These four deadlines supply only the inspector countdown for each strain's own boon grant.
+    resiliantUntil: 0, // Resistance
+    replicatingUntil: 0, // Alacrity
+    predatorUntil: 0, // Quickness
+    berserkerUntil: 0 // Stability
   };
 }
 
@@ -53,6 +58,8 @@ export function projectAmalgamPlanningState(input: Gw2PlanningStateInput<Special
     [STATE.SELECTED_MORPH_SKILL_IDS]: state.selectedMorphSkillIds,
     [STATE.EVOLVED_UNTIL]: state.evolvedUntil,
     [STATE.PLASMATIC_STATE_UNTIL]: state.plasmaticStateUntil,
+    [STATE.RESILIANT_UNTIL]: state.resiliantUntil,
+    [STATE.REPLICATING_UNTIL]: state.replicatingUntil,
     [STATE.RAPACIOUS_UNTIL]: state.rapaciousUntil,
     [STATE.PREDATOR_UNTIL]: state.predatorUntil,
     [STATE.TITANIC_UNTIL]: state.titanicUntil,

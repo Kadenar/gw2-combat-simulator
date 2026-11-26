@@ -3,6 +3,7 @@ import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime
 import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
 import { evolvedFormLifecycle } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
+import { observeAmalgamStrainGrant } from '#gw2/professions/engineer/specializations/amalgam/mechanics/strains.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
@@ -27,6 +28,6 @@ export const amalgamHooks = composeRuntimeHooks<EngineerRuntimeState, EngineerSk
       ];
     },
     availability: amalgamCastAvailability,
-    reactions: { 'damage.resolved': amalgamResolverEventReactions.damage }
+    reactions: { 'buff.applied': observeAmalgamStrainGrant, 'damage.resolved': amalgamResolverEventReactions.damage }
   }
 ]);
