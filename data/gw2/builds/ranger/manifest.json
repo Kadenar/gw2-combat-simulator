@@ -204,16 +204,16 @@
         "label": "Power Quickness (Sword-Axe / Hammer) (Nature Magic, Tiger)",
         "build": "data/gw2/builds/ranger/b-power-quick-untamed-nature-magic-sword-axe-hammer.json",
         "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-nature-magic-sword-axe-hammer-bench.json",
-        "benchmarkDps": 33873,
+        "benchmarkDps": 33762,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-quickness-untamed-nature-magic-hammer-sword-axe",
         "benchmarkApm": 84,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 36988, "phase": 36988 },
-          "80-60": { "cumulative": 34279, "phase": 31932 },
-          "60-40": { "cumulative": 33956, "phase": 33332 },
-          "40-20": { "cumulative": 33751, "phase": 33141 },
-          "20-0": { "cumulative": 33873, "phase": 34392 }
+          "100-80": { "cumulative": 36926, "phase": 36926 },
+          "80-60": { "cumulative": 34269, "phase": 31966 },
+          "60-40": { "cumulative": 33789, "phase": 32867 },
+          "40-20": { "cumulative": 33756, "phase": 33659 },
+          "20-0": { "cumulative": 33762, "phase": 33787 }
         }
       },
       {
