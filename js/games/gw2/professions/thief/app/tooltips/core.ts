@@ -137,7 +137,7 @@ const freeActionTooltip: DescribeSimulationTooltip = skillTooltip(
 
 const spearChainTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id)!;
-  const stage = spearChainStageForSkill(entity.id);
+  const stage = spearChainStageForSkill(selected);
   let description =
     stage === 0
       ? 'Lead attack: advances the spear chain to follow-up attacks.'

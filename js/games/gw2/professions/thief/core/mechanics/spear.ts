@@ -17,7 +17,7 @@ const SPEAR_STEALTH_SKILLS = new Set<SkillId>([ID.ASHEN_ASSAULT]);
 /** Spear stages advance on committed attacks; Distracting Throw after a finisher arms its damage window. */
 export function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void {
   const core = runtime.profession.core;
-  const stage = spearChainStageForSkill(skill.id);
+  const stage = spearChainStageForSkill(skill);
 
   if (stage != null) {
     core.spearChainStage = (stage + 1) % 3;
@@ -25,10 +25,13 @@ export function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void
     return;
   }
 
-  // The preceding spear identity already records whether this throw earns the finisher reward.
-  const followsFinisher = core.spearPreviousSkillId != null && spearChainStageForSkill(core.spearPreviousSkillId) === 2;
+  if (skill.id === ID.DISTRACTING_THROW) {
+    const followsFinisher =
+      core.spearPreviousSkillId != null &&
+      spearChainStageForSkill(requireSkill(runtime.helpers, core.spearPreviousSkillId)) === 2;
 
-  if (skill.id === ID.DISTRACTING_THROW && (followsFinisher || (core.spearChainStage || 0) === 0)) {
+    if (!followsFinisher && core.spearChainStage !== 0) return;
+
     core.spearChainStage = 1;
     core.spearPreviousSkillId = skill.id;
 
@@ -111,7 +114,7 @@ export function thiefSpearAvailability(
   runtime: MechanicQueriesOf<ThiefRuntime>,
   skill: ThiefSkill
 ): AvailabilityResult | null {
-  const stage = spearChainStageForSkill(skill.id);
+  const stage = spearChainStageForSkill(skill);
   return stage != null && (runtime.profession.core.spearChainStage || 0) !== stage
     ? denySkillCast(skill, 'thief.spear-chain', `requires spear chain stage ${stage + 1}.`)
     : null;

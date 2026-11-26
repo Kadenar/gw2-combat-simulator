@@ -21,7 +21,7 @@ function matchesThiefVariant(skill: ThiefSkill, context: ThiefWeaponMatcherConte
   )
     return false;
 
-  const spearChainStage = spearChainStageForSkill(skill.id);
+  const spearChainStage = spearChainStageForSkill(skill);
   return (
     spearChainStage == null ||
     Boolean(context.weaponBarPreview) ||
