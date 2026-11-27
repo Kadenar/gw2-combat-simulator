@@ -664,19 +664,25 @@ test('Relic of Fireworks records activation and refresh procs', () => {
     })
   );
 
-  assert.deepEqual(
-    fireworks.procSteps
-      .filter((proc) => proc.skill === 'Relic of Fireworks')
-      .map((proc) => ({
-        sourceSkill: proc.sourceSkill,
-        detail: proc.detail,
-        durationMs: proc.expiresAt - proc.start
-      })),
-    [
-      { sourceSkill: 'Chaos Storm', detail: 'activated', durationMs: 6000 },
-      { sourceSkill: 'Phantasmal Mage', detail: 'refreshed', durationMs: 6000 }
-    ]
+  // Chaos Storm keeps pulsing after the swap. Each qualifying player hit should record its own proc.
+  const hits = fireworks.resolvedEvents.filter(
+    (event) =>
+      event.type === 'damage' &&
+      event.actorType === 'player' &&
+      ['Chaos Storm', 'Phantasmal Mage'].includes(event.skillName)
   );
+  assert.equal(hits[0]?.skillName, 'Chaos Storm');
+  assert.ok(hits.some((hit) => hit.skillName === 'Phantasmal Mage'));
+
+  const procs = fireworks.procSteps.filter((proc) => proc.skill === 'Relic of Fireworks');
+  assert.deepEqual(
+    procs.map((proc) => proc.sourceSkill),
+    hits.map((hit) => hit.skillName)
+  );
+  for (const [index, proc] of procs.entries()) {
+    assert.equal(proc.detail, index === 0 ? 'activated' : 'refreshed');
+    assert.equal(proc.expiresAt - proc.start, 6000);
+  }
 });
 
 test('Relic of Fireworks ignores non-weapon skills with qualifying cooldowns', () => {
