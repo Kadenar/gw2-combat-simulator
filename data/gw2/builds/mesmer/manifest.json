@@ -119,16 +119,16 @@
         "label": "Condition (Staff-Axe/Torch) - Dune Cloak",
         "build": "data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
-        "benchmarkDps": 40623,
+        "benchmarkDps": 40908,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-mirage-dune-cloak-staff-axe-torch",
         "upToDate": true,
         "benchmarkApm": 105.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39428, "phase": 39428 },
-          "80-60": { "cumulative": 40669, "phase": 41985 },
-          "60-40": { "cumulative": 40083, "phase": 38992 },
-          "40-20": { "cumulative": 39861, "phase": 39191 },
-          "20-0": { "cumulative": 40623, "phase": 44395 }
+          "100-80": { "cumulative": 40567, "phase": 40567 },
+          "80-60": { "cumulative": 41246, "phase": 41962 },
+          "60-40": { "cumulative": 40392, "phase": 38806 },
+          "40-20": { "cumulative": 40035, "phase": 38965 },
+          "20-0": { "cumulative": 40908, "phase": 45178 }
         }
       }
     ]

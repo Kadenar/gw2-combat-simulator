@@ -179,7 +179,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_5',
     cooldown: 20,
     castTimeMs: 480,
-    // Once the field's opening impact lands, cancelling the aftercast preserves its remaining pulses.
     interruptCommitMs: CHAOS_STORM_PULSES_MS[0],
     comboFields: [
       {
@@ -195,6 +194,8 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        // Once the opening impact lands, the field keeps pulsing through an interrupted aftercast.
+        persistsAfterInterrupt: true,
         ticks: CHAOS_STORM_PULSES_MS.map((atMs) => ({ atMs, coefficient: 0.33 })),
         name: 'Six pulses',
         actorType: ACTOR.PLAYER

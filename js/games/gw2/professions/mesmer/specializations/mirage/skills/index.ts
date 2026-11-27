@@ -126,21 +126,11 @@ const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinition<Me
     slot: 'Utility',
     skillFamily: 'Deception',
     cooldown: 20,
-    // The ground mirror appears when the sand projectiles converge, after their damage packets.
-    tasks: [
-      {
-        type: 'mesmer.mirage.create-mirror',
-        count: 1,
-        atMs: 1160,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ],
     castTimeMs: 400,
     // The launched sand and its mirror survive cancellation of the remaining animation.
     interruptCommitMs: 320,
-    // Keep the six simultaneous hits together and apply Confusion at the same impact.
-    effects: impactEffects({ atMs: 320, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+    // After launch, all six projectiles strike and apply Confusion even if the caster interrupts the aftercast.
+    effects: impactEffects({ atMs: 320, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         coefficient: 2.4,
@@ -155,7 +145,17 @@ const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinition<Me
         stacks: 6,
         duration: 4
       }
-    ])
+    ]),
+    // The ground mirror appears when the sand projectiles converge, after their damage packets.
+    tasks: [
+      {
+        type: 'mesmer.mirage.create-mirror',
+        count: 1,
+        atMs: 1160,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.MIRAGE_ADVANCE]: {
     name: 'Mirage Advance',

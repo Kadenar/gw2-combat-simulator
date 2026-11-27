@@ -1099,6 +1099,5 @@
     "forgeExitMs": 0,
     "shroudEntryMs": 0,
     "shroudExitMs": 0
-  },
-  "conditionTickOffsetMs": 840
+  }
 }
