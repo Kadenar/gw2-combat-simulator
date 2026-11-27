@@ -20,13 +20,11 @@ interface ResolvedStrikeParts {
 }
 
 /**
- * Creates timestamp-aware strike resolution with the caller's equipment multiplier policy.
+ * Resolve strike damage using the combat query's complete outgoing multiplier.
  */
 export function createGw2HitResolution({
-  strikeMultiplier: equipmentStrikeMultiplier,
   activeBuffs
 }: {
-  readonly strikeMultiplier: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => number;
   readonly activeBuffs: () => Gw2DamageCalculation['activeBuffs'];
 }): Readonly<Gw2HitResolution> {
   // Flat-strike thresholds use the same remaining-health query as ordinary modifier predicates.
@@ -111,19 +109,7 @@ export function createGw2HitResolution({
           : 1;
     // Diagnostics trace the same multiplier call; ordinary runs pass no sink and record nothing.
     const outgoingContributors: Gw2ModifierContribution[] | undefined = ctx.damageDiagnostics ? [] : undefined;
-    const queryMultiplier = ctx.query.strikeMultiplier(event, event.at, ctx, outgoingContributors);
-    const equipmentMultiplier =
-      event.summonUsesEquipmentModifiers === false ? 1 : equipmentStrikeMultiplier(ctx, event);
-
-    if (outgoingContributors && equipmentMultiplier !== 1)
-      outgoingContributors.push({
-        id: 'equipment.strike',
-        label: 'Equipment',
-        bucket: 'multiplier',
-        value: equipmentMultiplier
-      });
-
-    const outgoingMultiplier = queryMultiplier * equipmentMultiplier;
+    const outgoingMultiplier = ctx.query.strikeMultiplier(event, event.at, ctx, outgoingContributors);
     const targetArmor = targetArmorFor(ctx);
 
     const summonDamagePerCoefficient = Number(event.summonDamagePerCoefficient);

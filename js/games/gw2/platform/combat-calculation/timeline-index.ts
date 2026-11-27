@@ -9,7 +9,9 @@ import {
   type BoonWindow,
   type Gw2BuffAudience
 } from '#gw2/platform/combat/boons.js';
+import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import type { PlayerBuffQueries } from '#gw2/platform/combat/live-effects.js';
 import { GW2_ALACRITY_RECHARGE_RATE, gw2RechargeIntervals } from '#gw2/platform/combat/recharge.js';
 import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -296,8 +298,46 @@ export function createGw2TimelineIndex({
     return skillOnCooldown(skillId, canonicalTime(time));
   };
 
+  // Detached relic rules read recorded self grants with the live store's tick-aligned starts and inclusive expiry.
+  // Live revisions after acceptance, such as an early removal or a moved deadline, do not reach recorded events.
+  const playerBuffs: PlayerBuffQueries = Object.freeze({
+    stacks(kind: string, time: number, maximum: number) {
+      refreshIndex();
+      // Ordered reads align each start to its game tick. The duration reader disables the expired-prefix cache, which
+      // assumes append-only grants, because a scheduled timeline can insert a grant before later ones.
+      return buffApplicationStacks(indexedBuffs.get(kind)?.self ?? [], kind, time, maximum, {
+        duration: (grant) => grant.duration ?? 0,
+        ordered: true
+      });
+    },
+    // Replacement windows use the latest self grant even if an older grant had a longer duration.
+    latestApplication(kind: string, time: number) {
+      refreshIndex();
+      const grants = indexedBuffs.get(kind)?.self;
+
+      if (!grants) return undefined;
+
+      for (let i = grants.length - 1; i >= 0; i--) {
+        const grant = grants[i]!;
+        // The live store records each grant at its game tick, so floating-point noise cannot hide a grant here.
+        const at = gw2Time(grant.at);
+
+        if (at <= time)
+          return {
+            at,
+            expiresAt:
+              typeof grant.expiresAt === 'number' ? grant.expiresAt : gw2EffectExpiresAt(at, grant.duration ?? 0),
+            removedAt: typeof grant.removedAt === 'number' ? grant.removedAt : undefined
+          };
+      }
+
+      return undefined;
+    }
+  });
+
   return Object.freeze({
     buffStacksAt,
+    playerBuffs,
     vigorActiveAt,
     activeWeaponSetAt,
     skillOnCooldownAt,
@@ -306,6 +346,7 @@ export function createGw2TimelineIndex({
 }
 
 export interface Gw2TimelineIndex {
+  readonly playerBuffs: PlayerBuffQueries;
   rechargeIntervals(skill: Skill, start: number, end: number, companionId?: string): Iterable<RateInterval>;
   buffStacksAt(
     kind: string,

@@ -16,7 +16,6 @@ import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import { prepareGw2ComboEvent } from '#gw2/platform/combos/validation.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { type AnnouncementEmission, type EffectDelivery } from '#gw2/platform/effects/emission.js';
-import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
 import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { PacketIdentity } from '#gw2/platform/events/identity.js';
 import { normalizeEffectMetadata } from '#gw2/platform/events/metadata.js';
@@ -131,7 +130,6 @@ export function createEffectDelivery<T extends object>(
         liveEffects: host.liveEffects,
         combo: host.combo,
         hitResolution: createGw2HitResolution({
-          strikeMultiplier: relicStrikeMultiplier,
           activeBuffs: () => snapshotActivePlayerBuffs(runtime, profession)
         }),
         conditions: { ...conditions, applyCondition: (_context, event) => applyConditionNow(event) },

@@ -1,11 +1,12 @@
 /** Relic rules receive typed observations while the runtime privately owns their state. */
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import type { CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
-import type { LiveEffectQueries } from '#gw2/platform/combat/live-effects.js';
-import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
+import type { LiveEffectQueries, PlayerBuffQueries } from '#gw2/platform/combat/live-effects.js';
+import type { Gw2RuntimeStateLike, Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
+import type { SkillSource } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { Batch } from '#kernel/resources/batch.js';
 
@@ -69,11 +70,14 @@ export interface Gw2ConditionApplicationHelpers extends Gw2ConditionHelpers {
 }
 
 /** Pure relic queries expose only their required observations, never emission capabilities. */
-export type Gw2RelicStrikeQueryContext = Readonly<
-  Pick<Gw2RelicContext, 'config' | 'totals' | 'liveEffects' | 'helpers' | 'relic'>
->;
+export interface Gw2RelicStrikeQueryContext extends Gw2RuntimeStateLike, Pick<Gw2RelicContext, 'config' | 'relic'> {
+  readonly helpers: SkillSource;
+  readonly environmentDamage?: number;
+  readonly liveEffects?: { readonly queries: PlayerBuffQueries };
+}
 
-export type Gw2RelicDurationQueryContext = Pick<Gw2RelicContext, 'liveEffects' | 'relic'>;
+// Duration rules read the same self-grant queries as strike rules, so detached queries can supply recorded grants.
+export type Gw2RelicDurationQueryContext = Pick<Gw2RelicStrikeQueryContext, 'liveEffects' | 'relic'>;
 
 export type Gw2RelicAttributeQueryContext = Pick<Gw2RelicContext, 'config' | 'relic'>;
 

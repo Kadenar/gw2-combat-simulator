@@ -253,3 +253,13 @@ export function createLiveEffects(config: Gw2Config = {}) {
 export type LiveEffects = ReturnType<typeof createLiveEffects>;
 
 export type LiveEffectQueries = LiveEffects['queries'];
+
+/** Strike rules read accepted self grants from either the live store or a recorded timeline. */
+export interface PlayerBuffQueries {
+  stacks(kind: string, at: number, maximum: number): number;
+  latestApplication(
+    kind: string,
+    at: number,
+    recipient: { actor: 'player' }
+  ): Pick<Gw2TimedBuffApplication, 'at' | 'expiresAt' | 'removedAt'> | undefined;
+}

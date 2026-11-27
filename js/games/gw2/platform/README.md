@@ -86,9 +86,9 @@ shares one state and cooldown. Execution and resolver stages call its rule hooks
 relic ID, including precast activations that occur after combat starts. It also supplies buff policies and isolated
 damage payloads. The simulation controls scheduling and reaction order.
 
-Relic callers cannot access mutable rule state. Live calculations use the owner's queries. Detached timeline queries
-keep the equipped relic's base context without replaying earned stacks or precast buffs. The attribute preview supplies
-hypothetical Aristocracy stacks through a separate query factory.
+Relic callers cannot access mutable rule state. Live calculations use the owner's queries. Detached relic queries read
+recorded buff grants. Strike queries also use the selected catalog and include precast relics. Private relic stacks
+require the live owner. The attribute preview supplies hypothetical Aristocracy stacks through a separate query factory.
 
 ## Declaration and calculation boundaries
 

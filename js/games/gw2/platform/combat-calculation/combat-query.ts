@@ -39,7 +39,8 @@ import {
   relicConditionDamageBonus,
   relicConditionDurationBonus,
   relicCriticalChanceBonus,
-  relicOutgoingDamageBonus
+  relicOutgoingDamageBonus,
+  relicStrikeMultiplier
 } from '#gw2/platform/equipment/relics/query.js';
 import { createRelicTimelineQueries } from '#gw2/platform/equipment/relics/runtime.js';
 import type { Gw2RelicQueryOwner } from '#gw2/platform/equipment/relics/types.js';
@@ -163,14 +164,21 @@ export function createGw2CombatQuery({
   });
   const historicalRelicContext = Object.freeze({
     config,
-    relic: createRelicTimelineQueries(config.relic, events)
+    relic: createRelicTimelineQueries(config.relic, resolvedTimelineEvents ?? events, config.precastRelics)
   });
+  const recordedRelicBuffs = { queries: timeline.playerBuffs };
   // `query` is assigned after `completedQuery` is constructed. Hook handlers
   // that reference `query` are only called during scheduling/resolution (after
   // this function returns), so the null-during-construction window is safe.
-  // Live relic state owns earned activations; detached queries retain only the selected relic's base context.
+  // Live relic state owns earned activations. Like strike queries, duration queries without a runtime read recorded
+  // grants, and a partial runtime sees only the grants it supplies.
   const equipmentConditionDurationBonus = (runtime: Gw2QueryRuntime | null | undefined, at: number): number =>
-    relicConditionDurationBonus(runtime?.relic ? runtime : historicalRelicContext, at);
+    relicConditionDurationBonus(
+      runtime?.relic
+        ? runtime
+        : { relic: historicalRelicContext.relic, liveEffects: runtime ? runtime.liveEffects : recordedRelicBuffs },
+      at
+    );
 
   const activeConfigsByWeaponSet = new Map<number, Gw2Config>();
   const staticAttributesByWeaponSet = new Map<number, Gw2ResolvedStats>();
@@ -551,67 +559,85 @@ export function createGw2CombatQuery({
       contributors?: Gw2ModifierContribution[]
     ) {
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
-      const relicBonus =
-        event.summonUsesEquipmentModifiers === false ? 0 : relicOutgoingDamageBonus(relicContext, time);
+      const usesEquipment = event.summonUsesEquipmentModifiers !== false;
+      const relicBonus = usesEquipment ? relicOutgoingDamageBonus(relicContext, time) : 0;
       const modifier = activeProfession.calculations.modifyStrikeDamage;
       const vulnerability = 1 + vulnerabilityStacksAt(time, runtime) / 100;
 
+      let total: number;
+
       if (event.independentSummonStrike === true) {
-        // Independent profiles already apply their eligible relic bonus as a separate factor; only sigil leakage changes.
+        // Independent profiles apply the eligible outgoing relic bonus to their own base.
         const base = vulnerability * Number(event.summonStrikeMultiplier ?? 1) * (1 + relicBonus);
-        const total =
+        total =
           event.summonUsesProfessionModifiers === true
             ? modifier(modifierContext(time, { event, runtime, damageContributors: contributors }), base)
             : base;
 
-        if (contributors) {
-          traceFactor(contributors, 'target.vulnerability', CONDITION.VULNERABILITY, vulnerability);
-          closeContributions(contributors, total);
-        }
+        if (contributors) traceFactor(contributors, 'target.vulnerability', CONDITION.VULNERABILITY, vulnerability);
+      } else {
+        const sigils = activeSigilSetAt(time, runtime);
+        // Additive sigil bonuses have one representation; ineligible actors receive no contribution.
+        const sigilBonus = usesEquipment ? (sigils.strikeAdd ?? 0) : 0;
+        const timeOfDayMultiplier = config.timeOfDay === 'night' ? sigils.nightStrikeMultiplier || 1 : 1;
+        const utilityMultiplier = 1 + (UTILITY_STRIKE_DAMAGE_BONUSES[config.utility || ''] || 0) / 100;
+        const playerMultiplier =
+          event.actorType !== ACTOR.SUMMON && isGw2PlayerModifierOwnedEvent(event)
+            ? (config.modifiers?.playerStrike ?? 1)
+            : 1;
+        // Independent factors retain their established order; only additive equipment enters the shared bucket.
+        const base =
+          vulnerability *
+          timeOfDayMultiplier *
+          (sigils.strikeMultiplier || 1) *
+          utilityMultiplier *
+          playerMultiplier *
+          (config.modifiers?.strike || 1);
+        total = modifier(
+          modifierContext(time, {
+            event,
+            runtime,
+            damageInputs: { strikeSigilBonus: sigilBonus, equipmentBonus: relicBonus },
+            damageContributors: contributors
+          }),
+          base
+        );
 
-        return total;
+        if (contributors) {
+          // Query-owned factors sit outside the profession hook; any untraced remainder stays visible as one entry.
+          traceFactor(contributors, 'target.vulnerability', CONDITION.VULNERABILITY, vulnerability);
+          traceFactor(contributors, 'equipment.night', 'Night sigil', timeOfDayMultiplier);
+          traceFactor(contributors, 'equipment.sigil-multiplier', 'Sigils', sigils.strikeMultiplier || 1);
+          traceFactor(contributors, 'equipment.utility', 'Utility', utilityMultiplier);
+          // Fractal buffs are currently the only source of playerStrike; revise this label if another source is added.
+          traceFactor(contributors, 'config.player-strike', 'Fractal buffs', playerMultiplier);
+          traceFactor(contributors, 'config.strike', 'Configured modifier', config.modifiers?.strike || 1);
+        }
       }
 
-      const sigils = activeSigilSetAt(time, runtime);
-      // Additive sigil bonuses have one representation; ineligible actors receive no contribution.
-      const sigilBonus = event.summonUsesEquipmentModifiers === false ? 0 : (sigils.strikeAdd ?? 0);
-      const timeOfDayMultiplier = config.timeOfDay === 'night' ? sigils.nightStrikeMultiplier || 1 : 1;
-      const utilityMultiplier = 1 + (UTILITY_STRIKE_DAMAGE_BONUSES[config.utility || ''] || 0) / 100;
-      const playerMultiplier =
-        event.actorType !== ACTOR.SUMMON && isGw2PlayerModifierOwnedEvent(event)
-          ? (config.modifiers?.playerStrike ?? 1)
-          : 1;
-      // Independent factors retain their established order; only additive equipment enters the shared bucket.
-      const base =
-        vulnerability *
-        timeOfDayMultiplier *
-        (sigils.strikeMultiplier || 1) *
-        utilityMultiplier *
-        playerMultiplier *
-        (config.modifiers?.strike || 1);
-      const total = modifier(
-        modifierContext(time, {
-          event,
-          runtime,
-          damageInputs: { strikeSigilBonus: sigilBonus, equipmentBonus: relicBonus },
-          damageContributors: contributors
-        }),
-        base
-      );
+      // Equipment scales the completed profession result. A live query sees only grants already applied.
+      const equipmentFactor = usesEquipment
+        ? relicStrikeMultiplier(
+            {
+              config,
+              helpers: activeProfession.catalog,
+              relic: relicContext.relic,
+              totals: runtime?.totals,
+              environmentDamage: runtime?.environmentDamage,
+              encounter: runtime?.encounter,
+              conditionState: runtime?.conditionState,
+              liveEffects: runtime ? runtime.liveEffects : recordedRelicBuffs
+            },
+            event.at === time ? event : { ...event, at: time }
+          )
+        : 1;
 
       if (contributors) {
-        // Query-owned factors sit outside the profession hook; any untraced remainder stays visible as one entry.
-        traceFactor(contributors, 'target.vulnerability', CONDITION.VULNERABILITY, vulnerability);
-        traceFactor(contributors, 'equipment.night', 'Night sigil', timeOfDayMultiplier);
-        traceFactor(contributors, 'equipment.sigil-multiplier', 'Sigils', sigils.strikeMultiplier || 1);
-        traceFactor(contributors, 'equipment.utility', 'Utility', utilityMultiplier);
-        // Fractal buffs are currently the only source of playerStrike; revise this label if another source is added.
-        traceFactor(contributors, 'config.player-strike', 'Fractal buffs', playerMultiplier);
-        traceFactor(contributors, 'config.strike', 'Configured modifier', config.modifiers?.strike || 1);
         closeContributions(contributors, total);
+        traceFactor(contributors, 'equipment.strike', 'Equipment', equipmentFactor);
       }
 
-      return total;
+      return total * equipmentFactor;
     },
     conditionMultiplier(
       name: string,
@@ -736,6 +762,7 @@ export function createGw2CombatQuery({
 }
 
 export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
+  readonly environmentDamage?: number;
   readonly output?: 'detailed' | 'score' | 'damage' | 'observations';
   readonly liveEffects?: { readonly queries: LiveEffectQueries };
   readonly activeWeaponSet?: number;
@@ -771,7 +798,7 @@ export interface Gw2CombatQuery {
     sampledStats?: Gw2ResolvedStats,
     damageContributors?: Gw2ModifierContribution[]
   ): Gw2CriticalResult;
-  /** An optional contributor sink receives every traced factor; it never changes the returned multiplier. */
+  /** Return the complete outgoing multiplier for a scaling strike, optionally tracing each contribution. */
   strikeMultiplier(
     event: SimulationEvent,
     time: number,

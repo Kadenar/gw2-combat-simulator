@@ -8,7 +8,11 @@ import { ACTOR, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { AnnouncementEmission } from '#gw2/platform/effects/emission.js';
 import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import type { Gw2RelicContext, Gw2RelicRule } from '#gw2/platform/equipment/relics/types.js';
+import type {
+  Gw2RelicContext,
+  Gw2RelicRule,
+  Gw2RelicStrikeQueryContext
+} from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 interface TimedBuffProcOptions {
@@ -112,7 +116,11 @@ export function recordTimedBuffProc(
 }
 
 /** Relic modifiers query only accepted self applications, including historical intervals. */
-export function relicBuffActive(ctx: Pick<Gw2RelicContext, 'liveEffects'>, kind: string, at: number): boolean {
+export function relicBuffActive(
+  ctx: Pick<Gw2RelicStrikeQueryContext, 'liveEffects'>,
+  kind: string,
+  at: number
+): boolean {
   return (ctx.liveEffects?.queries.stacks(kind, at, 1) ?? 0) > 0;
 }
 

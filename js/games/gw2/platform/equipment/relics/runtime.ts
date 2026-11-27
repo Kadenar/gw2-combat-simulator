@@ -45,12 +45,17 @@ function queryOwner(equipped: RelicInstance, precasts: readonly RelicInstance[] 
   });
 }
 
+/** A relic selected for both roles contributes once in combat and detached queries. */
+function precastInstances(equipped: RelicInstance, precastNames: readonly string[]) {
+  return normalizePrecastRelics(precastNames)
+    .map(createInstance)
+    .filter((relic) => relic.id !== equipped.id);
+}
+
 /** A relic selected for equipment and precasting shares one state, including cooldowns started before combat. */
 export function createRelicRuntime(name: unknown, precastNames: readonly string[] = []): Readonly<Gw2RelicRuntime> {
   const equipped = createInstance(name);
-  const precasts = normalizePrecastRelics(precastNames)
-    .map(createInstance)
-    .filter((relic) => relic.id !== equipped.id);
+  const precasts = precastInstances(equipped, precastNames);
   const instances = [equipped, ...precasts];
   const { rules, state } = equipped;
   const { emitActionEffects, action, afterHit, precombatStrike, control, condition } = rules;
@@ -116,11 +121,15 @@ export function createRelicRuntime(name: unknown, precastNames: readonly string[
   } satisfies Gw2RelicRuntime);
 }
 
-/** Detached queries retain the equipped relic's base context, without replaying earned stacks or precast buffs. */
-export function createRelicTimelineQueries(name: unknown, events: readonly SimulationEvent[]): Gw2RelicQueryOwner {
+/** Detached strike rules can read recorded grants. Private stacks start empty. */
+export function createRelicTimelineQueries(
+  name: unknown,
+  events: readonly SimulationEvent[],
+  precastNames: readonly string[] = []
+): Gw2RelicQueryOwner {
   const relic = createInstance(name);
   relic.state.timelineEvents = events;
-  return queryOwner(relic);
+  return queryOwner(relic, precastInstances(relic, precastNames));
 }
 
 /** Attribute controls may assume an Aristocracy window without accessing a live simulation's mutable state. */

@@ -7,6 +7,8 @@ import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-qu
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { playerHealthFraction, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { BOON, CONDITION } from '#gw2/platform/constants.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import { queryDamagePreview } from '#gw2/platform/skill-damage/query-preview.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
@@ -14,6 +16,45 @@ import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-10, `${actual} != ${expected}`);
+
+// All three callers sample the same prepared stacks before the hit can earn another stack.
+test('a prepared relic contributes once to the query, preview, and resolved scaling strike', () => {
+  const skill = { id: 991001, name: 'Strike', effects: [{ type: 'strike', coefficient: 1, weaponStrength: 1000 }] };
+  const profession = defineTestProfession({
+    id: 'strike-preview',
+    name: 'Strike preview',
+    catalog: createCanonicalCatalog({ skills: [skill] })
+  });
+  const config = { relic: 'Thief' };
+  const inputs = { [`relic:${RELIC_IDS.THIEF}`]: 2 };
+  const query = createGw2CombatQuery({ profession, config });
+  const relic = createRelicRuntime(config.relic);
+  relic.prepareDamagePreview(inputs);
+  const event = { type: 'damage', at: 0, skillId: skill.id, actorType: 'player' };
+  const multiplier = query.strikeMultiplier(event, 0, { relic });
+  assert.ok(multiplier > query.strikeMultiplier(event, 0));
+  close(queryDamagePreview(profession, config, inputs).strikeMultiplier, multiplier);
+  const result = executeDamageOccurrence(
+    profession,
+    config,
+    {
+      id: 'strike',
+      effect: { kind: 'skill', id: skill.id },
+      name: skill.name,
+      source: 'Skill',
+      icon: '',
+      unit: 'activation'
+    },
+    inputs
+  );
+  const { damageCalculation } = result.events.find((packet) => packet.damageCalculation);
+  close(damageCalculation.outgoingMultiplier, multiplier);
+  const factors = damageCalculation.outgoingContributors.filter((entry) => entry.id === 'equipment.strike');
+  assert.deepEqual(
+    factors.map((entry) => entry.value),
+    [multiplier]
+  );
+});
 
 // Preparation and assumption reactions must settle before the generic player calculation samples state.
 test('preview calculations observe prepared state and settled assumptions without a skill override', () => {
