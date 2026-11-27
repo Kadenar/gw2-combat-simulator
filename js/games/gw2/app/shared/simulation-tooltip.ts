@@ -457,7 +457,7 @@ function tooltipEffectName(value: string): string {
 }
 
 /** Preserve recipient and actor differences when grouping repeated payloads into readable facts. */
-function effectContext(effect: SkillEffect, factName: string): string {
+function effectContext(effect: SkillEffect, factName: string, actorHeading?: { strikeName: string }): string {
   const audience = effect.audience;
   const parts: string[] = [];
 
@@ -478,13 +478,14 @@ function effectContext(effect: SkillEffect, factName: string): string {
   else if (audience?.recipients === RECIPIENT.SELF)
     parts.push(effect.actorType === ACTOR.SUMMON ? 'on the companion' : 'on yourself');
 
-  if (effect.actorType === ACTOR.SUMMON) parts.push('companion effect');
+  if (effect.actorType === ACTOR.SUMMON && !actorHeading) parts.push('companion effect');
 
   // Packet names distinguish variants, but repeating the displayed effect name adds no information.
   // Generic component keys address patches; only meaningful variant names belong in displayed facts.
   if (
     effect.name &&
     effect.name !== 'Strike' &&
+    !(effect.type === 'strike' && effect.name === actorHeading?.strikeName) &&
     tooltipEffectName(effect.name).toLowerCase() !== factName.toLowerCase()
   )
     parts.push(effectNames.get(effect.name.toLowerCase()) ?? effect.name);
@@ -495,7 +496,11 @@ function effectContext(effect: SkillEffect, factName: string): string {
 }
 
 /** Format declarative payloads only; repeated applications retain their individual stack counts and durations. */
-export function simulationEffectFacts(effects: readonly SkillEffect[] = [], context = ''): SimulationTooltip {
+export function simulationEffectFacts(
+  effects: readonly SkillEffect[] = [],
+  context = '',
+  actorHeading?: { strikeName: string }
+): SimulationTooltip {
   const facts = new Map<string, TooltipFact>();
   let incomplete = false;
   const add = (effect: SkillEffect, name: string, detail: string, stacks?: number) => {
@@ -503,7 +508,7 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
     name = tooltipEffectName(rawName);
     // Exact ID or display-name icons take precedence over the declaration's generic icon.
     const icon = MODIFIER_EFFECT_ICONS[rawName] || MODIFIER_EFFECT_ICONS[name] || effect.icon;
-    const qualifier = [context, effectContext(effect, name)].filter(Boolean).join(' · ');
+    const qualifier = [context, effectContext(effect, name, actorHeading)].filter(Boolean).join(' · ');
     const fullDetail = [detail, qualifier].filter(Boolean).join(' - ');
     const key = JSON.stringify([name, fullDetail, stacks, effect.sourceId, effect.actorType, effect.audience]);
     const applications = effect.applications ?? 1;

@@ -114,7 +114,8 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 680,
-    interruptMode: 'per-packet',
+    interruptCommitMs: 480,
+    retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.8 },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4 }

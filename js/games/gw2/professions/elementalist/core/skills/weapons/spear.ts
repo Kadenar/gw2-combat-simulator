@@ -35,9 +35,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 640,
-    // EVTC damage lands 520ms after activation; once the projectile reaches that
-    // commit point, preserve its impact even if the remaining animation is cancelled.
+    // Once the projectile commits, early cuts hold the next cast until 640 ms. The 600 ms tick releases it.
     interruptCommitMs: 520,
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 600,
     effects: [
       {
         type: 'strike',
@@ -498,9 +499,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 640,
-    // EVTC damage lands 520ms after activation; once the projectile reaches that
-    // commit point, preserve its strike and vulnerability if the animation is cancelled.
+    // After the javelin commits, a cut holds the next cast until 640 ms unless it reaches the 600 ms release.
     interruptCommitMs: 520,
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 600,
     effects: impactEffects(
       { atMs: 520, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [

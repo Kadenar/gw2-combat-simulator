@@ -46,8 +46,9 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     }
   },
   [ID.PHANTASMAL_MAGE]: {
-    repeatDamageAtMs: 3920,
-    repeatSpawnAtMs: 4160
+    // The repeated mage uses the same reference cast end as the first attack.
+    repeatDamageAtMs: 3800,
+    repeatSpawnAtMs: 4040
   },
   [ID.PHANTASMAL_WARLOCK]: {
     repeatDamageAtMs: REPEATED_WARLOCK_ATTACK.damageAtMs,

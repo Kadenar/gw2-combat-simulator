@@ -116,6 +116,9 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
     // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 440,
     interruptCommitMs: 280,
+    // A committed cut holds the next cast until 440 ms unless the swing reaches its 400 ms release.
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 400,
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',

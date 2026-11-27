@@ -54,20 +54,22 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_5',
 
     cooldown: 20,
-    // The summon owns its attack and conversion timeline independently of the player cast.
+    // These offsets start at the end of the 880 ms reference cast. The mage commits at 560 ms.
     phantasmTiming: {
-      damageAtMs: 2000,
-      spawnAtMs: 2240
+      damageAtMs: 1880,
+      spawnAtMs: 2120
     },
     phantasm: true,
-    phantasmSummonProgress: 560 / 760,
+    phantasmSummonProgress: 560 / 880,
     resource: {
       mode: 'phantasm',
       count: 1
     },
-    castTimeMs: 760,
-    // The mage has already spawned before the aftercast ends, so a later cancellation retains its clone conversion.
+    castTimeMs: 880,
+    // After the summon commits, cuts hold the next cast until 880 ms unless they reach the 840 ms release.
     interruptCommitMs: 560,
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 840,
     effects: [
       {
         type: 'strike',

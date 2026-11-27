@@ -1,6 +1,5 @@
 import {
   fromProfile,
-  maximumBonusFact,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
@@ -12,7 +11,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import { ACTOR, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
-import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerSelectedAmbush } from '#gw2/professions/mesmer/specializations/mirage/mechanics/ambush.js';
@@ -30,50 +29,59 @@ export const mirageTooltips = {
       'Strike and confuse your target. Each axe clone present when the cast begins performs its own additional strike and applies confusion.'
     ),
     ...Object.fromEntries(
-      Object.keys(MESMER_MIRAGE_AMBUSH_SKILLS)
-        .map((weapon) => MESMER_MIRAGE_AMBUSH_SKILLS[weapon].id)
-        .map((id) => [
-          id,
-          (balanceContext, entity) => {
-            const selected = balanceContext.catalog.skillsById.get(entity.id)!;
-            // Describe repeated statuses with the same independent cadence used by the runtime.
-            const { player } = mesmerSelectedAmbush(balanceContext.catalog, selected.id);
-            const playerPackets = (player.ticks ?? player.statusAtMs)?.length ?? 1;
-            // Group identical applications within each actor's ambush.
-            const facts = [false, true].flatMap(
-              (clone) =>
-                simulationEffectFacts(
-                  (selected.effects || [])
-                    .filter((effect) => effect.type !== 'control' && (effect.source === 'Clone') === clone)
-                    .map((effect) => {
-                      const projected = effect.source === 'Player' || effect.name === CONDITION.VULNERABILITY;
-                      const repeated = projected && (effect.type === 'boon' || effect.name === CONDITION.VULNERABILITY);
-                      return {
-                        ...effect,
-                        actorType: clone ? ACTOR.SUMMON : ACTOR.PLAYER,
-                        applications: (effect.applications ?? 1) * (repeated ? playerPackets : 1),
-                        ...(effect.type === 'boon' && (clone || projected)
-                          ? {
-                              audience: {
-                                recipients: clone || selected.id === ID.CHAOS_VORTEX ? RECIPIENT.PARTY : RECIPIENT.SELF,
-                                ...(clone || selected.id === ID.CHAOS_VORTEX ? { maximumRecipients: 5 } : {})
-                              }
+      Object.entries(MESMER_MIRAGE_AMBUSH_SKILLS).map(([weapon, { id }]) => [
+        id,
+        (balanceContext, entity) => {
+          const selected = balanceContext.catalog.skillsById.get(entity.id)!;
+          // Describe repeated statuses with the same independent cadence used by the runtime.
+          const { player } = mesmerSelectedAmbush(balanceContext.catalog, selected.id);
+          const playerPackets = (player.ticks ?? player.statusAtMs)?.length ?? 1;
+          // Each tab groups one attacker's applications and keeps boon recipients on their own rows.
+          const factTabs = [false, true]
+            .map((clone) => ({
+              label: clone ? 'Each clone' : 'Your ambush',
+              facts: simulationEffectFacts(
+                (selected.effects || [])
+                  .filter((effect) => (effect.source === 'Clone') === clone)
+                  .map((effect) => {
+                    if (effect.type === 'control') return effect;
+
+                    const projected = effect.source === 'Player' || effect.name === CONDITION.VULNERABILITY;
+                    const repeated = projected && (effect.type === 'boon' || effect.name === CONDITION.VULNERABILITY);
+                    return {
+                      ...effect,
+                      actorType: clone ? ACTOR.SUMMON : ACTOR.PLAYER,
+                      applications: (effect.applications ?? 1) * (repeated ? playerPackets : 1),
+                      ...(effect.type === 'boon' && (clone || projected)
+                        ? {
+                            audience: {
+                              recipients: clone || selected.id === ID.CHAOS_VORTEX ? RECIPIENT.PARTY : RECIPIENT.SELF,
+                              ...(clone || selected.id === ID.CHAOS_VORTEX ? { maximumRecipients: 5 } : {})
                             }
-                          : {})
-                      };
-                    }),
-                  clone ? 'per clone with Infinite Horizon, when cloak is granted' : 'player ambush'
-                ).facts
-            );
-            facts.push(...simulationEffectFacts(selected.effects?.filter((effect) => effect.type === 'control')).facts);
-            return {
-              description:
-                "Use this weapon's ambush during the Mirage Cloak ambush window, then consume that window. With Infinite Horizon, existing clones perform their own weapon ambush when cloak is granted. Ambush traits can add further effects." +
-                (selected.id === ID.MIRAGE_THRUST ? ' This player ambush also creates a clone.' : ''),
-              facts
-            };
-          }
-        ])
+                          }
+                        : {})
+                    };
+                  }),
+                '',
+                { strikeName: clone ? 'Clone attack' : 'Player attack' }
+              ).facts
+            }))
+            .filter((tab) => tab.facts.length);
+          const ambush =
+            selected.id === ID.IMAGINARY_AXES
+              ? 'Throw axes that inflict torment. '
+              : selected.id === ID.CHAOS_VORTEX
+                ? 'Inflict bleeding, torment, and confusion on your target. Grant might and fury to your party. '
+                : '';
+          return {
+            description:
+              `${ambush}Gaining Mirage Cloak readies one ambush for you. With Infinite Horizon, it also triggers an ambush from each of your ${weapon.toLowerCase()} clones.` +
+              (selected.id === ID.MIRAGE_THRUST ? ' Your ambush also creates a clone.' : ''),
+            facts: [],
+            factTabs
+          };
+        }
+      ])
     ),
     ...Object.fromEntries(
       [ID.FALSE_OASIS, ID.CRYSTAL_SANDS].map((id) => [
@@ -149,7 +157,7 @@ export const mirageTooltips = {
       RECIPIENT.PARTY
     ),
     [TRAIT.PHANTOM_PAIN]: traitTooltip(
-      'Shattering grants damage stacks for yourself and each clone spent. Stacks increase personal strike damage and condition damage.',
+      'Using a shatter gives you one stack, plus one more per clone you shatter. Each stack increases your strike and condition damage.',
       [
         fromProfile(TRAIT.PHANTOM_PAIN, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
         fromProfile(
@@ -158,8 +166,7 @@ export const mirageTooltips = {
           'Condition damage per stack',
           tooltipPercent
         ),
-        maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike damage bonus'),
-        maximumBonusFact('conditionDamageIncreasePerStack', 'maximumStacks', 'Maximum condition damage bonus'),
+        ['maximumStacks', 'Maximum stacks'],
         ['duration', 'Stack duration', tooltipSeconds]
       ]
     ),
@@ -167,13 +174,15 @@ export const mirageTooltips = {
       "Mirage Cloak also enables your clones to perform their weapon's ambush attacks. Eligible clones created during the cloak window can also ambush."
     ),
     [TRAIT.ELUSIVE_MIND]: outsideScopeTooltip,
-    [TRAIT.DUNE_CLOAK]: traitTooltip(
-      'Gaining Mirage Cloak reduces Mind Wrack and Cry of Frustration recharge. Shattering enough clones grants Mirage Cloak.',
-      [
-        ['rechargeReduction', 'Recharge removed', tooltipSeconds],
-        ['threshold', 'Clones required'],
-        ['duration', 'Granted Mirage Cloak duration', tooltipSeconds]
-      ]
-    )
+    // Show the selected patch's threshold and durations beside the action each value belongs to.
+    [TRAIT.DUNE_CLOAK]: ({ catalog }, { id }) => {
+      const clones = balanceNumber(catalog, id, 'threshold');
+      const duration = tooltipSeconds(balanceNumber(catalog, id, 'duration'));
+      const reduction = tooltipSeconds(balanceNumber(catalog, id, 'rechargeReduction'));
+      return {
+        description: `Shatter at least ${clones} ${clones === 1 ? 'clone' : 'clones'} at once to gain Mirage Cloak for ${duration}. Each time you gain Mirage Cloak, reduce the remaining recharge of Mind Wrack and Cry of Frustration by ${reduction}.`,
+        facts: []
+      };
+    }
   }
 } satisfies ProfessionTooltips;

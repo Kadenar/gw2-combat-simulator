@@ -16,6 +16,9 @@ import { MAX_MIGHT_STACKS } from '#gw2/platform/combat/boons.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
+// Round the displayed duration bonus because the base shatter uses a repeating fraction.
+const cryOfPainPercent = (bonus: number) => tooltipPercent(bonus, { maximumFractionDigits: 2 });
+
 /** Name the active specialization's skills so slot numbers cannot be mistaken for hit ordering. */
 function shatterNames(specialization?: string) {
   switch (specialization) {
@@ -38,28 +41,30 @@ export const mesmerIllusionsTooltips = {
       specialization === 'Troubadour'
         ? [
             fromSkill(ID.FLUSTERING_FLUTE, 'cryOfPainAdditionalStacks', 'Additional confusion stacks'),
-            fromSkill(ID.FLUSTERING_FLUTE, 'cryOfPainDurationMultiplier', 'Confusion duration', tooltipPercent)
+            fromSkill(ID.FLUSTERING_FLUTE, 'cryOfPainDurationMultiplier', 'Confusion duration', cryOfPainPercent)
           ]
         : [
             ['additionalStacks', 'Additional confusion stacks'],
-            ['durationMultiplier', 'Confusion duration', tooltipPercent]
+            ['durationMultiplier', 'Confusion duration', cryOfPainPercent]
           ]
     )(context, entity),
-  [TRAIT.COMPOUNDING_POWER]: traitTooltip(
-    'Creating illusion resources grants temporary stacks that increase your strike and condition damage. Illusion strikes do not inherit the personal strike bonus.',
-    [
-      fromProfile(TRAIT.COMPOUNDING_POWER, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
-      fromProfile(
-        TRAIT.COMPOUNDING_POWER,
-        'conditionDamageIncreasePerStack',
-        'Condition damage per stack',
-        tooltipPercent
-      ),
-      maximumBonusFact('damageIncreasePerStack', 'maximumStacks', 'Maximum strike damage bonus'),
-      maximumBonusFact('conditionDamageIncreasePerStack', 'maximumStacks', 'Maximum condition damage bonus'),
-      ['duration', 'Stack duration', tooltipSeconds]
-    ]
-  ),
+  [TRAIT.COMPOUNDING_POWER]: (context, entity, specialization) => {
+    const gain =
+      specialization === 'Virtuoso'
+        ? 'stock a blade'
+        : specialization === 'Troubadour'
+          ? 'gain a note'
+          : 'create a clone';
+    return traitTooltip(
+      `Gain one stack each time you summon a phantasm or ${gain}. Each stack increases your strike and condition damage. Your illusions also benefit from the condition damage bonus.`,
+      [
+        ['damageIncreasePerStack', 'Strike damage per stack', tooltipPercent],
+        ['conditionDamageIncreasePerStack', 'Condition damage per stack', tooltipPercent],
+        ['maximumStacks', 'Maximum stacks'],
+        ['duration', 'Stack duration', tooltipSeconds]
+      ]
+    )(context, entity);
+  },
   [TRAIT.MASTER_OF_MISDIRECTION]: traitTooltip('Shatters and instrument skills recharge faster.', [
     ['rechargeMultiplier', 'Recharge', tooltipFactorChange]
   ]),

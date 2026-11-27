@@ -431,6 +431,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     skillFamily: 'Weapon skill',
     castTimeMs: 520,
     interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.8 },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 10 }

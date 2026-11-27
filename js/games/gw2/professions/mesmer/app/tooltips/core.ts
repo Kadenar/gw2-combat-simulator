@@ -34,46 +34,65 @@ const phantasmTooltip: DescribeSimulationTooltip = (balanceContext, entity, _spe
   const selected = balanceContext.catalog.skillsById.get(entity.id)! as MesmerSkill;
   const specialization = equippedEliteSpecialization(balanceContext.catalog, build);
   const timing = mesmerPhantasmTiming(selected, specialization);
-  const facts = (selected.effects || []).flatMap((effect) => {
-    const companion = effect.actorType === ACTOR.SUMMON;
-    const entityIndex = effect.type === 'condition' ? effect.phantasmEntityIndex : undefined;
-    const qualifier = companion
-      ? entityIndex == null
-        ? 'per phantasm'
-        : `phantasm ${entityIndex + 1} only`
-      : 'player effect';
+  // Each tab names the attacker once. Keep labels that distinguish individual co-summoned phantasms.
+  const factTabs = [false, true]
+    .map((companion) => ({
+      label: companion ? (selected.id === ID.PHANTASMAL_MAGE ? 'Each mage' : 'Each phantasm') : 'Your attack',
+      facts: (selected.effects || [])
+        .filter((effect) => (effect.actorType === ACTOR.SUMMON) === companion)
+        .flatMap((effect) => {
+          const heading = { strikeName: companion ? 'Phantasm attack' : 'Mesmer attack' };
+          const entityIndex = effect.type === 'condition' ? effect.phantasmEntityIndex : undefined;
+          const qualifier = entityIndex == null ? '' : `phantasm ${entityIndex + 1} only`;
 
-    if (effect.type !== 'condition' || !effect.packetLabel) return simulationEffectFacts([effect], qualifier).facts;
+          if (effect.type !== 'condition' || !effect.packetLabel)
+            return simulationEffectFacts([effect], qualifier, heading).facts;
 
-    const label = effect.packetLabel;
-    const packetCount = (index: number) => phantasmAttackCycle(selected, timing, index, label).initial?.length;
-    const factsFor = (count: number | undefined, recipient: string) =>
-      simulationEffectFacts(
-        [count ? { ...effect, ticks: undefined, stacks: (effect.stacks ?? 1) / count, applications: count } : effect],
-        recipient
-      ).facts;
+          const label = effect.packetLabel;
+          const packetCount = (index: number) => phantasmAttackCycle(selected, timing, index, label).initial?.length;
+          const factsFor = (count: number | undefined, recipient: string) =>
+            simulationEffectFacts(
+              [
+                count
+                  ? { ...effect, ticks: undefined, stacks: (effect.stacks ?? 1) / count, applications: count }
+                  : effect
+              ],
+              recipient,
+              heading
+            ).facts;
 
-    if (entityIndex != null) return factsFor(packetCount(entityIndex), qualifier);
+          if (entityIndex != null) return factsFor(packetCount(entityIndex), qualifier);
 
-    // Co-summoned phantasms share one fact only when they apply the same number of packets.
-    const entities = Math.max(
-      selected.resource?.count ?? 1,
-      selected.resource?.clarityCount ?? 0,
-      timing?.damageTicksByEntity?.length ?? 0
-    );
-    const counts = Array.from({ length: entities }, (_, index) => packetCount(index));
-    return counts.every((count) => count === counts[0])
-      ? factsFor(counts[0], qualifier)
-      : counts.flatMap((count, index) => factsFor(count, `phantasm ${index + 1}`));
-  });
-  facts.push({ name: 'Base phantasms summoned', detail: tooltipDecimal(tooltipNumber(selected.resource!, 'count')) });
+          // Co-summoned phantasms share one fact only when they apply the same number of packets.
+          const entities = Math.max(
+            selected.resource?.count ?? 1,
+            selected.resource?.clarityCount ?? 0,
+            timing?.damageTicksByEntity?.length ?? 0
+          );
+          const counts = Array.from({ length: entities }, (_, index) => packetCount(index));
+          return counts.every((count) => count === counts[0])
+            ? factsFor(counts[0], qualifier)
+            : counts.flatMap((count, index) => factsFor(count, `phantasm ${index + 1}`));
+        })
+    }))
+    .filter((tab) => tab.facts.length);
+  const count = tooltipNumber(selected.resource!, 'count');
+  const resource = mesmerResourceKind(specialization);
+  const conversion =
+    resource === 'clones' ? 'becomes a clone' : resource === 'notes' ? 'grants a note' : 'stocks a blade';
+  const mage = selected.id === ID.PHANTASMAL_MAGE;
+  const summon =
+    count === 1 ? (mage ? 'a mage' : 'a phantasm') : `${tooltipDecimal(count)} ${mage ? 'mages' : 'phantasms'}`;
   return {
     description:
-      `Summon phantasms to attack your target and generate ${mesmerResourceKind(specialization)}. Effects from your character apply once per cast; phantasm effects are listed per summon. Traits can summon extra phantasms or make them attack again.` +
+      (mage
+        ? `Strike and burn your target. Summon ${summon} to burn, confuse, and daze it. Each mage ${conversion} after attacking.`
+        : `Summon ${summon} to attack your target. Each phantasm ${conversion} after attacking.`) +
       (selected.id === ID.PHANTASMAL_LANCER
-        ? ' Consuming Clarity summons an additional Lancer; only that second phantasm immobilizes.'
+        ? ' Consuming Clarity summons a second lancer that also immobilizes the target.'
         : ''),
-    facts
+    facts: [],
+    factTabs
   };
 };
 

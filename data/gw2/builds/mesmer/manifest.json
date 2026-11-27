@@ -119,16 +119,16 @@
         "label": "Condition (Staff-Axe/Torch) - Dune Cloak",
         "build": "data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
-        "benchmarkDps": 40434,
+        "benchmarkDps": 40623,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-mirage-dune-cloak-staff-axe-torch",
         "upToDate": true,
-        "benchmarkApm": 106,
+        "benchmarkApm": 105.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39848, "phase": 39848 },
-          "80-60": { "cumulative": 40864, "phase": 41933 },
-          "60-40": { "cumulative": 40041, "phase": 38512 },
-          "40-20": { "cumulative": 39752, "phase": 38885 },
-          "20-0": { "cumulative": 40434, "phase": 43694 }
+          "100-80": { "cumulative": 39428, "phase": 39428 },
+          "80-60": { "cumulative": 40669, "phase": 41985 },
+          "60-40": { "cumulative": 40083, "phase": 38992 },
+          "40-20": { "cumulative": 39861, "phase": 39191 },
+          "20-0": { "cumulative": 40623, "phase": 44395 }
         }
       }
     ]
@@ -140,16 +140,16 @@
         "label": "Power (Spear / Greatsword)",
         "build": "data/gw2/builds/mesmer/b-power-virtuoso-spear-greatsword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-virtuoso-spear-greatsword-bench.json",
-        "benchmarkDps": 42212,
+        "benchmarkDps": 42249,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-virtuoso-spear-greatsword",
         "upToDate": true,
-        "benchmarkApm": 78.9,
+        "benchmarkApm": 79,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 46323, "phase": 46323 },
           "80-60": { "cumulative": 41605, "phase": 37761 },
           "60-40": { "cumulative": 42289, "phase": 43736 },
           "40-20": { "cumulative": 40619, "phase": 36261 },
-          "20-0": { "cumulative": 42212, "phase": 50142 }
+          "20-0": { "cumulative": 42249, "phase": 50404 }
         }
       },
       {

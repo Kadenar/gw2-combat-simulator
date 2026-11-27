@@ -84,6 +84,9 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     energyCost: 0,
     castTimeMs: 560,
     interruptCommitMs: 440,
+    // Committed cuts hold the next cast until 560 ms. A cut at 520 ms releases it immediately.
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 520,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(
       { atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },

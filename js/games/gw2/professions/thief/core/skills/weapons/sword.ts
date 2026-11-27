@@ -66,6 +66,9 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillD
     cooldown: 0,
     castTimeMs: 520,
     interruptCommitMs: 400,
+    // Committed cuts hold the next cast until 520 ms. A cut at 480 ms releases it immediately.
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 480,
     effects: impactEffects(
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
       [

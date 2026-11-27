@@ -469,10 +469,6 @@
       "interruptAfterMs": 440
     },
     {
-      "type": "wait",
-      "durationMs": 80
-    },
-    {
       "type": "cast",
       "skillId": 5690
     },

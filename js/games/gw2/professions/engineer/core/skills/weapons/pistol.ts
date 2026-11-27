@@ -16,6 +16,8 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     castTimeMs: 520,
+    interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
     comboFinishers: [
       {
         ownerId: 'engineer',
@@ -32,7 +34,6 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
           coefficient: 0.4,
           hits: 1,
           name: 'Fragmentation Shot',
-          interruptCommitMs: 360,
           actorType: ACTOR.PLAYER,
           projectile: true
         },
@@ -41,7 +42,6 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
           condition: CONDITION.BLEEDING,
           stacks: 1,
           duration: 6,
-          interruptCommitMs: 360,
           actorType: ACTOR.PLAYER
         }
       ]

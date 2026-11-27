@@ -32,6 +32,10 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     interruptCommitMs: 360,
+    // Early committed cuts recover at 560 ms. Cutting at 520 ms releases the next cast immediately.
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutUntilMs: 560,
+    interruptLockoutReleaseMs: 520,
     // Keep the projectile strike and Bleeding on one committed impact.
     effects: impactEffects(
       { atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },

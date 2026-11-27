@@ -360,10 +360,6 @@
       "interruptAfterMs": 480
     },
     {
-      "type": "wait",
-      "durationMs": 80
-    },
-    {
       "type": "cast",
       "skillId": 28357
     },
@@ -1150,10 +1146,6 @@
       "interruptAfterMs": 480
     },
     {
-      "type": "wait",
-      "durationMs": 80
-    },
-    {
       "type": "cast",
       "skillId": 28357
     },
@@ -1185,10 +1177,6 @@
       "type": "cast",
       "skillId": 26666,
       "interruptAfterMs": 480
-    },
-    {
-      "type": "wait",
-      "durationMs": 80
     },
     {
       "type": "cast",

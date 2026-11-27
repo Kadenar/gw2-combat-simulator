@@ -368,9 +368,11 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
         }
       ]
     },
-    castTimeMs: 440,
-    // Cancelling the aftercast preserves axes already released at the player packet's impact frame.
+    castTimeMs: 520,
+    // Released axes survive a cut. The next cast can start on the 480 ms tick or after full recovery.
     interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 480,
     effects: [],
     effectVariants: playerAmbushEffects()
   }),

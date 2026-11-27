@@ -20,6 +20,19 @@ test('Signet of the Ether resets every phantasm skill cooldown', () => {
   assert.ok(Math.abs(result.steps[4].start - result.steps[3].end) <= 1);
 });
 
+test('Signet of the Ether relocks a reset signet and preserves ongoing recharge', () => {
+  // Observe the same cast before and after its delayed relock, with and without a reset.
+  const recharge = (...commands) =>
+    simulateMesmer(['Signet of the Ether', ...commands]).planningState.cooldownsBySkillId[ID.SIGNET_OF_THE_ETHER];
+  const wait = { type: 'wait', durationMs: 1000 };
+  const reset = { type: 'cooldown-reset' };
+  const original = recharge().readyAtMs;
+
+  assert.equal(recharge(wait).readyAtMs, original);
+  assert.equal(recharge(reset), undefined);
+  assert.ok(recharge(reset, wait).readyAtMs > original);
+});
+
 test('Signet of Illusions passively generates one resource every ten combat seconds', () => {
   const passiveEvents = (specialization) =>
     simulateMesmer(

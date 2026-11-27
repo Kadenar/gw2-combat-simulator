@@ -341,7 +341,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDe
     slot: 'Heal',
     skillFamily: 'Signet',
     cooldown: 30,
-    // Delay self-recharge after resetting phantasms; the recorded reuse permits a 280 ms restart delay.
+    // The signet can relock after a reset during its aftercast.
     tasks: [
       {
         type: 'mesmer.core.relock-signet-ether',
