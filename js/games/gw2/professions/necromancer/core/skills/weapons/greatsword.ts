@@ -74,8 +74,10 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 920,
-    // Once the strike lands, the next skill may safely cancel the remaining Chilling Scythe aftercast.
+    // Interrupting after the strike lands holds the next cast until 880 ms.
     interruptCommitMs: 720,
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutUntilMs: 880,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {

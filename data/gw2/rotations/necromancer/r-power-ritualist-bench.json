@@ -358,10 +358,6 @@
       "interruptAfterMs": 880
     },
     {
-      "type": "wait",
-      "durationMs": 40
-    },
-    {
       "type": "cast",
       "skillId": 30163
     },
