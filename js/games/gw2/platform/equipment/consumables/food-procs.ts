@@ -1,10 +1,9 @@
+/** Resolve critical food procs by catalog ID so combat and isolated occurrences attribute the same payload. */
 import { ACTOR, BOON_NAMES, type BoonId } from '#gw2/platform/constants.js';
 import type { PacketEmission, ProfileEmission } from '#gw2/platform/effects/emission.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-
-/** Critical-strike food procs: the selected food's proc data and the packets a successful proc emits. */
 
 type CriticalFoodEffect = (
   { readonly type: 'boon'; readonly boon: BoonId } | { readonly type: 'condition'; readonly name: string }
@@ -14,7 +13,9 @@ type CriticalFoodEffect = (
 };
 
 interface CriticalFoodProc {
-  readonly type: string;
+  readonly foodId: string;
+  readonly sourceId: string;
+  readonly icon: string;
   readonly chance: number;
   readonly icdMs?: number;
   readonly flatDamage?: number;
@@ -23,24 +24,33 @@ interface CriticalFoodProc {
   readonly nightEffect?: CriticalFoodEffect;
 }
 
-/** The selected food's critical-strike proc, if it has one. */
-export function criticalFoodProc(ctx: Gw2ResolverRuntime): CriticalFoodProc | undefined {
-  const proc = FOOD_DATA[ctx.config.food || '']?.proc as CriticalFoodProc | undefined;
-  return proc?.type === 'critStrike' ? proc : undefined;
+const criticalFoodProcs = new Map<string, CriticalFoodProc>();
+for (const [foodId, food] of Object.entries(FOOD_DATA)) {
+  if (food.proc?.type === 'critStrike')
+    criticalFoodProcs.set(foodId, {
+      ...food.proc,
+      foodId,
+      sourceId: `food.${foodId}`,
+      icon: food.icon || NOURISHMENT_ICON
+    });
+}
+
+export function criticalFoodProc(foodId: string | undefined): CriticalFoodProc | undefined {
+  return foodId === undefined ? undefined : criticalFoodProcs.get(foodId);
 }
 
 /** Enqueues each food proc directly so its normal damage, condition, or boon handler resolves it. */
-export function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const proc = criticalFoodProc(ctx);
-
-  if (!proc) return;
-
+export function createCriticalFoodEffect(
+  ctx: Gw2ResolverRuntime,
+  event: Gw2ResolverEvent,
+  proc: CriticalFoodProc
+): void {
   const conditionalEffect = ctx.config.timeOfDay === 'night' ? proc.nightEffect : proc.dayEffect;
   const commonEvent = {
     at: event.at,
     skillName: proc.name,
     source: 'Food',
-    sourceId: `food.${(proc.name || 'proc').toLowerCase()}`,
+    sourceId: proc.sourceId,
     actorType: ACTOR.EFFECT,
     ownerActorType: ACTOR.PLAYER,
     triggeredBy: event.skillName
@@ -105,7 +115,7 @@ export function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2Reso
       at: event.at,
       sourceSkill: event.skillName,
       detail: '',
-      icon: String(FOOD_DATA[ctx.config.food || '']?.icon || NOURISHMENT_ICON)
+      icon: proc.icon
     }
   });
 }

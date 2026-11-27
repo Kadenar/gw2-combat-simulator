@@ -1,7 +1,7 @@
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { createCriticalFoodEffect } from '#gw2/platform/equipment/consumables/food-procs.js';
+import { createCriticalFoodEffect, criticalFoodProc } from '#gw2/platform/equipment/consumables/food-procs.js';
 import { RELIC_RULES } from '#gw2/platform/equipment/relics/rules/index.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { createSigilDamagePayload } from '#gw2/platform/equipment/sigils/proc-events.js';
@@ -63,13 +63,19 @@ export function executeDamageOccurrence(
     effect.kind === 'profession' ? native.damageEffects?.find((entry) => entry.id === effect.id) : undefined;
   const relic = effect.kind === 'relic' ? RELIC_RULES[effect.id] : undefined;
   const sigil = effect.kind === 'sigil' ? SIGIL_PROCS[effect.id] : undefined;
+  const food = effect.kind === 'food' ? criticalFoodProc(effect.id) : undefined;
 
   if (
     (effect.kind === 'profession' && !declared) ||
     (effect.kind === 'relic' && !relic?.damagePayload) ||
-    (effect.kind === 'sigil' && !sigil)
+    (effect.kind === 'sigil' && !sigil) ||
+    (effect.kind === 'food' && !food)
   )
     throw new DamageCalculationError('unsupported', 'Damage calculation not implemented for this effect.');
+
+  // A stale row must still match the saved build before its food can emit any packets.
+  if (food && food.foodId !== baseConfig.food)
+    throw new DamageCalculationError('missing-input', `Select ${food.foodId} in the build to measure this occurrence.`);
 
   const belongs = (event: SimulationEventBase): boolean => {
     if (event.actorType === ACTOR.SUMMON || event.summonOwner != null) return false;
@@ -94,7 +100,7 @@ export function executeDamageOccurrence(
 
     if (effect.kind === 'sigil') return event.sourceId === `sigil.${effect.id}`;
 
-    if (effect.kind === 'food') return event.source === 'Food';
+    if (food) return event.source === 'Food' && event.sourceId === food.sourceId;
 
     return declared?.sourceIds.includes(event.sourceId) === true;
   };
@@ -126,15 +132,19 @@ export function executeDamageOccurrence(
       // Isolated measurement evaluates the earned payload directly, including Doom's eventual next-hit condition.
       for (const event of createSigilDamagePayload(effect.id, sigil, occurrence.name))
         runtime.effects.emit({ kind: 'packet', event });
-    } else if (effect.kind === 'food')
-      createCriticalFoodEffect(runtime, {
-        type: 'proc',
-        at: 0,
-        source: 'Food',
-        sourceId: effect.id,
-        actorType: ACTOR.EFFECT,
-        skillName: occurrence.name
-      });
+    } else if (food)
+      createCriticalFoodEffect(
+        runtime,
+        {
+          type: 'proc',
+          at: 0,
+          source: 'Food',
+          sourceId: food.sourceId,
+          actorType: ACTOR.EFFECT,
+          skillName: occurrence.name
+        },
+        food
+      );
     else if (declared) declared.emit(runtime.mechanics, inputs);
   };
 

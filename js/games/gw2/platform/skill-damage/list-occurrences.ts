@@ -1,4 +1,5 @@
-import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
+import { criticalFoodProc } from '#gw2/platform/equipment/consumables/food-procs.js';
+import { NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { RELIC_RULES } from '#gw2/platform/equipment/relics/rules/index.js';
@@ -55,13 +56,13 @@ export function damageOccurrences(profession: RuntimeProfession<object>, config:
     });
   }
 
-  const food = config.food && FOOD_DATA[config.food];
+  const food = criticalFoodProc(config.food);
 
-  if (food && 'proc' in food && food.proc)
+  if (food)
     result.push({
-      id: `food:${config.food}`,
-      effect: { kind: 'food', id: config.food },
-      name: food.proc.name,
+      id: `food:${food.foodId}`,
+      effect: { kind: 'food', id: food.foodId },
+      name: food.name,
       icon: NOURISHMENT_ICON,
       source: 'Food',
       unit: 'occurrence'

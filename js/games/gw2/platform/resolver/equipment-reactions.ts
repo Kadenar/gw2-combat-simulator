@@ -34,21 +34,23 @@ function conditionHelpers(
 export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionContributions {
   const criticalFoodReaction = criticalProcHandler<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'food.critical-strike',
-    chanceOnCriticalHit: (ctx) => criticalFoodProc(ctx)?.chance || 0,
+    chanceOnCriticalHit: (ctx) => criticalFoodProc(ctx.config.food)?.chance || 0,
     actorTypes: [ACTOR.PLAYER],
     when: (ctx, event) =>
-      isGw2PlayerActorEvent(event) && Number(event.coefficient) > 0 && criticalFoodProc(ctx) != null,
+      isGw2PlayerActorEvent(event) && Number(event.coefficient) > 0 && criticalFoodProc(ctx.config.food) != null,
     internalCooldown: {
-      duration: (ctx) => (criticalFoodProc(ctx)?.icdMs || 0) / 1000,
+      duration: (ctx) => (criticalFoodProc(ctx.config.food)?.icdMs || 0) / 1000,
       // The critical-proc handler owns the sampled claim; equipment shares the registry's storage.
       key: 'food.critical-strike'
     },
     randomStream: 'food.critical-strike',
     handler: (ctx, event, _details, application) => {
       // Food procs are discrete events, so materialize every successful sampled application independently.
-      for (let proc = 0; proc < application.quantity; proc += 1) {
-        createCriticalFoodEffect(ctx, event);
-      }
+      const food = criticalFoodProc(ctx.config.food);
+
+      if (!food) return;
+
+      for (let index = 0; index < application.quantity; index++) createCriticalFoodEffect(ctx, event, food);
     }
   });
 
