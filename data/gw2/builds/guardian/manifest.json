@@ -7,15 +7,15 @@
         "build": "data/gw2/builds/guardian/b-power-willbender-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-willbender-spear-greatsword",
-        "benchmarkDps": 44092,
+        "benchmarkDps": 45203,
         "upToDate": true,
-        "benchmarkApm": 76.8,
+        "benchmarkApm": 78.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 48925, "phase": 48925 },
-          "80-60": { "cumulative": 45612, "phase": 42645 },
-          "60-40": { "cumulative": 44886, "phase": 43490 },
-          "40-20": { "cumulative": 44280, "phase": 42560 },
-          "20-0": { "cumulative": 44092, "phase": 43360 }
+          "100-80": { "cumulative": 48542, "phase": 48542 },
+          "80-60": { "cumulative": 45962, "phase": 43648 },
+          "60-40": { "cumulative": 44981, "phase": 43126 },
+          "40-20": { "cumulative": 44650, "phase": 43686 },
+          "20-0": { "cumulative": 45203, "phase": 47561 }
         }
       },
       {

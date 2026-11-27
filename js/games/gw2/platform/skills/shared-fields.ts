@@ -49,6 +49,8 @@ export const SHARED_SKILL_FIELDS = defineFields(
     ammo: numberField({ patch: 'primary' }),
     /** Minimum delay between consecutive casts of an ammo skill, in seconds. */
     ammoCastLockout: numberField({ unit: 'seconds', patch: 'primary' }),
+    /** Fixed delay from the charge recharge anchor until the between-use lockout starts. */
+    ammoLockoutOffsetMs: numberField({ unit: 'milliseconds', runtimeOnly: true }),
 
     // Resources and costs.
     /** Amount of the resource selected by the consuming profession mechanic. */

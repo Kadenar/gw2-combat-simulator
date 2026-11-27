@@ -88,7 +88,8 @@ export function createCastExecution<T extends object>(
 
     if (cast.usesAmmo) {
       cooldownController.spendAmmo(cast.skill, cast.rechargeStart, cast.rechargeWork);
-      cooldownController.setAmmoLockout(cast.skill, cast.ammoLockoutWork, cast.rechargeStart);
+      const lockoutStart = gw2Time(cast.rechargeStart + (cast.skill.ammoLockoutOffsetMs ?? 0) / 1000);
+      cooldownController.setAmmoLockout(cast.skill, cast.ammoLockoutWork, lockoutStart);
     } else if (cast.rechargeWork > 0 && cast.skill.rechargeOwner !== 'actor')
       cooldownController.startRecharge(cast.skill, cast.rechargeStart, cast.rechargeWork, cast.rechargeCompanionId);
 

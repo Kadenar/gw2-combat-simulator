@@ -191,7 +191,7 @@ test('Warrior ammo preserves serial charge recovery', () => {
   assert.deepEqual(result.warnings, []);
 });
 
-test('declarative ammo consumes and recharges shared charges', () => {
+test('delaying ammo reuse preserves the serial charge recharge schedule', () => {
   const catalog = createCanonicalCatalog({
     skills: [
       {
@@ -201,6 +201,7 @@ test('declarative ammo consumes and recharges shared charges', () => {
         castTimeMs: 0,
         cooldown: 5,
         ammoCastLockout: 0.25,
+        ammoLockoutOffsetMs: 120,
         ammo: 2,
 
         effects: [{ type: 'strike', coefficient: 1 }]
@@ -219,6 +220,10 @@ test('declarative ammo consumes and recharges shared charges', () => {
   });
 
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'damage').length, 2);
+  assert.deepEqual(
+    result.steps.filter((step) => step.skillId === 930001).map((step) => step.start),
+    [0, 320]
+  );
   const ammo = result.planningState.ammoBySkillId[930001];
   assert.equal(ammo.charges, 1);
   assert.equal(ammo.maximum, 2);

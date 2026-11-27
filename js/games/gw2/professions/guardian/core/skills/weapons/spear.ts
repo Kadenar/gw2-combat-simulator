@@ -215,13 +215,13 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     weapon: 'Spear',
     slot: 'Weapon_2',
     illuminatedDamageMultiplier: 1.5,
-    // Consecutive charges lock for two seconds while each spent count recharges over eight seconds.
     cooldown: 8,
     ammo: 2,
-    // Start charge recharge and its Alacrity-scaled reuse gap when the dash begins.
+    // The charge starts recharging with the dash. The reuse lockout starts when the dash commits.
     rechargeAnchor: 'castStart',
     rechargeOffsetMs: 0,
     ammoCastLockout: 2,
+    ammoLockoutOffsetMs: 240,
     castTimeMs: 440,
     // Helio occupies the action lane for at most 440 ms, but collision or a
     // queued cancel can release it on any action tick from 240 ms onward.
