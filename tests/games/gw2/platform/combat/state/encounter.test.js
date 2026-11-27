@@ -186,6 +186,50 @@ test('hitbox-sensitive packets follow target transformations and ignore hidden G
   );
 });
 
+// A swap between hits must preserve the activation's weapon even when impact preparation selects equipped strength.
+test('queued strikes share their original weapon roll across a swap on both golem and boss targets', () => {
+  const profession = defineTestProfession({
+    id: 'equipped-strike',
+    name: 'Equipped strike',
+    hooks: {
+      prepareEvent: (_context, event) =>
+        event.type === 'damage' ? { ...event, weaponStrengthSource: 'equipped' } : event
+    }
+  });
+  const strike = {
+    type: 'damage',
+    source: 'Player',
+    sourceId: 'equipped-strike',
+    activationId: 'opening',
+    actorType: 'player',
+    coefficient: 1
+  };
+  for (const encounter of [undefined, { repeatFrom: null, phases: [bossPhase('boss', 0, 0, 100000)] }]) {
+    const result = resolveTestGw2Events({
+      profession,
+      endTime: 2,
+      config: {
+        encounter,
+        primaryWeapon: 'Axe',
+        weaponSet2Primary: 'Rifle',
+        randomness: { mode: 'stochastic', seed: 7 }
+      },
+      events: [
+        { ...strike, at: 0.25 },
+        { type: 'weapon_set', at: 0.5, source: 'Player', sourceId: 'swap', actorType: 'player', weaponSet: 2 },
+        { ...strike, at: 1 }
+      ]
+    });
+    const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.activationId === 'opening');
+    assert.equal(result.planningState.activeWeaponSet, 2);
+    assert.deepEqual(
+      hits.map((event) => event.weaponStrengthProfileId),
+      ['weapon.axe', 'weapon.axe']
+    );
+    assert.equal(hits[0].resolvedWeaponStrength, hits[1].resolvedWeaponStrength);
+  }
+});
+
 // Group damage belongs to health progression and never enters player damage attribution.
 test('group damage reaches health gates, pauses for splits, resumes at the next phase rate, and stops on defeat', () => {
   const split = run(4);

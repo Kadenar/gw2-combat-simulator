@@ -24,11 +24,7 @@ interface WeaponStrengthProfileContext {
   readonly config?: Gw2Config;
 }
 
-/**
- * Selects a profile from canonical metadata and the active weapon set without receiving runtime state. This function is
- * intended to run while an activation is being scheduled, before a delayed
- * packet can observe a later weapon or transform state.
- */
+/** Packet metadata selects the profile. Equipped strikes use the weapon set active when the packet entered the queue. */
 export function weaponStrengthProfileIdForEvent(
   event: SimulationEventBase,
   { skill = null, activeWeaponSet = 1, config = {} }: WeaponStrengthProfileContext = {}
@@ -71,8 +67,7 @@ export function weaponStrengthProfileIdForEvent(
     return 'nonweapon.profession-mechanic';
   }
 
-  // This final configured-weapon branch only runs in the scheduler, where the
-  // active set still represents activation time.
+  // Delivery supplies the source set for skills whose declarations omit a weapon.
   const activeSet = activeWeaponSet === 2 ? 2 : 1;
   const configured = gw2ActivePrimaryWeapon(config, activeSet);
   return weaponStrengthProfileForName(configured)?.id || null;

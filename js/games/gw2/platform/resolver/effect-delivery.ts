@@ -98,7 +98,7 @@ export function createEffectDelivery<T extends object>(
 
   const preparedCombos = new WeakSet<Gw2ResolverEvent>();
   const packetDelivery = new WeakMap<Gw2ResolverEvent, EffectDelivery>();
-  const pendingPreparation = new WeakSet<Gw2ResolverEvent>();
+  const deferredWeaponSets = new WeakMap<Gw2ResolverEvent, number>();
   let announcementOrder = 0;
   let derivedActivationOrder = 0;
   let lethalActivation: string | undefined;
@@ -107,6 +107,25 @@ export function createEffectDelivery<T extends object>(
     if (event.metadata === undefined) return event;
 
     return { ...event, metadata: normalizeEffectMetadata(event.metadata, profession.catalog.metadataFields) };
+  }
+
+  /** Prepare against the live target while selecting equipped strength from the set that submitted the packet. */
+  function prepareEvent(event: SimulationEventBase, sourceWeaponSet: number): SimulationEventBase | null {
+    const prepared = profession.prepareEvent ? profession.prepareEvent(runtime.mechanics, event) : event;
+
+    if (
+      prepared?.weaponStrengthSource !== 'equipped' ||
+      prepared.weaponStrengthProfileId != null ||
+      prepared.weaponStrength != null
+    )
+      return prepared;
+
+    const profileId = weaponStrengthProfileIdForEvent(prepared, {
+      skill: skillForEvent(profession.catalog, prepared) ?? null,
+      activeWeaponSet: sourceWeaponSet,
+      config
+    });
+    return profileId ? { ...prepared, weaponStrengthProfileId: profileId } : prepared;
   }
 
   const handlers = new HandlerRegistry<Gw2Runtime<T>, Gw2ResolverEvent>()
@@ -205,12 +224,8 @@ export function createEffectDelivery<T extends object>(
     // Encounter packets must sample the target at delivery, after any intervening phase transition.
     const deferPreparation =
       (owner != null || event.type === 'buff' || runtime.encounter != null) && gw2Time(event.at) > runtime.time;
-    const prepared =
-      cancelledByCast || deferPreparation
-        ? event
-        : profession.prepareEvent
-          ? profession.prepareEvent(runtime.mechanics, event)
-          : event;
+    const sourceWeaponSet = runtime.activeWeaponSet;
+    const prepared = cancelledByCast || deferPreparation ? event : prepareEvent(event, sourceWeaponSet);
     // Deferred packets are validated after their live preparation at dispatch.
     event = prepareGw2ComboEvent(deferPreparation ? event : withValidatedMetadata(prepared ?? event));
 
@@ -218,25 +233,9 @@ export function createEffectDelivery<T extends object>(
 
     // Reserve before validation/admission so suppressed submissions retain their place in causal ordering.
     const identified = host.allocateIdentity(event);
-    const equippedProfileId =
-      !cancelledByCast &&
-      !deferPreparation &&
-      event.weaponStrengthSource === 'equipped' &&
-      event.weaponStrengthProfileId == null &&
-      event.weaponStrength == null
-        ? weaponStrengthProfileIdForEvent(event, {
-            skill: skillForEvent(profession.catalog, event) ?? null,
-            activeWeaponSet: runtime.activeWeaponSet,
-            config
-          })
-        : null;
     const at = gw2Time(event.at);
     // Identity allocation already copied the packet. Reuse it when its delivery fields are final.
-    const packet = assertSimulationEvent(
-      !equippedProfileId && Object.is(identified.at, at)
-        ? identified
-        : { ...identified, ...(equippedProfileId ? { weaponStrengthProfileId: equippedProfileId } : {}), at }
-    );
+    const packet = assertSimulationEvent(Object.is(identified.at, at) ? identified : { ...identified, at });
 
     if (packet.at < runtime.time) throw new RangeError('Events cannot backdate the live clock.');
 
@@ -254,7 +253,7 @@ export function createEffectDelivery<T extends object>(
     if (prepared !== null && !cancelledByCast) {
       packetDelivery.set(packet, delivery);
 
-      if (deferPreparation) pendingPreparation.add(packet);
+      if (deferPreparation) deferredWeaponSets.set(packet, sourceWeaponSet);
 
       if (delivery.settlement === 'reaction') {
         // A reaction transaction exposes its accepted application before the caller's next query, while its queued children remain pending.
@@ -350,30 +349,21 @@ export function createEffectDelivery<T extends object>(
   }
 
   function dispatchEvent(event: Gw2ResolverEvent): void {
-    if (pendingPreparation.has(event)) {
-      pendingPreparation.delete(event);
+    const sourceWeaponSet = deferredWeaponSets.get(event);
+
+    if (sourceWeaponSet !== undefined) {
+      deferredWeaponSets.delete(event);
       const reserved = event;
-      const prepared = profession.prepareEvent ? profession.prepareEvent(runtime.mechanics, event) : event;
+      const prepared = prepareEvent(event, sourceWeaponSet);
 
       if (prepared === null) {
         rejectPacket(reserved);
         return;
       }
 
-      const equippedProfileId =
-        prepared.weaponStrengthSource === 'equipped' &&
-        prepared.weaponStrengthProfileId == null &&
-        prepared.weaponStrength == null
-          ? weaponStrengthProfileIdForEvent(prepared, {
-              skill: skillForEvent(profession.catalog, prepared) ?? null,
-              activeWeaponSet: runtime.activeWeaponSet,
-              config
-            })
-          : null;
       // Preparation cannot reserve another queue position or detach the packet from its original cause.
       event = assertSimulationEvent({
         ...prepareGw2ComboEvent(withValidatedMetadata(prepared)),
-        ...(equippedProfileId ? { weaponStrengthProfileId: equippedProfileId } : {}),
         eventOrder: reserved.eventOrder,
         causalOrder: reserved.causalOrder
       });
