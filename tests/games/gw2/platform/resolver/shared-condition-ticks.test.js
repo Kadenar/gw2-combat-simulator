@@ -609,13 +609,16 @@ test('first damage replaces existing condition wakes while preserving precombat 
       damage(0.1),
       damage(0.25, { offTarget: true }),
       damage(0.3, { flatDamage: 0 }),
-      damage(0.375),
+      // A direct hit can count as condition damage and still establish the strike clock.
+      damage(0.375, { damageKind: 'condition' }),
       damage(0.6)
     ],
     { combatStartTime: 0.2, end: 3.375 }
   );
   assert.equal(result.firstHitTime, 0.4);
+  assert.equal(result.strikeDamage, 1);
   assert.equal(paidStackSeconds(applications(result)[0]), 2.6);
+  assert.equal(result.conditionDamage, applications(result)[0].damage + 1);
   assert.equal(applications(result)[1].damage, 0);
 });
 

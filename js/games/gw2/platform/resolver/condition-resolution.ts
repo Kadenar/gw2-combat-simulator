@@ -639,8 +639,7 @@ export function createGw2ConditionResolution({
 
     const rawTotal = contributions.reduce((total, contribution) => total + contribution.rawDamage, 0);
     const rounded = roundHalfToEven(rawTotal);
-    const damage =
-      ctx.encounter?.damage(rounded, 'player', event.at, group.applications[0]?.encounterTargetKey) ?? rounded;
+    const damage = ctx.settlePlayerDamage(event, rounded, group.applications[0]?.encounterTargetKey);
 
     // Attribute only accepted damage, preserving the existing largest-remainder rounding contract.
     if (damage < rounded && rawTotal > 0)
@@ -671,16 +670,12 @@ export function createGw2ConditionResolution({
     }
 
     if (contributions.length) {
-      ctx.totals.condition += damage;
-
       // Observe complete accepted groups, including zero damage with contributing stack time.
       ctx.damageRecorder?.recordConditionSettlement({
         name: group.condition,
         damage,
         stackSeconds: contributions.reduce((total, contribution) => total + contribution.stackSeconds, 0)
       });
-
-      if (damage > 0) ctx.markDamageTime(event.at, 'condition');
     }
 
     pruneGroup(group, event.at);

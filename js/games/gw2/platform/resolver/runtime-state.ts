@@ -57,6 +57,9 @@ export function createGw2ResolverRuntimeState({
 
   if (output === 'damage' && !ownsEffect) throw new TypeError('Damage measurements require an effect owner.');
 
+  const totals = { strike: 0, condition: 0 };
+  let firstHitTime: number | null = null;
+  let lastHitTime: number | null = null;
   const runtime: Gw2ResolverRuntime = {
     get combat() {
       return combat;
@@ -87,12 +90,13 @@ export function createGw2ResolverRuntimeState({
     resolved: [],
     procs: createProcRegistry(() => runtime),
     liveEffects: Object.freeze({ queries: liveEffects.queries }),
-    totals: {
-      strike: 0,
-      condition: 0
+    totals,
+    get firstHitTime() {
+      return firstHitTime;
     },
-    firstHitTime: null,
-    lastHitTime: null,
+    get lastHitTime() {
+      return lastHitTime;
+    },
     deathTime: null,
     activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
     combo: Object.freeze({ activeFields: combo.activeFields, fieldFor: combo.fieldFor }),
@@ -116,15 +120,24 @@ export function createGw2ResolverRuntimeState({
       );
     },
 
-    markDamageTime(at: number, source: 'strike' | 'condition'): void {
-      // First positive damage starts both DPS reporting and the shared condition clock.
-      if (this.firstHitTime == null) {
-        this.firstHitTime = at;
-        conditions.startDamageClock(this, source);
+    /** Count only damage the encounter accepts, then expose the updated totals to the clock and health checkpoints. */
+    settlePlayerDamage(event, amount, encounterTargetKey) {
+      const { at } = event;
+      const accepted = runtime.encounter?.damage(amount, 'player', at, encounterTargetKey) ?? amount;
+      const isConditionPayout = event.type === 'condition_tick';
+      totals[isConditionPayout || event.damageKind === 'condition' ? 'condition' : 'strike'] += accepted;
+
+      if (!(accepted > 0)) return accepted;
+
+      if (firstHitTime == null) {
+        firstHitTime = at;
+        // Direct hits anchor the clock even when they count toward condition damage.
+        conditions.startDamageClock(runtime, isConditionPayout ? 'condition' : 'strike');
       }
 
-      this.lastHitTime = at;
-      this.healthCheckpointRecorder?.observe(at, this.totals.strike + this.totals.condition, this.environmentDamage);
+      lastHitTime = at;
+      runtime.healthCheckpointRecorder?.observe(at, totals.strike + totals.condition, runtime.environmentDamage);
+      return accepted;
     }
   };
   const combat = createMechanicCombatServices(runtime, conditions, { liveEffects, combo });
@@ -157,9 +170,9 @@ export interface Gw2ResolverRuntime {
   readonly conditionState: ReadonlyMap<string, Gw2ResolverConditionState>;
   resolved: Gw2ResolverEvent[];
   readonly liveEffects: Pick<LiveEffects, 'queries'>;
-  totals: { strike: number; condition: number };
-  firstHitTime: number | null;
-  lastHitTime: number | null;
+  readonly totals: { readonly strike: number; readonly condition: number };
+  readonly firstHitTime: number | null;
+  readonly lastHitTime: number | null;
   deathTime: number | null;
   readonly engagement: CombatEngagementQueries;
   activeWeaponSet: number;
@@ -172,7 +185,7 @@ export interface Gw2ResolverRuntime {
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;
   retainsResolved(event: Gw2ResolverEvent): boolean;
-  markDamageTime(at: number, source: 'strike' | 'condition'): void;
+  settlePlayerDamage(event: Gw2ResolverEvent, amount: number, encounterTargetKey?: string): number;
 }
 
 interface CreateGw2ResolverRuntimeStateOptions {

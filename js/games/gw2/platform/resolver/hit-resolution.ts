@@ -204,7 +204,6 @@ export function createGw2HitResolution({
     event: Gw2ResolverEvent,
     hitContext: Gw2HitResolutionContext
   ): void {
-    let damage = hitContext.damage;
     // Reactions receive the existing hit context; only returned rows need a detached hit packet. Ownership reads the
     // packet's resolved activation, so measurements discard unowned copies before diagnostics are assembled.
     const candidate = ctx.output === 'score' ? null : resolvedHitPacket(ctx, event, hitContext);
@@ -236,15 +235,11 @@ export function createGw2HitResolution({
       Object.assign(resolved, { damageCalculation });
     }
 
-    // Clamp the packet at a health gate before attribution so overkill cannot leak across a split.
-    damage = ctx.encounter?.damage(damage, 'player', event.at) ?? damage;
+    const damage = ctx.settlePlayerDamage(event, hitContext.damage);
 
     if (resolved) Object.assign(resolved, { damage });
 
     const damageType = event.damageKind === 'condition' ? 'conditionDamage' : 'strikeDamage';
-
-    if (damageType === 'conditionDamage') ctx.totals.condition += damage;
-    else ctx.totals.strike += damage;
 
     // Report only the encounter-accepted amount and the already resolved critical verdict.
     ctx.damageRecorder?.recordDamage({
@@ -255,8 +250,6 @@ export function createGw2HitResolution({
       source: event,
       didCrit: damageType === 'strikeDamage' && hitContext.critEligible ? hitContext.critical.didCrit === true : null
     });
-
-    if (damage > 0) ctx.markDamageTime(event.at, 'strike');
 
     if (resolved) ctx.resolved.push(resolved);
   }
