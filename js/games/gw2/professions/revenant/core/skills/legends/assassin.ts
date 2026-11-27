@@ -4,7 +4,7 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js'
 import { consumeCharge, createChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
+import { effectFirstAtMs, impactEffects, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -114,9 +114,13 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     cooldown: 5,
     energyCost: 30,
     legendId: 'LegendaryAssassin',
-    castTimeMs: 360,
+    castTimeMs: 640,
     energyPaidAt: 'castCommit',
-    effects: [
+    // The shadowstep delivers the strike and Quickness together, before Peitha applies Torment.
+    shadowstepSkill: true,
+    peithaImpactAnchor: 'castEnd',
+    peithaImpactDelayMs: 520,
+    effects: impactEffects({ atMs: 80, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 2,
@@ -130,7 +134,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDef
         duration: 3,
         stacks: 1
       }
-    ]
+    ])
   },
   [ID.JADE_WINDS]: {
     name: 'Jade Winds',

@@ -30,6 +30,7 @@ import {
   vindicatorDodgeAutoRotationEntries
 } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { cursorPreviewCapture } from '#tests/helpers/cursor-preview.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
@@ -672,7 +673,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
 
 test('Renegade critical traits consume seeded critical outcomes', () => {
   const run = (seed) =>
-    simulate('Renegade', ['Phase Traversal'], {
+    simulate('Renegade', ['Phase Traversal', wait(200)], {
       selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
       startingLegend: LEGEND.ASSASSIN,
       selectedTraitIds: [TRAIT.AMBUSH_COMMANDER, TRAIT.ENDLESS_ENMITY],
@@ -1031,11 +1032,16 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   assert.ok(siphon.flatStrikeBase > 0);
   assert.equal(daggers.planningState.profession[STATE.ENCHANTED_DAGGERS].count, 5);
 
-  const odds = simulate('Core', ['Impossible Odds', 'Phase Traversal', 'Relinquish Power', 'Impossible Odds'], {
-    selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
-    startingLegend: LEGEND.ASSASSIN,
-    initialEnergy: 100
-  });
+  // Keep Impossible Odds active until the strike lands.
+  const odds = simulate(
+    'Core',
+    ['Impossible Odds', 'Phase Traversal', wait(200), 'Relinquish Power', 'Impossible Odds'],
+    {
+      selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
+      startingLegend: LEGEND.ASSASSIN,
+      initialEnergy: 100
+    }
+  );
 
   const release = odds.steps.find((step) => step.skillName === 'Relinquish Power');
   assert.equal(

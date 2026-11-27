@@ -62,6 +62,7 @@ const groups = [
       [R.DEATHSTRIKE],
       [R.FRIGID_BLITZ, { secondaryWeapon: 'Axe' }],
       [R.PHASE_SMASH, { primaryWeapon: 'Hammer', secondaryWeapon: '' }],
+      [R.PHASE_TRAVERSAL, { startingLegend: LEGEND.ASSASSIN }],
       [R.BEGUILING_HAZE]
     ]
   },

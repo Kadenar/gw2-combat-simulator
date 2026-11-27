@@ -33,6 +33,7 @@ import { vindicatorState } from '#gw2/professions/revenant/specializations/vindi
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { createTestLiveEffects } from '#tests/helpers/live-effects.js';
 import {
   createObservedProfessionSimulator,
@@ -495,7 +496,8 @@ test('non-damaging Revenant heals do not enter combat', () => {
 });
 
 test('legend swap replaces the fixed bar, resets energy, and triggers sigils', () => {
-  const result = simulate('Core', ['Phase Traversal', 'Swap Legends', 'Banish Enchantment']);
+  // Let the strike start combat before swapping legends.
+  const result = simulate('Core', ['Phase Traversal', wait(200), 'Swap Legends', 'Banish Enchantment']);
 
   assert.equal(result.warnings.length, 0);
   assert.equal(result.planningState.profession[STATE.ACTIVE_LEGEND_ID], LEGEND.DEMON);
@@ -769,7 +771,7 @@ test('Retribution and Invocation traits use live combat state', () => {
 });
 
 test('Devastation boon procs respect combat intervals and skill categories', () => {
-  const passive = simulate('Core', ['__combat_start', { type: 'wait', durationMs: 1100 }, 'Phase Traversal'], {
+  const passive = simulate('Core', ['__combat_start', wait(1100), 'Phase Traversal', wait(200)], {
     selectedTraitIds: [TRAIT.THRILL_OF_COMBAT, TRAIT.ASSASSINS_PRESENCE],
     initialEnergy: 100
   });
