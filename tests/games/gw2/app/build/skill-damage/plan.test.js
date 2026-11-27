@@ -663,6 +663,7 @@ test('Conduit preview Affinity scales Release Potential damage and resets to the
     const [result] = evaluateSkillDamage({ ...plan.request, occurrences }, app.profession).occurrences;
     totals.push(result.measurement.total);
   }
+
   assert.ok(totals[1] > totals[0]);
   assert.equal(totals[2], totals[0]);
   assert.deepEqual(app.build, saved);
