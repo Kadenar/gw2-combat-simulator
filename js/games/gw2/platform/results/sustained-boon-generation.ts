@@ -25,12 +25,6 @@ export interface SustainedBoonByAudience {
   readonly ally: SustainedBoonEstimate;
 }
 
-/** Rejected applications have a known zero yield; pending applications can still make a batch incomplete. */
-export interface ScheduledBoonApplication {
-  readonly event: SimulationEvent;
-  rejected: boolean;
-}
-
 /** Match the existing hypothetical ally policy, including named grants and self-only applications. */
 export function generationApplies(event: SimulationEvent, index: number): boolean {
   if (event.type === 'boon_extension') return index === 0 || event.extensionAudience === 'all';

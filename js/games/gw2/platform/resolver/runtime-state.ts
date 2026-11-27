@@ -14,7 +14,10 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ConditionResolution, Gw2ResolverConditionState } from '#gw2/platform/resolver/condition-resolution.js';
 import { createMechanicCombatServices, type MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import type { Gw2EventQueue, Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
-import type { createBoonGenerationCollector } from '#gw2/platform/results/boon-generation.js';
+import type {
+  createBoonGenerationCollector,
+  createBoonGenerationReport
+} from '#gw2/platform/results/boon-generation.js';
 import type { DamageReportObserver } from '#gw2/platform/results/damage-report.js';
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
@@ -36,6 +39,7 @@ export function createGw2ResolverRuntimeState({
   ownsEffect,
   effectRecorder = null,
   boonGeneration = null,
+  boonReport = null,
   procRecorder = null,
   damageRecorder = null,
   damageDiagnostics = false,
@@ -71,6 +75,7 @@ export function createGw2ResolverRuntimeState({
     // Damage previews retain resolved packets without constructing chart histories.
     effectRecorder,
     boonGeneration,
+    boonReport,
     // Timeline proc rows are an optional observer; resolution only announces executed procs.
     procRecorder,
     damageRecorder,
@@ -149,6 +154,7 @@ export interface Gw2ResolverRuntime {
   encounter?: import('#gw2/platform/combat/state/encounter.js').EncounterController;
   readonly combat: MechanicCombatServices;
   readonly boonGeneration: ReturnType<typeof createBoonGenerationCollector> | null;
+  readonly boonReport: ReturnType<typeof createBoonGenerationReport> | null;
   readonly effectRecorder: EffectReportObserver | null;
   readonly procRecorder: ProcStepObserver | null;
   readonly damageRecorder: DamageReportObserver | null;
@@ -194,6 +200,7 @@ interface CreateGw2ResolverRuntimeStateOptions {
   readonly combo: Gw2ComboController;
   readonly engagement?: CombatEngagementQueries;
   readonly boonGeneration?: ReturnType<typeof createBoonGenerationCollector> | null;
+  readonly boonReport?: Gw2ResolverRuntime['boonReport'];
   readonly effectRecorder?: EffectReportObserver | null;
   readonly procRecorder?: ProcStepObserver | null;
   readonly procRollRecorder?: ProcRollObserver | null;

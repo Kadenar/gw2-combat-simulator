@@ -12,7 +12,6 @@ import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js'
 import { planningState } from '#gw2/platform/results/planning-state.js';
 import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
-import type { ScheduledBoonApplication } from '#gw2/platform/results/sustained-boon-generation.js';
 import type {
   Gw2SimulationObservations,
   Gw2SimulationResult,
@@ -29,13 +28,11 @@ export function projectRuntimeResult<T extends object>(
   {
     output,
     executed,
-    scheduledBoons,
     damageCompletionTime,
     projectDamageReport
   }: {
     output: 'detailed' | 'score' | 'damage' | 'observations';
     executed: Gw2ResolverEvent[];
-    scheduledBoons: ScheduledBoonApplication[];
     damageCompletionTime?: () => number;
     projectDamageReport?: (dpsWindow: number) => DamageReportProjection;
   }
@@ -115,7 +112,7 @@ export function projectRuntimeResult<T extends object>(
     runtime.engagement.startTime ?? 0,
     runtime.rotationEndTime
   );
-  const combat = buildCombatResult(runtime, score, executed, projectDamageReport(score.dpsWindow), scheduledBoons);
+  const combat = buildCombatResult(runtime, score, executed, projectDamageReport(score.dpsWindow));
   const result = {
     ...combat,
     ...(runtime.encounter ? { encounter: runtime.encounter.result(score.combatEndTime) } : {}),

@@ -2,16 +2,11 @@
 import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import {
-  buildBoonGeneration,
-  generatedBoonCoverage,
-  projectedPartyEffects
-} from '#gw2/platform/results/boon-generation.js';
+import { generatedBoonCoverage, projectedPartyEffects } from '#gw2/platform/results/boon-generation.js';
 import { projectCombatObservations } from '#gw2/platform/results/combat-observations.js';
 import type { DamageReportProjection } from '#gw2/platform/results/damage-report.js';
 import { uniqueDiagnostics } from '#gw2/platform/results/diagnostics.js';
 import { projectProcRateObservations } from '#gw2/platform/results/proc-rate-observations.js';
-import type { ScheduledBoonApplication } from '#gw2/platform/results/sustained-boon-generation.js';
 import type { Gw2ResolverResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { cloneData } from '#kernel/core/clone.js';
 
@@ -80,16 +75,13 @@ export function buildCombatResult(
   ctx: Gw2ResolverRuntime,
   score: Gw2SimulationScore,
   events: readonly Gw2ResolverEvent[],
-  damageReport: DamageReportProjection,
-  scheduledBoons: readonly ScheduledBoonApplication[]
+  damageReport: DamageReportProjection
 ): Gw2ResolverResult {
   const effectiveEnd = score.combatEndTime;
   const { output, ...numeric } = score;
   const effectiveEvents = events.filter((event) => event.at <= effectiveEnd);
   // Editor-only runs retain combat facts but skip both live histories and expensive hypothetical party projection.
-  const generation = ctx.effectRecorder
-    ? buildBoonGeneration(ctx.resolved, score.combatStartTime ?? score.dpsStartTime, effectiveEnd, scheduledBoons)
-    : null;
+  const generation = ctx.boonReport?.project(ctx.resolved, score.combatStartTime ?? score.dpsStartTime, effectiveEnd);
   const effectReport = ctx.effectRecorder?.finish(effectiveEnd);
   const partyReport = generation ? projectedPartyEffects(generation, effectiveEnd) : null;
   // Recorder reports already own detached snapshots; copy only fields still owned by the live resolver.

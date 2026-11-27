@@ -51,7 +51,7 @@ import type {
   Gw2ResolverReactionRegistry,
   Gw2ResolverStageDetails
 } from '#gw2/platform/resolver/types.js';
-import { createBoonGenerationCollector } from '#gw2/platform/results/boon-generation.js';
+import { createBoonGenerationCollector, createBoonGenerationReport } from '#gw2/platform/results/boon-generation.js';
 import { createDamageReportRecorder } from '#gw2/platform/results/damage-report.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { captureRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
@@ -238,10 +238,12 @@ export function runRuntime<T extends object>(
   // Packet creation and condition-stack expansion share a run budget independent of scheduler iteration limits.
   const expansionBudget = createEffectExpansionBudget();
   const conditions = createGw2ConditionResolution({ config, reactions, expansionBudget });
+  const detailedCharts = output === 'detailed' && collectChartData;
+  const boonReport = detailedCharts ? createBoonGenerationReport() : null;
   // Emission owns transport; profession hooks select payloads and keep their gameplay rules.
   const effects = createEffectEmissionService({
     // Sustained reports need lineage; ordinary score coverage uses only resolved boon durations.
-    collectBoonLineage: output === 'detailed' && collectChartData,
+    collectBoonLineage: boonReport !== null,
     // The retained action supplies one anchor for start, completion, and delayed cast grants.
     castStartedAt: (activationId) => coordinator.castAction(activationId)?.at,
     expansionBudget,
@@ -252,7 +254,7 @@ export function runRuntime<T extends object>(
   });
 
   // Reporting observers are composed here; resolution never constructs result services.
-  const effectRecorder = output === 'detailed' && collectChartData ? new EffectRecorder() : null;
+  const effectRecorder = detailedCharts ? new EffectRecorder() : null;
   const damageReport = output === 'detailed' ? createDamageReportRecorder() : null;
   // Phase 3: resolver state and execution owners share one live clock.
   // Resolver commands stay in this closure; profession runtimes receive only their query views.
@@ -267,6 +269,7 @@ export function runRuntime<T extends object>(
     output,
     ownsEffect,
     effectRecorder,
+    boonReport,
     boonGeneration: collectBoonCoverage
       ? createBoonGenerationCollector(false, () => ({
           start: runtime.engagement.explicit ? runtime.engagement.startTime : runtime.firstHitTime,
@@ -324,7 +327,8 @@ export function runRuntime<T extends object>(
     context: () => runtime.mechanics,
     makeWork,
     enqueueWork,
-    cancelOwned: (owner) => coordinator.cancelOwner(owner, deliveryOwner.owner, deliveryOwner.rejectPacket),
+    // Only detailed boon reports track cancelled packets; other outputs discard them without bookkeeping.
+    cancelOwned: (owner) => coordinator.cancelOwner(owner, deliveryOwner.owner, (packet) => boonReport?.reject(packet)),
     castAction: coordinator.castAction,
     withCause
   });
@@ -594,7 +598,6 @@ export function runRuntime<T extends object>(
   const result = projectRuntimeResult(runtime, profession, execution, {
     output,
     executed,
-    scheduledBoons: deliveryOwner.scheduledBoons,
     projectDamageReport: damageReport?.project,
     damageCompletionTime
   });

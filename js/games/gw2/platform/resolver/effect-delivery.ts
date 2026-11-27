@@ -1,4 +1,4 @@
-/** Retain planned boon yields for reports while admission and resolution keep their existing combat rules. */
+/** Admit combat packets and resolve them against the target and their lifetime owner. */
 import { isStandardBoon, normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import type { LiveEffects } from '#gw2/platform/combat/live-effects.js';
@@ -37,7 +37,6 @@ import type {
   Gw2ResolverReactionResult
 } from '#gw2/platform/resolver/types.js';
 import { weaponStrengthProfileIdForEvent } from '#gw2/platform/resolver/weapon-strength-resolution.js';
-import type { ScheduledBoonApplication } from '#gw2/platform/results/sustained-boon-generation.js';
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { RuntimeWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';
@@ -87,8 +86,6 @@ export function createEffectDelivery<T extends object>(
   const boonDurationContext = createSelectedContentContext(runtime.traits, profession.catalog);
   const { makeWork, enqueueWork, identify, reactionParent, withCause } = host;
   const executed: Gw2ResolverEvent[] = [];
-  const scheduledBoons: ScheduledBoonApplication[] = [];
-  const scheduledBoonByPacket = new WeakMap<Gw2ResolverEvent, ScheduledBoonApplication>();
   // Detailed and damage runs retain execution history; observations needs only procs, and score needs none.
   function recordExecuted(event: Gw2ResolverEvent): void {
     if (runtime.output === 'score' || (runtime.output === 'observations' && event.type !== 'proc')) return;
@@ -241,12 +238,7 @@ export function createEffectDelivery<T extends object>(
 
     if (!handlers.has(packet.type)) throw new TypeError(`No event handler registered for ${packet.type}.`);
 
-    if (runtime.effectRecorder && (packet.type === 'buff' || packet.type === 'boon_extension')) {
-      // Admission failures settle with zero yield instead of remaining pending after combat ends.
-      const application = { event: packet, rejected: cancelledByCast || prepared === null };
-      scheduledBoons.push(application);
-      scheduledBoonByPacket.set(packet, application);
-    }
+    runtime.boonReport?.plan(packet, cancelledByCast || prepared === null);
 
     if (!cancelledByCast && prepared !== null) host.observePacket(packet);
 
@@ -357,7 +349,7 @@ export function createEffectDelivery<T extends object>(
       const prepared = prepareEvent(event, sourceWeaponSet);
 
       if (prepared === null) {
-        rejectPacket(reserved);
+        runtime.boonReport?.reject(reserved);
         return;
       }
 
@@ -505,21 +497,12 @@ export function createEffectDelivery<T extends object>(
     }
   }
 
-  /** A known cancellation completes the scheduled application with no generated duration. */
-  function rejectPacket(event: Gw2ResolverEvent): void {
-    const application = scheduledBoonByPacket.get(event);
-
-    if (application) application.rejected = true;
-  }
-
   return {
     submitEffect,
     announceEffect,
     publishAnnouncement,
     dispatchEvent,
     executed,
-    scheduledBoons,
-    rejectPacket,
     owner: (event: Gw2ResolverEvent) => packetDelivery.get(event)?.owner,
     /** Both equipment and profession reactions stop granting hostile rewards after the lethal packet. */
     react<Args extends Gw2ResolverDispatchArgs>(

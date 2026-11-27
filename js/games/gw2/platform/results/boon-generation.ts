@@ -17,11 +17,7 @@ import { observeBuffState } from '#gw2/platform/combat/effect-state.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
-import {
-  createSustainedBoonCollector,
-  generationApplies,
-  type ScheduledBoonApplication
-} from '#gw2/platform/results/sustained-boon-generation.js';
+import { createSustainedBoonCollector, generationApplies } from '#gw2/platform/results/sustained-boon-generation.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
 
@@ -201,15 +197,32 @@ export function createBoonGenerationCollector(retainHistory: boolean, window: ()
   };
 }
 
-/** Replay resolved events through the same collector used during score execution. */
+/** Track planned applications for detailed reports. Rejected ones complete their batch share with zero duration. */
+export function createBoonGenerationReport() {
+  const rejectedByApplication = new Map<SimulationEvent, boolean>();
+  return {
+    plan(event: SimulationEvent, rejected: boolean): void {
+      if (event.boonGeneration && (event.type === 'buff' || event.type === 'boon_extension'))
+        rejectedByApplication.set(event, rejected);
+    },
+    reject(event: SimulationEvent): void {
+      if (rejectedByApplication.has(event)) rejectedByApplication.set(event, true);
+    },
+    project(events: readonly SimulationEvent[], start: number, end: number) {
+      return buildBoonGeneration(events, start, end, rejectedByApplication);
+    }
+  };
+}
+
+/** Register planned applications before replaying resolved grants and extensions in causal order. */
 export function buildBoonGeneration(
   events: readonly SimulationEvent[],
   start: number,
   end: number,
-  scheduled: readonly ScheduledBoonApplication[] = []
+  applications: Iterable<readonly [event: SimulationEvent, rejected: boolean]> = []
 ) {
   const collector = createBoonGenerationCollector(true, () => ({ start, end }));
-  for (const { event, rejected } of scheduled) collector.expect(event, rejected);
+  for (const [event, rejected] of applications) collector.expect(event, rejected);
   const ordered = [...events].sort(
     (left, right) => left.at - right.at || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0)
   );

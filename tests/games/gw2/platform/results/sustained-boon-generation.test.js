@@ -5,6 +5,7 @@ import test from 'node:test';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import {
   buildBoonGeneration,
+  createBoonGenerationReport,
   generatedBoonCoverage,
   projectedPartyEffects
 } from '#gw2/platform/results/boon-generation.js';
@@ -32,13 +33,12 @@ const grant = (at, duration, sourceId = 'skill', options = {}) => ({
   },
   ...options
 });
-const estimate = (events, end, scheduled = events, start = 0) =>
-  buildBoonGeneration(
-    events,
-    start,
-    end,
-    scheduled.map((event) => ({ event, rejected: false }))
-  );
+const estimate = (events, end, scheduled = events, start = 0) => {
+  const report = createBoonGenerationReport();
+  for (const event of scheduled) report.plan(event, false);
+  return report.project(events, start, end);
+};
+
 const ally = (result) => result.sustained.quickness.ally;
 
 test('completed intervals preserve 25% while benchmark coverage follows the endpoint', () => {
@@ -216,8 +216,7 @@ test('one source keeps each boon label and audience independent of its first exp
       )
     )
   ]);
-  const scheduled = events.map((event) => ({ event, rejected: false }));
-  const result = buildBoonGeneration(events, 0, 45, scheduled);
+  const result = estimate(events, 45);
   assert.deepEqual(buildBoonGeneration(events, 0, 45).sustained, result.sustained);
   for (const kind of ['fury', 'swiftness']) {
     assert.equal(result.sustained[kind].self.sources[0].name, `Skill - ${kind} - self`);
