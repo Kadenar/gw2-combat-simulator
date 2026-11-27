@@ -124,6 +124,11 @@
   color: var(--text-dim);
   font-size: 11px;
 }
+/* Give skill names the full sidebar width and keep their descriptions below the selector. */
+.sd-control:has(select) {
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 4px;
+}
 /* Conditional controls stay in the DOM without overriding the browser's hidden state with grid layout. */
 .sd-control[hidden] {
   display: none;

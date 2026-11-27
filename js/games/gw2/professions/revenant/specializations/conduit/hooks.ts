@@ -46,6 +46,10 @@ const pendingAffinityCosts = new WeakMap<RuntimeCast<RevenantSkill>, number>();
 
 const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   resources: { affinity: conduitAffinityPolicy },
+  prepareDamageState(runtime, _skill, inputs) {
+    // Seed stored stacks directly so preview setup cannot trigger rewards for gaining Affinity.
+    runtime.resourceController.replace('affinity', Number(inputs.affinity ?? 0));
+  },
   buffPolicies: conduitBuffPolicies,
   // Control-triggered Burning shares Mistfire's profile, excluding its own Twin Moon chain.
 

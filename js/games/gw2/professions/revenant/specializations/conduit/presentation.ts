@@ -7,10 +7,14 @@ import type {
   ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
-import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
+import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
+import {
+  normalizeRevenantLegendIds,
+  REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND
+} from '#gw2/professions/revenant/data/legends.js';
+import { maximumConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type { RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
@@ -35,9 +39,34 @@ function conduitStateSnapshot(
 }
 
 export const conduitUi: RevenantUiSlice = Object.freeze({
+  /** Both equipped legends contribute a release to the damage preview. */
+  skillDamageGroups({ build, specialization }: ProfessionAttributePreviewContext) {
+    const legends = normalizeRevenantLegendIds(build.selectedLegends, specialization);
+    return [
+      {
+        id: 'release-potential',
+        title: 'Release Potential',
+        skillIds: legends.map((legend) => REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[legend])
+      }
+    ];
+  },
+  /** Measure each release with its legend active so legend-dependent effects use the correct state. */
+  skillDamageState(_context: ProfessionAttributePreviewContext, skill: Skill) {
+    const legend = Object.entries(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND).find(([, id]) => id === skill.id)?.[0];
+    return legend ? { config: { startingLegend: legend } } : null;
+  },
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
+    preview.add({
+      key: 'affinity',
+      scope: ['damage'],
+      label: 'Affinity',
+      kind: 'special',
+      group: 'Mechanic',
+      max: maximumConduitAffinity(context.catalog),
+      description: 'Stored stacks before the skill activates'
+    });
     preview.add({
       key: 'cosmicWisdom',
       scope: ['attributes', 'damage'],
@@ -84,11 +113,9 @@ export const conduitUi: RevenantUiSlice = Object.freeze({
       singular: 'affinity',
       plural: 'affinity',
       // Runtime meters use the canonical cap; build-only controls read the same selected profile.
-      maximum:
-        revenantUiState(context)[STATE.AFFINITY]?.maximum ??
-        Math.max(1, balanceNumber(context.catalog, TRAIT.ENIGMATIC_CONNECTION, 'maximumStacks')),
+      maximum: revenantUiState(context)[STATE.AFFINITY]?.maximum ?? maximumConduitAffinity(context.catalog),
       value: revenantUiState(context)[STATE.AFFINITY]?.value ?? 0,
-      // Affinity cannot be manually set by the user; it is always gained through gameplay actions.
+      // Rotations gain Affinity through combat actions.
       canStart: false,
       step: 1,
       displayMode: 'pips',

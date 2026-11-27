@@ -13,6 +13,8 @@ import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js
 import { createSkillDamageViewModel } from '#gw2/app/build/skill-damage/view-model.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
+import { REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { firstPresetBuildPath, headlessApp } from '#tests/helpers/skill-damage.js';
 
 const BLADESWORN = 'data/gw2/builds/warrior/b-power-bladesworn-sword-pistol.json';
@@ -619,6 +621,52 @@ for (const [professionId, buildPath] of [
     }
   });
 }
+
+test('Conduit measures one Release Potential per equipped legend when the second slot changes', async () => {
+  const app = await headlessApp('revenant', 'data/gw2/builds/revenant/b-power-conduit.json');
+  app.build.startingLegend = LEGEND.ASSASSIN;
+  const releases = Object.values(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND);
+  for (const second of [LEGEND.ENTITY, LEGEND.DEMON]) {
+    const legends = [LEGEND.ASSASSIN, second];
+    app.build.selectedLegends = legends;
+    const plan = healthPlan(app);
+    const occurrences = plan.request.occurrences.filter(
+      ({ effect }) => effect.kind === 'skill' && releases.includes(effect.id)
+    );
+    assert.equal(occurrences.length, legends.length);
+    for (const legend of legends) {
+      const release = occurrences.find(
+        ({ effect }) => effect.id === REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[legend]
+      );
+      assert.equal(release?.config.profession?.startingLegend, legend);
+    }
+
+    const result = evaluateSkillDamage({ ...plan.request, occurrences }, app.profession);
+    assert.ok(result.occurrences.every(({ measurement }) => measurement?.total > 0));
+    assert.equal(app.build.startingLegend, LEGEND.ASSASSIN);
+  }
+});
+
+test('Conduit preview Affinity scales Release Potential damage and resets to the baseline', async () => {
+  const app = await headlessApp('revenant', 'data/gw2/builds/revenant/b-power-conduit.json');
+  const saved = structuredClone(app.build);
+  const controls = skillDamageControls(app);
+  const control = controls.find(({ key }) => key === 'affinity');
+  const baseline = clearedValues(controls);
+  const totals = [];
+  for (const affinity of [baseline.affinity, control.max, baseline.affinity]) {
+    const plan = createSkillDamagePlan(app, controls, { ...baseline, affinity });
+    const dervish = REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[LEGEND.ENTITY];
+    const occurrences = plan.request.occurrences.filter(
+      ({ effect }) => effect.kind === 'skill' && effect.id === dervish
+    );
+    const [result] = evaluateSkillDamage({ ...plan.request, occurrences }, app.profession).occurrences;
+    totals.push(result.measurement.total);
+  }
+  assert.ok(totals[1] > totals[0]);
+  assert.equal(totals[2], totals[0]);
+  assert.deepEqual(app.build, saved);
+});
 
 // Each familiar row uses ordinary initial-state settings, independent of the saved charge pool.
 test('Evoker measures both familiar forms using existing initial charge settings', async () => {

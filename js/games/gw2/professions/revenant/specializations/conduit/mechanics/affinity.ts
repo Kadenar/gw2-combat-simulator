@@ -1,15 +1,20 @@
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, type BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 
-/** Affinity starts empty with no passive recovery; the selected profile retains its minimum-one capacity rule. */
+/** The combat resource and preview controls use the cap from the selected balance profile. */
+export function maximumConduitAffinity(source: BalanceProfileSource): number {
+  return Math.max(1, balanceNumber(source, TRAIT.ENIGMATIC_CONNECTION, 'maximumStacks'));
+}
+
+/** Affinity starts empty and has no passive recovery. */
 export const conduitAffinityPolicy: ResourcePolicy<RevenantRuntime> = {
   kind: 'continuous',
   state: (runtime) => conduitState.from(runtime.profession).affinity,
-  maximum: (runtime) => Math.max(1, balanceNumber(runtime.helpers, TRAIT.ENIGMATIC_CONNECTION, 'maximumStacks')),
+  maximum: (runtime) => maximumConduitAffinity(runtime.helpers),
   initial: () => 0,
   recovery: () => 0
 };
