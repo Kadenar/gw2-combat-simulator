@@ -1,4 +1,5 @@
 /** Nourys relic rules. */
+import { buffDeadlineActive } from '#gw2/platform/combat/buff-expiry.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { defineRelic, explicitCombatStartTime } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicRuntimeContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -36,6 +37,12 @@ function nourysActiveAt(context: Gw2RelicRuntimeContext, state: Gw2RelicState, a
 }
 
 export const nourys = defineRelic({
+  damagePreview: {
+    prepare(state) {
+      // Hold the transformation for the isolated measurement.
+      state.expiresAt = Infinity;
+    }
+  },
   passiveTimeline(ctx, state, rotationEndTime) {
     const combatStart = nourysCombatStart(ctx, state);
     let stacks = 0;
@@ -78,6 +85,8 @@ export const nourys = defineRelic({
   outgoingDamageBonus(ctx, state, at) {
     // nourysActiveAt uses modulo arithmetic on elapsed time from combat start
     // to determine the current phase without tracking events.
-    return nourysActiveAt(ctx, state, at) ? NOURYS_DAMAGE_BONUS : 0;
+    const active =
+      (state.expiresAt != null && buffDeadlineActive(state.expiresAt, at)) || nourysActiveAt(ctx, state, at);
+    return active ? NOURYS_DAMAGE_BONUS : 0;
   }
 });

@@ -15,6 +15,8 @@ import {
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { BOON, BOON_NAMES, CONDITION } from '#gw2/platform/constants.js';
+import { normalizePrecastRelics, relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
+import { RELIC_RULES } from '#gw2/platform/equipment/relics/rules/index.js';
 import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import {
@@ -121,22 +123,58 @@ function sharedDamageControls(): PreviewControl[] {
   ];
 }
 
-/** Shared controls first, then the profession's damage-scoped controls; a profession key never duplicates a shared one. */
-export function skillDamageControls(input: SkillDamageInput): PreviewControl[] {
-  const shared = sharedDamageControls();
+/** Equipped and selected precast relics can supply independent buffs to the same skill. */
+function relicDamageControls(build: SkillDamageInput['build']): PreviewControl[] {
+  const controls: PreviewControl[] = [];
+  for (const name of new Set([build.relic, ...normalizePrecastRelics(build.precastRelics)])) {
+    const id = relicIdForName(name);
+
+    if (id == null) continue;
+
+    const rule = RELIC_RULES[id];
+    for (const buff of rule?.buffPolicies ?? []) {
+      controls.push({
+        key: buff.kind,
+        label: buff.name ?? name,
+        group: 'Relics',
+        kind: 'buff',
+        scope: ['damage'],
+        description: 'Buff active during measurement'
+      });
+    }
+
+    if (rule?.damagePreview) {
+      const max = rule.damagePreview.maximumStacks;
+      controls.push({
+        key: `relic:${id}`,
+        label: max ? `${name} stacks` : name,
+        group: 'Relics',
+        kind: 'special',
+        scope: ['damage'],
+        max,
+        description: max ? 'Stacks at activation' : 'Buff active during measurement'
+      });
+    }
+  }
 
   // Reuse the selected relic's opening stack state and cap without changing saved simulation assumptions.
-  if (input.build.relic === 'Thorns')
-    shared.push({
+  if (build.relic === 'Thorns')
+    controls.push({
       key: 'thornsStacks',
       label: 'Thorns stacks',
-      group: 'Other buffs',
+      group: 'Relics',
       kind: 'special',
       scope: ['damage'],
       max: THORNS_MAX_STACKS,
       description: 'Starting stacks; subsequent gains follow the relic’s normal rules'
     });
 
+  return controls;
+}
+
+/** Shared controls first, then the profession's damage-scoped controls; a profession key never duplicates a shared one. */
+export function skillDamageControls(input: SkillDamageInput): PreviewControl[] {
+  const shared = [...sharedDamageControls(), ...relicDamageControls(input.build)];
   const keys = new Set(shared.map((control) => control.key));
   // Retain profession boons such as Resolution; only shared keys are already represented.
   // Damage rows cover every equipped set, independently of the Attribute Preview selector.

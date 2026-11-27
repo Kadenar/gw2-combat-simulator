@@ -51,6 +51,8 @@ export function createDamageExecution<T extends object>(
     admitsTriggers: () => started && held === 0,
     // Stat queries and measured payloads enter the same prepared state before environmental effects settle.
     initialize(runtime) {
+      // Attribute queries and skill hits sample the same assumed relic state.
+      runtime.relic.prepareDamagePreview(options.inputs ?? {});
       profession.prepareDamageState?.(
         runtime.mechanics,
         options.skillId == null ? undefined : profession.catalog.skillsById.get(options.skillId),

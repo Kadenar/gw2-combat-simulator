@@ -93,6 +93,14 @@ function aristocracyActivationAt(state: AristocracyState, at: number): Aristocra
 }
 
 export const aristocracy = defineRelic({
+  damagePreview: {
+    maximumStacks: ARISTOCRACY_MAX_STACKS,
+    prepare(state, stacks) {
+      // An opening stack already exists before the first condition lands at time zero.
+      (state as AristocracyState).batch = createBatch(stacks, Infinity);
+      state.activations = [{ at: -Infinity, expiresAt: Infinity, stacks }];
+    }
+  },
   createState: createAristocracyState,
   condition(ctx, state, event) {
     if (ctx.engagement.startTime != null && gw2Time(event.at) < gw2Time(ctx.engagement.startTime)) return;

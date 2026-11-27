@@ -419,6 +419,44 @@ test('profession boon controls seed from the build and update only the detached 
   }
 });
 
+test('equipped and precast relic buffs can be toggled independently for one strike', async () => {
+  const app = await headlessApp('revenant', 'data/gw2/builds/revenant/b-power-conduit.json');
+  app.build.relic = 'Peitha';
+  app.build.precastRelics = ['Brawler'];
+  const saved = structuredClone(app.build);
+  const controls = skillDamageControls(app);
+  const values = simulationConfigValues(app, controls);
+  const dervish = REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[LEGEND.ENTITY];
+  const strike = (choice) => {
+    const { request } = createSkillDamagePlan(app, controls, { ...values, ...choice });
+    const occurrences = request.occurrences.filter(({ effect }) => effect.kind === 'skill' && effect.id === dervish);
+    return evaluateSkillDamage({ ...request, occurrences }, app.profession).occurrences[0].measurement.strike;
+  };
+
+  const base = strike({});
+  const peitha = strike({ 'relic-peitha': 1 });
+  assert.ok(peitha > base);
+  assert.ok(strike({ 'relic-peitha': 1, 'relic-brawler': 1 }) > peitha);
+  assert.equal(strike({ 'relic-peitha': 0 }), base);
+  assert.deepEqual(app.build, saved);
+
+  app.build.relic = 'Herald';
+  app.build.precastRelics = [];
+  assert.ok(!skillDamageControls(app).some((control) => control.group === 'Relics'));
+});
+
+test('previewing relic stacks updates the strike multiplier', async () => {
+  const app = await headlessApp('revenant', 'data/gw2/builds/revenant/b-power-conduit.json');
+  app.build.relic = 'Thief';
+  const changed = skillDamageControls(app);
+  const stacks = changed.find((control) => control.group === 'Relics' && control.max > 1);
+  const values = clearedValues(changed);
+  const multiplier = (count) =>
+    calculateSkillDamageAttributes(app, { ...values, [stacks.key]: count }, changed).attributes['Strike Multiplier']
+      .final;
+  assert.ok(multiplier(2) > multiplier(1));
+});
+
 // A procedural relic can apply Torment even when none of the profession's skill definitions do.
 test('target movement controls equipment Torment independently of skill declarations', async () => {
   const app = await headlessApp('guardian', 'data/gw2/builds/guardian/b-condi-firebrand.json');

@@ -4,7 +4,15 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { announceRelic, defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import { activeBatchCount, refreshBatch } from '#kernel/resources/batch.js';
 
+const MAXIMUM_STACKS = 5;
+
 export const thief = defineRelic({
+  damagePreview: {
+    maximumStacks: MAXIMUM_STACKS,
+    prepare(state, stacks) {
+      state.refreshedStacks = { count: stacks, expiresAt: Infinity };
+    }
+  },
   createState: () => ({ refreshedStacks: { count: 0, expiresAt: 0 } }),
   afterHit(ctx, state, event, skill) {
     // A missing cost contributes no resource price to the weapon trigger.
@@ -20,15 +28,15 @@ export const thief = defineRelic({
     const buff = refreshBatch(state.refreshedStacks, 1, {
       at: event.at,
       expiresAt: gw2EffectExpiresAt(event.at, 6),
-      maximum: 5
+      maximum: MAXIMUM_STACKS
     }).batch;
     state.refreshedStacks = buff;
     announceRelic(ctx, event, 'Relic of the Thief', {
-      detail: `${buff.count}/5 stacks`,
+      detail: `${buff.count}/${MAXIMUM_STACKS} stacks`,
       icon: '',
       cooldownReduction: null,
       expiresAt: buff.expiresAt,
-      effectState: { stacks: buff.count, maximumStacks: 5 }
+      effectState: { stacks: buff.count, maximumStacks: MAXIMUM_STACKS }
     });
   },
   // Return 1 when no stacks are active because the result is a multiplier.

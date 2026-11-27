@@ -79,6 +79,11 @@ export type Gw2RelicAttributeQueryContext = Pick<Gw2RelicContext, 'config' | 're
 
 export interface Gw2RelicRule {
   readonly buffPolicies?: readonly BuffStatePolicy[];
+  /** Seed a relic-owned stack pool or reward window for an isolated damage measurement. */
+  readonly damagePreview?: {
+    readonly maximumStacks?: number;
+    readonly prepare: (state: Gw2RelicState, stacks: number) => void;
+  };
   /** The same per-occurrence payload is called after combat eligibility or directly by the damage calculator. */
   readonly damagePayload?: (
     context: Gw2RelicContext,
@@ -164,6 +169,7 @@ interface Gw2RelicQueries {
  * Unused equipped-relic hooks are absent so optional calls skip calculating per-hit or per-application arguments.
  */
 export interface Gw2RelicRuntime extends Gw2RelicQueryOwner {
+  prepareDamagePreview(inputs: import('#gw2/platform/skill-damage/types.js').DamageInputs): void;
   readonly buffPolicies: readonly BuffStatePolicy[];
   setCombatMarker(event: SimulationEvent): void;
   completed(context: Gw2RelicContext, event: SimulationEvent): void;

@@ -3,6 +3,7 @@ import { ATTRIBUTE_KEYS, CONDITION_DURATION_KEYS } from '#gw2/platform/attribute
 import type { Gw2ResolvedStats } from '#gw2/platform/attributes/stats.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { ACTOR } from '#gw2/platform/constants.js';
+import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
@@ -70,7 +71,8 @@ export function queryDamagePreview(
           conditionDurationMultipliers: Object.fromEntries(
             Object.values(CONDITION_DURATION_KEYS).map((condition) => [condition, duration(condition)])
           ) as DamagePreviewFacts['conditionDurationMultipliers'],
-          strikeMultiplier: query.strikeMultiplier(event, at, runtime),
+          // Include the equipped and precast relic factors applied by strike resolution.
+          strikeMultiplier: query.strikeMultiplier(event, at, runtime) * relicStrikeMultiplier(runtime, event),
           conditionMultiplier: query.conditionMultiplier('', at, event, runtime)
         };
       }

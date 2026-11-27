@@ -13,6 +13,11 @@ const VISIONARY_DAMAGE_BONUS = 0.1;
 const VISIONARY_WHIRL_INTERNAL_COOLDOWN = 3;
 
 export const visionary = defineRelic({
+  damagePreview: {
+    prepare(state) {
+      state.windows = [{ from: 0, until: Infinity }];
+    }
+  },
   createState: () => ({ stacks: 0, whirlReadyAt: 0, windows: [] }),
   combo(ctx, state, event) {
     if (!isGw2PlayerActorEvent(event)) return;

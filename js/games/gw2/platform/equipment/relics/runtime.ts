@@ -56,6 +56,12 @@ export function createRelicRuntime(name: unknown, precastNames: readonly string[
   const { emitActionEffects, action, afterHit, precombatStrike, control, condition } = rules;
   return Object.freeze({
     ...queryOwner(equipped, precasts),
+    prepareDamagePreview(inputs) {
+      const preview = rules.damagePreview;
+      const stacks = Math.trunc(Number(inputs[`relic:${equipped.id}`]));
+
+      if (preview && stacks > 0) preview.prepare(state, Math.min(stacks, preview.maximumStacks ?? 1));
+    },
     buffPolicies: Object.freeze(instances.flatMap((relic) => relic.rules.buffPolicies ?? [])),
     setCombatMarker(event) {
       for (const relic of instances) relic.state.combatMarker = event;

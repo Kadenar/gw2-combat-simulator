@@ -73,14 +73,14 @@
   color: var(--accent);
 }
 
-/* The sidebar stacks above the table at narrow widths. */
+/* Give assumption descriptions room to wrap and stack the sidebar above the table on narrow screens. */
 .skill-damage-layout {
   display: flex;
   flex-wrap: wrap;
 }
 .skill-damage-assumptions {
   box-sizing: border-box;
-  flex: 1 1 260px;
+  flex: 1 1 320px;
   display: flex;
   flex-direction: column;
   gap: 12px;
