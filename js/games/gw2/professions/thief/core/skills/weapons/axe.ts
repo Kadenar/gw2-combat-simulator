@@ -89,9 +89,11 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     rechargeIgnoresAlacrity: true,
     requiredMainHand: WEAPON.AXE,
     stealthAttack: true,
-    // Salvo's impact precedes its aftercast; keep the projectile alive once it has been thrown.
-    castTimeMs: 440,
+    // A committed Salvo holds the cast until 480 ms unless the player releases it on the 440 ms tick.
+    castTimeMs: 480,
     interruptCommitMs: 320,
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseExactMs: 440,
     effects: impactEffects(
       { atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
