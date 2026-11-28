@@ -506,9 +506,12 @@ export function mountBenchmarks(root: HTMLElement): void {
     healthInteractions.refresh();
   }
 
-  root.querySelector('.benchmark-health-controls')!.addEventListener('change', () => {
-    if (filteredRows) renderHealthChart(filteredRows);
-  });
+  for (const control of root.querySelectorAll('[data-health-builds], [data-health-metric], [data-health-phase]')) {
+    control.addEventListener('change', () => {
+      if (filteredRows) renderHealthChart(filteredRows);
+    });
+  }
+
   /** Plot actual DPS/APM pairs; native point buttons provide the same build inspection with mouse, keyboard, or touch. */
   function renderApmChart(rows: readonly Benchmark[]): void {
     const measurable = rows.filter(hasBenchmarkApm);

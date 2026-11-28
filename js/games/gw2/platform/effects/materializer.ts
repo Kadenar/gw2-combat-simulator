@@ -128,6 +128,14 @@ export function materializeSkillEffectApplications({
 
   validateConditionExpansion(effect, label);
   const firstAt = effectFirstAt(start, fullEnd, effect);
+  const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
+  const interval = Math.max(0, effect.intervalMs || 0) / 1000;
+  // An explicit tick owns its offset from the anchor; untimed repetitions step from the first packet by the interval.
+  const packetAt = (index: number, tick?: { readonly atMs: number }) =>
+    tick ? origin + tick.atMs / 1000 : firstAt + (index - 1) * interval;
+  // Packet identity is authored before interruption and targeting filter out any applications; group 0 is valid.
+  const reaction = (packet: number) =>
+    reactionGroup === undefined ? {} : { effectReaction: { group: reactionGroup, packet } };
   const applications: MaterializedEffectApplication[] = [];
   const comboMetadata = effect.comboFinishers ? { comboFinishers: effect.comboFinishers } : {};
   const comboFieldMetadata = effect.comboFields ? { comboFields: effect.comboFields } : {};
@@ -148,11 +156,9 @@ export function materializeSkillEffectApplications({
     const hits = count;
     // Simultaneous hits share the coefficient; repeated applications each carry it, one hit per interval.
     const equalCoefficient = (effect.coefficient || 0) / Math.max(1, Math.trunc(effect.hits || 1));
-    const interval = Math.max(0, effect.intervalMs || 0) / 1000;
-    const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
       const tick = ticks?.[hitIndex - 1];
-      const at = tick ? origin + Number(tick.atMs) / 1000 : firstAt + (hitIndex - 1) * interval;
+      const at = packetAt(hitIndex, tick);
       const event = {
         ...effectBaseEvent,
         type: 'damage',
@@ -178,17 +184,16 @@ export function materializeSkillEffectApplications({
 
       if (tick) applyStrikeEventFields(tick, event);
 
-      applications.push({ at, event });
+      // Stamp after payload overrides so the reaction reference stays the packet's last field, as in other branches.
+      applications.push({ at, event: Object.assign(event, reaction(hitIndex)) });
     }
   } else if (effect.type === 'condition') {
     // Both authoring forms share packet construction; untimed repetitions still begin at cast completion.
     const ticks = Array.isArray(effect.ticks) ? effect.ticks : null;
-    const interval = Math.max(0, effect.intervalMs || 0) / 1000;
-    const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
       const tick = ticks?.[applicationIndex - 1];
       const packet = tick ?? effect;
-      const at = tick ? origin + Number(tick.atMs) / 1000 : firstAt + (applicationIndex - 1) * interval;
+      const at = packetAt(applicationIndex, tick);
       applications.push({
         at,
         event: {
@@ -211,14 +216,14 @@ export function materializeSkillEffectApplications({
           ...nestedEffectMetadata(baseEvent.metadata, effect.metadata, tick?.metadata),
           ...comboMetadata,
           ...comboFieldMetadata,
-          ...(tick?.comboFinishers ? { comboFinishers: tick.comboFinishers } : {})
+          ...(tick?.comboFinishers ? { comboFinishers: tick.comboFinishers } : {}),
+          ...reaction(applicationIndex)
         }
       });
     }
   } else if (effect.type === 'control') {
-    const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
-      const at = firstAt + (applicationIndex - 1) * interval;
+      const at = packetAt(applicationIndex);
       applications.push({
         at,
         event: {
@@ -230,14 +235,14 @@ export function materializeSkillEffectApplications({
           totalApplications: count,
           ...nestedEffectMetadata(baseEvent.metadata, effect.metadata),
           ...comboMetadata,
-          ...comboFieldMetadata
+          ...comboFieldMetadata,
+          ...reaction(applicationIndex)
         }
       });
     }
   } else if (effect.type === 'boon' || effect.type === 'buff') {
-    const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
-      const at = firstAt + (applicationIndex - 1) * interval;
+      const at = packetAt(applicationIndex);
       applications.push({
         at,
         event: {
@@ -254,7 +259,8 @@ export function materializeSkillEffectApplications({
           ...(effect.audience ? { audience: effect.audience } : {}),
           ...nestedEffectMetadata(baseEvent.metadata, effect.metadata),
           ...comboMetadata,
-          ...comboFieldMetadata
+          ...comboFieldMetadata,
+          ...reaction(applicationIndex)
         }
       });
     }
@@ -262,9 +268,8 @@ export function materializeSkillEffectApplications({
     // Only aura and custom remain here, but the explicit check keeps a future effect type from falling into this branch.
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   } else if (effect.type === 'aura' || effect.type === 'custom') {
-    const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
-      const at = firstAt + (applicationIndex - 1) * interval;
+      const at = packetAt(applicationIndex);
       applications.push({
         at,
         event: {
@@ -276,18 +281,12 @@ export function materializeSkillEffectApplications({
           totalApplications: count,
           ...nestedEffectMetadata(baseEvent.metadata, effect.metadata),
           ...comboMetadata,
-          ...comboFieldMetadata
+          ...comboFieldMetadata,
+          ...reaction(applicationIndex)
         }
       });
     }
   }
-
-  // Packet identity is authored before interruption and targeting filter out any applications.
-  if (reactionGroup !== undefined)
-    return applications.map((application, index) => ({
-      ...application,
-      event: { ...application.event, effectReaction: { group: reactionGroup, packet: index + 1 } }
-    }));
 
   return applications;
 }

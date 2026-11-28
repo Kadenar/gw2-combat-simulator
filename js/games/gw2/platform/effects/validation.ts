@@ -557,8 +557,16 @@ export function createEffectNormalizer(vocabulary: CatalogVocabulary) {
       throw new TypeError('Strike intervals require an applications count or an explicit tick timeline.');
     }
 
-    if (normalizedEffect.type === 'strike' && Number(applications) > 1 && Number(normalizedEffect.hits ?? 1) > 1) {
-      throw new TypeError('Repeated strike applications land one hit each.');
+    // An interval marks a periodic strike even at one application, since duration extensions can add applications.
+    // Simultaneous hits share one timestamp, so they cannot also declare a cadence.
+    if (
+      normalizedEffect.type === 'strike' &&
+      normalizedEffect.intervalMs != null &&
+      Number(normalizedEffect.hits ?? 1) > 1
+    ) {
+      throw new TypeError(
+        'Periodic strikes land one hit per application; simultaneous hits cannot declare intervalMs.'
+      );
     }
 
     if (

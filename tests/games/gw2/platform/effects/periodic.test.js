@@ -73,5 +73,11 @@ test('effect schedules reject mixed forms and off-grid intervals', () => {
     () => normalizeEffect({ type: 'strike', coefficient: 1, atMs: 0, intervalMs: 1000 }),
     /Strike intervals require an applications count or an explicit tick timeline/
   );
-  assert.throws(() => normalizeEffect({ ...strike, hits: 2 }), /Repeated strike applications land one hit each/);
+  // An interval marks a periodic strike at any application count; only one-hit strikes may declare it.
+  assert.equal(normalizeEffect({ ...strike, applications: 1 }).intervalMs, 680);
+  for (const applications of [1, 2])
+    assert.throws(
+      () => normalizeEffect({ ...strike, applications, hits: 2 }),
+      /simultaneous hits cannot declare intervalMs/
+    );
 });
