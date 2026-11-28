@@ -101,6 +101,7 @@ test('Justice aura and Blind remain independently patchable across specializatio
         result.events.find((event) => event.type === 'aura')?.duration,
         removed === 'condition' ? 7 : undefined
       );
+
       if (id === ID.JUSTICE || id === ID.RADIANT_JUSTICE)
         assert.equal(
           result.procSteps.some((step) => step.skill === 'Relic of Fireworks'),
