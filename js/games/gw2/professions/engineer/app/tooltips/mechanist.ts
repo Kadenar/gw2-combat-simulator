@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  internalCooldownFact,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
@@ -15,6 +16,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
@@ -137,7 +139,7 @@ export const mechanistTooltips = {
     [TRAIT.MECH_FIGHTER]: traitTooltip(
       'Eligible player weapon attacks command the mech to use Rocket Punch.',
       (balanceContext, id) => [
-        profileFact(balanceContext, id, 'cooldown', 'Rocket Punch base recharge', tooltipSeconds),
+        internalCooldownFact('Rocket Punch base recharge', balanceNumber(balanceContext.catalog, id, 'cooldown')),
         ...simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.ROCKET_PUNCH_MECH)!.effects, 'mech effect')
           .facts
       ],

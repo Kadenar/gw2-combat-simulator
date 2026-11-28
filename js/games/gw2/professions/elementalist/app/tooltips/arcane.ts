@@ -1,11 +1,11 @@
 import {
   fromProfile,
+  invokedSkillFacts,
   outsideScopeTooltip,
   tooltipFactorChange,
   tooltipPercent,
   tooltipPercentValue,
   tooltipSeconds,
-  traitSkillTooltip,
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
@@ -40,10 +40,27 @@ export const elementalistArcaneTooltips = {
     ['internalCooldown', 'Internal cooldown', tooltipSeconds]
   ]),
   [TRAIT.FINAL_SHIELDING]: outsideScopeTooltip,
-  [TRAIT.EVASIVE_ARCANA]: traitSkillTooltip(
-    [ID.FLAME_BURST_TRAIT, ID.CLEANSING_WAVE_TRAIT, ID.BLINDING_FLASH_TRAIT, ID.SHOCK_WAVE_TRAIT],
-    'Completing a dodge invokes the current attunement skill. Each attunement has an independent recharge. Healing and cleansing are outside simulation scope.'
-  ),
+  // Each attunement has its own dodge skill and recharge.
+  [TRAIT.EVASIVE_ARCANA]: (context) => ({
+    description: 'Finishing a dodge casts a skill based on your attunement. Each skill recharges independently.',
+    facts: [],
+    factTabs: (
+      [
+        ['Fire', ID.FLAME_BURST_TRAIT],
+        ['Water', ID.CLEANSING_WAVE_TRAIT],
+        ['Air', ID.BLINDING_FLASH_TRAIT],
+        ['Earth', ID.SHOCK_WAVE_TRAIT]
+      ] as const
+    ).map(([label, id]) => ({
+      label,
+      facts: [
+        ...invokedSkillFacts(context, id),
+        ...(id === ID.CLEANSING_WAVE_TRAIT
+          ? [{ name: 'Cleansing Wave', detail: 'Healing and condition removal are outside simulation scope.' }]
+          : [])
+      ]
+    }))
+  }),
   [TRAIT.ARCANE_LIGHTNING]: traitTooltip(
     'Completing an arcane skill grants temporary ferocity and its corresponding extra effect. Arcane Blast blinds the target.',
     [['attributeBonuses.ferocity', 'Ferocity during Arcane Lightning']]

@@ -111,6 +111,7 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   // Match the command's canonical name so both pet and merged effect facts use its icon.
   'Lesser "Sic \'Em!"': 'https://render.guildwars2.com/file/0D6B235E679346723414607E61DE052576097545/104025.png',
   // These temporary Ranger buffs use their granting traits' icons.
+  "Hunter's Tactics": 'https://render.guildwars2.com/file/44D4631FB427F09BE5B300BE0F537E6F2126BA0B/1012653.png',
   'Quick Draw': 'https://render.guildwars2.com/file/CBCB2EC86BC85CC02DA7AAB25CBFB226B8956D1E/1012648.png',
   'Light on your Feet': 'https://render.guildwars2.com/file/4D37A694088038DA9266F6107C9604AD9CBC2752/1012649.png',
   // Natural Balance's temporary buff uses its granting trait's icon in tooltip facts.

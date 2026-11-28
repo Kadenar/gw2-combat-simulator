@@ -45,14 +45,10 @@ function symbolPulseFacts(symbol: Skill, trait: SimulationTooltip): SimulationTo
     facts: [
       ...trait.facts,
       ...simulationComboFacts(symbol, payload),
-      // Furious Focus displays its symbol's recharge in the trait heading.
-      symbol.id === ID.LESSER_SYMBOL_OF_BLADES
-        ? internalCooldownFact('Symbol recharge', symbol.cooldown ?? 0)
-        : {
-            name: 'Symbol recharge',
-            detail:
-              tooltipSeconds(symbol.cooldown ?? 0) + (symbol.rechargeIgnoresAlacrity ? ' (unaffected by alacrity)' : '')
-          }
+      internalCooldownFact(
+        symbol.rechargeIgnoresAlacrity ? 'Symbol recharge (unaffected by alacrity)' : 'Symbol recharge',
+        symbol.cooldown ?? 0
+      )
     ],
     factSections: payload.facts.length
       ? [

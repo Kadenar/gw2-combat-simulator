@@ -1,33 +1,42 @@
 import {
   fromProfile,
+  internalCooldownFact,
   outsideScopeTooltip,
+  profileFact,
   tooltipFactorChange,
+  tooltipPercent,
   tooltipSeconds,
-  traitSkillTooltip,
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { balanceNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 /** Describes Beastmastery from its active balance profiles without owning simulation behavior. */
 export const rangerBeastmasteryTooltips = {
-  [TRAIT.PACK_ALPHA]: traitTooltip(
-    'Your pet gains power, precision, toughness, vitality, and condition damage. Beastmode grants the smaller player bonus. Pet skills recharge faster.',
-    [
-      ['conditionalAttributeBonuses.power', 'Pet Power'],
-      ['conditionalAttributeBonuses.conditionDamage', 'Pet Condition Damage'],
-      ['conditionalAttributeBonuses.precision', 'Pet Precision'],
-      ['conditionalAttributeBonuses.toughness', 'Pet Toughness'],
-      ['conditionalAttributeBonuses.vitality', 'Pet Vitality'],
-      ['attributeBonuses.power', 'Player Power in Beastmode'],
-      ['attributeBonuses.conditionDamage', 'Player Condition Damage in Beastmode'],
-      ['attributeBonuses.precision', 'Player Precision in Beastmode'],
-      ['attributeBonuses.toughness', 'Player Toughness in Beastmode'],
-      ['attributeBonuses.vitality', 'Player Vitality in Beastmode'],
-      ['rechargeMultiplier', 'Pet skill recharge', tooltipFactorChange]
-    ]
-  ),
+  // Pet skill recharge applies only to the pet, alongside its own attribute bonuses.
+  [TRAIT.PACK_ALPHA]: (context, trait) => ({
+    description: 'Your pet gains attributes and its skills recharge faster. In Beastmode, you gain attributes.',
+    facts: [],
+    factTabs: [
+      ['Pet', 'conditionalAttributeBonuses'],
+      ['Player in Beastmode', 'attributeBonuses']
+    ].map(([label, pool]) => ({
+      label,
+      facts: [
+        ...[
+          ['power', 'Power'],
+          ['precision', 'Precision'],
+          ['toughness', 'Toughness'],
+          ['vitality', 'Vitality'],
+          ['conditionDamage', 'Condition damage']
+        ].map(([key, name]) => profileFact(context, trait.id, `${pool}.${key}`, name)),
+        ...(pool === 'conditionalAttributeBonuses'
+          ? [profileFact(context, trait.id, 'rechargeMultiplier', 'Pet skill recharge', tooltipFactorChange)]
+          : [])
+      ]
+    }))
+  }),
   [TRAIT.LOUD_WHISTLE]: traitTooltip(
     'Your pet deals increased strike damage. Beastmode grants a separate personal strike-damage bonus.',
     [
@@ -74,23 +83,24 @@ export const rangerBeastmasteryTooltips = {
     ['damageMultiplier', 'Pet strike damage', tooltipFactorChange]
   ]),
   [TRAIT.ZEPHYRS_SPEED]: outsideScopeTooltip,
-  [TRAIT.GO_FOR_THE_THROAT]: traitSkillTooltip(
-    [ID.LESSER_SIC_EM],
-    'Beast skill hits invoke Lesser Sic Em for the pet, or the player while merged.',
-    (context) => {
-      const skill = context.catalog.skillsById.get(ID.LESSER_SIC_EM)!;
-      return [
-        {
-          name: 'Pet strike damage',
-          detail: tooltipFactorChange(
-            1 + (requireEffect(skill, 'buff', 'lesser-sic-em-pet')?.damageIncreasePerStack ?? 0)
-          )
-        },
-        {
-          name: 'Merged player strike damage',
-          detail: tooltipFactorChange(1 + (requireEffect(skill, 'buff', 'lesser-sic-em')?.damageIncreasePerStack ?? 0))
-        }
-      ];
-    }
-  )
+  [TRAIT.GO_FOR_THE_THROAT]: (context) => {
+    const skill = requireSkill(context.catalog, ID.LESSER_SIC_EM);
+    // Both recipients share the command's recharge. Each buff supplies its own bonus and duration.
+    return {
+      description: `A beast skill hit casts ${skill.name} on your pet, or on you in Beastmode.`,
+      facts: [internalCooldownFact(`${skill.name} recharge`, skill.cooldown ?? 0)],
+      factSections: [
+        ['Pet', 'lesser-sic-em-pet'],
+        ['Player in Beastmode', 'lesser-sic-em']
+      ].flatMap(([label, key]) => {
+        const effect = requireEffect(skill, 'buff', key);
+
+        if (!effect) return [];
+
+        const bonus = tooltipPercent(effectNumber(skill, effect, 'damageIncreasePerStack'));
+        const duration = tooltipSeconds(effectNumber(skill, effect, 'duration'));
+        return [{ label, facts: [{ name: 'Strike damage', detail: `${bonus} for ${duration}`, icon: skill.icon }] }];
+      })
+    };
+  }
 } satisfies NonNullable<ProfessionTooltips['traits']>;

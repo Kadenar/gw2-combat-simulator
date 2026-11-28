@@ -18,7 +18,7 @@ export const rangerSkirmishingTooltips = {
     ['internalCooldown', 'Internal cooldown', tooltipSeconds]
   ]),
   [TRAIT.HUNTERS_TACTICS]: traitTooltip(
-    'Qualifying player hits refresh the critical-chance bonus for 8 seconds. Defiant targets count as flanked. The strike-damage bonus is inactive to match the reported live bug.',
+    'Flanking strikes refresh your strike damage and critical chance bonuses. Defiant targets count as flanked.',
     [
       fromProfile(TRAIT.HUNTERS_TACTICS, 'damageMultiplier', 'Strike damage', tooltipFactorChange),
       ['criticalChance', 'Critical chance', tooltipPercent]

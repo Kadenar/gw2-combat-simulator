@@ -222,6 +222,7 @@ effectNames.set('transcendent-tempest', 'Transcendent Tempest');
 effectNames.set('fierce-as-fire', 'Fierce as Fire');
 effectNames.set('signet-mastery', 'Signet Mastery');
 effectNames.set('attackers-insight', "Attacker's Insight");
+effectNames.set('hunters-tactics', "Hunter's Tactics");
 effectNames.set('lesser-sic-em-pet', 'Lesser "Sic \'Em!" (pet)');
 effectNames.set('lesser-sic-em', 'Lesser "Sic \'Em!" (merged)');
 // Show the strike variant without repeating its owning skill or exposing its patch key.
@@ -339,6 +340,17 @@ export function traitTooltip(
   };
 }
 
+/** Show the invoked skill's recharge in the trait heading alongside its effects in the body. */
+export function invokedSkillFacts(context: ProfessionBalanceContext, id: SkillId): TooltipFact[] {
+  const skill = requireSkill(context.catalog, id);
+  return [
+    ...simulationEffectFacts(skill.effects, skill.name).facts,
+    ...(skill.cooldown != null && skill.cooldown > 0
+      ? [internalCooldownFact(`${skill.name} recharge`, skill.cooldown)]
+      : [])
+  ];
+}
+
 /** Trait explanations combine their own bonuses with live payloads from the skills they invoke. */
 export function traitSkillTooltip(
   skillIds: readonly SkillId[],
@@ -347,24 +359,9 @@ export function traitSkillTooltip(
 ): DescribeSimulationTooltip {
   return (context, entity) => {
     const trait = traitTooltip(description, facts)(context, entity);
-    const skills = skillIds.map((id) => {
-      const skill = context.catalog.skillsById.get(id);
-
-      if (!skill) throw new Error(`Missing invoked tooltip skill: ${id}`);
-
-      return skill;
-    });
     return {
       ...trait,
-      facts: [
-        ...trait.facts,
-        ...skills.flatMap((skill) => [
-          ...simulationEffectFacts(skill.effects, skill.name).facts,
-          ...(Number(skill.cooldown) > 0
-            ? [{ name: `${skill.name} recharge`, detail: tooltipSeconds(Number(skill.cooldown)) }]
-            : [])
-        ])
-      ]
+      facts: [...trait.facts, ...skillIds.flatMap((id) => invokedSkillFacts(context, id))]
     };
   };
 }

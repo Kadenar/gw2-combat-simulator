@@ -1,6 +1,7 @@
 import {
   attributeConversionFact,
   fromProfile,
+  internalCooldownFact,
   maximumBonusFact,
   profileFact,
   simulationEffectFacts,
@@ -25,7 +26,7 @@ export const engineerExplosivesTooltips = {
       description:
         'Your first qualifying player strike triggers an additional explosion. Dodging rearms it without resetting the skill recharge.',
       facts: [
-        { name: 'Base skill recharge', detail: tooltipSeconds(tooltipNumber(skill, 'cooldown')) },
+        internalCooldownFact('Base recharge', tooltipNumber(skill, 'cooldown')),
         ...simulationEffectFacts(skill.effects || []).facts
       ]
     };
@@ -52,7 +53,7 @@ export const engineerExplosivesTooltips = {
       description:
         'Using a healing skill triggers Lesser Grenade Barrage. Player-owned explosion strikes deal increased damage. Grenade radius no longer depends on this trait.',
       facts: [
-        { name: 'Base skill recharge', detail: tooltipSeconds(tooltipNumber(skill, 'cooldown')) },
+        internalCooldownFact(`${skill.name} recharge`, tooltipNumber(skill, 'cooldown')),
         // Show the selected explosion bonus alongside Grenadier's existing proc.
         profileFact(balanceContext, TRAIT.GRENADIER, 'damageIncrease', 'Explosion strike damage', tooltipPercent),
         ...simulationEffectFacts(effects).facts

@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  internalCooldownFact,
   maximumBonusFact,
   outsideScopeTooltip,
   skillTooltip,
@@ -40,7 +41,7 @@ export const thiefTrickeryTooltips = {
   [TRAIT.BURST_OF_AGILITY]: (context, entity, specialization) =>
     skillTooltip(
       'Landing an attack against a defiant target triggers Lesser Haste, granting quickness, fury, and swiftness to yourself.',
-      (_context, skill) => [{ name: 'Base skill recharge', detail: tooltipSeconds(Number(skill.cooldown)) }]
+      (_context, skill) => [internalCooldownFact(`${skill.name} recharge`, Number(skill.cooldown))]
     )(context, { ...entity, id: ID.LESSER_HASTE }, specialization),
   [TRAIT.THRILL_OF_THE_CRIME]: traitTooltip('Stealing grants fury, might, and swiftness to yourself.'),
   [TRAIT.BOUNTIFUL_THEFT]: traitTooltip(

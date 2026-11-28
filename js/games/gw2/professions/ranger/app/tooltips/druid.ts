@@ -12,6 +12,7 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import type { TooltipFact } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 /** Compose druid descriptions using the selected catalog's balance data. */
@@ -79,32 +80,33 @@ export const druidTooltips = {
       [['duration', 'Seed bloom delay', tooltipSeconds]]
     ),
     [TRAIT.LINGERING_LIGHT]: outsideScopeTooltip,
-    [TRAIT.ECLIPSE]: (balanceContext, entity) => ({
-      description:
-        'Celestial Avatar skills apply their corresponding conditions. Gain additional astral force from damage outside Avatar.',
-      facts: [
-        profileFact(
-          balanceContext,
-          TRAIT.ECLIPSE,
-          'coefficientMultiplier',
-          'Damage-generated astral force',
-          (value) => `${tooltipDecimal(value)}×`
-        ),
-        ...(tooltipProfile(balanceContext, entity.id).effects || []).flatMap(
-          (effect, index) =>
-            simulationEffectFacts(
-              [{ ...effect, applications: index === 4 ? 3 : 1 }],
-              [
-                'Cosmic Ray',
-                'Seed of Life',
-                'Lunar Impact',
-                'Rejuvenating Tides',
-                'Natural Convergence early pulses',
-                'Natural Convergence final pulse'
-              ][index]
-            ).facts
-        )
-      ]
-    })
+    [TRAIT.ECLIPSE]: (context, trait) => {
+      // Each condition is keyed by its Avatar skill. Natural Convergence changes stacks on its final pulse.
+      const bySkill = new Map<string, TooltipFact[]>();
+      for (const effect of tooltipProfile(context, trait.id).effects ?? []) {
+        if (effect.type !== 'condition' || !effect.condition || !effect.name) continue;
+
+        const finalPulse = effect.name === 'Natural Convergence final pulse';
+        const skill = finalPulse ? 'Natural Convergence' : effect.name;
+        const pulse = finalPulse ? 'final pulse' : skill === 'Natural Convergence' ? 'each of the first 3 pulses' : '';
+        const conditions = simulationEffectFacts([{ ...effect, name: effect.condition }], pulse).facts;
+        bySkill.set(skill, [...(bySkill.get(skill) ?? []), ...conditions]);
+      }
+
+      return {
+        description:
+          'Celestial Avatar skills inflict conditions. Outside Celestial Avatar, dealing damage generates more astral force.',
+        facts: [
+          profileFact(
+            context,
+            trait.id,
+            'coefficientMultiplier',
+            'Astral force from damage',
+            (value) => `${tooltipDecimal(value)}×`
+          )
+        ],
+        factSections: Array.from(bySkill, ([label, facts]) => ({ label, facts }))
+      };
+    }
   }
 } satisfies ProfessionTooltips;

@@ -130,5 +130,6 @@ test('trait tooltips combine trait and invoked skill facts against the supplied 
   assert.deepEqual(facts({ ...skill, effects: [] }), [ownFact]);
   const withRecharge = facts({ ...skill, cooldown: 3 });
   assert.deepEqual(withRecharge.slice(0, -1), expected);
-  assert.notDeepEqual(withRecharge.at(-1), facts({ ...skill, cooldown: 5 }).at(-1));
+  assert.equal(withRecharge.at(-1).internalCooldownSeconds, 3);
+  assert.equal(facts({ ...skill, cooldown: 5 }).at(-1).internalCooldownSeconds, 5);
 });
