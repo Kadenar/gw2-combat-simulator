@@ -39,6 +39,32 @@ test('Justice Is Blind grants Light Aura and Blind for every Guardian specializa
   }
 });
 
+test('Fireworks triggers when the Justice is Blind attack lands on core Guardian and Luminary', () => {
+  for (const [specialization, name] of [
+    ['Core', 'Virtue of Justice'],
+    ['Luminary', 'Radiant Justice']
+  ]) {
+    for (const [traited, offTarget] of [
+      [true, false],
+      [false, false],
+      [true, true]
+    ]) {
+      const result = runGuardian([{ name, offTarget }], {
+        specialization,
+        selectedTraitIds: traited ? [TRAIT.JUSTICE_IS_BLIND] : [],
+        relic: 'Fireworks'
+      });
+      assert.deepEqual(result.warnings, []);
+      const procs = result.procSteps.filter((step) => step.skill === 'Relic of Fireworks');
+      assert.deepEqual(
+        procs.map((step) => step.sourceSkill),
+        traited && !offTarget ? [name] : []
+      );
+      assert.equal(result.strikeDamage, 0);
+    }
+  }
+});
+
 test('Justice aura and Blind remain independently patchable across specializations', () => {
   for (const removed of ['aura', 'condition']) {
     const profession = withPatchPreview(guardianProfession, {
@@ -58,7 +84,12 @@ test('Justice aura and Blind remain independently patchable across specializatio
     for (const [specialization, id] of justices) {
       const result = runGuardian(
         [id],
-        { specialization, selectedTraitIds: [TRAIT.JUSTICE_IS_BLIND], patchId: 'justice-component' },
+        {
+          specialization,
+          selectedTraitIds: [TRAIT.JUSTICE_IS_BLIND],
+          patchId: 'justice-component',
+          relic: 'Fireworks'
+        },
         { profession }
       );
       assert.deepEqual(result.warnings, []);
@@ -70,6 +101,11 @@ test('Justice aura and Blind remain independently patchable across specializatio
         result.events.find((event) => event.type === 'aura')?.duration,
         removed === 'condition' ? 7 : undefined
       );
+      if (id === ID.JUSTICE || id === ID.RADIANT_JUSTICE)
+        assert.equal(
+          result.procSteps.some((step) => step.skill === 'Relic of Fireworks'),
+          removed !== 'condition'
+        );
     }
   }
 });

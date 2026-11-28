@@ -413,7 +413,8 @@ function blindFromJustice(runtime: GuardianRuntime, { cast }: VirtueActivation):
   const event = { ...guardianCastCause(runtime, cast), offTarget: cast.command.offTarget === true };
   // The independent aura is admitted before Blind; removal of the latter never cancels the former.
   runtime.schedule(JUSTICE_AURA, runtime.time, event, undefined, -10);
-  emitTraitProfile(runtime, TRAIT.JUSTICE_IS_BLIND, TRAIT.JUSTICE_IS_BLIND, event, {
+  const blinds = emitTraitProfile(runtime, TRAIT.JUSTICE_IS_BLIND, TRAIT.JUSTICE_IS_BLIND, event, {
+    receipt: true,
     at: event.at,
     effect: { type: 'condition', name: 'Blind' },
     attribution: {
@@ -427,6 +428,32 @@ function blindFromJustice(runtime: GuardianRuntime, { cast }: VirtueActivation):
     },
     transform: (packet) => ({ ...packet, causalOrder: event.causalOrder ?? event.eventOrder, name: event.name })
   });
+
+  // The blinding attack uses the activating virtue's recharge for on-hit effects such as Fireworks.
+  if (skill.id === ID.JUSTICE || skill.id === ID.RADIANT_JUSTICE) {
+    for (const blind of blinds) {
+      runtime.effects.emit({
+        kind: 'packet',
+        cause: blind,
+        event: {
+          type: 'damage',
+          at: blind.at,
+          source: event.source,
+          sourceId: TRAIT.JUSTICE_IS_BLIND,
+          traitId: TRAIT.JUSTICE_IS_BLIND,
+          actorType: ACTOR.PLAYER,
+          skillId: skill.id,
+          skillName: skill.name,
+          name: 'Justice is Blind',
+          activationId: cast.id,
+          weaponStrengthProfileId: 'nonweapon.profession-mechanic',
+          coefficient: 0,
+          canCrit: false,
+          offTarget: blind.offTarget
+        }
+      });
+    }
+  }
 }
 
 /** The Core trait owns delivery; Luminary may react to the aura without owning its grant. */
