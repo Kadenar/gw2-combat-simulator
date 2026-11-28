@@ -10,8 +10,9 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { balanceNumber, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { virtueBoons } from '#gw2/professions/guardian/app/tooltips/shared.js';
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 /** Describe virtues tooltips from the selected balance data. */
 export const guardianVirtuesTooltips = {
@@ -58,14 +59,32 @@ export const guardianVirtuesTooltips = {
   [TRAIT.GLACIAL_HEART]: traitTooltip(
     'Glacial Blow replaces Mighty Blow. Healing when you disable, immobilize, or chill a foe is not simulated.'
   ),
-  [TRAIT.PERMEATING_WRATH]: traitTooltip('Justice triggers burning after fewer qualifying hits.', [
-    ['threshold', 'Hits per trigger']
-  ]),
+  // Willbender counts hits during Rushing Justice. Other guardians use the passive Justice counter.
+  [TRAIT.PERMEATING_WRATH]: (context, trait, specialization) => {
+    const willbender = specialization === 'Willbender';
+    const base = willbender
+      ? balanceNumber(context.catalog, TRAIT.WILLBENDER_TRAINING, 'threshold')
+      : skillNumber(requireSkill(context.catalog, ID.JUSTICE), 'threshold');
+    const hits = balanceNumber(context.catalog, trait.id, 'threshold');
+    return {
+      description: willbender
+        ? 'Your strikes trigger burning more often while Rushing Justice is active.'
+        : 'Your strikes trigger the passive burning from Justice more often.',
+      facts: [{ name: 'Burning', detail: `Every ${hits} hits (normally ${base})` }]
+    };
+  },
   [TRAIT.BATTLE_PRESENCE]: traitTooltip(
     'Share Resolve passive healing with nearby allies. Healing is outside simulation scope.'
   ),
-  [TRAIT.INDOMITABLE_COURAGE]: traitTooltip(
-    "Activating Courage grants stability. Dragonhunter's Courage passive triggers more frequently.",
-    [['pulseInterval', 'Dragonhunter Courage passive interval', tooltipSeconds]]
-  )
+  [TRAIT.INDOMITABLE_COURAGE]: (context, trait, specialization, build) => {
+    // Only Dragonhunter has the passive aegis pulse. Include it in the general trait reference as well.
+    const showAegis = !build || specialization === 'Dragonhunter';
+    const activation = 'Activating Courage grants stability to you and nearby allies.';
+    return traitTooltip(
+      showAegis
+        ? `${activation} On Dragonhunter, Shield of Courage grants you aegis more often while ready.`
+        : activation,
+      showAegis ? [['pulseInterval', 'Aegis interval on Dragonhunter', tooltipSeconds]] : []
+    )(context, trait);
+  }
 } satisfies NonNullable<ProfessionTooltips['traits']>;

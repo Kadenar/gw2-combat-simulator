@@ -53,6 +53,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   // Nature's Vengeance uses its in-game clock glyph for the simulator's repeat-slam delay.
   'Delay after final shake': 'https://render.guildwars2.com/file/B75E91EB22E0DFCC1D08030204055946506D56F6/1770206.png',
   'Attribute increase': 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
+  // Both Perfect Inscriptions signet rows use the trait's Effectiveness Increased icon.
+  'Passive bonus': 'https://render.guildwars2.com/file/B0CD8077991E4FB1622D2930337ED7F9B54211D5/156665.png',
   // Warrior adrenaline facts use the game's Number glyph, shared with attribute increases.
   Adrenaline: 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
   // Burst Mastery's resource refund uses the up-arrow glyph for restored resources.

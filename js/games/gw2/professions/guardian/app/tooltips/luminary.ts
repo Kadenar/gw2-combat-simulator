@@ -9,13 +9,14 @@ import {
   tooltipFactorChange,
   tooltipNumber,
   tooltipPercent,
+  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
@@ -190,10 +191,22 @@ export const luminaryTooltips = {
   traits: {
     [TRAIT.LUMINARY]: traitTooltip('Unlock Radiant Forge, radiant weapons, and radiant virtues.'),
     [TRAIT.LIGHTS_GIFT]: traitTooltip('Gain vitality.', [['attributeBonuses.vitality', 'Vitality']]),
-    [TRAIT.RADIANT_ARMAMENTS]: traitTooltip(
-      'Equipping a radiant hammer temporarily increases strike damage. Equipping another radiant weapon removes the hammer bonus.',
-      [fromProfile(TRAIT.RADIANT_ARMAMENTS, 'damageIncrease', 'Radiant hammer strike damage', tooltipPercent)]
-    ),
+    [TRAIT.RADIANT_ARMAMENTS]: (context, trait) => {
+      const profile = tooltipProfile(context, trait.id);
+      const buff = requireEffect(profile, 'buff', 'radiant-armaments');
+
+      if (!buff) return outsideScopeTooltip(context, trait);
+
+      // The hammer starts a timed bonus to all strikes, including those made after leaving the forge.
+      return {
+        description:
+          'Dazzling Hammer increases all strike damage. The bonus persists after you leave Radiant Forge and ends early if you draw a different radiant weapon.',
+        facts: [
+          { name: 'Strike damage', detail: tooltipPercent(tooltipNumber(profile, 'damageIncrease')) },
+          { name: 'Duration', detail: tooltipSeconds(tooltipNumber(buff, 'duration')) }
+        ]
+      };
+    },
     [TRAIT.SHIMMERING_STANCES]: traitTooltip('Completed stances grant protection to the party and blind the target.'),
     [TRAIT.RESOLUTE_BLESSING]: outsideScopeTooltip,
     [TRAIT.PERSISTENT_BLESSING]: outsideScopeTooltip,
