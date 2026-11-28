@@ -315,8 +315,14 @@ test('shroud exits before combat leave entry ready without weakening combat rech
   for (const [specialization, entry, exit] of [
     ['Core', 'Death Shroud', 'End Death Shroud'],
     ['Reaper', "Reaper's Shroud", "Exit Reaper's Shroud"],
-    ['Harbinger', 'Harbinger Shroud', 'Exit Harbinger Shroud']
+    ['Harbinger', 'Harbinger Shroud', 'Exit Harbinger Shroud'],
+    ['Ritualist', "Ritualist's Shroud", "Exit Ritualist's Shroud"]
   ]) {
+    const entryId = necromancerCatalog.skills.find((candidate) => candidate.name === entry).id;
+    const active = simulate(specialization, [entry, wait(1000)], { initialResource: 100 });
+    assert.deepEqual(active.warnings, [], specialization);
+    assert.equal(active.planningState.availability[entryId].ready, false);
+    assert.equal(active.planningState.cooldownsBySkillId[entryId], undefined);
     const precombat = simulate(specialization, [entry, exit, { type: 'combat-start' }, entry], {
       initialResource: 100
     });
@@ -326,23 +332,15 @@ test('shroud exits before combat leave entry ready without weakening combat rech
       precombat.combatStartTime
     );
     for (const prefix of [[], [{ type: 'combat-start' }]]) {
-      const combat = simulate(specialization, [...prefix, entry, exit], { initialResource: 100 });
-      assert.ok(
-        combat.planningState.cooldownsBySkillId[
-          necromancerCatalog.skills.find((candidate) => candidate.name === entry).id
-        ].remainingMs > 0,
-        specialization
-      );
+      const combat = simulate(specialization, [...prefix, entry, wait(1000), exit], { initialResource: 100 });
+      assert.deepEqual(combat.warnings, [], specialization);
+      const exitEvent = combat.events.find((event) => event.sourceId === 'necromancer.shroud-exit');
+      assert.equal(observedRuntime(combat).cooldownController.rechargeFor(entryId).workAnchorAt, exitEvent.at);
+      assert.ok(combat.planningState.cooldownsBySkillId[entryId].remainingMs > 0, specialization);
     }
 
     const depleted = simulate(specialization, [entry, wait(40000), { type: 'combat-start' }], { initialResource: 100 });
-    assert.equal(
-      depleted.planningState.cooldownsBySkillId[
-        necromancerCatalog.skills.find((candidate) => candidate.name === entry).id
-      ],
-      undefined,
-      specialization
-    );
+    assert.equal(depleted.planningState.cooldownsBySkillId[entryId], undefined, specialization);
   }
 });
 

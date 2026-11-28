@@ -219,6 +219,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
     type: 'Profession',
     slot: 'Profession_1',
     cooldown: 10,
+    rechargeOwner: 'formExit',
     shroudEntry: 'reaper',
     shroudTuning: { kind: 'trait', id: TRAIT.SHROUD_KNIGHT },
     minimumShroudLifeForcePercent: 10,

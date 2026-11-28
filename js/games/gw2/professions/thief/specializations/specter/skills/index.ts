@@ -49,6 +49,7 @@ const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSkil
     // Count the explicit bar-changing input in effort summaries.
     shadowShroudTransition: 'enter',
     cooldown: 8,
+    rechargeOwner: 'formExit',
     paletteTileId: SHADOW_SHROUD_PALETTE_TILE,
     paletteTileOrder: 1,
     castTimeMs: 0,

@@ -3,9 +3,15 @@ import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-pol
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import { rechargeOnFormExit } from '#gw2/platform/execution/form-recharge.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumber,
+  balanceProfileNumber,
+  requireBalanceProfile,
+  requireSkill
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { setThiefKneeling } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -42,6 +48,9 @@ export function setShadowShroud(
   if (active && runtime.profession.core.kneeling) setThiefKneeling(runtime, false);
 
   specterState.from(runtime.profession).shadowShroudActive = active;
+
+  if (!active) rechargeOnFormExit(runtime, requireSkill(runtime.helpers, ID.ENTER_SHADOW_SHROUD));
+
   runtime.resourceController.refresh('shadowForce');
   runtime.effects.emit({
     kind: 'packet',

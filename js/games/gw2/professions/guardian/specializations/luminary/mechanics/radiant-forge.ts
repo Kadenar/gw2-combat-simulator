@@ -1,10 +1,10 @@
 import { gw2Time } from '#gw2/platform/combat/clock.js';
-import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { rechargeOnFormExit } from '#gw2/platform/execution/form-recharge.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -34,16 +34,10 @@ function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>):
   const enter = runtime.helpers.skillsById.get(ID.ENTER_RADIANT_FORGE)!;
   const exit = runtime.helpers.skillsById.get(ID.EXIT_RADIANT_FORGE)!;
 
-  if (!runtime.engagement.preparationComplete()) runtime.cooldownController.clear(enter.id);
-  else {
-    const used = Object.keys(state.radiantWeaponsUsed).filter((weapon) => RADIANT_ARMAMENTS.includes(weapon)).length;
-    // Entry owns the selected recharge adjustment even when expiry initiates the exit.
-    const reduction =
-      used <= 1 ? requireBalanceNumber(enter.rechargeReduction, `skill=${enter.id} field=rechargeReduction`) : 0;
-    // Forge entry is a fourth profession action, outside weapon and virtue recharge traits.
-    const work = Math.max(0, gw2BaseRecharge(enter) - reduction);
-    runtime.cooldownController.startRecharge(enter, runtime.time, work);
-  }
+  const used = Object.keys(state.radiantWeaponsUsed).filter((weapon) => RADIANT_ARMAMENTS.includes(weapon)).length;
+  const reduction =
+    used <= 1 ? requireBalanceNumber(enter.rechargeReduction, `skill=${enter.id} field=rechargeReduction`) : 0;
+  rechargeOnFormExit(runtime, enter, reduction);
 
   state.radiantForge = false;
   state.radiantForgeEndsAt = 0;
@@ -78,7 +72,6 @@ function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>):
 
 /** The form has one exact expiry; a stale expiry cannot close a later entry at the same deadline. */
 function enterForge(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
-  runtime.cooldownController.clear(cast.skill.id);
   const skill = requireSkill(runtime.helpers, ID.ENTER_RADIANT_FORGE);
   const effect = requireEffect(skill, 'buff', 'radiant-forge');
 

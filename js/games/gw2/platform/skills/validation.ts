@@ -399,8 +399,7 @@ export function createCatalogNormalizer(vocabulary: CatalogVocabulary) {
       throw new TypeError(`Skill ${id} has an invalid retainsCastLockoutAfterInterrupt.`);
     }
 
-    // Actor-owned recharge must explicitly opt out of player cast completion.
-    if (source.rechargeOwner != null && source.rechargeOwner !== 'actor')
+    if (source.rechargeOwner != null && source.rechargeOwner !== 'actor' && source.rechargeOwner !== 'formExit')
       throw new TypeError(`Skill ${id} has invalid rechargeOwner.`);
 
     if (source.rechargeAnchor != null && !RECHARGE_ANCHORS.has(source.rechargeAnchor)) {

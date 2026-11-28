@@ -472,6 +472,7 @@ const radiantForgeSkills: Readonly<Record<number, SkillDefinition<GuardianSkill>
     type: 'Profession',
     slot: 'Profession_4',
     cooldown: 10,
+    rechargeOwner: 'formExit',
     // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/hooks.ts`.
     inputCategory: 'bar-swap',
     // The form controller consumes these values; ordinary cast packets must not duplicate its lifetime.

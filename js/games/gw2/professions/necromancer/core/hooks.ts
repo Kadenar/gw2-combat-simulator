@@ -258,10 +258,8 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
     initializeNecromancerPassives(runtime);
   },
   availability: necromancerAvailability,
-  // Recharge traits select work once at acceptance; the shared controller applies permanent Alacrity.
-  // Rules scale accepted work; shroud entry and minion death still own their recharge anchors.
-
-  rechargeWork: (_runtime, skill, work) => (skill.shroudEntry || skill.rechargeOnMinionDeath ? 0 : work),
+  // Minion summons start recharge when their minion dies.
+  rechargeWork: (_runtime, skill, work) => (skill.rechargeOnMinionDeath ? 0 : work),
 
   // Cast-derived attribution remains local to the declaration; balance profiles own all packets.
 

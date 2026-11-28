@@ -103,6 +103,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     type: 'Profession',
     slot: 'Profession_1',
     cooldown: 10,
+    rechargeOwner: 'formExit',
     shroudEntry: 'harbinger',
     shroudTuning: { kind: 'trait', id: TRAIT.DARK_DISCIPLE },
     minimumShroudLifeForcePercent: 0,

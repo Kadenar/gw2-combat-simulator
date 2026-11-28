@@ -36,6 +36,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<
     type: 'Profession',
     slot: 'Profession_1',
     cooldown: 10,
+    rechargeOwner: 'formExit',
     shroudEntry: 'death',
     // Core drain belongs to the entry skill; elite entries select their minor trait.
     shroudTuning: { kind: 'skill', id: ID.DEATH_SHROUD },

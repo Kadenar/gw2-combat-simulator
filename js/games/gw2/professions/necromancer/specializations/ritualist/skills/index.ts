@@ -513,6 +513,7 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
     type: 'Profession',
     slot: 'Profession_1',
     cooldown: 10,
+    rechargeOwner: 'formExit',
     shroudEntry: 'ritualist',
     shroudTuning: { kind: 'trait', id: TRAIT.SPAWNING_POWER },
     minimumShroudLifeForcePercent: 10,

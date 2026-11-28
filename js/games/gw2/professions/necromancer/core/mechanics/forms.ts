@@ -1,6 +1,7 @@
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { rechargeOnFormExit } from '#gw2/platform/execution/form-recharge.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -74,11 +75,7 @@ export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   runtime.resourceController.refresh('lifeForce');
   runtime.cooldownController.clear(ID.ISOLATE);
 
-  if (entry) {
-    // A known marker timestamp admits hostile packets but does not move an earlier authored exit into combat.
-    if (!runtime.engagement.preparationComplete()) runtime.cooldownController.clear(entry.id);
-    else runtime.cooldownController.startRecharge(entry, runtime.time, 10);
-  }
+  if (entry) rechargeOnFormExit(runtime, entry);
 
   transition(runtime, false);
   runtime.fireTrigger(shroudExited);
@@ -116,7 +113,6 @@ export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: Runtim
 
   if (state.activeShroudExitId != null) runtime.armFlip(state.activeShroudExitId);
 
-  runtime.cooldownController.setReadyAt(skill.id, Infinity);
   runNecromancerShroudEnter(runtime, skill);
   runtime.resourceController.refresh('lifeForce');
   runtime.fireTrigger(shroudEntered, { cast });

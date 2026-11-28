@@ -231,6 +231,29 @@ test('Specter can use its shroud autoattack while stealth is active', () => {
   assert.ok(result.planningState.profession[STATE.REVEALED_UNTIL] > 0);
 });
 
+test('Shadow Shroud recharges from manual exit or depletion after preparation', () => {
+  const entry = ID.ENTER_SHADOW_SHROUD;
+  const wait = { type: 'wait', durationMs: 2000 };
+  const active = simulate('Specter', [entry, wait], { initialShadowForce: 100 });
+  assert.equal(active.planningState.profession[STATE.SHADOW_SHROUD_ACTIVE], true);
+  assert.equal(active.planningState.cooldownsBySkillId[entry], undefined);
+
+  for (const [initialShadowForce, exit, rotation] of [
+    [100, ID.EXIT_SHADOW_SHROUD, [entry, wait, ID.EXIT_SHADOW_SHROUD]],
+    [2, DEPLETED, [entry, wait]]
+  ]) {
+    const combat = simulate('Specter', rotation, { initialShadowForce });
+    assert.deepEqual(combat.warnings, []);
+    const exitEvent = combat.events.find((event) => event.type === 'weapon_set' && event.skillId === exit);
+    assert.equal(observedRuntime(combat).cooldownController.rechargeFor(entry).workAnchorAt, exitEvent.at);
+    assert.ok(combat.planningState.cooldownsBySkillId[entry].remainingMs > 0);
+
+    const preparation = simulate('Specter', [...rotation, { type: 'combat-start' }], { initialShadowForce });
+    assert.deepEqual(preparation.warnings, []);
+    assert.equal(preparation.planningState.cooldownsBySkillId[entry], undefined);
+  }
+});
+
 test('Specter automatically leaves Shadow Shroud when shadow force depletes', () => {
   const result = simulate('Specter', ['Enter Shadow Shroud', { type: 'wait', durationMs: 1000 }], {
     initialShadowForce: 1

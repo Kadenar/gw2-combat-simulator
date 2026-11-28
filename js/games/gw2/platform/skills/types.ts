@@ -142,8 +142,8 @@ export interface Skill extends CatalogEntity, SharedNumericSkillFields {
   readonly canCastConcurrently?: boolean;
   readonly lockouts?: readonly SkillLockout[];
   readonly rechargeAnchor?: 'castStart' | 'castEnd' | 'beforeCastEnd';
-  /** An independently scheduled actor starts its recharge when its own action executes. */
-  readonly rechargeOwner?: 'actor';
+  /** A separate actor or a form exit starts recharge at its own execution time. */
+  readonly rechargeOwner?: 'actor' | 'formExit';
   /** Which actor's active boons determine recharge-rate modifiers. */
   readonly rechargeBuffAudience?: typeof RECIPIENT.SELF | typeof RECIPIENT.SUMMONS;
   /** Recharge always runs at the base rate; Alacrity never changes it (for example, Revenant legend swap). */
