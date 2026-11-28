@@ -27,6 +27,8 @@ import {
 } from '#gw2/input/bindings.js';
 import { gw2KeyboardCode, gw2MouseCode, parseGw2HotkeyBindingsXml } from '#gw2/integrations/keybinds/parser.js';
 import { inputControlForSkillSlot } from '#gw2/platform/skills/input-controls.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 test('rotation hotkeys default to the Guild Wars 2 skill-bar keys', () => {
   assert.deepEqual(defaultInputBindings(), {
@@ -264,7 +266,8 @@ test('timeline hotkeys resolve selected slots, replacements, and shared controls
   ];
   const app = {
     activeCatalog: { skillsById: new Map(skills.map((skill) => [skill.id, skill])) },
-    adapter: { eliteSpecialization: () => '' }
+    adapter: { eliteSpecialization: () => '' },
+    profession: { ui: { loadoutInputControl: () => null } }
   };
   const build = { selectedSkillIds: { Heal: null, Utility1: null, Utility2: 2, Utility3: null, Elite: null } };
   const action = timelineHotkeyActions(app, build, null);
@@ -272,6 +275,29 @@ test('timeline hotkeys resolve selected slots, replacements, and shared controls
     skills.map((skill, index) => action(index, { type: 'cast', skillId: skill.id }, skill)),
     ['weapon-2', 'slot-8', 'slot-8', 'dodge', 'weapon-swap', 'profession-1', null]
   );
+});
+
+test('pending timeline hotkeys follow Shred when the Amalgam build moves or unequips it', async () => {
+  const adapter = await loadProfessionAppAdapter('engineer');
+  const profession = adapter.profession;
+  const app = { adapter, profession, activeCatalog: profession.catalog };
+  const shred = ID.OFFENSIVE_PROTOCOL_SHRED;
+  const protect = ID.DEFENSIVE_PROTOCOL_PROTECT;
+  const demolish = ID.OFFENSIVE_PROTOCOL_DEMOLISH;
+  const skill = profession.catalog.skillsById.get(shred);
+  const command = { type: 'cast', skillId: shred };
+  const pending = (specialization, selectedMorphSkillIds) => {
+    const defaults = profession.createBuildDefaults();
+    defaults.specializations[2] = { name: specialization, traits: '1-1-1' };
+    const build = adapter.toApplicationBuild({ ...defaults, selectedMorphSkillIds });
+    return timelineHotkeyActions(app, build, null)(0, command, skill);
+  };
+
+  assert.equal(pending('Amalgam', [shred, protect, demolish]), 'profession-2');
+  assert.equal(pending('Amalgam', [protect, shred, demolish]), 'profession-3');
+  assert.equal(pending('Amalgam', [protect, demolish, shred]), 'profession-4');
+  assert.equal(pending('Amalgam', [protect, demolish, ID.DEFENSIVE_PROTOCOL_THORNS]), null);
+  assert.equal(pending('Holosmith', [protect, shred, demolish]), null);
 });
 
 // Recorded inputs retain the historical bar position; unresolved recordings must not invent a key from today's bar.

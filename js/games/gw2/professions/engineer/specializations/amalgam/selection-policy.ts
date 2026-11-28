@@ -19,6 +19,11 @@ const MORPH_ORDER: readonly AmalgamMorphKind[] = [
 ];
 type MorphCatalog = Pick<CanonicalCatalog<AmalgamSkill>, 'skills' | 'skillsById'>;
 
+/** The equipped protocol order assigns F2 through F4 to both pending and simulated casts. */
+export function amalgamProtocolControl(selected: readonly number[], skillId: SkillId) {
+  return (['profession-2', 'profession-3', 'profession-4'] as const)[selected.indexOf(Number(skillId))] ?? null;
+}
+
 /** All three loadout positions draw from the same protocol list. */
 function isProtocol(skill: AmalgamSkill | undefined): skill is AmalgamSkill {
   return skill?.specialization === 'Amalgam' && skill.morphKind != null;

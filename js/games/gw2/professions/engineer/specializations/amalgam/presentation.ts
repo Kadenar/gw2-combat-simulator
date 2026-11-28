@@ -15,6 +15,7 @@ import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { engineerToolbeltSkillIds, engineerUiState } from '#gw2/professions/engineer/core/presentation.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
+  amalgamProtocolControl,
   amalgamProtocolOptions,
   resolveAmalgamSkillId,
   selectAmalgamMorph
@@ -222,6 +223,7 @@ export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>
 
     rotationStateSnapshot: amalgamStateSnapshot,
     skillBarGroups: (context: EngineerUiContext) => amalgamSkillBarGroups(catalog, context),
+    loadoutInputControl: ({ build }, skillId) => amalgamProtocolControl(build.selectedMorphSkillIds ?? [], skillId),
     updateSkillBarSelection: (context: EngineerUiContext, selection: EngineerUiSelection) =>
       updateAmalgamSkillBarSelection(catalog, context, selection),
     paletteGroups: (context: EngineerUiContext) => [

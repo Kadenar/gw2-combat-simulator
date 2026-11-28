@@ -1,5 +1,5 @@
+/** Resolves timeline controls from accepted inputs; pending casts use skill bars or the profession loadout. */
 import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
-/** Resolves timeline controls from accepted inputs, or selected skill bars while edits await simulation. */
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { CastCommand } from '#gw2/platform/builds/rotation.js';
 import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
@@ -33,6 +33,10 @@ export function timelineHotkeyActions(
         .map((bar) => resolveInputControl(app.activeCatalog, skill, command, bar ? [bar] : []).control)
         .filter((control) => control !== null)
     );
-    return controls.size === 1 ? [...controls][0] : null;
+
+    if (controls.size === 1) return [...controls][0];
+
+    // Conflicting bar slots show no key. A skill on no bar may still take a key from the profession loadout.
+    return controls.size ? null : app.profession.ui.loadoutInputControl(context, skill.id);
   };
 }

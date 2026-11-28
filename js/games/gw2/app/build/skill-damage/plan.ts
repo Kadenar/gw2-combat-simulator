@@ -27,6 +27,7 @@ import {
 import type { SkillDamageState } from '#gw2/platform/profession-presentation/skill-damage.js';
 import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import type { SkillDamageOccurrence, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
+import { inputControlForSkillSlot, type InputControlId } from '#gw2/platform/skills/input-controls.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export type SkillDamageRowStatus = 'equipped' | 'unslotted';
@@ -345,16 +346,11 @@ function chainStep(skill: Skill): number | null {
   return Number.isFinite(step) && step > 0 ? step : null;
 }
 
-/** A palette entry's slot overrides the catalog slot for skills the loadout can move. */
-function slotBadge(skill: Skill, entrySlot?: string): string {
-  const slot = String(entrySlot ?? skill.slot ?? '');
-  const weaponSlot = /^Weapon_(\d)$/.exec(slot);
+/** Badges name the skill's control; a loadout control overrides the catalog slot for skills the loadout can move. */
+function slotBadge(skill: Skill, loadoutControl?: InputControlId | null): string {
+  const key = /^(weapon|profession)-(\d)$/.exec(loadoutControl || inputControlForSkillSlot(skill.slot));
 
-  if (weaponSlot) return weaponSlot[1];
-
-  const professionSlot = /^Profession_(\d)$/.exec(slot);
-
-  if (professionSlot) return `F${professionSlot[1]}`;
+  if (key) return key[1] === 'weapon' ? key[2] : `F${key[2]}`;
 
   if (skill.type === 'Heal') return 'H';
 
@@ -452,14 +448,9 @@ export function createSkillDamagePlan(
     selectedTraitIds: (input.attributeData?.activeTraits || []).map((trait) => trait.id)
   };
   const palette = paletteView(input.profession, queryPaletteContext(query));
-  // Movable profession skills take their slot badge from the palette row that places them.
-  const entrySlots = new Map(
-    palette.flatMap((group) =>
-      group.skillEntries.flatMap((entry) =>
-        entry.slot == null ? [] : [[Number(entry.skillId), String(entry.slot)] as const]
-      )
-    )
-  );
+  // Movable profession skills take the key the timeline shows for the same build.
+  const loadoutControl = (skill: Skill) =>
+    input.profession.ui.loadoutInputControl({ build: input.build, specialization: query.specialization }, skill.id);
   const addRow = (
     group: { id: string },
     skill: Skill,
@@ -522,7 +513,7 @@ export function createSkillDamagePlan(
       skillId: skill.id,
       name: skill.name,
       icon: String(skill.icon || ''),
-      badge: slotBadge(skill, entrySlots.get(Number(skill.id))),
+      badge: slotBadge(skill, loadoutControl(skill)),
       context: owned?.context ?? [base.context, primaryLabel].filter(Boolean).join(' · '),
       variantComparison: owned?.variantComparison,
       status
@@ -568,7 +559,7 @@ export function createSkillDamagePlan(
       );
 
       const chain = chainContext(input, skill);
-      const badge = slotBadge(skill, entrySlots.get(Number(skill.id)));
+      const badge = slotBadge(skill, loadoutControl(skill));
       // Numbered mechanic slots read like weapon slots ("Gunsaber 2"); profession slots keep the group title.
       const slot = /^\d$/.test(badge) ? `${mechanic.title} ${badge}` : mechanic.title;
       return addRow(group, skill, 'equipped', { context: [slot, chain].filter(Boolean).join(' · '), weaponSet });

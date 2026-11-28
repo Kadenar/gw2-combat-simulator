@@ -26,6 +26,7 @@ import type {
   Gw2SimulationResult,
   SimulationStep
 } from '#gw2/platform/results/types.js';
+import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Profession-owned application identity; shared charts align and clip its simulation timestamp. */
@@ -479,6 +480,11 @@ export interface ProfessionUiContract<TProfessionState = unknown, TSkill extends
   readonly updatePaletteControl: (context: ProfessionPaletteContext<TProfessionState>, controlId: string) => boolean;
   readonly resourceViews: (context: ProfessionResourceViewContext<TProfessionState>) => ProfessionResourceView[];
   readonly skillBarGroups: (context: ProfessionPaletteContext<TProfessionState>) => ProfessionSkillBarGroup[];
+  /** Provides the key for a movable profession skill while a cast awaits simulation. */
+  readonly loadoutInputControl: (
+    context: { readonly build: Gw2CanonicalBuild; readonly specialization: string },
+    skillId: SkillId
+  ) => InputControlId | null;
   readonly startControls: (context: ProfessionUiContext<TProfessionState>) => ProfessionStartControl[];
   /** Shared loadout contract for build selections, skill bars, and palette projections. */
   readonly slotLoadout: FixedSlotLoadout<Gw2CanonicalBuild> | null;

@@ -273,6 +273,16 @@ export function createProfessionFamilyUi(
     paletteGroups: list('paletteGroups'),
     resourceViews: list('resourceViews'),
     skillBarGroups: list('skillBarGroups'),
+    loadoutInputControl(context, skillId) {
+      const selected = active(context);
+      return firstUiMatch(
+        [...selected.slices.reverse(), family],
+        'loadoutInputControl',
+        [selected.context, skillId],
+        (control) => control != null,
+        null
+      );
+    },
     startControls: list('startControls'),
     rotationStateSnapshot: list('rotationStateSnapshot'),
     assumptionControls: Object.freeze(

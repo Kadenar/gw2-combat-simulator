@@ -4,6 +4,7 @@ import { amalgamCastAvailability } from '#gw2/professions/engineer/specializatio
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
 import { evolvedFormLifecycle } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import { observeAmalgamStrainGrant } from '#gw2/professions/engineer/specializations/amalgam/mechanics/strains.js';
+import { amalgamProtocolControl } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
@@ -29,8 +30,7 @@ export const amalgamHooks = composeRuntimeHooks<EngineerRuntimeState, EngineerSk
     },
     // Protocol controls follow the current loadout when players move a protocol between F2 and F4.
     resolveInputControl(context, skill) {
-      const index = amalgamState.from(context.profession).selectedMorphSkillIds.indexOf(Number(skill.id));
-      const control = (['profession-2', 'profession-3', 'profession-4'] as const)[index];
+      const control = amalgamProtocolControl(amalgamState.from(context.profession).selectedMorphSkillIds, skill.id);
       return control ? { control } : undefined;
     },
     availability: amalgamCastAvailability,
