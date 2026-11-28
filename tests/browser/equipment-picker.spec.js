@@ -198,7 +198,9 @@ test('pet and legend menus use the shared grouped word search', async ({ page })
       await page.keyboard.press('Tab');
       await expect(page.locator('#wiki-tooltip').getByRole('link')).toBeFocused();
       await page.keyboard.press('Tab');
-      await expect(page.locator('.fixed-loadout-trigger').nth(1)).toBeFocused();
+      await expect(
+        page.locator('.fixed-loadout-pair').first().locator('.loadout-skill .sbar-icon').first()
+      ).toBeFocused();
     }
   }
 });

@@ -2,7 +2,7 @@ import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
 import { professionPlanningState } from '#gw2/app/rotation/context.js';
 import { skillTooltipAttributes, wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { SlotLoadoutSelector } from '#gw2/platform/builds/slot-loadout.js';
+import type { SlotLoadoutBar, SlotLoadoutSelector } from '#gw2/platform/builds/slot-loadout.js';
 import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import type {
   ProfessionSkillBarGroup,
@@ -297,7 +297,51 @@ export function renderSkills(app: ProfessionAppState): void {
   });
 }
 
-/** Renders editable loadout selectors; fixed skills and their children belong in the rotation palette. */
+/** Show each legend's equipped skills and offer swaps within its three utility positions. */
+function loadoutSkillsHtml(app: ProfessionAppState, bar: SlotLoadoutBar, barIndex: number): string {
+  const skills = bar.skillIds.map((id) => {
+    const skill = app.activeCatalog.skillsById.get(id);
+    return (
+      skill && { skill, tooltip: skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patch, app.build)) }
+    );
+  });
+  const utilities = skills.slice(1, 4).filter((entry) => entry != null);
+  return skills
+    .map((entry, slot) => {
+      if (!entry) return '';
+
+      const { skill, tooltip } = entry;
+      const key = (slot + 6) % 10;
+      const icon = `<img src="${esc(skill.icon || '')}" alt="">`;
+      const label = `${bar.compactLabel}, slot ${key}, ${skill.name}`;
+      const editable = slot > 0 && slot < 4 && app.adapter.slotLoadout?.setUtilitySkill;
+      const menuId = `loadout-utility-${barIndex}-${slot}`;
+      return `<div class="skill-bar-slot loadout-skill" data-loadout-slot="${slot}">
+      ${
+        editable
+          ? `<button type="button" class="sbar-icon" data-utility-trigger="${menuId}" aria-label="Change ${esc(label)}" aria-haspopup="listbox" aria-controls="${menuId}" ${tooltip}>
+        ${icon}<span class="fixed-loadout-trigger-arrow" aria-hidden="true">&#9660;</span>
+      </button>
+      <div id="${menuId}" class="sbar-dropdown loadout-utility-menu" data-search-label="Search ${esc(bar.compactLabel)} utilities">
+        <div role="listbox" aria-label="${esc(label)}">${utilities
+          .map(
+            ({ skill: option, tooltip: optionTooltip }) =>
+              `<button type="button" class="dd-item" role="option"
+          aria-selected="${option.id === skill.id}" data-utility-bar="${esc(bar.id)}" data-utility-index="${slot - 1}" data-utility-id="${esc(option.id)}"
+          ${optionTooltip}>
+          <img src="${esc(option.icon || '')}" alt=""><span>${esc(option.name)}</span>
+        </button>`
+          )
+          .join('')}</div>
+      </div>`
+          : `<span class="sbar-icon" role="img" tabindex="0" aria-label="${esc(label)}" ${tooltip}>${icon}</span>`
+      }
+    </div>`;
+    })
+    .join('');
+}
+
+/** Keep each legend selector beside its skill bar. */
 function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   const loadout = app.adapter.slotLoadout;
 
@@ -361,13 +405,13 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
 
   const pairedIconLoadout = view.selectionControl === 'icons' && view.selectors.length === view.bars.length;
 
-  // Preserve the selector layout for parallel loadouts without rendering duplicate fixed skills.
   const fixedLoadoutHtml = pairedIconLoadout
     ? `<div class="fixed-loadout-pairs">${view.selectors
         .map(
           (selector, index) =>
             `<div class="fixed-loadout-pair">
               ${selectorHtml(selector, index)}
+              ${loadoutSkillsHtml(app, view.bars[index], index)}
           </div>`
         )
         .join('')}</div>`
@@ -378,6 +422,29 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   skillBar.innerHTML = fixedLoadoutHtml;
 
   bindSkillDropdowns(skillBar);
+
+  for (const button of skillBar.querySelectorAll<HTMLButtonElement>('button[data-utility-bar]')) {
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const { utilityBar, utilityIndex, utilityId } = button.dataset;
+      const menu = button.closest<HTMLElement>('.sbar-dropdown');
+      // Query after any rebuild so focus lands on the live trigger.
+      const trigger = () =>
+        menu ? skillBar.querySelector<HTMLButtonElement>(`[data-utility-trigger="${CSS.escape(menu.id)}"]`) : null;
+
+      if (!utilityBar) return;
+
+      // A swap rebuilds the bar and simulation; re-picking the equipped skill only dismisses its menu.
+      if (loadout.setUtilitySkill?.(app.build, utilityBar, Number(utilityIndex), Number(utilityId), context)) {
+        app.changed();
+      } else {
+        menu?.classList.remove('open');
+        trigger()?.setAttribute('aria-expanded', 'false');
+      }
+
+      trigger()?.focus();
+    });
+  }
 
   // Apply changes from native loadout selects.
   skillBar.querySelectorAll('select[data-loadout-key]').forEach((select) => {

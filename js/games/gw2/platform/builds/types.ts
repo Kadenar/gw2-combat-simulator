@@ -105,6 +105,8 @@ export interface Gw2Build extends Gw2BuildResources {
   selectedHammerSkillIds?: number[];
   selectedMorphSkillIds?: number[];
   selectedLegends?: string[];
+  /** Custom utility order by legend. Omitted entries use the legend's default bar. */
+  legendUtilityOrder?: Record<string, number[]>;
   startingLegend?: string;
   evokerElement?: string;
   gear?: Record<string, string>;

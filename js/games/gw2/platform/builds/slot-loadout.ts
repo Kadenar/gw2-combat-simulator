@@ -95,6 +95,7 @@ interface CreateFixedSlotLoadoutOptions<TBuild extends object = Record<string, u
   entryLabel?: string;
   selectionKey?: Extract<keyof TBuild, string>;
   startingKey?: Extract<keyof TBuild, string>;
+  utilityOrderKey?: Extract<keyof TBuild, string>;
   selectionControl?: string;
   includeStartingSelector?: boolean;
   entries?: readonly SlotLoadoutEntryInput[];
@@ -115,6 +116,7 @@ export interface FixedSlotLoadout<TBuild extends object = Record<string, unknown
   resolve(context?: SlotLoadoutContext): ResolvedSkillLoadout;
   view(context?: SlotLoadoutContext): SlotLoadoutView;
   updateBuild(build: TBuild, selectorKey: string, value: unknown, context?: SlotLoadoutContext): TBuild;
+  setUtilitySkill?(build: TBuild, barId: string, index: number, skillId: number, context: SlotLoadoutContext): boolean;
   selectedSkillIds(context?: SlotLoadoutContext): number[];
   paletteGroups(context?: SlotLoadoutContext): SlotLoadoutPaletteGroup[];
   unavailableReason(skill: { readonly id: SkillId }, context?: SlotLoadoutContext): string;
@@ -157,6 +159,7 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
   entryLabel = 'Bar',
   selectionKey: selectionKeyOption,
   startingKey: startingKeyOption,
+  utilityOrderKey,
   selectionControl = 'select',
   includeStartingSelector = true,
   entries: rawEntries,
@@ -210,8 +213,31 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
     const requestedStart = stableId((build as BuildRecord | undefined)?.[startingKey]);
     return {
       [selectionKey]: selected,
-      [startingKey]: selected.includes(requestedStart) ? requestedStart : selected[0]
+      [startingKey]: selected.includes(requestedStart) ? requestedStart : selected[0],
+      ...(utilityOrderKey ? { [utilityOrderKey]: savedUtilityOrders(build) } : {})
     } as Partial<TBuild>;
+  }
+
+  /** Save only permutations of the three utilities belonging to each bar. Heal and elite keep their positions. */
+  function savedUtilityOrders(build: object | null | undefined): Record<string, number[]> {
+    const saved = utilityOrderKey && (build as BuildRecord | undefined)?.[utilityOrderKey];
+
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return {};
+
+    const orders: Record<string, number[]> = {};
+    for (const [id, order] of Object.entries(saved as Record<string, unknown>)) {
+      const utilities = byId.get(id)?.skillIds.slice(1, 4);
+
+      if (
+        utilities?.length === 3 &&
+        Array.isArray(order) &&
+        order.length === 3 &&
+        utilities.every((skillId) => order.includes(skillId))
+      )
+        orders[id] = [...order];
+    }
+
+    return orders;
   }
 
   function validateBuild(build: TBuild, context: SlotLoadoutContext = {}): string[] {
@@ -231,6 +257,18 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
     if (!selected.includes(stableId((build as BuildRecord | undefined)?.[startingKey]))) {
       errors.push(`${startingKey} must be included in ${selectionKey}.`);
     }
+
+    const orders = utilityOrderKey && (build as BuildRecord)[utilityOrderKey];
+
+    if (
+      utilityOrderKey &&
+      orders !== undefined &&
+      (!orders ||
+        typeof orders !== 'object' ||
+        Array.isArray(orders) ||
+        Object.keys(orders).length !== Object.keys(savedUtilityOrders(build)).length)
+    )
+      errors.push(`${utilityOrderKey} must contain each bar's three utility skills exactly once.`);
 
     return errors;
   }
@@ -252,10 +290,42 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
   function resolve(context: SlotLoadoutContext = {}) {
     const selected = normalizedSelection(context.build || {}, context);
     const requestedActive = activeId(context, selected);
+    const orders = savedUtilityOrders(context.build);
     return {
       activeBarId: selected.includes(requestedActive) ? requestedActive : selected[0],
-      bars: selected.map((id) => ({ id, skillIds: [...(byId.get(id)?.skillIds || [])] }))
+      bars: selected.map((id) => {
+        const skills = byId.get(id)!.skillIds;
+        return { id, skillIds: orders[id] ? [skills[0], ...orders[id], skills[4]] : [...skills] };
+      })
     } satisfies ResolvedSkillLoadout;
+  }
+
+  /** Choosing an equipped utility exchanges its two positions on this bar. Returns false when nothing changes. */
+  function setUtilitySkill(
+    build: TBuild,
+    barId: string,
+    index: number,
+    skillId: number,
+    context: SlotLoadoutContext
+  ): boolean {
+    if (!utilityOrderKey || !normalizedSelection(build, context).includes(barId) || ![0, 1, 2].includes(index))
+      return false;
+
+    const orders = savedUtilityOrders(build);
+    const defaults = byId.get(barId)!.skillIds.slice(1, 4);
+    const order = orders[barId] ?? [...defaults];
+    const previous = order.indexOf(skillId);
+
+    // Re-picking the skill already in this position leaves the build untouched.
+    if (previous < 0 || previous === index) return false;
+
+    [order[index], order[previous]] = [order[previous], order[index]];
+
+    if (order.every((id, slot) => id === defaults[slot])) delete orders[barId];
+    else orders[barId] = order;
+
+    (build as BuildRecord)[utilityOrderKey] = orders;
+    return true;
   }
 
   function view(context: SlotLoadoutContext = {}): SlotLoadoutView {
@@ -381,6 +451,7 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
     resolve,
     view,
     updateBuild,
+    ...(utilityOrderKey ? { setUtilitySkill } : {}),
     selectedSkillIds,
     paletteGroups,
     unavailableReason

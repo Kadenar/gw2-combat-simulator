@@ -407,14 +407,48 @@
 }
 
 .fixed-loadout-pairs {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 8px;
+  max-width: 100%;
 }
 
-/* The two legend selectors form an icon strip without surrounding cards. */
+/* A row pairs the legend portrait with its five skill slots. */
 .fixed-loadout-pair {
   display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: end;
   min-width: 0;
-  gap: 10px;
+  width: min(100%, 320px);
+  gap: 4px;
+}
+
+.selectable-skills-bar .fixed-loadout-pair .sbar-icon {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.fixed-loadout-pair .sbar-icon > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.loadout-utility-menu {
+  right: 0;
+  left: auto;
+  transform: none;
+}
+
+/* Center the first two utility menus so they fit on narrow screens. */
+.loadout-skill:is([data-loadout-slot='1'], [data-loadout-slot='2']) .loadout-utility-menu {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+
+.loadout-utility-menu [aria-selected='true'] {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }

@@ -1,12 +1,48 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import {
+  createRevenantBuildDefaults,
+  migrateRevenantBuild,
+  validateRevenantBuild
+} from '#gw2/professions/revenant/build/build.js';
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { observedRuntime, projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
+
+test('each legend retains its utility slots when the build is saved and the active legend changes', () => {
+  const build = createRevenantBuildDefaults();
+  const context = { build, catalog: revenantProfession.catalog, specialization: 'Herald' };
+  const [assassin, dragon] = revenantLegendLoadout.resolve(context).bars;
+  const [heal, first, second, third, elite] = dragon.skillIds;
+  assert.equal(revenantLegendLoadout.setUtilitySkill(build, dragon.id, 0, third, context), true);
+  assert.equal(revenantLegendLoadout.setUtilitySkill(build, dragon.id, 0, third, context), false);
+  assert.equal(revenantLegendLoadout.setUtilitySkill(build, dragon.id, 1, heal, context), false);
+  assert.equal(revenantLegendLoadout.setUtilitySkill(build, dragon.id, 1, assassin.skillIds[1], context), false);
+  const restored = migrateRevenantBuild(JSON.parse(JSON.stringify(build)));
+  assert.equal(validateRevenantBuild(restored).valid, true);
+  const swapped = { ...context, build: restored, professionState: { [STATE.ACTIVE_LOADOUT_ID]: dragon.id } };
+  assert.deepEqual(revenantLegendLoadout.resolve(swapped).bars[0], assassin);
+  assert.deepEqual(revenantLegendLoadout.view(swapped).activeBar.skillIds, [heal, third, second, first, elite]);
+  assert.deepEqual(revenantLegendLoadout.paletteGroups(swapped).find((bar) => bar.active).skillIds, [
+    heal,
+    third,
+    second,
+    first,
+    elite
+  ]);
+  assert.equal(revenantLegendLoadout.setUtilitySkill(restored, dragon.id, 0, first, swapped), true);
+  assert.deepEqual(revenantLegendLoadout.resolve(swapped).bars[1], dragon);
+  restored.legendUtilityOrder = { [dragon.id]: [first, first, third] };
+  assert.equal(validateRevenantBuild(restored).valid, false);
+  assert.deepEqual(
+    revenantLegendLoadout.resolve({ ...context, build: migrateRevenantBuild(restored) }).bars[1],
+    dragon
+  );
+});
 
 // Initial selection, swaps, and preview preparation must expose the live legend through the shared loadout contract.
 function assertLoadout(config, profession, projected) {

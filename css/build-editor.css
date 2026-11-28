@@ -1996,11 +1996,6 @@ body[data-profession] #app {
   padding: 10px 0;
 }
 
-/* Keep editable legend selectors while omitting the fixed skills already available in the rotation palette. */
-body[data-profession='revenant'] .workspace-build-choices .selectable-skills-panel {
-  flex: 0;
-}
-
 .gear-panel .attributes-panel .attr-section h4 {
   font-size: 16px;
   font-weight: 600;
