@@ -102,13 +102,10 @@ test('precast Mine Field requires its declaration to release damage at combat st
 });
 
 // All three slot identities must retain Core-trait, intrinsic-retaliation, then Morph-trait ordering.
-test('grouped Thorns variants own retaliation independently of their Morph trait rewards', () => {
-  for (const [slot, skillId] of [
-    ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163,
-    ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104,
-    ID.DEFENSIVE_PROTOCOL_THORNS
-  ].entries()) {
-    const selectedMorphSkillIds = [77103, 77203, 76954];
+test('Thorns grants retaliation independently of its Morph trait rewards', () => {
+  const skillId = ID.DEFENSIVE_PROTOCOL_THORNS;
+  for (const slot of [0, 1, 2]) {
+    const selectedMorphSkillIds = [76568, 76959, 76693];
     selectedMorphSkillIds[slot] = skillId;
     for (const declared of [true, false]) {
       const result = runEngineer(

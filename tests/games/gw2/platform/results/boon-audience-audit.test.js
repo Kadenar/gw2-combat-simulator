@@ -420,7 +420,7 @@ test('No Scope and New Genes share trait boons while Mass Momentum keeps its per
       ET.NO_SCOPE,
       { primaryWeapon: 'Rifle', attributeInputs: baseAttributeInputs({ precision: 4000 }) }
     ],
-    ['Amalgam', [77103], ET.NEW_GENES, { selectedMorphSkillIds: [77103, 77203, 76954] }],
+    ['Amalgam', [76568], ET.NEW_GENES, { selectedMorphSkillIds: [76568, 76959, 76693] }],
     ['Scrapper', ['Function Gyro'], ET.MASS_MOMENTUM, {}]
   ]) {
     const result = run('engineer', rotation, { specialization, selectedTraitIds: [trait], ...config });

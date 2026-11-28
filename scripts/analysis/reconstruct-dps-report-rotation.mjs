@@ -104,12 +104,10 @@ if (buildPath) {
     .simulationConfig();
 }
 
-// Feed active-build selections into generic ID resolution so polymorphic
-// skills (such as Amalgam protocols) use the simulator's selected variant.
+// Replay with the saved build's profession config, matching the application importer.
 const result = reconstructDpsReportRotation(report, profession?.catalog || null, {
   playerIndex: selected.index,
   phaseIndex,
-  selectedSkillIds: build.selectedMorphSkillIds || [],
   professionConfig
 });
 const output = {

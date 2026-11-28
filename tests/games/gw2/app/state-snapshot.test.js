@@ -379,12 +379,12 @@ test('Chronomancer active state shows only pending conversions from phantasms al
 });
 
 test('Amalgam shows only strains granted through the selected rotation step', () => {
-  const cleanse = ENGINEER_SKILL_IDS.DEFENSIVE_PROTOCOL_CLEANSE_ID_76798;
-  const protect = ENGINEER_SKILL_IDS.DEFENSIVE_PROTOCOL_PROTECT_ID_77203;
+  const cleanse = ENGINEER_SKILL_IDS.DEFENSIVE_PROTOCOL_CLEANSE;
+  const protect = ENGINEER_SKILL_IDS.DEFENSIVE_PROTOCOL_PROTECT;
   const rotation = [{ type: 'wait', durationMs: 1000 }, cleanse, protect];
   const config = {
     specialization: 'Amalgam',
-    selectedMorphSkillIds: [cleanse, protect, ENGINEER_SKILL_IDS.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954],
+    selectedMorphSkillIds: [cleanse, protect, ENGINEER_SKILL_IDS.OFFENSIVE_PROTOCOL_DEMOLISH],
     selectedTraitIds: [ENGINEER_TRAIT_IDS.SILVER_LINING],
     attributeInputs: baseAttributeInputs({ concentration: 750 })
   };

@@ -821,3 +821,13 @@ test('cleared preview values remove saved assumptions without altering the build
   assert.equal(app.build.assumptions.protection, true);
   assert.equal(app.build.assumptions.targetConditions.Weakness, 1);
 });
+
+// Protocols have no catalog slot, so each row's badge must follow the protocol's current loadout position.
+test('Amalgam protocol badges follow their loadout positions', async () => {
+  const app = await headlessApp('engineer', 'data/gw2/builds/engineer/b-condi-amalgam-3kit.json');
+  const [first, second, last] = app.build.selectedMorphSkillIds;
+  const badge = (skillId) => [...healthPlan(app).rows.values()].find((row) => row.skillId === skillId)?.badge;
+  assert.deepEqual([badge(first), badge(last)], ['F2', 'F4']);
+  app.build.selectedMorphSkillIds = [last, second, first];
+  assert.deepEqual([badge(first), badge(last)], ['F4', 'F2']);
+});

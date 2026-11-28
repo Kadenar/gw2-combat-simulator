@@ -60,7 +60,7 @@
     "Utility3": 6161,
     "Elite": 76993
   },
-  "selectedMorphSkillIds": [76927, 77104, 76705],
+  "selectedMorphSkillIds": [76693, 76640, 76705],
   "assumptions": {
     "simulationMode": "deterministic",
     "simulationSeed": 1,

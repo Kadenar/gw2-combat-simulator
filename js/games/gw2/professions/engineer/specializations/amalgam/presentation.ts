@@ -12,11 +12,7 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
-import {
-  engineerToolbeltSkillIds,
-  engineerUiState,
-  uniqueSkillIds
-} from '#gw2/professions/engineer/core/presentation.js';
+import { engineerToolbeltSkillIds, engineerUiState } from '#gw2/professions/engineer/core/presentation.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   amalgamProtocolOptions,
@@ -49,9 +45,12 @@ function amalgamProfessionSkills(
   const traits = context.build?.specializations
     ? new Set(selectedTraits(context.catalog, context.build.specializations).map((trait) => trait.id))
     : context.config;
+  const [f2, f3, f4] = selectedMorphIds(context);
   return [
     engineerToolbeltSkillIds(catalog, context)[0],
-    ...selectedMorphIds(context).slice(0, 3),
+    f2 ?? null,
+    f3 ?? null,
+    f4 ?? null,
     resolveAmalgamSkillId(hasTrait(traits, TRAIT.DOUBLE_HELIX), ID.EVOLVE_BASE)
   ];
 }
@@ -63,12 +62,8 @@ function amalgamSkillBarGroups(
 ): ProfessionSkillBarGroup[] {
   const skillIds = amalgamProfessionSkills(catalog, context);
   // Match pet selectors with concise selected-name headers while dropdowns retain the full protocol names.
+  const options = amalgamProtocolOptions(catalog);
   const protocolGroups = [2, 3, 4].flatMap((slot): ProfessionSkillBarGroup[] => {
-    const options = amalgamProtocolOptions(catalog, slot);
-    const selected = selectedMorphIds(context)[slot - 2];
-
-    if (options.some((skill) => skill.id === selected)) skillIds[slot - 1] = selected;
-
     const skillId = skillIds[slot - 1];
 
     if (skillId == null || !options.length) return [];
@@ -95,7 +90,7 @@ function amalgamSkillBarGroups(
   return protocolGroups;
 }
 
-/** Validates a protocol selection and swaps duplicate protocol kinds across mechanic slots. */
+/** Validates a protocol selection; choosing an equipped protocol swaps the two positions. */
 function updateAmalgamSkillBarSelection(
   catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
   context: EngineerUiContext,
@@ -233,9 +228,9 @@ export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>
       {
         id: 'engineer-profession',
         label: 'F',
-        skillIds: uniqueSkillIds(
-          catalog,
-          amalgamProfessionSkills(catalog, context).filter((id) => id != null)
+        skillIds: [],
+        skillEntries: amalgamProfessionSkills(catalog, context).flatMap((skillId, index) =>
+          skillId != null && catalog.skillsById.has(skillId) ? [{ skillId, slot: 'Profession_' + (index + 1) }] : []
         ),
         color: '#67aa87',
         className: 'engineer-profession-skills',

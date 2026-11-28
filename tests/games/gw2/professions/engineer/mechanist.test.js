@@ -19,7 +19,7 @@ const mechanistRechargeWork = engineerProfession.runtimeFor({ specialization: 'M
 // Mechanist contracts cover signet passives, mech boon state, inheritance, and command effects.
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
-  selectedMorphSkillIds: [77103, 77203, 76954],
+  selectedMorphSkillIds: [76568, 76959, 76693],
   attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,

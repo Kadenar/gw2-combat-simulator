@@ -12,12 +12,9 @@ export function amalgamCastAvailability(
 ): AvailabilityResult {
   const state = amalgamState.from(context.profession);
 
-  // Each protocol type (e.g., "Offensive Protocol: Shred") exists as several
-  // distinct skill IDs depending on which mechanic slot it occupies. Block any
-  // morph skill whose ID was not selected for its slot so rotations that
-  // reference an unequipped protocol are rejected rather than silently cast.
+  // A rotation can cast a protocol in any equipped slot.
   if (skill.morphKind != null && !state.selectedMorphSkillIds.includes(Number(skill.id))) {
-    return denyEngineerCast(skill, 'engineer.morph-selection', 'another morph is selected for this profession slot.');
+    return denyEngineerCast(skill, 'engineer.morph-selection', 'this protocol is not equipped.');
   }
 
   return { ready: true };

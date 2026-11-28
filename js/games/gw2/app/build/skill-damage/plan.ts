@@ -302,7 +302,7 @@ function slotSkills(input: SkillDamageInput): { skill: Skill; status: SkillDamag
 /** Profession mechanic groups; without declared groups, the profession's palette groups supply them. */
 function mechanicGroups(
   input: SkillDamageInput,
-  query: PaletteQueryInput,
+  palette: ReturnType<typeof paletteView>,
   claimed: ReadonlySet<SkillId>
 ): { id: string; title: string; skills: Skill[] }[] {
   const declared = input.profession.ui.skillDamageGroups(attributePreviewContext(input, input.build.startingWeaponSet));
@@ -315,7 +315,7 @@ function mechanicGroups(
       skillIds: group.skillIds,
       includeActionSkills: true
     })),
-    ...paletteView(input.profession, queryPaletteContext(query)).map((group, index) => ({
+    ...palette.map((group, index) => ({
       id: `palette-${group.id}`,
       title: index ? group.label : 'Profession skills',
       includeActionSkills: group.includeActionSkills,
@@ -345,8 +345,9 @@ function chainStep(skill: Skill): number | null {
   return Number.isFinite(step) && step > 0 ? step : null;
 }
 
-function slotBadge(skill: Skill): string {
-  const slot = String(skill.slot ?? '');
+/** A palette entry's slot overrides the catalog slot for skills the loadout can move. */
+function slotBadge(skill: Skill, entrySlot?: string): string {
+  const slot = String(entrySlot ?? skill.slot ?? '');
   const weaponSlot = /^Weapon_(\d)$/.exec(slot);
 
   if (weaponSlot) return weaponSlot[1];
@@ -439,6 +440,26 @@ export function createSkillDamagePlan(
   const groups: SkillDamageGroupDefinition[] = [];
   const rows = new Map<string, SkillDamageRowDefinition>();
   const occurrences: SkillDamageOccurrence[] = [];
+  // Build-start enumeration supplies no planning observation, regardless of cursor or prior results.
+  const query: PaletteQueryInput = {
+    catalog: input.activeCatalog,
+    build: input.build,
+    specialization: input.adapter.eliteSpecialization(input.build),
+    weaponData: input.weaponData,
+    isSkillAvailable: input.adapter.isSkillAvailable,
+    weaponSkillMatchesSet: input.adapter.weaponSkillMatchesSet,
+    projectActions: input.profession.ui?.paletteActionSkills,
+    selectedTraitIds: (input.attributeData?.activeTraits || []).map((trait) => trait.id)
+  };
+  const palette = paletteView(input.profession, queryPaletteContext(query));
+  // Movable profession skills take their slot badge from the palette row that places them.
+  const entrySlots = new Map(
+    palette.flatMap((group) =>
+      group.skillEntries.flatMap((entry) =>
+        entry.slot == null ? [] : [[Number(entry.skillId), String(entry.slot)] as const]
+      )
+    )
+  );
   const addRow = (
     group: { id: string },
     skill: Skill,
@@ -501,7 +522,7 @@ export function createSkillDamagePlan(
       skillId: skill.id,
       name: skill.name,
       icon: String(skill.icon || ''),
-      badge: slotBadge(skill),
+      badge: slotBadge(skill, entrySlots.get(Number(skill.id))),
       context: owned?.context ?? [base.context, primaryLabel].filter(Boolean).join(' · '),
       variantComparison: owned?.variantComparison,
       status
@@ -509,17 +530,6 @@ export function createSkillDamagePlan(
     return id;
   };
 
-  // Build-start enumeration supplies no planning observation, regardless of cursor or prior results.
-  const query: PaletteQueryInput = {
-    catalog: input.activeCatalog,
-    build: input.build,
-    specialization: input.adapter.eliteSpecialization(input.build),
-    weaponData: input.weaponData,
-    isSkillAvailable: input.adapter.isSkillAvailable,
-    weaponSkillMatchesSet: input.adapter.weaponSkillMatchesSet,
-    projectActions: input.profession.ui?.paletteActionSkills,
-    selectedTraitIds: (input.attributeData?.activeTraits || []).map((trait) => trait.id)
-  };
   const weaponGroups = weaponRows(query);
   const repeated = new Set(
     weaponGroups
@@ -546,7 +556,7 @@ export function createSkillDamagePlan(
   const claimed = new Set(
     [...weaponGroups.flatMap((group) => group.skills), ...slots.map(({ skill }) => skill)].map((skill) => skill.id)
   );
-  for (const mechanic of mechanicGroups(input, query, claimed)) {
+  for (const mechanic of mechanicGroups(input, palette, claimed)) {
     const group = { id: `mechanic-${mechanic.id}`, title: mechanic.title };
     const rowIds = mechanic.skills.flatMap((skill) => {
       const weaponSet = (input.build.alternateWeapons?.[0] ? [1, 2] : [1]).find((set) =>
@@ -558,7 +568,7 @@ export function createSkillDamagePlan(
       );
 
       const chain = chainContext(input, skill);
-      const badge = slotBadge(skill);
+      const badge = slotBadge(skill, entrySlots.get(Number(skill.id)));
       // Numbered mechanic slots read like weapon slots ("Gunsaber 2"); profession slots keep the group title.
       const slot = /^\d$/.test(badge) ? `${mechanic.title} ${badge}` : mechanic.title;
       return addRow(group, skill, 'equipped', { context: [slot, chain].filter(Boolean).join(' · '), weaponSet });

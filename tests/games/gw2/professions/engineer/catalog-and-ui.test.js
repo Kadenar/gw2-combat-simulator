@@ -30,7 +30,7 @@ import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.
 
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
-  selectedMorphSkillIds: [77103, 77203, 76954],
+  selectedMorphSkillIds: [76568, 76959, 76693],
   attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
@@ -458,7 +458,9 @@ test('Amalgam selects and labels Evolve from the current build traits in the pal
       .paletteGroups({ specialization: 'Amalgam', build, catalog: engineerCatalog })
       .find((group) => group.id === 'engineer-profession');
     assert.deepEqual(
-      group.skillIds.filter((id) => [ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX].includes(id)),
+      group.skillEntries
+        .map((entry) => entry.skillId)
+        .filter((id) => [ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX].includes(id)),
       [expectedId]
     );
     assert.equal(engineerCatalog.skillsById.get(expectedId).name, name);
@@ -489,30 +491,30 @@ test('Engineer defaults migrate and validate morph branch choices', () => {
   });
   const migrated = migrateEngineerBuild({
     ...defaults,
-    selectedMorphSkillIds: [77103, 77203, 76954]
+    selectedMorphSkillIds: [76568, 76959, 76693]
   });
 
-  assert.deepEqual(migrated.selectedMorphSkillIds, [77103, 77203, 76954]);
+  assert.deepEqual(migrated.selectedMorphSkillIds, [76568, 76959, 76693]);
   assert.equal(
     validateEngineerBuild({
       ...defaults,
-      selectedMorphSkillIds: [77103, 77203, 77285]
+      selectedMorphSkillIds: [76568, 76959, 999999]
     }).valid,
     false
   );
   assert.equal(
     validateEngineerBuild({
       ...defaults,
-      selectedMorphSkillIds: [77103, 76866, 76954]
+      selectedMorphSkillIds: [76568, 76568, 76693]
     }).valid,
     false
   );
   assert.deepEqual(
     migrateEngineerBuild({
       ...defaults,
-      selectedMorphSkillIds: [77103, 76866, 76954]
+      selectedMorphSkillIds: [76568, 76568, 76693]
     }).selectedMorphSkillIds,
-    [77103, 77203, 76954]
+    [76568, 76959, 76693]
   );
 });
 
@@ -544,31 +546,31 @@ test('Amalgam protocol IDs survive application build conversion', () => {
   const defaults = createEngineerBuildDefaults();
   const application = toApplicationBuild({
     ...defaults,
-    selectedMorphSkillIds: [77103, 77104, 76705],
-    rotation: [77103, 77104, 76705]
+    selectedMorphSkillIds: [76568, 76640, 76705],
+    rotation: [76568, 76640, 76705]
   });
 
   assert.deepEqual(application.rotation, [
-    { type: 'cast', skillId: 77103 },
-    { type: 'cast', skillId: 77104 },
+    { type: 'cast', skillId: 76568 },
+    { type: 'cast', skillId: 76640 },
     { type: 'cast', skillId: 76705 }
   ]);
 
   const explicitApplication = toApplicationBuild({
     ...defaults,
-    selectedMorphSkillIds: [77103, 77104, 76705],
-    rotation: [77103, 77104, 76705].map((skillId) => ({ type: 'cast', skillId }))
+    selectedMorphSkillIds: [76568, 76640, 76705],
+    rotation: [76568, 76640, 76705].map((skillId) => ({ type: 'cast', skillId }))
   });
 
   assert.deepEqual(explicitApplication.rotation, application.rotation);
 
   const malformedPrefix = toApplicationBuild({
     ...defaults,
-    selectedMorphSkillIds: [77103, 77104, 76705],
-    rotation: [null, { type: 'cast', skillId: 77103 }]
+    selectedMorphSkillIds: [76568, 76640, 76705],
+    rotation: [null, { type: 'cast', skillId: 76568 }]
   });
 
-  assert.deepEqual(malformedPrefix.rotation, [{ type: 'cast', skillId: 77103 }]);
+  assert.deepEqual(malformedPrefix.rotation, [{ type: 'cast', skillId: 76568 }]);
 });
 
 // Explicit parents keep selectable toolbelts usable without admitting unsupported racial actions.

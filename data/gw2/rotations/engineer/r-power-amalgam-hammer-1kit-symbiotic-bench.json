@@ -19,7 +19,7 @@
     "benchmarkDamage": 3974563,
     "benchmarkDps": 41978,
     "timingSource": "EVTC animation activations, state changes, and direct instant-skill effects",
-    "note": "Manual Throw Mine and Bomb Kit precasts complete the omitted opener. Stow Bomb Kit before the recorded Hammer opener; protocol IDs use the selected build slots."
+    "note": "Manual Throw Mine and Bomb Kit precasts complete the omitted opener. Stow Bomb Kit before the recorded Hammer opener."
   },
   "rotation": [
     {
@@ -69,7 +69,7 @@
     },
     {
       "type": "cast",
-      "skillId": 77104,
+      "skillId": 76640,
       "concurrentOffsetMs": 40
     },
     {
@@ -86,7 +86,7 @@
     },
     {
       "type": "cast",
-      "skillId": 76927
+      "skillId": 76693
     },
     {
       "type": "cast",
@@ -98,7 +98,7 @@
     },
     {
       "type": "cast",
-      "skillId": 77104
+      "skillId": 76640
     },
     {
       "type": "cast",
@@ -106,7 +106,7 @@
     },
     {
       "type": "cast",
-      "skillId": 76927
+      "skillId": 76693
     },
     {
       "type": "cast",
@@ -248,7 +248,7 @@
     },
     {
       "type": "cast",
-      "skillId": 77104,
+      "skillId": 76640,
       "concurrentOffsetMs": 40
     },
     {
@@ -257,7 +257,7 @@
     },
     {
       "type": "cast",
-      "skillId": 76927
+      "skillId": 76693
     },
     {
       "type": "cast",
@@ -269,11 +269,11 @@
     },
     {
       "type": "cast",
-      "skillId": 76927
+      "skillId": 76693
     },
     {
       "type": "cast",
-      "skillId": 77104,
+      "skillId": 76640,
       "concurrentOffsetMs": 120
     },
     {
@@ -420,7 +420,7 @@
     },
     {
       "type": "cast",
-      "skillId": 77104,
+      "skillId": 76640,
       "concurrentOffsetMs": 320
     },
     {
@@ -429,7 +429,7 @@
     },
     {
       "type": "cast",
-      "skillId": 76927
+      "skillId": 76693
     },
     {
       "type": "cast",
@@ -445,12 +445,12 @@
     },
     {
       "type": "cast",
-      "skillId": 77104,
+      "skillId": 76640,
       "concurrentOffsetMs": 120
     },
     {
       "type": "cast",
-      "skillId": 76927
+      "skillId": 76693
     },
     {
       "type": "cast",
@@ -596,7 +596,7 @@
     },
     {
       "type": "cast",
-      "skillId": 77104,
+      "skillId": 76640,
       "concurrentOffsetMs": 120
     },
     {
@@ -605,7 +605,7 @@
     },
     {
       "type": "cast",
-      "skillId": 76927
+      "skillId": 76693
     },
     {
       "type": "cast",
@@ -617,11 +617,11 @@
     },
     {
       "type": "cast",
-      "skillId": 76927
+      "skillId": 76693
     },
     {
       "type": "cast",
-      "skillId": 77104,
+      "skillId": 76640,
       "concurrentOffsetMs": 120
     },
     {
@@ -768,7 +768,7 @@
     },
     {
       "type": "cast",
-      "skillId": 77104,
+      "skillId": 76640,
       "concurrentOffsetMs": 200
     },
     {
@@ -777,7 +777,7 @@
     },
     {
       "type": "cast",
-      "skillId": 76927
+      "skillId": 76693
     },
     {
       "type": "cast",
@@ -807,12 +807,12 @@
     },
     {
       "type": "cast",
-      "skillId": 77104,
+      "skillId": 76640,
       "concurrentOffsetMs": 0
     },
     {
       "type": "cast",
-      "skillId": 76927
+      "skillId": 76693
     },
     {
       "type": "cast",

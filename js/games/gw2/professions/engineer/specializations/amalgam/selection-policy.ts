@@ -1,13 +1,13 @@
+import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { AmalgamMorphKind, AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 
 export const DEFAULT_AMALGAM_MORPHS = Object.freeze([
-  ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103,
-  ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77203,
-  ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954
+  ID.OFFENSIVE_PROTOCOL_SHRED,
+  ID.DEFENSIVE_PROTOCOL_PROTECT,
+  ID.OFFENSIVE_PROTOCOL_DEMOLISH
 ]);
-const MORPH_SLOTS = [2, 3, 4] as const;
 const MORPH_ORDER: readonly AmalgamMorphKind[] = [
   'shred',
   'demolish',
@@ -19,79 +19,59 @@ const MORPH_ORDER: readonly AmalgamMorphKind[] = [
 ];
 type MorphCatalog = Pick<CanonicalCatalog<AmalgamSkill>, 'skills' | 'skillsById'>;
 
-/** Only skills with a protocol kind in their authored slots may participate in a loadout. */
-function legalMorph(skill: AmalgamSkill | undefined, slot = Number(skill?.mechanicSlot)): skill is AmalgamSkill {
-  return Boolean(
-    skill &&
-    skill.morphKind != null &&
-    skill.specialization === 'Amalgam' &&
-    MORPH_SLOTS.includes(slot as 2 | 3 | 4) &&
-    Number(skill.mechanicSlot) === slot
-  );
+/** All three loadout positions draw from the same protocol list. */
+function isProtocol(skill: AmalgamSkill | undefined): skill is AmalgamSkill {
+  return skill?.specialization === 'Amalgam' && skill.morphKind != null;
 }
 
-/** Dropdown order follows protocol identity so changing display text cannot reorder choices. */
-export function amalgamProtocolOptions<S extends AmalgamSkill>(
-  catalog: Pick<CanonicalCatalog<S>, 'skills'>,
-  slot: number
-): S[] {
+/** Dropdown order follows protocol kind so changing display text cannot reorder choices. */
+export function amalgamProtocolOptions<S extends AmalgamSkill>(catalog: Pick<CanonicalCatalog<S>, 'skills'>): S[] {
   return catalog.skills
-    .filter((skill) => legalMorph(skill, slot))
-    .sort(
-      (a, b) => MORPH_ORDER.indexOf(a.morphKind!) - MORPH_ORDER.indexOf(b.morphKind!) || Number(a.id) - Number(b.id)
-    );
+    .filter(isProtocol)
+    .sort((a, b) => MORPH_ORDER.indexOf(a.morphKind!) - MORPH_ORDER.indexOf(b.morphKind!));
 }
 
-/** Headless scenarios can equip fewer protocols. Each equipped skill still needs a distinct kind and slot. */
+/** Simulations may equip fewer than three protocols. Array order determines their buttons. */
 export function distinctAmalgamMorphs(catalog: Pick<MorphCatalog, 'skillsById'>, ids: readonly number[]): boolean {
-  const skills = ids.map((id) => catalog.skillsById.get(id));
   return (
-    skills.every((skill) => legalMorph(skill)) &&
-    new Set(skills.map((skill: AmalgamSkill) => skill.mechanicSlot)).size === ids.length &&
-    new Set(skills.map((skill) => skill.morphKind)).size === ids.length
+    ids.length <= 3 && new Set(ids).size === ids.length && ids.every((id) => isProtocol(catalog.skillsById.get(id)))
   );
 }
 
-/** A saved loadout fills all three protocol slots. */
+/** A saved loadout fills all three protocol positions with distinct protocols. */
 export function validAmalgamMorphs(catalog: MorphCatalog, value: unknown): value is number[] {
   return Array.isArray(value) && value.length === 3 && distinctAmalgamMorphs(catalog, value);
 }
 
-/** Retain legal saved choices before filling vacant slots, comparing kinds rather than labels. */
+/** Keep valid saved positions and fill vacant ones without taking another slot's selection. */
 export function normalizeAmalgamMorphs(catalog: MorphCatalog, value: unknown): number[] {
-  const selected = new Map<number, number>();
-  const kinds = new Set<AmalgamMorphKind>();
-  for (const rawId of Array.isArray(value) ? value : DEFAULT_AMALGAM_MORPHS) {
-    const id = Number(rawId);
-    const skill = catalog.skillsById.get(id);
+  const saved = Array.isArray(value) ? value : [];
+  const used = new Set<number>();
+  const selected = DEFAULT_AMALGAM_MORPHS.map((_, index) => {
+    const id = canonicalGw2SkillId(Number(saved[index]));
 
-    if (!legalMorph(skill)) continue;
+    if (!isProtocol(catalog.skillsById.get(id)) || used.has(id)) return null;
 
-    const slot = Number(skill.mechanicSlot);
-    const kind = skill.morphKind!;
+    used.add(id);
+    return id;
+  });
+  return selected.map((id, index) => {
+    if (id !== null) return id;
 
-    if (selected.has(slot) || kinds.has(kind)) continue;
+    const preferred = DEFAULT_AMALGAM_MORPHS[index];
+    const replacement =
+      isProtocol(catalog.skillsById.get(preferred)) && !used.has(preferred)
+        ? preferred
+        : amalgamProtocolOptions(catalog).find((skill) => !used.has(Number(skill.id)))?.id;
 
-    selected.set(slot, id);
-    kinds.add(kind);
-  }
+    if (replacement == null) throw new Error('Amalgam catalog cannot supply a unique morph for each slot.');
 
-  for (const slot of MORPH_SLOTS) {
-    if (selected.has(slot)) continue;
-
-    const candidates = [catalog.skillsById.get(DEFAULT_AMALGAM_MORPHS[slot - 2]), ...catalog.skills];
-    const replacement = candidates.find((skill) => legalMorph(skill, slot) && !kinds.has(skill.morphKind!));
-
-    if (!replacement) throw new Error('Amalgam catalog cannot supply a unique morph for each slot.');
-
-    selected.set(slot, Number(replacement.id));
-    kinds.add(replacement.morphKind!);
-  }
-
-  return MORPH_SLOTS.map((slot) => selected.get(slot)!);
+    used.add(Number(replacement));
+    return Number(replacement);
+  });
 }
 
-/** Swap a conflicting kind into the previous kind's slot without mutating a rejected selection. */
+/** Moving an equipped protocol swaps the two slots. Rotation casts keep their skill IDs. */
 export function selectAmalgamMorph(
   catalog: MorphCatalog,
   current: readonly number[],
@@ -100,23 +80,15 @@ export function selectAmalgamMorph(
 ): number[] | null {
   if (
     ![0, 1, 2].includes(index) ||
-    !legalMorph(catalog.skillsById.get(skillId), index + 2) ||
+    !isProtocol(catalog.skillsById.get(skillId)) ||
     !validAmalgamMorphs(catalog, current)
   )
     return null;
 
-  const next = normalizeAmalgamMorphs(catalog, current);
-  const previousKind = catalog.skillsById.get(next[index])?.morphKind;
-  const kind = catalog.skillsById.get(skillId)?.morphKind;
-  const conflict = next.findIndex((id, other) => other !== index && catalog.skillsById.get(id)?.morphKind === kind);
+  const next = [...current];
+  const previous = current.indexOf(skillId);
 
-  if (conflict >= 0) {
-    const replacement = amalgamProtocolOptions(catalog, conflict + 2).find((skill) => skill.morphKind === previousKind);
-
-    if (!replacement) return null;
-
-    next[conflict] = Number(replacement.id);
-  }
+  if (previous >= 0) next[previous] = current[index];
 
   next[index] = skillId;
   return next;

@@ -1,9 +1,6 @@
-import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
-import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { WEAPON } from '#gw2/platform/constants.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { resolveSelectedAmalgamMorphId } from '#gw2/professions/engineer/build/morphs.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_SKILL_IDS as SKILL } from '#gw2/professions/engineer/data/ids.js';
 import {
@@ -65,16 +62,6 @@ export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
   };
 }
 
-/** Resolves morph casts to the selected slot so imported rotations follow the build's protocol layout. */
-function normalizeMorphRotation(savedRotation: unknown, morphIds: readonly number[]): RotationCommand[] {
-  // Shared normalization resolves names and rejects malformed entries before protocol kinds select slot identities.
-  return normalizeRotation(savedRotation, engineerCatalog).map((command) => {
-    if (command.type !== 'cast') return command;
-
-    return { ...command, skillId: resolveSelectedAmalgamMorphId(engineerCatalog, command.skillId, morphIds) };
-  });
-}
-
 const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
   professionId: ENGINEER_PROFESSION_ID,
   schemaVersion: ENGINEER_BUILD_SCHEMA_VERSION,
@@ -90,14 +77,13 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
     }
   },
   normalizeExtra(build, { saved }) {
-    // Normalize the morph loadout first so rotation casts use its selected slot identities.
     const selectedMorphSkillIds = normalizeAmalgamMorphs(engineerCatalog, saved.selectedMorphSkillIds);
     return {
       ...build,
       selectedMorphSkillIds,
       // Saved rotations keep one trait-independent Evolve identity; the selected patch's traits choose the variant
       // when the rotation is simulated or displayed, so persisted builds never depend on a trait layout.
-      rotation: normalizeMorphRotation(saved.rotation, selectedMorphSkillIds).map((command) =>
+      rotation: build.rotation.map((command) =>
         command.type === 'cast' ? { ...command, skillId: resolveAmalgamSkillId(false, command.skillId) } : command
       )
     };

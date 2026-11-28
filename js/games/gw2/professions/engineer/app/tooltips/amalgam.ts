@@ -19,7 +19,6 @@ import {
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { TooltipFact } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { AMALGAM_PROTOCOL_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
@@ -57,9 +56,8 @@ function protocolFacts(effects: readonly SkillEffect[] = []): readonly TooltipFa
   });
 }
 
-/** Read strain effects and numeric facts from the protocol that owns their tuning. */
-function strainFacts(balanceContext: ProfessionBalanceContext, button: AmalgamSkill): readonly TooltipFact[] {
-  const skill: AmalgamSkill = requireSkill(balanceContext.catalog, button.tuningSkillId ?? button.id);
+/** Read strain effects and numeric facts from the protocol that grants the strain. */
+function strainFacts(balanceContext: ProfessionBalanceContext, skill: AmalgamSkill): readonly TooltipFact[] {
   const kind = skill.morphKind;
   const effects = requireSkillAction(skill, 'strain').effects;
   const facts = protocolFacts(effects).map((fact) => ({

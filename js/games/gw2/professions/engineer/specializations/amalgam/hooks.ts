@@ -27,6 +27,12 @@ export const amalgamHooks = composeRuntimeHooks<EngineerRuntimeState, EngineerSk
         timedBuffWindow('willing-host', 'Willing Host', state.willingHostUntil)
       ];
     },
+    // Protocol controls follow the current loadout when players move a protocol between F2 and F4.
+    resolveInputControl(context, skill) {
+      const index = amalgamState.from(context.profession).selectedMorphSkillIds.indexOf(Number(skill.id));
+      const control = (['profession-2', 'profession-3', 'profession-4'] as const)[index];
+      return control ? { control } : undefined;
+    },
     availability: amalgamCastAvailability,
     reactions: { 'buff.applied': observeAmalgamStrainGrant, 'damage.resolved': amalgamResolverEventReactions.damage }
   }

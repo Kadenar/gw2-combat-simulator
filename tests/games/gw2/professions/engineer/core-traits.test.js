@@ -16,7 +16,7 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 // Core trait contracts cover proc triggers, attribute modifiers, and Tools interactions.
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
-  selectedMorphSkillIds: [77103, 77203, 76954],
+  selectedMorphSkillIds: [76568, 76959, 76693],
   attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
@@ -33,29 +33,23 @@ const baseConfig = Object.freeze({
 
 const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
-test('each Shred slot emits projectile hits that trigger one Aim-Assisted Rocket', () => {
-  // One three-disk cast must grant one rocket opportunity regardless of the equipped morph slot.
-  for (const skillId of [
-    ID.OFFENSIVE_PROTOCOL_SHRED,
-    ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866,
-    ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103
-  ]) {
-    const result = simulate('Amalgam', [{ name: 'Offensive Protocol: Shred', skillId }], {
-      selectedMorphSkillIds: [skillId],
-      selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET]
-    });
-    assert.deepEqual(result.warnings, []);
-    const disks = result.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.skillName === 'Offensive Protocol: Shred'
-    );
-    assert.equal(disks.length, 3);
-    assert.ok(disks.every((event) => event.projectile === true));
-    const rockets = result.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.name === 'Aim-Assisted Rocket'
-    );
-    assert.equal(rockets.length, 1);
-    assert.ok(rockets[0].at > disks[0].at);
-  }
+test('Shred projectiles trigger one Aim-Assisted Rocket', () => {
+  const skillId = ID.OFFENSIVE_PROTOCOL_SHRED;
+  const result = simulate('Amalgam', [{ name: 'Offensive Protocol: Shred', skillId }], {
+    selectedMorphSkillIds: [skillId],
+    selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET]
+  });
+  assert.deepEqual(result.warnings, []);
+  const disks = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Offensive Protocol: Shred'
+  );
+  assert.equal(disks.length, 3);
+  assert.ok(disks.every((event) => event.projectile === true));
+  const rockets = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.name === 'Aim-Assisted Rocket'
+  );
+  assert.equal(rockets.length, 1);
+  assert.ok(rockets[0].at > disks[0].at);
 });
 
 test('generated rocket explosions can trigger Shrapnel', () => {
@@ -63,7 +57,7 @@ test('generated rocket explosions can trigger Shrapnel', () => {
   const result = simulate(
     'Amalgam',
     [
-      { name: 'Offensive Protocol: Shred', skillId: 77103 },
+      { name: 'Offensive Protocol: Shred', skillId: 76568 },
       { type: 'wait', durationMs: 100 }
     ],
     {
@@ -146,7 +140,7 @@ test('Serrated Steel counts critical projectile and effect hits without an explo
     attributeInputs: baseAttributeInputs({ precision: 3100 }),
     selectedTraitIds: [TRAIT.SERRATED_STEEL]
   };
-  const rotation = [{ name: 'Offensive Protocol: Shred', skillId: 77103 }];
+  const rotation = [{ name: 'Offensive Protocol: Shred', skillId: 76568 }];
   const withoutRocket = simulate('Amalgam', rotation, config);
   const withRocket = simulate('Amalgam', rotation, {
     ...config,
@@ -415,8 +409,8 @@ test('Optimized Activation distinguishes tool-belt replacements from Forge entry
     false
   );
 
-  const amalgamToolbelt = simulate('Amalgam', [77163, 'Evolve', 'Dodge'], {
-    selectedMorphSkillIds: [77163, 76901, 76568],
+  const amalgamToolbelt = simulate('Amalgam', [76640, 'Evolve', 'Dodge'], {
+    selectedMorphSkillIds: [76640, 76705, 76568],
     selectedTraitIds: [TRAIT.MECHANIZED_DEPLOYMENT, TRAIT.OPTIMIZED_ACTIVATION, TRAIT.ADRENAL_IMPLANT]
   });
 

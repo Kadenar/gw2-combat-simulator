@@ -20,7 +20,7 @@ import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
-  selectedMorphSkillIds: [77103, 77203, 76954],
+  selectedMorphSkillIds: [76568, 76959, 76693],
   attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
@@ -85,7 +85,7 @@ test('Amalgam resolver procs honor positive poison fields and zero strike coeffi
       at: 0,
       coefficient: 1,
       actorType: 'player',
-      skillId: 77103,
+      skillId: 76568,
       skillName: 'Offensive Protocol: Shred'
     };
     amalgamResolverEventReactions.damage(context, event);
@@ -127,7 +127,7 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
     at: 1,
     coefficient: 1,
     actorType: 'player',
-    skillId: 77103,
+    skillId: 76568,
     skillName: 'Offensive Protocol: Shred'
   });
   const proc = context.queue.dequeue();
@@ -138,9 +138,9 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
 });
 
 test('Amalgam traits activate on morph and Evolve chronology', () => {
-  const result = simulate('Amalgam', [77103, 77104, 76705, 'Evolve', 'Grenade Kit', 'Shrapnel Grenade'], {
+  const result = simulate('Amalgam', [76568, 76640, 76705, 'Evolve', 'Grenade Kit', 'Shrapnel Grenade'], {
     selectedSkillIds: [5857, 5805, 5927, 77209, 76993],
-    selectedMorphSkillIds: [77103, 77104, 76705],
+    selectedMorphSkillIds: [76568, 76640, 76705],
     selectedTraitIds: [TRAIT.WILLING_HOST, TRAIT.HARDENED_CHROME, TRAIT.CARBOLIC_COMPOSITION, TRAIT.NEW_GENES]
   });
 
@@ -179,7 +179,7 @@ test('Evolve cannot raise condition duration above the global cap', () => {
     ['Evolve', 'Grenade Kit', 'Shrapnel Grenade', { type: 'wait', durationMs: 13000 }],
     {
       selectedSkillIds: [5857, 5805, 5927, 5812, 76993],
-      selectedMorphSkillIds: [77103, 77104, 76705],
+      selectedMorphSkillIds: [76568, 76640, 76705],
       selectedTraitIds: [TRAIT.SERRATED_STEEL],
       attributeInputs: baseAttributeInputs({ expertise: 1500 }),
       target: { conditions: {} }
@@ -198,7 +198,7 @@ test('Evolve grants each selected protocol strain without leaking it to casts', 
     ['Evolve'],
     {
       specialization: 'Amalgam',
-      selectedMorphSkillIds: [77103, 77203, 76954],
+      selectedMorphSkillIds: [76568, 76959, 76693],
       attributeInputs: baseAttributeInputs({ concentration: 750 })
     },
     {
@@ -223,8 +223,8 @@ test('Evolve grants each selected protocol strain without leaking it to casts', 
   assert.equal(state[STATE.BERSERKER_UNTIL], stability.at + stability.duration);
   assert.equal(state[STATE.PREDATOR_UNTIL], quickness.at + quickness.duration);
 
-  const demolish = simulate('Amalgam', [76954], {
-    selectedMorphSkillIds: [77103, 77203, 76954]
+  const demolish = simulate('Amalgam', [76693], {
+    selectedMorphSkillIds: [76568, 76959, 76693]
   });
 
   assert.equal(
@@ -236,12 +236,12 @@ test('Evolve grants each selected protocol strain without leaking it to casts', 
 test('Hardened Chrome and New Genes grant the requested morph boons', () => {
   const protocols = [
     [76959, 'protection', 4, 1],
-    [76798, 'aegis', 4, 1],
-    [77163, 'stability', 4, 2],
+    [76713, 'aegis', 4, 1],
+    [76640, 'stability', 4, 2],
     [76815, 'vigor', 4, 1],
-    [76806, 'might', 12, 5],
-    [77103, 'fury', 6, 1],
-    [76927, 'swiftness', 6, 1]
+    [76705, 'might', 12, 5],
+    [76568, 'fury', 6, 1],
+    [76693, 'swiftness', 6, 1]
   ];
   for (const [skillId, kind, duration, stacks] of protocols) {
     const result = simulate('Amalgam', [skillId], {
@@ -274,11 +274,11 @@ test('Hardened Chrome estimates its mixed trigger yields without losing the fina
     'Amalgam',
     [
       { type: 'combat-start' },
-      77103,
+      76568,
       { type: 'wait', durationMs: 10000 },
       'Evolve',
       { type: 'wait', durationMs: 30000 },
-      77103,
+      76568,
       { type: 'wait', durationMs: 1000 }
     ],
     { selectedTraitIds: [TRAIT.HARDENED_CHROME] }
@@ -302,8 +302,8 @@ test('Hardened Chrome estimates its mixed trigger yields without losing the fina
 });
 
 test('Carbolic Composition poisons only Amalgam skill hits', () => {
-  const result = simulate('Amalgam', [77103, 'Puncturing Jab'], {
-    selectedMorphSkillIds: [77103, 77203, 76954],
+  const result = simulate('Amalgam', [76568, 'Puncturing Jab'], {
+    selectedMorphSkillIds: [76568, 76959, 76693],
     selectedTraitIds: [TRAIT.CARBOLIC_COMPOSITION],
     target: { conditions: {} }
   });
@@ -324,7 +324,7 @@ test('Carbolic Composition poisons only Amalgam skill hits', () => {
   );
 
   const strain = simulate('Amalgam', ['Evolve', 'Puncturing Jab'], {
-    selectedMorphSkillIds: [77103, 77104, 76705],
+    selectedMorphSkillIds: [76568, 76640, 76705],
     selectedTraitIds: [TRAIT.CARBOLIC_COMPOSITION],
     attributeInputs: baseAttributeInputs({ precision: 4000, ferocity: 0 }),
     target: { conditions: {} }
@@ -366,8 +366,8 @@ test('Carbolic Composition poisons only Amalgam skill hits', () => {
 
 // A protocol-granted strain must work without Evolve and stop at its own expiry.
 test('Silver Lining enables Rapacious damage outside Evolve until the strain expires', () => {
-  const result = simulate('Amalgam', [77104, 'Puncturing Jab', { type: 'wait', durationMs: 9000 }, 'Rending Strike'], {
-    selectedMorphSkillIds: [77103, 77104, 76705],
+  const result = simulate('Amalgam', [76640, 'Puncturing Jab', { type: 'wait', durationMs: 9000 }, 'Rending Strike'], {
+    selectedMorphSkillIds: [76568, 76640, 76705],
     selectedTraitIds: [TRAIT.SILVER_LINING]
   });
   const state = observedRuntime(result).profession.specialization.state;
@@ -385,7 +385,7 @@ test('Silver Lining enables Rapacious damage outside Evolve until the strain exp
 });
 
 test('Silver Lining moves strain activation from Evolve to each morph', () => {
-  const selectedMorphSkillIds = [76959, 76866, 76954];
+  const selectedMorphSkillIds = [76959, 76568, 76693];
   const baseMorph = simulate('Amalgam', [76959], {
     selectedMorphSkillIds
   });
@@ -441,7 +441,7 @@ test('Silver Lining moves strain activation from Evolve to each morph', () => {
 // Both strain triggers must retain distinct occurrences while the final grant still contributes normal supply.
 for (const silver of [false, true]) {
   test(`Predator Strain estimates repeated ${silver ? 'Silver Lining morphs' : 'Evolve grants'}`, () => {
-    const action = silver ? ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103 : ID.EVOLVE_BASE;
+    const action = silver ? ID.OFFENSIVE_PROTOCOL_SHRED : ID.EVOLVE_BASE;
     const result = simulate(
       'Amalgam',
       [
@@ -480,7 +480,7 @@ for (const silver of [false, true]) {
 }
 
 test('Mercurial Tendencies reduces Evolve recharge after control', () => {
-  const selectedMorphSkillIds = [76815, 76866, 76954];
+  const selectedMorphSkillIds = [76815, 76568, 76693];
   const baseline = simulate('Amalgam', ['Evolve', 76815, 'Evolve'], {
     selectedMorphSkillIds,
     selectedTraitIds: [TRAIT.SILVER_LINING]
@@ -497,7 +497,7 @@ test('Mercurial Tendencies reduces Evolve recharge after control', () => {
 });
 
 test('Willing Host and Symbiotic Synergy apply their damage windows', () => {
-  const selectedMorphSkillIds = [76815, 76866, 76954];
+  const selectedMorphSkillIds = [76815, 76568, 76693];
   const baselineMorph = simulate('Amalgam', [76815], {
     selectedMorphSkillIds,
     target: { conditions: {} }
@@ -539,11 +539,8 @@ test('Willing Host and Symbiotic Synergy apply their damage windows', () => {
 
 test('Symbiotic Synergy boosts Thorns retaliation for every protocol slot', () => {
   // Retaliation retains its Morph identity after activation, so the trait boosts both immediate and delayed hits.
-  for (const [slot, skillId] of [
-    ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163,
-    ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104,
-    ID.DEFENSIVE_PROTOCOL_THORNS
-  ].entries()) {
+  const skillId = ID.DEFENSIVE_PROTOCOL_THORNS;
+  for (const slot of [0, 1, 2]) {
     const selectedMorphSkillIds = [...baseConfig.selectedMorphSkillIds];
     selectedMorphSkillIds[slot] = skillId;
     const config = {
@@ -642,12 +639,12 @@ test('Double Helix increases the Power gained during Evolve', () => {
 });
 
 test('Thorns retaliation requires the damaging-field assumption', () => {
-  const selectedMorphSkillIds = [77103, 77104, 76705];
+  const selectedMorphSkillIds = [76568, 76640, 76705];
   // Vary only the assumption so the same successful cast proves the outgoing retaliation gate.
   for (const professionAssumptions of [undefined, {}, { inDamagingField: false }, { inDamagingField: true }]) {
     const result = simulate(
       'Amalgam',
-      [77104],
+      [76640],
       { selectedMorphSkillIds, professionAssumptions },
       observationTail(6000)
     );

@@ -3,13 +3,12 @@ import type {
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
 import { mergeCompositeActions } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
-import { resolveSelectedAmalgamMorphId } from '#gw2/professions/engineer/build/morphs.js';
 
 const COMPOSITE_SIGNAL_WINDOW_MS = 150;
 
-/** Merges split animations and binds recorded protocols to the build's selected slots without altering source evidence. */
+/** Merge split animations before resolving external skill IDs. */
 export function normalizeAmalgamLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
-  const merged = mergeCompositeActions(
+  return mergeCompositeActions(
     context.recordedActions,
     [
       {
@@ -34,22 +33,4 @@ export function normalizeAmalgamLogActions(context: LogActionNormalizationContex
       metadataAccurate: action.metadataAccurate && followUp.metadataAccurate
     })
   );
-  const selectedIds = context.professionConfig?.selectedMorphSkillIds;
-  const catalog = context.catalog;
-
-  if (!catalog || !Array.isArray(selectedIds)) return merged;
-
-  const selectedSkillIds = catalog.skills.filter((skill) => selectedIds.includes(skill.id)).map((skill) => skill.id);
-  return merged.map((action) => {
-    const recordedId = action.canonicalSkillId ?? action.rawSkillId;
-    const selectedId = resolveSelectedAmalgamMorphId(catalog, recordedId, selectedSkillIds);
-
-    if (selectedId === recordedId) return action;
-
-    // Only an explicitly selected instance of the same protocol can replace its recorded slot identity.
-    const selected = catalog.skillsById.get(selectedId);
-    return selected && typeof selected.id === 'number'
-      ? { ...action, canonicalSkillId: selected.id, canonicalName: selected.name }
-      : action;
-  });
 }

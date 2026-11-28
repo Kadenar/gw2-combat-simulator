@@ -293,8 +293,8 @@ test('template loading preserves explicit Mesmer variant IDs before the first si
   assert.equal(result.steps[1].skillId, MESMER_ID.LINGERING_THOUGHTS);
 });
 
-// Rotation-only imports preserve the user's loadout while resolving protocols moved between F2 and F4.
-test('Engineer rotation-only template loading resolves morph slots before simulation and supports undo', async (t) => {
+// Rotation-only imports keep the user's protocol loadout, and protocol casts simulate from any equipped position.
+test('Engineer rotation-only template loading keeps the protocol loadout and supports undo', async (t) => {
   const adapter = engineerAppAdapter;
   const build = adapter.toApplicationBuild({
     ...adapter.profession.createBuildDefaults(),
@@ -303,14 +303,14 @@ test('Engineer rotation-only template loading resolves morph slots before simula
       { name: 'Inventions', traits: '1-2-3' },
       { name: 'Amalgam', traits: '3-2-1' }
     ],
-    selectedMorphSkillIds: [76806, 77104, 76954]
+    selectedMorphSkillIds: [76705, 76640, 76693]
   });
   const original = structuredClone(build);
   t.mock.method(globalThis, 'fetch', async () => ({
     ok: true,
     json: async () => ({
       rotation: [
-        { type: 'cast', skillId: 76927 },
+        { type: 'cast', skillId: 76693 },
         { type: 'cast', skillId: 76705 }
       ]
     })
@@ -339,8 +339,8 @@ test('Engineer rotation-only template loading resolves morph slots before simula
   assert.deepEqual(app.build, {
     ...original,
     rotation: [
-      { type: 'cast', skillId: 76954 },
-      { type: 'cast', skillId: 76806 }
+      { type: 'cast', skillId: 76693 },
+      { type: 'cast', skillId: 76705 }
     ]
   });
   app.attributeData = adapter

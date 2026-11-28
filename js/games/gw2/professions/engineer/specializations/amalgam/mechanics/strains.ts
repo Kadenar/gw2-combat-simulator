@@ -18,10 +18,9 @@ import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/
 import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 import type { EngineerResolverEvent, EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
-/** Resolve the button's tuning owner so the grant and its later effects use the same protocol. */
-export function applyAmalgamStrain(context: EngineerRuntime, button: AmalgamSkill, at: number): void {
+/** Apply the selected protocol's strain when its grant triggers. */
+export function applyAmalgamStrain(context: EngineerRuntime, skill: AmalgamSkill, at: number): void {
   const state = amalgamState.from(context.profession);
-  const skill: AmalgamSkill = requireSkill(context.helpers, button.tuningSkillId ?? button.id);
   const morphKind = skill.morphKind;
   const action = requireSkillAction(skill, 'strain');
 

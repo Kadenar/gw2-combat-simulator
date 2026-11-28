@@ -54,19 +54,19 @@ export function buildRelevantPatch(
   const selectedModules = new Set(['Core', config.specialization ?? 'Core']);
   const profileOwners = new Map<SkillId, SkillId>();
   const modifierOwners = new Map<string, SkillId>();
-  // Skill edits and intrinsic modifiers share the tuning owner of each selected or observed button.
-  const relevantSkillOwners = new Set<SkillId>();
+  const skillIds = new Set<string>();
   const skillModifierOwners = new Map<string, SkillId>();
   for (const skill of catalog.skills) {
-    const owner = skill.tuningSkillId ?? skill.id;
-
-    if (relevantIds.has(skill.id)) relevantSkillOwners.add(owner);
+    if (relevantIds.has(skill.id)) {
+      skillIds.add(String(skill.id));
+      skillIds.add(skill.name);
+    }
 
     for (const rule of [
       ...(skill.modifiers ?? []),
       ...(skill.effects ?? []).flatMap((effect) => (effect.type === 'strike' ? (effect.modifiers ?? []) : []))
     ])
-      skillModifierOwners.set(rule.id, owner);
+      skillModifierOwners.set(rule.id, skill.id);
   }
 
   for (const module of modules) {
@@ -96,18 +96,12 @@ export function buildRelevantPatch(
     for (const rule of module.modifierRules) {
       const skillOwner = skillModifierOwners.get(rule.id);
 
-      if (skillOwner != null && !relevantSkillOwners.has(skillOwner)) continue;
+      if (skillOwner != null && !relevantIds.has(skillOwner)) continue;
 
       const owner = modifierOwners.get(rule.id);
 
       if (owner == null || traits.has(owner)) ruleIds.add(rule.id);
     }
-  }
-
-  const skillIds = new Set<string>();
-  for (const id of relevantSkillOwners) {
-    skillIds.add(String(id));
-    skillIds.add(catalog.skillsById.get(id)!.name);
   }
 
   return {

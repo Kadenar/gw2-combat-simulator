@@ -13,7 +13,6 @@ interface AppRotationPlayer {
 }
 
 export interface AppLogReconstructionOptions {
-  readonly selectedSkillIds: readonly number[];
   /** Build-derived profession config the reconstruction replays with; profession fields included. */
   readonly professionConfig: Readonly<Gw2Config>;
 }
@@ -21,7 +20,6 @@ export interface AppLogReconstructionOptions {
 /** Builds the source-neutral catalog and profession inputs used by every application log importer. */
 export function appLogReconstructionOptions(app: ProfessionAppState): AppLogReconstructionOptions {
   return {
-    selectedSkillIds: [...((app.build as { selectedMorphSkillIds?: readonly number[] }).selectedMorphSkillIds || [])],
     professionConfig: app.adapter.createBuildContext(buildContextInput(app)).simulationConfig()
   };
 }

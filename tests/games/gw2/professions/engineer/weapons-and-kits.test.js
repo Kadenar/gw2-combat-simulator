@@ -19,7 +19,7 @@ import {
 
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
-  selectedMorphSkillIds: [77103, 77203, 76954],
+  selectedMorphSkillIds: [76568, 76959, 76693],
   attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
@@ -239,18 +239,18 @@ test('Mechanist commands use a serial mech lane without reserving the engineer l
 });
 
 test('Amalgam exposes only persisted F2-F4 morph choices', () => {
-  const selected = simulate('Amalgam', [77103], {
-    selectedMorphSkillIds: [77103, 77203, 76954]
+  const selected = simulate('Amalgam', [76568], {
+    selectedMorphSkillIds: [76568, 76959, 76693]
   });
 
   assert.equal(selected.warnings.length, 0);
   assert.ok(selected.totalDamage > 0);
 
-  const denied = simulate('Amalgam', [76568], {
-    selectedMorphSkillIds: [77103, 77203, 76954]
+  const denied = simulate('Amalgam', [ID.DEFENSIVE_PROTOCOL_THORNS], {
+    selectedMorphSkillIds: [76568, 76959, 76693]
   });
 
-  assert.match(denied.warnings[0].message, /another morph is selected/);
+  assert.match(denied.warnings[0].message, /protocol is not equipped/);
 
   const groups = engineerProfession.ui.skillBarGroups({
     specialization: 'Amalgam',
@@ -258,7 +258,7 @@ test('Amalgam exposes only persisted F2-F4 morph choices', () => {
       selectedSkillIds: {
         Heal: 5857
       },
-      selectedMorphSkillIds: [77103, 77203, 76954]
+      selectedMorphSkillIds: [76568, 76959, 76693]
     }
   });
 
@@ -291,7 +291,7 @@ test('Amalgam exposes only persisted F2-F4 morph choices', () => {
 
 test('Amalgam protocol selection swaps conflicting protocol names', () => {
   const build = {
-    selectedMorphSkillIds: [77103, 77203, 76954]
+    selectedMorphSkillIds: [76568, 76959, 76693]
   };
   const select = (index, skillId) =>
     engineerProfession.ui.updateSkillBarSelection(
@@ -304,7 +304,7 @@ test('Amalgam protocol selection swaps conflicting protocol names', () => {
     );
 
   assert.equal(select(0, 76959), true);
-  assert.deepEqual(build.selectedMorphSkillIds, [76959, 76866, 76954]);
+  assert.deepEqual(build.selectedMorphSkillIds, [76959, 76568, 76693]);
   assert.deepEqual(
     build.selectedMorphSkillIds.map((id) => engineerCatalog.skillsById.get(id).name),
     ['Defensive Protocol: Protect', 'Offensive Protocol: Shred', 'Offensive Protocol: Demolish']
@@ -471,7 +471,7 @@ test('Bomb Kit blasts trigger Bloodstone only inside a combo field', () => {
 // Native projectiles produce the fire outcome only while a field can bind them.
 test('Shred fires Burning Bolts through Stoke the Flames', () => {
   const stoke = engineerCatalog.skillsById.get(76493);
-  const shred = engineerCatalog.skillsById.get(77103);
+  const shred = engineerCatalog.skillsById.get(76568);
 
   assert.equal(stoke.comboFields[0].fieldType, 'Fire');
   assert.equal(shred.comboFinishers[0].finisherType, 'Projectile');
@@ -479,11 +479,11 @@ test('Shred fires Burning Bolts through Stoke the Flames', () => {
   const config = {
     boons: { quickness: true },
     selectedSkillIds: [5857, 5805, 5927, 5933, 5868],
-    selectedMorphSkillIds: [77103, 77104, 76705]
+    selectedMorphSkillIds: [76568, 76640, 76705]
   };
   const result = simulate(
     'Amalgam',
-    ['Flamethrower', 'Stoke the Flames', { name: 'Offensive Protocol: Shred', skillId: 77103 }],
+    ['Flamethrower', 'Stoke the Flames', { name: 'Offensive Protocol: Shred', skillId: 76568 }],
     config
   );
   const combos = result.resolvedEvents.filter(
@@ -501,7 +501,7 @@ test('Shred fires Burning Bolts through Stoke the Flames', () => {
     )
   );
 
-  const withoutField = simulate('Amalgam', [{ name: 'Offensive Protocol: Shred', skillId: 77103 }], config);
+  const withoutField = simulate('Amalgam', [{ name: 'Offensive Protocol: Shred', skillId: 76568 }], config);
 
   assert.equal(
     withoutField.resolvedEvents.some(
@@ -516,7 +516,7 @@ test('Engineer spear focus selects its condition branch and consumes Lightning R
     'Amalgam',
     ['Conduit Surge', 'Lightning Rod', 'Electric Artillery', { type: 'wait', durationMs: 4000 }],
     {
-      selectedMorphSkillIds: [77103, 77104, 76705],
+      selectedMorphSkillIds: [76568, 76640, 76705],
       attributeInputs: baseAttributeInputs({ expertise: 600 }),
       target: { conditions: { Vulnerability: 0 } }
     }
@@ -539,7 +539,7 @@ test('Engineer spear focus selects its condition branch and consumes Lightning R
     'Amalgam',
     ['Lightning Rod', 'Electric Artillery'],
     {
-      selectedMorphSkillIds: [77103, 77104, 76705],
+      selectedMorphSkillIds: [76568, 76640, 76705],
       target: { conditions: { Vulnerability: 0 } }
     },
     // Artillery's condition contract is observed at impact after cast completion.
@@ -578,7 +578,7 @@ test('Engineer spear focus selects its condition branch and consumes Lightning R
 
 test('Electric Artillery is unavailable until Lightning Rod creates its flip', () => {
   const result = simulate('Amalgam', ['Electric Artillery'], {
-    selectedMorphSkillIds: [77103, 77104, 76705]
+    selectedMorphSkillIds: [76568, 76640, 76705]
   });
 
   assert.equal(result.warnings.length, 1);
@@ -591,10 +591,10 @@ test('Electric Artillery is unavailable until Lightning Rod creates its flip', (
 
 test('Lightning Rod exposes Electric Artillery after charging', () => {
   const charging = simulate('Amalgam', ['Lightning Rod'], {
-    selectedMorphSkillIds: [77103, 77104, 76705]
+    selectedMorphSkillIds: [76568, 76640, 76705]
   });
   const charged = simulate('Amalgam', ['Lightning Rod', { type: 'wait', durationMs: 4000 }], {
-    selectedMorphSkillIds: [77103, 77104, 76705]
+    selectedMorphSkillIds: [76568, 76640, 76705]
   });
   const rod = engineerCatalog.skillsById.get(73002);
   const artillery = engineerCatalog.skillsById.get(73143);
@@ -614,10 +614,10 @@ test('Lightning Rod exposes Electric Artillery after charging', () => {
 
 test('Roiling Skies changes control branch with focus and always cripples', () => {
   const unfocused = simulate('Amalgam', ['Roiling Skies'], {
-    selectedMorphSkillIds: [77103, 77104, 76705]
+    selectedMorphSkillIds: [76568, 76640, 76705]
   });
   const focused = simulate('Amalgam', ['Conduit Surge', 'Roiling Skies'], {
-    selectedMorphSkillIds: [77103, 77104, 76705]
+    selectedMorphSkillIds: [76568, 76640, 76705]
   });
 
   assert.equal(
@@ -638,7 +638,7 @@ test('Roiling Skies changes control branch with focus and always cripples', () =
 
 test('Focused Devastation keeps its own activation and weapon-strength ownership', () => {
   const result = simulate('Amalgam', ['Conduit Surge', 'Devastator', { type: 'wait', durationMs: 2000 }], {
-    selectedMorphSkillIds: [77103, 77104, 76705]
+    selectedMorphSkillIds: [76568, 76640, 76705]
   });
 
   assert.equal(result.warnings.length, 0);
@@ -681,7 +681,7 @@ test('Focused Devastation keeps its own activation and weapon-strength ownership
   assert.equal(result.breakdown.find((entry) => entry.name === 'Focused Devastation').skillId, 73064);
 
   const stochastic = simulate('Amalgam', ['Conduit Surge', 'Devastator', { type: 'wait', durationMs: 2000 }], {
-    selectedMorphSkillIds: [77103, 77104, 76705],
+    selectedMorphSkillIds: [76568, 76640, 76705],
     randomness: { mode: 'stochastic', seed: 73064 }
   });
   const stochasticStrengths = new Set(

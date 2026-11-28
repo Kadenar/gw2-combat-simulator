@@ -31,7 +31,10 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 const skill = (id, name, fields = {}) => ({ id, name, castTimeMs: 0, effects: [], ...fields });
 // Fixture skills carry profession fields directly; closed skill types, not field tables, own that vocabulary.
 const catalogOf = (...skills) => createCanonicalCatalog({ skills });
-const groupIds = (ui, context, id) => ui.paletteGroups(context).find((group) => group.id === id).skillIds;
+const groupIds = (ui, context, id) => {
+  const group = ui.paletteGroups(context).find((entry) => entry.id === id);
+  return [...group.skillIds, ...(group.skillEntries ?? []).map((entry) => entry.skillId)];
+};
 
 // Read each instance with its selected catalog before and after binding another, in both initialization orders.
 function assertIsolated(bind, catalogs, read, expected) {
@@ -75,14 +78,13 @@ test('Engineer kit and toolbelt projections follow IDs when catalog labels chang
 });
 
 test('Engineer Forge and protocol controls retain their local skill lists and lookups', () => {
-  // Protocol eligibility requires an authored kind and slot in each isolated catalog.
-  const ids = [ENGINEER_ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, ENGINEER_ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163];
+  // Protocol eligibility requires an authored kind in each isolated catalog.
+  const ids = [ENGINEER_ID.OFFENSIVE_PROTOCOL_SHRED, ENGINEER_ID.DEFENSIVE_PROTOCOL_THORNS];
   const catalogs = ids.map((id) =>
     catalogOf(
       skill(id, 'Protocol', {
         forgeSkill: true,
         specialization: 'Amalgam',
-        mechanicSlot: 2,
         morphKind: id === ids[0] ? 'shred' : 'thorns'
       })
     )

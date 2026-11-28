@@ -48,14 +48,12 @@ import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { GW2_TICK_MS } from '#gw2/platform/combat/clock.js';
 import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Selects the player, phase, and build evidence used when reconstructing an imported rotation. */
 export interface DpsReportRotationOptions {
   readonly playerIndex?: number;
   readonly phaseIndex?: number;
-  readonly selectedSkillIds?: readonly number[];
   readonly professionConfig?: Readonly<Record<string, unknown>>;
 }
 
@@ -161,37 +159,17 @@ function recordedActions(
   return actions;
 }
 
-function selectedSkillForAction(
-  action: RecordedLogAction,
-  profile: RotationProfessionProfile,
-  catalog: RotationCatalog | null,
-  selectedSkillIds: readonly number[] | undefined
-): Skill | null {
-  if (!catalog || !selectedSkillIds?.length) return null;
-
-  const selected = new Set(selectedSkillIds.map(Number).filter(Number.isFinite));
-  const resolvedName = recordedActionSkill(action, { catalog, profile })?.name;
-  const name = normalized(resolvedName || action.canonicalName || action.rawName);
-  return (
-    catalog.skills.find(
-      (skill) => typeof skill.id === 'number' && selected.has(Number(skill.id)) && normalized(skill.name) === name
-    ) || null
-  );
-}
-
 function resolveAction(
   action: RecordedLogAction,
   profile: RotationProfessionProfile,
-  catalog: RotationCatalog | null,
-  selectedSkillIds: readonly number[] | undefined
+  catalog: RotationCatalog | null
 ): ResolvedLogAction {
   if (action.isSwap && normalized(action.rawName) === 'weapon swap') {
     const skill = findNamedRotationSkill(profile.weaponSwap.name, catalog, profile);
     return { ...action, skill, ...skillIdentity(skill, profile.weaponSwap) };
   }
 
-  const selected = selectedSkillForAction(action, profile, catalog, selectedSkillIds);
-  const skill = selected || recordedActionSkill(action, { catalog, profile });
+  const skill = recordedActionSkill(action, { catalog, profile });
   return { ...action, ...resolvedActionIdentity(action, skill) };
 }
 
@@ -374,7 +352,7 @@ function reconstructDpsReportWithProfile(
   });
   const resolved = applyCastInterrupts(
     combatAligned
-      .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
+      .map((action) => resolveAction(action, profile, catalog))
       // Resolve before replay spacing checks so imports use the cast's equipped-offhand cutoff.
       .map((action) => ({ ...action, skill: resolveSkill(action, action.skill) }))
       .sort(compareResolvedActions)

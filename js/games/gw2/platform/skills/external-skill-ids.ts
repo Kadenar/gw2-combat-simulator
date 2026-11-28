@@ -36,6 +36,21 @@ export const GW2_SKILL_ID_ALIASES: Readonly<Record<number, number>> = Object.fre
   78604: 78514, // Radiant Resolve
 
   // Engineer
+  // Combat logs and saved builds can identify a protocol by any of its three button IDs.
+  77103: 76568, // Shred
+  76866: 76568, // Shred
+  76927: 76693, // Demolish
+  76954: 76693, // Demolish
+  76806: 76705, // Obliterate
+  76901: 76705, // Obliterate
+  77005: 76815, // Pierce
+  77015: 76815, // Pierce
+  77163: 76640, // Thorns
+  77104: 76640, // Thorns
+  76798: 76713, // Cleanse
+  77285: 76713, // Cleanse
+  77203: 76959, // Protect
+  77358: 76959, // Protect
   30881: 21659, // A.E.D.
   // Function Gyro variants share the F5 mechanics, trait effects, and charge pool.
   56921: 56920, // Function Gyro (tool belt skill)

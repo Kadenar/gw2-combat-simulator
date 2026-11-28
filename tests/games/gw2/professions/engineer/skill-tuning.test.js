@@ -12,7 +12,6 @@ import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam
 import { holosmithSkillStrikeFactor } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -203,14 +202,14 @@ test('Evolve rejects a loadout with Shred equipped on two buttons', () => {
     () =>
       runEngineer([ID.EVOLVE_BASE], {
         specialization: 'Amalgam',
-        selectedMorphSkillIds: [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866]
+        selectedMorphSkillIds: [ID.OFFENSIVE_PROTOCOL_SHRED, ID.OFFENSIVE_PROTOCOL_SHRED]
       }),
     /distinct protocol/
   );
 });
 
 // A protocol patch reaches the cast and its strain through every button and either grant path.
-test('Shred and Predator Strain share one patch across F2, F3, and F4', () => {
+test('Shred and Predator Strain share one patch after moving Shred between slots', () => {
   const owner = ID.OFFENSIVE_PROTOCOL_SHRED;
   const family = preview({
     [owner]: {
@@ -223,16 +222,27 @@ test('Shred and Predator Strain share one patch across F2, F3, and F4', () => {
       }
     }
   });
-  for (const id of [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866, owner]) {
+  for (const selectedMorphSkillIds of [
+    [owner, ID.DEFENSIVE_PROTOCOL_PROTECT],
+    [ID.DEFENSIVE_PROTOCOL_PROTECT, owner],
+    [ID.DEFENSIVE_PROTOCOL_PROTECT, ID.OFFENSIVE_PROTOCOL_DEMOLISH, owner]
+  ]) {
     for (const silver of [false, true]) {
       const config = {
         specialization: 'Amalgam',
         patchId: 'engineer-ownership',
-        selectedMorphSkillIds: [id],
+        selectedMorphSkillIds,
         selectedTraitIds: silver ? [TRAIT.SILVER_LINING] : []
       };
-      const result = runEngineer(silver ? [id, id] : [ID.EVOLVE_BASE], config, { profession: family });
+      const result = runEngineer(silver ? [owner, owner] : [ID.EVOLVE_BASE], config, { profession: family });
       assert.deepEqual(result.warnings, []);
+
+      if (silver)
+        assert.equal(
+          result.inputTrace.actions.find((action) => action.skillId === owner)?.control,
+          'profession-' + (selectedMorphSkillIds.indexOf(owner) + 2)
+        );
+
       const grants = result.events.filter(
         (event) => event.type === 'buff' && event.sourceId === 'engineer.predator-strain' && event.kind === 'quickness'
       );
@@ -244,24 +254,6 @@ test('Shred and Predator Strain share one patch across F2, F3, and F4', () => {
         false
       );
     }
-  }
-});
-
-test('each protocol exposes a single balance patch target', () => {
-  const family = preview({});
-  const module = family.patchAuthoring.modules.find((entry) => entry.id === 'Amalgam');
-  const editableIds = new Set(module.skills.map((skill) => skill.id));
-  const protocols = engineerCatalog.skills.filter((skill) => skill.morphKind);
-  for (const kind of new Set(protocols.map((skill) => skill.morphKind))) {
-    const buttons = protocols.filter((skill) => skill.morphKind === kind);
-    const targets = buttons.filter((skill) => editableIds.has(skill.id));
-    assert.equal(targets.length, 1, kind);
-    assert.ok(buttons.every((skill) => skill.tuningSkillId === targets[0].id));
-    const other = buttons.find((skill) => skill.id !== targets[0].id);
-    assert.throws(
-      () => family.validatePatch({ skills: { [other.id]: { cooldown: 0 } } }),
-      new RegExp(`\\b${other.id}\\b.*\\b${targets[0].id}\\b`)
-    );
   }
 });
 
@@ -288,79 +280,70 @@ test('Forge entry reads its selected kit lockout and primary beam damage precede
   assert.ok(hits.slice(1).some((event) => event.name === 'Field Damage'));
 });
 
-// Every slot reads shared Rapacious tuning; retained grants expire independently of later protocol selection.
-for (const id of [
-  ID.DEFENSIVE_PROTOCOL_THORNS,
-  ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104,
-  ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163
-]) {
-  test('Thorns ' + id + ' shares the Rapacious cooldown and loses the proc on expiry', () => {
-    const baseline = engineerCatalog.skillsById.get(ID.DEFENSIVE_PROTOCOL_THORNS).rapaciousDuration;
-    const family = preview({
-      [ID.DEFENSIVE_PROTOCOL_THORNS]: {
-        fields: { rapaciousDuration: 1.5, rapaciousInternalCooldown: 0.6 },
-        sideEffects: { strain: { effects: [{ type: 'strike', name: 'Rapacious Strain', coefficient: 0.9 }] } }
-      }
-    });
-    const result = runEngineer(
-      [{ type: 'wait', durationMs: 2000 }],
-      {
-        specialization: 'Amalgam',
-        patchId: 'engineer-ownership'
-      },
-      {
-        profession: family,
-        // A native extension can change a button independently. The strain still uses the protocol's tuning.
-        catalog: (catalog) =>
-          id === ID.DEFENSIVE_PROTOCOL_THORNS ? catalog : withSkill(catalog, id, { rapaciousDuration: 0 }),
-        initialize(runtime) {
-          const state = runtime.profession.specialization.state;
-          state.evolvedUntil = 10;
-          applyAmalgamStrain(runtime, runtime.helpers.skillsById.get(id), 0);
-          for (const at of [0.25, 0.5, 1, 1.5])
-            runtime.schedule('test.emit', at, {
-              type: 'damage',
-              at,
-              source: 'fixture',
-              sourceId: ID.OFFENSIVE_PROTOCOL_SHRED,
-              actorType: 'player',
-              skillId: ID.OFFENSIVE_PROTOCOL_SHRED,
-              skillName: 'Trigger',
-              coefficient: 1,
-              weaponStrength: 1000
-            });
-        },
-        probes: [
-          [
-            0.3,
-            (runtime) => {
-              runtime.profession.specialization.state.selectedMorphSkillIds = [];
-            }
-          ]
-        ]
-      }
-    );
-    assert.deepEqual(result.warnings, []);
-    const procs = result.events.filter(
-      (event) => event.type === 'damage' && event.sourceId === 'engineer.rapacious-strain'
-    );
-    assert.deepEqual(
-      procs.map((event) => event.at),
-      [0.28, 1]
-    );
-    assert.equal(engineerCatalog.skillsById.get(ID.DEFENSIVE_PROTOCOL_THORNS).rapaciousDuration, baseline);
+test('Thorns grants Rapacious until expiry after protocol selection changes', () => {
+  const id = ID.DEFENSIVE_PROTOCOL_THORNS;
+  const baseline = engineerCatalog.skillsById.get(ID.DEFENSIVE_PROTOCOL_THORNS).rapaciousDuration;
+  const family = preview({
+    [ID.DEFENSIVE_PROTOCOL_THORNS]: {
+      fields: { rapaciousDuration: 1.5, rapaciousInternalCooldown: 0.6 },
+      sideEffects: { strain: { effects: [{ type: 'strike', name: 'Rapacious Strain', coefficient: 0.9 }] } }
+    }
   });
-}
+  const result = runEngineer(
+    [{ type: 'wait', durationMs: 2000 }],
+    {
+      specialization: 'Amalgam',
+      patchId: 'engineer-ownership'
+    },
+    {
+      profession: family,
+      initialize(runtime) {
+        const state = runtime.profession.specialization.state;
+        state.evolvedUntil = 10;
+        applyAmalgamStrain(runtime, runtime.helpers.skillsById.get(id), 0);
+        for (const at of [0.25, 0.5, 1, 1.5])
+          runtime.schedule('test.emit', at, {
+            type: 'damage',
+            at,
+            source: 'fixture',
+            sourceId: ID.OFFENSIVE_PROTOCOL_SHRED,
+            actorType: 'player',
+            skillId: ID.OFFENSIVE_PROTOCOL_SHRED,
+            skillName: 'Trigger',
+            coefficient: 1,
+            weaponStrength: 1000
+          });
+      },
+      probes: [
+        [
+          0.3,
+          (runtime) => {
+            runtime.profession.specialization.state.selectedMorphSkillIds = [];
+          }
+        ]
+      ]
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const procs = result.events.filter(
+    (event) => event.type === 'damage' && event.sourceId === 'engineer.rapacious-strain'
+  );
+  assert.deepEqual(
+    procs.map((event) => event.at),
+    [0.28, 1]
+  );
+  assert.equal(engineerCatalog.skillsById.get(ID.DEFENSIVE_PROTOCOL_THORNS).rapaciousDuration, baseline);
+});
 
 // Effect removal must suppress both the initial grant and future proc cooldown claims.
 test('removed Rapacious payload cannot arm a strain through Evolve or Silver Lining', () => {
-  const id = ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104;
+  const id = ID.DEFENSIVE_PROTOCOL_THORNS;
   for (const silver of [false, true]) {
     const result = runEngineer(
       [silver ? id : ID.EVOLVE_BASE],
       {
         specialization: 'Amalgam',
-        selectedMorphSkillIds: [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, id, ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954],
+        selectedMorphSkillIds: [ID.OFFENSIVE_PROTOCOL_SHRED, id, ID.OFFENSIVE_PROTOCOL_DEMOLISH],
         selectedTraitIds: silver ? [TRAIT.SILVER_LINING] : []
       },
       {
@@ -381,53 +364,47 @@ test('removed Rapacious payload cannot arm a strain through Evolve or Silver Lin
   }
 });
 
-// All Obliterate slots share Titanic scaling; expiry removes its contribution and live Might determines its size.
+// Titanic scaling follows live Might until the strain expires.
 test('Obliterate owns Titanic scaling after protocol reselection and until strain expiry', () => {
-  for (const id of [
-    ID.OFFENSIVE_PROTOCOL_OBLITERATE,
-    ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806,
-    ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901
-  ]) {
-    const catalog = applySkillPatch(engineerCatalog, {
-      skills: { [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: { fields: { titanicAttributePerStack: 9 } } }
-    });
-    const result = runEngineer(
-      [],
-      { specialization: 'Amalgam' },
-      {
-        catalog: () => catalog,
-        initialize(runtime) {
-          applyAmalgamStrain(runtime, runtime.helpers.skillsById.get(id), 0);
-          runtime.profession.specialization.state.selectedMorphSkillIds = [];
-        }
+  const id = ID.OFFENSIVE_PROTOCOL_OBLITERATE;
+  const catalog = applySkillPatch(engineerCatalog, {
+    skills: { [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: { fields: { titanicAttributePerStack: 9 } } }
+  });
+  const result = runEngineer(
+    [],
+    { specialization: 'Amalgam' },
+    {
+      catalog: () => catalog,
+      initialize(runtime) {
+        applyAmalgamStrain(runtime, runtime.helpers.skillsById.get(id), 0);
+        runtime.profession.specialization.state.selectedMorphSkillIds = [];
       }
-    );
-    assert.deepEqual(result.warnings, []);
-    const state = observedRuntime(result).profession.specialization.state;
-    for (const [time, expected] of [
-      [1, 1090],
-      [state.titanicUntil, 1000]
-    ]) {
-      const actual = evaluateAttributeDeclarations(
-        {
-          catalog,
-          time,
-          config: { boons: { might: 10 } },
-          runtime: { profession: { specialization: { kind: 'Amalgam', state } } }
-        },
-        { power: 1000, conditionDamage: 1000 },
-        amalgamModule.attributes
-      );
-      assert.equal(actual.power, expected);
-      assert.equal(actual.conditionDamage, expected);
     }
+  );
+  assert.deepEqual(result.warnings, []);
+  const state = observedRuntime(result).profession.specialization.state;
+  for (const [time, expected] of [
+    [1, 1090],
+    [state.titanicUntil, 1000]
+  ]) {
+    const actual = evaluateAttributeDeclarations(
+      {
+        catalog,
+        time,
+        config: { boons: { might: 10 } },
+        runtime: { profession: { specialization: { kind: 'Amalgam', state } } }
+      },
+      { power: 1000, conditionDamage: 1000 },
+      amalgamModule.attributes
+    );
+    assert.equal(actual.power, expected);
+    assert.equal(actual.conditionDamage, expected);
   }
 });
 
-// One edit must apply across grants from different slots without resetting the shared proc deadline.
-test('Rapacious regrants from another slot retain the shared cooldown and canonical patch notes', () => {
+// Refreshing a strain preserves its proc deadline.
+test('Rapacious regrants retain the cooldown and Thorns patch notes', () => {
   const owner = ID.DEFENSIVE_PROTOCOL_THORNS;
-  const slots = [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163, ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104];
   const family = preview({ [owner]: { fields: { rapaciousInternalCooldown: 1 } } });
   const result = runEngineer(
     [{ type: 'wait', durationMs: 1500 }],
@@ -436,7 +413,7 @@ test('Rapacious regrants from another slot retain the shared cooldown and canoni
       profession: family,
       initialize(runtime) {
         runtime.profession.specialization.state.evolvedUntil = 10;
-        applyAmalgamStrain(runtime, runtime.helpers.skillsById.get(slots[0]), 0);
+        applyAmalgamStrain(runtime, runtime.helpers.skillsById.get(owner), 0);
         for (const at of [0.1, 0.5, 1.2])
           runtime.schedule('test.emit', at, {
             type: 'damage',
@@ -450,7 +427,7 @@ test('Rapacious regrants from another slot retain the shared cooldown and canoni
             weaponStrength: 1000
           });
       },
-      probes: [[0.3, (runtime) => applyAmalgamStrain(runtime, runtime.helpers.skillsById.get(slots[1]), runtime.time)]]
+      probes: [[0.3, (runtime) => applyAmalgamStrain(runtime, runtime.helpers.skillsById.get(owner), runtime.time)]]
     }
   );
   assert.deepEqual(result.warnings, []);
@@ -460,11 +437,9 @@ test('Rapacious regrants from another slot retain the shared cooldown and canoni
       .map((event) => event.at),
     [0.12, 1.2]
   );
-  for (const id of slots) {
-    const notes = family.patchOverviewFor(
-      { specialization: 'Amalgam', selectedTraitIds: [], selectedMorphSkillIds: [id] },
-      []
-    );
-    assert.ok(notes.some((note) => note.subject === engineerCatalog.skillsById.get(owner).name));
-  }
+  const notes = family.patchOverviewFor(
+    { specialization: 'Amalgam', selectedTraitIds: [], selectedMorphSkillIds: [owner] },
+    []
+  );
+  assert.ok(notes.some((note) => note.subject === engineerCatalog.skillsById.get(owner).name));
 });
