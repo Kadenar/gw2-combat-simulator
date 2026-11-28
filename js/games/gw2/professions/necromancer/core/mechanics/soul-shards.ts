@@ -5,7 +5,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import {
   addSoulShards,
-  consumeSoulShards,
+  consumeSoulShard,
   necromancerSoulShardMaximum
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -26,7 +26,7 @@ export function grantNecromancerSoulShards(runtime: NecromancerRuntime, amount: 
 
 /** The consumed shard emits an independent siphon through the shared formula and cannot recursively consume another shard. */
 export function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
-  if (!consumeSoulShards(runtime.profession.core, 1, runtime.time)) return;
+  if (!consumeSoulShard(runtime.profession.core, runtime.time)) return;
 
   emitSoulShard(runtime, event);
 }

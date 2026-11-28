@@ -11,7 +11,6 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
-import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/mechanics/toolbelt.js';
 import {
   dodgeAccepted,
@@ -267,7 +266,7 @@ function recordStaticDischargeProc(context: EngineerResolverContext, event: Engi
       at: event.at,
       sourceSkill: event.parentSkillName || event.triggeredBy || event.skillName,
       detail: '',
-      icon: resolverSkill(context, ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || ''
+      icon: context.helpers.skillsById.get(ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || ''
     }
   });
 }

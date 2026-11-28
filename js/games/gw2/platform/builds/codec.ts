@@ -33,7 +33,7 @@ const SLOT_TYPES = Object.freeze({
   Elite: 'Elite'
 });
 
-const DEFAULT_GEAR_ALIASES = Object.freeze({
+const GEAR_ALIASES: Readonly<Record<string, string>> = Object.freeze({
   Berserker: "Berserker's",
   Assassin: "Assassin's",
   Viper: "Viper's",
@@ -110,7 +110,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       ? plainObject(assumptions.targetConditions)
       : plainObject(defaults.assumptions.targetConditions);
     const specializations = normalizeSpecializations(saved.specializations, defaults.specializations, catalog);
-    const gear = normalizeGear(saved.gear, defaults, DEFAULT_GEAR_ALIASES);
+    const gear = normalizeGear(saved.gear, defaults);
     let migrated = {
       ...defaults,
       ...saved,
@@ -118,11 +118,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       profession: professionId,
       gear,
       // Fall back to main weapon gear prefix if alternateWeaponPrefixes is missing.
-      alternateWeaponPrefixes: normalizeWeaponPrefixes(
-        saved.alternateWeaponPrefixes,
-        [gear.Weapon1, gear.Weapon2],
-        DEFAULT_GEAR_ALIASES
-      ),
+      alternateWeaponPrefixes: normalizeWeaponPrefixes(saved.alternateWeaponPrefixes, [gear.Weapon1, gear.Weapon2]),
       weapons: normalizeWeaponPair(saved.weapons, defaults.weapons, catalog),
       // Second weapon set is optional; allowEmpty=true lets both slots be "".
       alternateWeapons: normalizeWeaponPair(saved.alternateWeapons, defaults.alternateWeapons, catalog, true),
@@ -223,9 +219,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     }
 
     const descriptorErrors = validateExtraBuildFields(build as TBuild, extraFields);
-    const extra = validateExtra(build as TBuild);
-    const extraErrors = Array.isArray(extra) ? extra : extra?.errors || [];
-    const errors = [...common.errors, ...descriptorErrors, ...extraErrors.map(String)];
+    const errors = [...common.errors, ...descriptorErrors, ...validateExtra(build as TBuild)];
     return { valid: errors.length === 0, errors };
   }
 
@@ -386,11 +380,7 @@ function professionName(professionId: string): string {
   return professionId.charAt(0).toUpperCase() + professionId.slice(1);
 }
 
-function normalizeGear(
-  value: unknown,
-  defaults: Gw2CanonicalBuild,
-  aliases: Readonly<Record<string, string>>
-): Record<string, string> {
+function normalizeGear(value: unknown, defaults: Gw2CanonicalBuild): Record<string, string> {
   // Start from defaults so unrecognised or missing slots keep a valid prefix.
   const gear = { ...defaults.gear };
   for (const [slot, prefix] of Object.entries(plainObject(value))) {
@@ -399,7 +389,7 @@ function normalizeGear(
 
   for (const slot of GEAR_SLOTS) {
     // Resolve abbreviated names, such as "Berserker" to "Berserker's", before lookup.
-    gear[slot] = aliases[gear[slot]] || gear[slot];
+    gear[slot] = GEAR_ALIASES[gear[slot]] || gear[slot];
 
     // If the resolved prefix still isn't a known stat, fall back to the default.
     if (!GEAR_STATS_BY_NAME[gear[slot]]) gear[slot] = defaults.gear[slot];
@@ -408,14 +398,10 @@ function normalizeGear(
   return gear;
 }
 
-function normalizeWeaponPrefixes(
-  value: unknown,
-  fallback: readonly string[],
-  aliases: Readonly<Record<string, string>>
-): string[] {
+function normalizeWeaponPrefixes(value: unknown, fallback: readonly string[]): string[] {
   const prefixes = Array.isArray(value) ? value : fallback;
   return [0, 1].map((index) => {
-    const prefix = aliases[String(prefixes[index] || '')] || prefixes[index];
+    const prefix = GEAR_ALIASES[String(prefixes[index] || '')] || prefixes[index];
     return typeof prefix === 'string' && GEAR_STATS_BY_NAME[prefix] ? prefix : fallback[index];
   });
 }

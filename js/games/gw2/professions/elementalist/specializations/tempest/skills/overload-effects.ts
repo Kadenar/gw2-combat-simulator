@@ -19,11 +19,11 @@ function strike(coefficient: number, tick: Readonly<Record<string, unknown>> = {
   };
 }
 
-function condition(name: string, stacks: number, duration: number): SkillEffect {
+function condition(name: string, duration: number): SkillEffect {
   return {
     type: 'condition',
     condition: name,
-    stacks,
+    stacks: 1,
     duration
   };
 }
@@ -67,7 +67,7 @@ function overloadFireEffects(): readonly SkillEffect[] {
         : {};
     return impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'cast' }, [
       strike(0.9, whirl),
-      condition(CONDITION.BURNING, 1, 3),
+      condition(CONDITION.BURNING, 3),
       boon(BOON.MIGHT, 2, 16)
     ]);
   });
@@ -78,7 +78,7 @@ function overloadAirEffects(): readonly SkillEffect[] {
   return OVERLOAD_AIR_TICKS.flatMap((atMs) =>
     impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       strike(0.85),
-      condition(CONDITION.VULNERABILITY, 1, 10),
+      condition(CONDITION.VULNERABILITY, 10),
       boon(BOON.FURY, 1, 1)
     ])
   );
@@ -104,10 +104,10 @@ function overloadEarthEffects(): readonly SkillEffect[] {
             }
           : {}
       ),
-      condition(CONDITION.BLEEDING, 1, 9),
-      condition(CONDITION.CRIPPLED, 1, 3),
+      condition(CONDITION.BLEEDING, 9),
+      condition(CONDITION.CRIPPLED, 3),
       ...(index === 0 ? [boon(BOON.STABILITY, 3, 4)] : []),
-      ...(index === 4 ? [condition(CONDITION.IMMOBILIZED, 1, 4)] : []),
+      ...(index === 4 ? [condition(CONDITION.IMMOBILIZED, 4)] : []),
       boon(BOON.PROTECTION, 1, 1)
     ])
   );

@@ -3,7 +3,7 @@ import { ACTOR, type BoonId, type ComboFinisherType, type SimulationActorType } 
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { EngineerResolverContext, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 
 interface QueueDamageOptions {
   /** Callers select the weapon identity; general strike construction must not assume Spear. */
@@ -36,16 +36,6 @@ interface ApplyConditionOptions {
   readonly ownerActorType?: SimulationActorType;
   /** Some derived conditions ignore condition duration. */
   readonly fixedDuration?: boolean;
-}
-
-/** Resolves an event's skill ID to Engineer-specific catalog metadata. */
-export function resolverSkill(
-  context: EngineerResolverContext,
-  skillId: SkillId | null | undefined
-): EngineerSkill | undefined {
-  if (skillId == null) return;
-
-  return context.helpers.skillsById.get(skillId);
 }
 
 /** Builds a crit-eligible strike at the triggering impact; shared resolution selects strength and attempts finishers. */

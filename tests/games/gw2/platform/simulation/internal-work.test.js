@@ -44,17 +44,21 @@ test('internal work validates its boundary and dispatches renewed owners without
   assert.throws(() => create({ ...input, type: 'missing' }), /handler registered/);
   assert.throws(() => create({ ...input, at: Infinity }), /finite/);
   assert.throws(() => create({ ...input, priority: NaN }), /priority/);
-  assert.throws(() => create({ ...input, timing: 'buffs' }), /named task/);
+  assert.throws(() => create({ ...input, timing: 'buffs' }), /Only runtime\.task/);
   assert.throws(() => create({ ...input, payload: { callback() {} } }), /serializable/);
   assert.throws(() => create({ ...input, owner: { id: 'pet', generation: -1 } }), /generation/);
 });
 
-test('named grant tasks retain validated timing through the work factory', () => {
-  const handlers = new HandlerRegistry().register('runtime.task', () => {});
+test('only ordinary named tasks accept buff or expiry timing', () => {
+  const handlers = new HandlerRegistry().register('runtime.task', () => {}).register('runtime.cast-task', () => {});
   const create = createInternalWorkFactory(handlers);
   const input = { type: 'runtime.task', at: 1, priority: 0, payload: { name: 'grant', data: null } };
-  assert.equal(create({ ...input, timing: 'buffs' }).timing, 'buffs');
-  assert.throws(() => create({ ...input, timing: 'damage' }), /named task/);
+  for (const timing of ['buffs', 'expiry']) {
+    assert.equal(create({ ...input, timing }).timing, timing);
+    assert.throws(() => create({ ...input, type: 'runtime.cast-task', timing }), /Only runtime\.task/);
+  }
+
+  assert.throws(() => create({ ...input, timing: 'damage' }), /buffs or expiry/);
 });
 
 // Mixed scheduling retains work causes and packet cancellation handles without giving work a public identity.

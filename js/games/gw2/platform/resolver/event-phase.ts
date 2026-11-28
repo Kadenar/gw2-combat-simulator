@@ -5,11 +5,10 @@ export function gw2ResolverPhase(
   event: Readonly<{ type: string; at: number }>,
   current: Readonly<{ at: number; phase: number }> | null
 ): number {
+  const taskTiming = event.type === 'runtime.task' && 'timing' in event ? event.timing : undefined;
+
   // Natural expiry and its consequences run only after this timestamp's gameplay has settled.
-  if (
-    (current?.at === event.at && current.phase === GW2_RESOLVER_PHASE.Expiry) ||
-    ('timing' in event && event.timing === 'expiry')
-  )
+  if ((current?.at === event.at && current.phase === GW2_RESOLVER_PHASE.Expiry) || taskTiming === 'expiry')
     return GW2_RESOLVER_PHASE.Expiry;
 
   if (event.type === 'condition_buffer') return GW2_RESOLVER_PHASE.Sample;
@@ -25,13 +24,7 @@ export function gw2ResolverPhase(
   }
 
   // Independent grants and explicitly scheduled grant tasks precede strikes; reactions cannot rewind their cause.
-  if (
-    event.type === 'buff' ||
-    event.type === 'boon_extension' ||
-    ((event.type === 'runtime.task' || event.type === 'runtime.cast-task') &&
-      'timing' in event &&
-      event.timing === 'buffs')
-  ) {
+  if (event.type === 'buff' || event.type === 'boon_extension' || taskTiming === 'buffs') {
     return current?.at === event.at ? Math.max(current.phase, GW2_RESOLVER_PHASE.Buffs) : GW2_RESOLVER_PHASE.Buffs;
   }
 

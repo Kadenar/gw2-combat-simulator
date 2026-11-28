@@ -3,7 +3,13 @@ import test from 'node:test';
 
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import { consumeCharge, createChargeGrant, refreshChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import { advanceDiscreteResource } from '#gw2/platform/combat/resources/clock.js';
+import {
+  advanceResource,
+  createDiscreteResourceClock,
+  resourceAt,
+  resourceRecoveryReadyAt,
+  startDiscreteResource
+} from '#gw2/platform/combat/resources/clock.js';
 import { activeBatches, consumeBatchFromList } from '#kernel/resources/batch-list.js';
 import { activeBatchCount, expireBatch, purgeExpiredBatch } from '#kernel/resources/batch.js';
 
@@ -112,28 +118,33 @@ test('charge refresh at the deadline retains entitlement without mutating the pr
 });
 
 test('discrete resources grant on 40 ms ticks without early tolerance or cadence drift', () => {
-  // Keep fractional cadence as a duration remainder, so every stored deadline remains on the grid.
-  assert.deepEqual(advanceDiscreteResource(0, 8, 5, 0, 5, 4.96), { value: 0, nextAt: 5, tickDelay: 0 });
-  assert.deepEqual(advanceDiscreteResource(0, 8, 5, 0, 5, 5), { value: 1, nextAt: 10, tickDelay: 0 });
-  assert.deepEqual(advanceDiscreteResource(8, 8, Infinity, 0, 5, 10), { value: 8, nextAt: Infinity, tickDelay: 0 });
-  for (const partition of [[0.2], [0.07, 0.08, 0.119, 0.12, 0.2]]) {
-    let state = { value: 0, nextAt: 0.08, tickDelay: 0.03 };
-    for (const at of partition)
-      state = advanceDiscreteResource(state.value, 8, state.nextAt, state.tickDelay, 0.05, at);
-    assert.deepEqual(state, { value: 4, nextAt: 0.28, tickDelay: 0.03 });
-  }
+  const clock = { ...createDiscreteResourceClock(), maximum: 8, interval: 5 };
+  assert.equal(resourceAt(clock, 10), 0);
+  assert.equal(resourceRecoveryReadyAt(clock, 1, 0), null);
+  startDiscreteResource(clock, 0);
+  assert.equal(resourceAt(clock, 4.96), 0);
+  assert.equal(resourceRecoveryReadyAt(clock, 1, 4.96), 5);
+  assert.equal(resourceAt(clock, 5), 1);
 
-  assert.deepEqual(advanceDiscreteResource(0, 8, 0.08, 0.03, 0.05, 0.079), { value: 0, nextAt: 0.08, tickDelay: 0.03 });
-  const full = advanceDiscreteResource(8, 8, 0.08, 0.03, 0.05, 0.08);
-  assert.deepEqual(full, { value: 8, nextAt: 0.12, tickDelay: 0.02 });
-  assert.deepEqual(advanceDiscreteResource(7, 8, full.nextAt, full.tickDelay, 0.05, 0.1), {
-    value: 7,
-    nextAt: 0.12,
-    tickDelay: 0.02
-  });
-  assert.deepEqual(advanceDiscreteResource(7, 8, full.nextAt, full.tickDelay, 0.05, 0.12), {
-    value: 8,
-    nextAt: 0.16,
-    tickDelay: 0.01
-  });
+  // Observing between ticks must preserve the nominal 50 ms cadence on the 40 ms grid.
+  for (const partition of [[0.2], [0.07, 0.08, 0.119, 0.12, 0.2]]) {
+    const state = { ...createDiscreteResourceClock(), maximum: 10, interval: 0.05, unitsPerTick: 2 };
+    startDiscreteResource(state, 0);
+    assert.equal(resourceAt(state, 0.079), 0);
+    for (const at of partition) advanceResource(state, at);
+    assert.equal(state.value, 8);
+    assert.equal(state.nextAt, 0.28);
+    assert.equal(state.tickDelay, 0.03);
+  }
+});
+
+test('a full discrete resource keeps its recovery cadence after a spend', () => {
+  const clock = { ...createDiscreteResourceClock(8), interval: 0.05, unitsPerTick: 2 };
+  startDiscreteResource(clock, 0);
+  advanceResource(clock, 0.08);
+  assert.equal(clock.value, 8);
+  clock.value -= 1;
+  assert.equal(resourceRecoveryReadyAt(clock, 8, 0.1), 0.12);
+  assert.equal(resourceAt(clock, 0.1), 7);
+  assert.equal(resourceAt(clock, 0.12), 8);
 });

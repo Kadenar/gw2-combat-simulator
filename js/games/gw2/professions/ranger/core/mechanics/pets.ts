@@ -89,10 +89,10 @@ function owner(context: RangerRuntime, id = PET_AUTO_OWNER) {
   return { id: `${rangerPetCompanionId(context)}:${id}`, generation: 0 };
 }
 
-/** Pet mechanics query only the current incarnation's accepted boons. */
-function petBoonActive(context: MechanicQueriesOf<RangerRuntime>, kind: string): boolean {
+/** Pet attacks use the current pet's Quickness for animation and recovery. */
+function petHasQuickness(context: MechanicQueriesOf<RangerRuntime>): boolean {
   return (
-    context.combat.activeBoonStacks(kind, context.time, 1, {
+    context.combat.activeBoonStacks(BOON.QUICKNESS, context.time, 1, {
       actor: 'companion',
       companionId: rangerPetCompanionId(context)
     }) > 0
@@ -108,7 +108,7 @@ function rangerPetCastDurationMs(
   if (!skill.petSkill) return durationMs;
 
   const petName = rangerPetForState(context.profession.core).name;
-  return rangerPetAnimationMs(skill, petBoonActive(context, BOON.QUICKNESS), rangerPetSkillTiming(petName, skill.id));
+  return rangerPetAnimationMs(skill, petHasQuickness(context), rangerPetSkillTiming(petName, skill.id));
 }
 
 /** Measured recovery overrides include decision gaps; unmeasured attacks retain their authored action-rate model. */
@@ -132,7 +132,7 @@ function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast<RangerSkil
   const special = profile?.specials.find((entry) => entry.id === skillId);
   const timing = rangerPetSkillTiming(petName, skillId);
 
-  if (timing || special) return petRecovery(timing, special?.recovery ?? 0, petBoonActive(context, BOON.QUICKNESS));
+  if (timing || special) return petRecovery(timing, special?.recovery ?? 0, petHasQuickness(context));
 
   return (
     quantizeGw2ActionDurationUp((profile?.commandRecovery[String(skillId)] ?? cast.effectiveEnd - cast.start) * 1000) /
@@ -287,7 +287,7 @@ function emitRangerPetSkill(
   const companionId = rangerPetCompanionId(context);
   const entityName = rangerPetForState(context.profession.core).name;
   const timing = rangerPetSkillTiming(entityName, skill.id);
-  const quickness = petBoonActive(context, BOON.QUICKNESS);
+  const quickness = petHasQuickness(context);
   // Keep pet impact timing and cancellation here. Commanded effects use shared cast targeting.
   const deliveryForEffect = (effect: SkillEffect): Omit<CastEffectDelivery, 'cast'> | null => {
     if (
@@ -411,7 +411,7 @@ const rangerPetTasks = {
     if (!profile) return;
 
     const opening = state.pet.openingBasic;
-    const quickness = petBoonActive(context, BOON.QUICKNESS);
+    const quickness = petHasQuickness(context);
     const selected = autonomousSkill(context, profile);
     const skill = context.helpers.skillsById.get(selected.id);
     const timing = rangerPetSkillTiming(petName, selected.id);

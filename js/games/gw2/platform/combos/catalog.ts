@@ -10,8 +10,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
-function positiveInteger(value: unknown, fallback: number, label: string): number {
-  const normalized = Number(value ?? fallback);
+function positiveInteger(value: unknown, label: string): number {
+  const normalized = Number(value ?? 1);
 
   if (!Number.isInteger(normalized) || normalized <= 0) {
     throw new TypeError(`${label} must be a positive integer.`);
@@ -87,11 +87,10 @@ function normalizeFinisherDescriptors(value: unknown, attemptGroup?: string): re
         finisherType: normalizeComboFinisherType(descriptor.finisherType),
         fieldSelectionAnchor: normalizeComboFieldSelectionAnchor(descriptor.fieldSelectionAnchor),
         chance: clamp(chance, 0, 1),
-        attempts: positiveInteger(descriptor.attempts, 1, `comboFinishers entry ${index + 1} attempts`),
-        applications: positiveInteger(descriptor.applications, 1, `comboFinishers entry ${index + 1} applications`),
+        attempts: positiveInteger(descriptor.attempts, `comboFinishers entry ${index + 1} attempts`),
+        applications: positiveInteger(descriptor.applications, `comboFinishers entry ${index + 1} applications`),
         successfulCombos: positiveInteger(
           descriptor.successfulCombos,
-          1,
           `comboFinishers entry ${index + 1} successfulCombos`
         ),
         effectDelay

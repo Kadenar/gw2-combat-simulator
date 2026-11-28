@@ -42,8 +42,9 @@ export function createProfessionBuildCodec<TBuild extends Gw2CanonicalBuild>({
     },
     validateExtra(build) {
       const errors = validateProfessionAssumptions(build.assumptions, controls);
-      const extra = validateExtra?.(build);
-      errors.push(...(Array.isArray(extra) ? extra : extra?.errors || []).map(String));
+
+      if (validateExtra) errors.push(...validateExtra(build));
+
       return errors;
     }
   });

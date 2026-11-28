@@ -47,7 +47,7 @@ export function createRuntimeTaskScheduler<T extends object, TSkill extends Skil
 
       enqueueWork(makeWork({ type: 'runtime.task', at, priority, payload: { name, data }, owner, timing: 'expiry' }));
     },
-    scheduleForCast(name, at, cast, data = {}, owner, priority = 0, timing) {
+    scheduleForCast(name, at, cast, data = {}, owner, priority = 0) {
       if (!tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
 
       // Executable skill declarations stay on the catalog side of the work factory's clone boundary.
@@ -60,7 +60,6 @@ export function createRuntimeTaskScheduler<T extends object, TSkill extends Skil
           type: 'runtime.cast-task',
           at,
           priority,
-          timing,
           payload: { name, cast: reservation, skillId: skill.id, data },
           owner
         })

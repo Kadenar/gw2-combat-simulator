@@ -42,13 +42,12 @@ export function stealthActive(state: Readonly<Partial<StealthState>>, at: number
   return buffWindowActive(time, state.stealthStartedAt ?? 0, state.stealthUntil ?? 0) && !revealedActive(state, time);
 }
 
-/** Attacks close stealth and optionally apply Revealed, including attacks enabled by a separate entitlement. */
-export function endStealth(state: StealthState, at: number, reveal = true): void {
+/** Attacks that break stealth apply Revealed at the same time. */
+export function endStealth(state: StealthState, at: number): void {
   const time = gw2Time(at);
   state.stealthStartedAt = time;
   state.stealthUntil = time;
-
-  if (reveal) state.revealedUntil = gw2Time(time + REVEALED_DURATION);
+  state.revealedUntil = gw2Time(time + REVEALED_DURATION);
 }
 
 interface StealthPolicy<T extends { core: StealthState }, TSkill extends Skill> {

@@ -9,7 +9,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { gw2Time } from '#gw2/platform/combat/clock.js';
 import {
   addSoulShards,
-  consumeSoulShards,
+  consumeSoulShard,
   purgeTimedState
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -1005,16 +1005,17 @@ test('Soul Shards refresh at capacity and consume only live charges without revi
   addSoulShards(state, 2, 9, 6);
   assert.equal(state.soulShardGrant.expiresAt, 19);
   assert.equal(state.soulShardGrant.count, 6);
-  assert.equal(consumeSoulShards(state, 1, 10), 1);
+  assert.equal(consumeSoulShard(state, 10), true);
   assert.equal(state.soulShardGrant.count, 5);
   assert.equal(state.soulShardGrant.expiresAt, 19, 'spending cannot refresh the window');
-  assert.equal(consumeSoulShards(state, 1, 19.000001), 0);
+  assert.equal(consumeSoulShard(state, 19.000001), false);
   assert.equal(state.soulShardGrant.count, 0);
   addSoulShards(state, 2, 19, 6);
   assert.equal(state.soulShardGrant.count, 2);
   assert.equal(state.soulShardGrant.expiresAt, 29);
-  assert.equal(consumeSoulShards(state, 10, 20), 2);
-  assert.equal(consumeSoulShards(state, 1, 20), 0);
+  assert.equal(consumeSoulShard(state, 20), true);
+  assert.equal(consumeSoulShard(state, 20), true);
+  assert.equal(consumeSoulShard(state, 20), false);
   assert.equal(state.soulShardGrant.count, 0);
 });
 

@@ -4,7 +4,7 @@ import { materializeSkillEffectApplications } from '#gw2/platform/effects/materi
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { MESMER_CORE_WEAPON_STRENGTH } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
 import { isMesmerCloneOwnerId, mesmerCloneOwnerId } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
 import type { MesmerEventExtra, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
@@ -37,9 +37,11 @@ export function buildMesmerPacket(
   return canonical;
 }
 
-/** Catalog skills and effect sources retain explicit identities; names only label their packets. */
-function skillForCondition(context: MesmerRuntime, skillName: string, extra: MesmerEventExtra): Skill {
-  const id = extra.skillId ?? extra.sourceId;
+type ConditionAttribution = MesmerEventExtra & ({ readonly skillId: SkillId } | { readonly sourceId: SkillId });
+
+/** A skill or effect ID identifies the condition source even when several packets share a label. */
+function skillForCondition(context: MesmerRuntime, skillName: string, extra: MesmerEventExtra | undefined): Skill {
+  const id = extra?.skillId ?? extra?.sourceId;
 
   if (id == null) throw new TypeError('Mesmer condition packets require a skillId or sourceId.');
 
@@ -52,9 +54,9 @@ export function buildMesmerConditions(
   skillName: string,
   at: number,
   condition: ConditionEffect,
-  source = 'Player',
-  label = '',
-  extra: MesmerEventExtra = {}
+  source: string,
+  label: string,
+  extra: ConditionAttribution
 ): readonly SimulationEventBase[] {
   const skill = skillForCondition(context, skillName, extra);
 

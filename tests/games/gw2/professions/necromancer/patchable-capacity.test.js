@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { grantNecromancerSoulShards } from '#gw2/professions/necromancer/core/mechanics/soul-shards.js';
-import { consumeSoulShards } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { consumeSoulShard } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { harbingerHooks } from '#gw2/professions/necromancer/specializations/harbinger/hooks.js';
@@ -131,7 +131,8 @@ test('patched Soul Shards can be spent, refilled, and expired through the native
         {
           at: 1,
           run(owner) {
-            assert.equal(consumeSoulShards(owner.profession.core, 3, owner.time), 3);
+            for (let spent = 0; spent < 3; spent++)
+              assert.equal(consumeSoulShard(owner.profession.core, owner.time), true);
             grantNecromancerSoulShards(owner.mechanics, 20);
             assert.equal(owner.profession.core.soulShardGrant.count, 8);
           }

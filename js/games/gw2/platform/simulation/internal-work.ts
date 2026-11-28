@@ -16,15 +16,11 @@ export function createInternalWorkFactory<TWork extends InternalWork>(
 
     if (!Number.isFinite(input.priority)) throw new RangeError('Internal work priority must be finite.');
 
-    // Named tasks may grant before gameplay or clean up afterward; completions keep their causal position.
+    // Only ordinary named tasks can request the grant or expiry phase.
     const timing: unknown = input.timing;
 
-    if (
-      timing != null &&
-      (!['buffs', 'expiry'].includes(String(timing)) ||
-        (input.type !== 'runtime.task' && input.type !== 'runtime.cast-task'))
-    )
-      throw new TypeError('Task timing requires a named task.');
+    if (timing != null && (input.type !== 'runtime.task' || (timing !== 'buffs' && timing !== 'expiry')))
+      throw new TypeError('Only runtime.task accepts buffs or expiry timing.');
 
     if (input.activationId != null && (typeof input.activationId !== 'string' || !input.activationId)) {
       throw new TypeError('Internal work activation id must be a nonempty string.');
@@ -56,7 +52,7 @@ export function createInternalWorkFactory<TWork extends InternalWork>(
       type: input.type,
       at,
       priority: input.priority,
-      ...(input.timing == null ? {} : { timing: input.timing }),
+      ...(timing == null ? {} : { timing }),
       payload,
       ...(input.activationId == null ? {} : { activationId: input.activationId }),
       ...(input.causalOrder == null ? {} : { causalOrder: input.causalOrder }),

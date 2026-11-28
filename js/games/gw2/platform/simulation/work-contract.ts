@@ -24,7 +24,10 @@ export type RuntimeWork =
       'runtime.cast-task',
       { name: string; cast: Omit<RuntimeCast, 'skill'>; skillId: SkillId; data: Record<string, unknown> }
     >
-  | InternalWork<'runtime.task', { name: string; data: unknown }>;
+  | (InternalWork<'runtime.task', { name: string; data: unknown }> & {
+      /** Ordinary named tasks can grant buffs before tied strikes or expire state after gameplay. */
+      readonly timing?: 'buffs' | 'expiry';
+    });
 
 /** Packets and private work share ordering, but only packets carry gameplay source identity. */
 export type RuntimeQueueEntry = Gw2ResolverEvent | RuntimeWork;
@@ -43,12 +46,11 @@ export interface InternalWork<TType extends string = string, TPayload = unknown>
   readonly payload: TPayload;
   readonly activationId?: string;
   readonly owner?: WorkOwner;
-  /** Explicit grant tasks settle before tied strikes; arbitrary callbacks retain ordinary causality. */
-  readonly timing?: 'buffs' | 'expiry';
 }
 
 export type WorkInput<TWork extends InternalWork> = TWork extends InternalWork
-  ? Pick<TWork, 'type' | 'at' | 'priority' | 'payload' | 'activationId' | 'owner' | 'causalOrder' | 'timing'>
+  ? Pick<TWork, 'type' | 'at' | 'priority' | 'payload' | 'activationId' | 'owner' | 'causalOrder'> &
+      (TWork extends { type: 'runtime.task' } ? Pick<TWork, 'timing'> : { readonly timing?: never })
   : never;
 
 /** Mechanics schedule owned work without obtaining the queue or advancing its clock. */
@@ -68,7 +70,6 @@ export interface TaskScheduling<TSkill extends Skill = Skill> extends WorkSchedu
     cast: RuntimeCast<TSkill>,
     data?: Record<string, unknown>,
     owner?: WorkOwner,
-    priority?: number,
-    timing?: 'buffs'
+    priority?: number
   ): void;
 }

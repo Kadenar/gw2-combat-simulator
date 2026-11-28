@@ -515,7 +515,7 @@ test('instant attacks do not promote their post-strike buffs, conditions, or tas
 // A task must declare grant timing because arbitrary callbacks can remove buffs or complete other actions.
 test('scheduled grant tasks and direct grants expose the same buffs to tied damage', () => {
   const damages = [];
-  for (const mode of ['packet', 'task', 'cast-task']) {
+  for (const mode of ['packet', 'task']) {
     const grant = (runtime, at = runtime.time) =>
       runtime.effects.emit({
         kind: 'packet',
@@ -532,15 +532,14 @@ test('scheduled grant tasks and direct grants expose the same buffs to tied dama
       });
     const result = run([cast(990003)], {
       profession: fixture({
-        onCastStart(runtime, activation) {
+        onCastStart(runtime) {
           runtime.effects.emit({
             kind: 'packet',
             event: packet(1, { flatDamage: undefined, coefficient: 1, weaponStrength: 1000 })
           });
 
           if (mode === 'packet') grant(runtime, 1);
-          else if (mode === 'task') runtime.schedule('grant', 1, null, undefined, 0, 'buffs');
-          else runtime.scheduleForCast('grant', 1, activation, {}, undefined, 0, 'buffs');
+          else runtime.schedule('grant', 1, null, undefined, 0, 'buffs');
         },
         tasks: { grant: (runtime) => grant(runtime) }
       })
@@ -548,7 +547,7 @@ test('scheduled grant tasks and direct grants expose the same buffs to tied dama
     damages.push(result.strikeDamage);
   }
 
-  assert.deepEqual(damages, [1030, 1030, 1030]);
+  assert.deepEqual(damages, [1030, 1030]);
 });
 
 // Grants already scheduled for impact time use the same ordering as grants from instant commands.

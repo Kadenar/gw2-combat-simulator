@@ -8,21 +8,14 @@ import {
   resourceValueAt,
   type ResourceClock
 } from '#kernel/resources/accrual.js';
-import { cappedResource, resourceAtLeast } from '#kernel/resources/pool.js';
+import { resourceAtLeast } from '#kernel/resources/pool.js';
 
-/** Credits grants on the first 40 ms tick at or after their deadline, preserving cadence even at the cap. */
-export function advanceDiscreteResource(
-  value: number,
-  maximum: number,
-  nextAt: number,
-  tickDelay: number,
-  interval: number,
-  target: number
-) {
+/** Count grants due on the GW2 clock and carry the fractional interval into the next deadline. */
+function advanceDiscreteResource(nextAt: number, tickDelay: number, interval: number, target: number) {
   if (!(interval > 0) || !Number.isFinite(interval))
     throw new TypeError('Resource intervals must be finite and positive.');
 
-  if (nextAt === Infinity) return { value: cappedResource(value, maximum), nextAt, tickDelay: 0 };
+  if (nextAt === Infinity) return { count: 0, nextAt, tickDelay: 0 };
 
   const period = timeKey(interval);
 
@@ -35,7 +28,7 @@ export function advanceDiscreteResource(
   const ideal = (next + count * period) / 1_000_000;
   const deadline = gw2Time(ideal);
   return {
-    value: cappedResource(value + count, maximum),
+    count,
     nextAt: deadline,
     tickDelay: (timeKey(deadline) - timeKey(ideal)) / 1_000_000
   };
@@ -80,9 +73,13 @@ function resourceProjectionAt(
 
     if (!(discrete.interval > 0)) return { value: state.value, nextAt: discrete.nextAt, tickDelay: discrete.tickDelay };
 
-    const projection = advanceDiscreteResource(0, Infinity, discrete.nextAt, discrete.tickDelay, discrete.interval, at);
-    projection.value = Math.min(state.maximum, state.value + projection.value * discrete.unitsPerTick);
-    return projection;
+    const { count, nextAt, tickDelay } = advanceDiscreteResource(
+      discrete.nextAt,
+      discrete.tickDelay,
+      discrete.interval,
+      at
+    );
+    return { value: Math.min(state.maximum, state.value + count * discrete.unitsPerTick), nextAt, tickDelay };
   }
 
   return resourceValueAt(state, at);

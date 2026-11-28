@@ -64,13 +64,10 @@ export function addSoulShards(state: NecromancerCoreState, stacks: number, at: n
   state.soulShardGrant = refreshChargeGrant(state.soulShardGrant, added, gw2Time(at + SOUL_SHARD_DURATION_SECONDS), at);
 }
 
-/** Removes active Soul Shards up to the requested amount and returns the amount consumed. */
-export function consumeSoulShards(state: NecromancerCoreState, stacks: number, at: number): number {
+/** Perforate spends one live Soul Shard per trigger. */
+export function consumeSoulShard(state: NecromancerCoreState, at: number): boolean {
   purgeTimedState(state, at);
-  const requested = boundedInteger(stacks, 0, 0, state.soulShardGrant.count);
-  let consumed = 0;
-  while (consumed < requested && consumeCharge(state.soulShardGrant, at)) consumed += 1;
-  return consumed;
+  return consumeCharge(state.soulShardGrant, at);
 }
 
 /** Preserve the existing ordered rewards at the accepted creature-summoned boundary. */
