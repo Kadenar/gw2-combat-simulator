@@ -1774,6 +1774,8 @@ body[data-profession] #app {
   .equipment-editor-body {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
+    /* Give each stacked picker its full height so later controls clear every choice. */
+    grid-auto-rows: max-content;
     overflow-y: auto;
   }
 
