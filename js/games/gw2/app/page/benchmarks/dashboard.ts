@@ -112,6 +112,8 @@ export function mountBenchmarks(root: HTMLElement): void {
   let overviewInspectedBuild: Benchmark | null = null;
   const retry = root.querySelector<HTMLButtonElement>('[data-benchmark-retry]')!;
   let benchmarks: Benchmark[] = [];
+  // Chart controls reuse the latest shared filter results. Null means manifests are still loading.
+  let filteredRows: readonly Benchmark[] | null = null;
   let comparison: BenchmarkComparisonView | null = null;
   let comparisonLoading: Promise<void> | null = null;
   let failures: string[] = [];
@@ -317,6 +319,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     });
 
     if (root.getAttribute('aria-busy') === 'true' && !benchmarks.length) {
+      filteredRows = null;
       renderLoadingBenchmarks();
       return;
     }
@@ -328,6 +331,7 @@ export function mountBenchmarks(root: HTMLElement): void {
       role: role.value,
       includeOutdated: outdated.checked
     });
+    filteredRows = rows;
     const groups = professionRegistry
       .filter(({ id }) => selected.has(id))
       .map((entry) => ({ entry, rows: rows.filter((row) => row.profession === entry.id).sort(compareOverviewBuilds) }))
@@ -502,9 +506,9 @@ export function mountBenchmarks(root: HTMLElement): void {
     healthInteractions.refresh();
   }
 
-  root.querySelector('[data-health-builds]')!.addEventListener('change', render);
-  root.querySelector('[data-health-metric]')!.addEventListener('change', render);
-  root.querySelector('[data-health-phase]')!.addEventListener('change', render);
+  root.querySelector('.benchmark-health-controls')!.addEventListener('change', () => {
+    if (filteredRows) renderHealthChart(filteredRows);
+  });
   /** Plot actual DPS/APM pairs; native point buttons provide the same build inspection with mouse, keyboard, or touch. */
   function renderApmChart(rows: readonly Benchmark[]): void {
     const measurable = rows.filter(hasBenchmarkApm);
@@ -827,7 +831,9 @@ export function mountBenchmarks(root: HTMLElement): void {
     if (event.key === 'Escape') closeApmInspector();
   });
 
-  root.querySelector('[data-bar-specialization]')!.addEventListener('change', render);
+  root.querySelector('[data-bar-specialization]')!.addEventListener('change', () => {
+    if (filteredRows) renderBarChart(filteredRows);
+  });
 
   const barChart = root.querySelector<HTMLElement>('[data-bar-chart]')!;
   /** Hover shows a temporary tooltip. Only explicit activation opens or changes the saved-build inspector. */
