@@ -241,15 +241,15 @@
         "build": "data/gw2/builds/thief/b-condi-specter-scepter-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-condi-specter-scepter-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-specter-scepter-dagger-only",
-        "benchmarkDps": 36790,
+        "benchmarkDps": 36782,
         "upToDate": true,
         "benchmarkApm": 71.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 37014, "phase": 37014 },
-          "80-60": { "cumulative": 36119, "phase": 35222 },
-          "60-40": { "cumulative": 37156, "phase": 39322 },
-          "40-20": { "cumulative": 36952, "phase": 36320 },
-          "20-0": { "cumulative": 36790, "phase": 36142 }
+          "100-80": { "cumulative": 36957, "phase": 36957 },
+          "80-60": { "cumulative": 36931, "phase": 36905 },
+          "60-40": { "cumulative": 37132, "phase": 37553 },
+          "40-20": { "cumulative": 36942, "phase": 36355 },
+          "20-0": { "cumulative": 36782, "phase": 36142 }
         }
       },
       {
