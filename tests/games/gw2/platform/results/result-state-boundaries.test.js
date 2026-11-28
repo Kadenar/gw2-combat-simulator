@@ -144,7 +144,7 @@ test('combat reports detach nested settlements, environment ticks, proc state, a
   const recorder = createDamageReportRecorder();
   recorder.observer.recordEnvironmentDamage({ name: 'Fixture', at: 0.5, damage: 7 });
   const proc = { start: 0, effectState: { stacks: 2, maximumStacks: 5 } };
-  runtime.resolved.push(application);
+  runtime.resolvedPackets.record(application);
   runtime.procRecorder.steps.push(proc);
   const diagnostic = { message: 'live notice', at: 0.5 };
   runtime.warnings.push(diagnostic);

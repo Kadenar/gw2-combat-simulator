@@ -7,6 +7,7 @@ import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
+import { createResolvedPacketHistory } from '#gw2/platform/resolver/resolved-packet-history.js';
 import { SHARED_STATE_IDS } from '#gw2/platform/results/state-ids.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
@@ -70,10 +71,11 @@ test('resolver setup shares reactions and creates fresh profession state for eac
 // Generic event resolution preserves recipient, strike, and profession-state contracts.
 test('shared buff handling records allied recipient scope before reactions run', () => {
   const seen = [];
+  const history = createResolvedPacketHistory('detailed');
   const context = {
     output: 'detailed',
-    retainsResolved: () => true,
-    resolved: [],
+    resolvedPackets: history.writer,
+    resolved: history.events,
     config: {
       allies: { count: 4, strikesPerSecond: 1 },
       sharePlayerBoonsWithSummons: true

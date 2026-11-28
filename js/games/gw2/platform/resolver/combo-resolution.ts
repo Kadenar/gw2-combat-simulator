@@ -67,13 +67,13 @@ export function createGw2ComboResolution({
     },
 
     combo(context, event) {
-      if (context.retainsResolved(event)) context.resolved.push(event);
+      context.resolvedPackets.record(event);
 
       reactions.dispatch('combo.resolved', context, event, undefined);
     },
 
     aura(context: Gw2ResolverRuntime, event: Gw2ResolverEvent) {
-      if (context.retainsResolved(event)) context.resolved.push(event);
+      context.resolvedPackets.record(event);
 
       scheduleDarkAuraTorment(context, event);
       reactions.dispatch('aura.applied', context, event, undefined);

@@ -185,45 +185,49 @@ export function createGw2HitResolution({
     };
   }
 
+  /** Capture already sampled hit facts while health and buffs still describe the struck target. */
+  function hitDiagnostics(
+    ctx: Gw2ResolverRuntime,
+    event: Gw2ResolverEvent,
+    hitContext: Gw2HitResolutionContext
+  ): Gw2DamageCalculation {
+    const maximum = Number(ctx.encounter?.maximumHealth ?? ctx.config.target?.health);
+    const healthFraction = hitContext.targetHealthFractionBefore;
+    return {
+      activeBuffs: activeBuffs(),
+      phase: (['Sample', 'Settle', 'Buffs', 'Ordinary'] as const)[ctx.queue.currentPhase] ?? 'Ordinary',
+      targetHealthBefore: healthFraction == null || !Number.isFinite(maximum) ? null : maximum * healthFraction,
+      targetHealthFractionBefore: healthFraction,
+      power: hitContext.stats.power,
+      ...(Number.isFinite(hitContext.stats.precision) ? { precision: hitContext.stats.precision } : {}),
+      ...(Number.isFinite(hitContext.stats.ferocity) ? { ferocity: hitContext.stats.ferocity } : {}),
+      ...(hitContext.targetArmor == null ? {} : { targetArmor: hitContext.targetArmor }),
+      baseDamage: hitContext.baseDamage,
+      criticalMultiplier: hitContext.criticalMultiplier,
+      ...(hitContext.criticalDamageContributors
+        ? { criticalDamageContributors: hitContext.criticalDamageContributors }
+        : {}),
+      outgoingMultiplier: hitContext.outgoingMultiplier,
+      ...(hitContext.outgoingContributors ? { outgoingContributors: hitContext.outgoingContributors } : {}),
+      unroundedDamage: hitContext.unroundedDamage,
+      rounding: event.damageKind === 'condition' ? 'half-even' : 'floor'
+    };
+  }
+
   function applyResolvedHit(
     ctx: Gw2ResolverRuntime,
     event: Gw2ResolverEvent,
     hitContext: Gw2HitResolutionContext
   ): void {
-    // Reactions receive the existing hit context; only returned rows need a detached hit packet. Ownership reads the
-    // packet's resolved activation, so measurements discard unowned copies before diagnostics are assembled.
-    const candidate = ctx.output === 'score' ? null : resolvedHitPacket(ctx, event, hitContext);
-    const resolved = candidate && ctx.retainsResolved(candidate) ? candidate : null;
+    // Build the row before settlement; measurements read its resolved activation to decide ownership.
+    const row = ctx.resolvedPackets.retainsRows
+      ? ctx.resolvedPackets.prepareHit(resolvedHitPacket(ctx, event, hitContext))
+      : undefined;
 
     // Copy already computed facts before health commits; diagnostics never query modifiers or consume RNG again.
-    if (resolved && ctx.damageDiagnostics) {
-      const maximum = Number(ctx.encounter?.maximumHealth ?? ctx.config.target?.health);
-      const healthFraction = hitContext.targetHealthFractionBefore;
-      const damageCalculation: Gw2DamageCalculation = {
-        activeBuffs: activeBuffs(),
-        phase: (['Sample', 'Settle', 'Buffs', 'Ordinary'] as const)[ctx.queue.currentPhase] ?? 'Ordinary',
-        targetHealthBefore: healthFraction == null || !Number.isFinite(maximum) ? null : maximum * healthFraction,
-        targetHealthFractionBefore: healthFraction,
-        power: hitContext.stats.power,
-        ...(Number.isFinite(hitContext.stats.precision) ? { precision: hitContext.stats.precision } : {}),
-        ...(Number.isFinite(hitContext.stats.ferocity) ? { ferocity: hitContext.stats.ferocity } : {}),
-        ...(hitContext.targetArmor == null ? {} : { targetArmor: hitContext.targetArmor }),
-        baseDamage: hitContext.baseDamage,
-        criticalMultiplier: hitContext.criticalMultiplier,
-        ...(hitContext.criticalDamageContributors
-          ? { criticalDamageContributors: hitContext.criticalDamageContributors }
-          : {}),
-        outgoingMultiplier: hitContext.outgoingMultiplier,
-        ...(hitContext.outgoingContributors ? { outgoingContributors: hitContext.outgoingContributors } : {}),
-        unroundedDamage: hitContext.unroundedDamage,
-        rounding: event.damageKind === 'condition' ? 'half-even' : 'floor'
-      };
-      Object.assign(resolved, { damageCalculation });
-    }
+    if (row && ctx.damageDiagnostics) Object.assign(row, { damageCalculation: hitDiagnostics(ctx, event, hitContext) });
 
     const damage = ctx.settlePlayerDamage(event, hitContext.damage);
-
-    if (resolved) Object.assign(resolved, { damage });
 
     const damageType = event.damageKind === 'condition' ? 'conditionDamage' : 'strikeDamage';
 
@@ -237,7 +241,7 @@ export function createGw2HitResolution({
       didCrit: damageType === 'strikeDamage' && hitContext.critEligible ? hitContext.critical.didCrit === true : null
     });
 
-    if (resolved) ctx.resolved.push(resolved);
+    ctx.resolvedPackets.recordHit(row, damage);
   }
 
   /** Detaches one hit's resolved facts from its scheduled packet for reports and measurements. */

@@ -31,7 +31,7 @@ export function projectRuntimeResult<T extends object>(
     damageCompletionTime,
     projectDamageReport
   }: {
-    output: 'detailed' | 'score' | 'damage' | 'observations';
+    output: Gw2Runtime<T>['output'];
     executed: Gw2ResolverEvent[];
     damageCompletionTime?: () => number;
     projectDamageReport?: (dpsWindow: number) => DamageReportProjection;

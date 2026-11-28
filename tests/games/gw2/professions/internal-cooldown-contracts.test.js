@@ -251,7 +251,6 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
     traits: new Set(traits.length ? traits : config.selectedTraitIds || []),
     activeWeaponSet: 1,
     queue: new StableEventQueue(),
-    resolved: [],
     liveEffects: createTestLiveEffects(),
 
     events,

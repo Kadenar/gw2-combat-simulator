@@ -7,6 +7,7 @@ import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts
 import { createGw2ComboController } from '#gw2/platform/combos/resolution.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
+import { createResolvedPacketHistory } from '#gw2/platform/resolver/resolved-packet-history.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { loadProfession } from '#gw2/profession-registry.js';
 import { acceptElementalistAuraReaction } from '#gw2/professions/elementalist/core/mechanics/auras.js';
@@ -65,11 +66,11 @@ test('combo and aura handlers skip score report rows while preserving state and 
   for (const output of ['score', 'detailed']) {
     const dispatched = [];
     const facts = createExecutedFacts([]);
+    const history = createResolvedPacketHistory(output);
     const context = {
       engagement: createCombatEngagement().query,
       output,
-      retainsResolved: () => output === 'detailed',
-      resolved: [],
+      resolvedPackets: history.writer,
       traits: new Set(),
       profession: { core: { activeAuras: [] } },
       observations: facts.writer,
@@ -105,7 +106,7 @@ test('combo and aura handlers skip score report rows while preserving state and 
 
     // Standard aura delivery records one gameplay fact and one profession state entry in either output mode.
     assert.deepEqual(facts.reader.read(), [aura]);
-    assert.deepEqual(context.resolved, output === 'detailed' ? [combo, aura] : []);
+    assert.deepEqual(history.events, output === 'detailed' ? [combo, aura] : []);
     assert.deepEqual(dispatched, [
       ['combo.resolved', combo],
       ['aura.applied', aura]

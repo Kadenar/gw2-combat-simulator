@@ -13,6 +13,11 @@ import { createSigilRuntime, type SigilRuntime } from '#gw2/platform/equipment/s
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ConditionResolution, Gw2ResolverConditionState } from '#gw2/platform/resolver/condition-resolution.js';
 import { createMechanicCombatServices, type MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import {
+  createResolvedPacketHistory,
+  type ResolvedPacketOutput,
+  type ResolvedPacketWriter
+} from '#gw2/platform/resolver/resolved-packet-history.js';
 import type { Gw2EventQueue, Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
 import type {
   createBoonGenerationCollector,
@@ -59,7 +64,7 @@ export function createGw2ResolverRuntimeState({
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const criticalDamageMode = normalizeCriticalDamageMode(config.criticalDamageMode);
 
-  if (output === 'damage' && !ownsEffect) throw new TypeError('Damage measurements require an effect owner.');
+  const packetHistory = createResolvedPacketHistory(output, ownsEffect);
 
   const totals = { strike: 0, condition: 0 };
   let firstHitTime: number | null = null;
@@ -92,7 +97,8 @@ export function createGw2ResolverRuntimeState({
     environmentDamage: 0,
     healthCheckpointRecorder: createHealthCheckpointRecorder(config),
     conditionState: conditions.state,
-    resolved: [],
+    resolved: packetHistory.events,
+    resolvedPackets: packetHistory.writer,
     procs: createProcRegistry(() => runtime),
     liveEffects: Object.freeze({ queries: liveEffects.queries }),
     totals,
@@ -114,16 +120,6 @@ export function createGw2ResolverRuntimeState({
     random: procRollRecorder ? procRollRecorder.observe(random) : random,
     weaponStrengthRolls: new Map(),
     weaponStrengthActivationOrder: 0,
-
-    // Detailed retains all resolved rows, observations retains damage and conditions, damage retains owned packets,
-    // and score retains none. Gameplay history is independent of these reporting collections.
-    retainsResolved(event: Gw2ResolverEvent): boolean {
-      return (
-        output === 'detailed' ||
-        (output === 'observations' && (event.type === 'damage' || event.type === 'condition')) ||
-        (output === 'damage' && ownsEffect!(event))
-      );
-    },
 
     /** Count only damage the encounter accepts, then expose the updated totals to the clock and health checkpoints. */
     settlePlayerDamage(event, amount, encounterTargetKey) {
@@ -160,7 +156,7 @@ export interface Gw2ResolverRuntime {
   readonly damageRecorder: DamageReportObserver | null;
   readonly criticalDamageMode: Gw2CriticalDamageMode;
   readonly procs: ProcRegistry;
-  readonly output: 'detailed' | 'score' | 'damage' | 'observations';
+  readonly output: ResolvedPacketOutput;
   readonly damageDiagnostics: boolean;
   config: Gw2Config;
   traits: ReadonlySet<string | number>;
@@ -174,7 +170,8 @@ export interface Gw2ResolverRuntime {
   environmentDamage: number;
   readonly healthCheckpointRecorder: ReturnType<typeof createHealthCheckpointRecorder>;
   readonly conditionState: ReadonlyMap<string, Gw2ResolverConditionState>;
-  resolved: Gw2ResolverEvent[];
+  readonly resolved: readonly Gw2ResolverEvent[];
+  readonly resolvedPackets: ResolvedPacketWriter;
   readonly liveEffects: Pick<LiveEffects, 'queries'>;
   readonly totals: { readonly strike: number; readonly condition: number };
   readonly firstHitTime: number | null;
@@ -190,7 +187,6 @@ export interface Gw2ResolverRuntime {
   random: Readonly<SimulationRandom>;
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;
-  retainsResolved(event: Gw2ResolverEvent): boolean;
   settlePlayerDamage(event: Gw2ResolverEvent, amount: number, encounterTargetKey?: string): number;
 }
 

@@ -36,7 +36,7 @@ function handleBuff(
     Object.assign(event, { resolvedAudience });
 
     // Retain actual applications, including trait-generated boons, for effects charts.
-    if (ctx.retainsResolved(event)) ctx.resolved.push(event);
+    ctx.resolvedPackets.record(event);
 
     ctx.boonGeneration?.record(event);
   });
@@ -74,7 +74,7 @@ export function createGw2ResolverEventHandlers({
     self_condition: noop,
     'gw2.transition-lockout'(ctx, event) {
       // Preserve forced recovery for timeline occupancy without applying combat effects.
-      if (ctx.retainsResolved(event)) ctx.resolved.push(event);
+      ctx.resolvedPackets.record(event);
     },
     buff(ctx, event) {
       handleBuff(ctx, event, reactions, liveEffects);
@@ -83,7 +83,7 @@ export function createGw2ResolverEventHandlers({
       ctx.boonGeneration?.record(event);
       liveEffects.extend(event);
 
-      if (ctx.retainsResolved(event)) ctx.resolved.push(event);
+      ctx.resolvedPackets.record(event);
     },
 
     damage(ctx, event) {

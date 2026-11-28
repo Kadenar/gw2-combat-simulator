@@ -139,7 +139,6 @@ function traitContext(selectedTraitIds = []) {
     queue: new StableEventQueue(),
     liveEffects: createTestLiveEffects(),
 
-    resolved: [],
     time: 1,
     effectiveEnd: 1,
     helpers: thiefCatalog,

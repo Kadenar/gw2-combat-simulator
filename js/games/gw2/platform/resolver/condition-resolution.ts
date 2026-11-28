@@ -21,6 +21,7 @@ import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { EffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import type { Gw2ConditionCalculation, SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { ConditionDamageTick } from '#gw2/platform/resolver/resolved-packet-history.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ConditionWorkEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
 import { timeKey } from '#kernel/core/clock.js';
@@ -557,7 +558,7 @@ export function createGw2ConditionResolution({
 
       if (attributeBatch && application.stacks === 1) attributeBatches.set(application, attributeBatch);
 
-      if (ctx.retainsResolved(application)) ctx.resolved.push(application);
+      ctx.resolvedPackets.record(application);
 
       // Queries and queued damage share the accepted application, including its natural expiry and retirement.
       const state = ensureConditionState(name);
@@ -656,8 +657,8 @@ export function createGw2ConditionResolution({
       const { application, fraction, damage: share } = contribution;
       application.damage += share;
 
-      // Tick history belongs to returned applications; unowned measurement packets keep only their damage totals.
-      if (ctx.retainsResolved(application)) application.damageTicks.push({ at: event.at, damage: share, fraction });
+      // Tick history belongs to retained applications; unowned measurement packets keep only their damage totals.
+      ctx.resolvedPackets.recordConditionTick(application, event.at, share, fraction);
 
       ctx.damageRecorder?.recordDamage({
         name: application.name,
@@ -742,18 +743,14 @@ interface ConditionApplicationFields {
   damage: number;
   /** Present only in diagnostic runs. */
   conditionCalculation?: Gw2ConditionCalculation;
-  readonly damageTicks: Array<{
-    at: number;
-    damage: number;
-    fraction: number;
-  }>;
+  readonly damageTicks: ConditionDamageTick[];
 }
 
 /** Queries and reactions observe the same accepted records that resolution updates. */
 export type Gw2ResolvedConditionApplication = Gw2ResolverEvent &
   Readonly<Omit<ConditionApplicationFields, 'conditionCalculation' | 'damageTicks'>> & {
     readonly conditionCalculation?: Readonly<NonNullable<ConditionApplicationFields['conditionCalculation']>>;
-    readonly damageTicks: readonly Readonly<ConditionApplicationFields['damageTicks'][number]>[];
+    readonly damageTicks: readonly ConditionDamageTick[];
   };
 
 /** Stable state identity lets observations cache lifetimes until the condition module revises them. */
