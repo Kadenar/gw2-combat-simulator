@@ -114,12 +114,18 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
     cooldown: 10,
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
-    castTimeMs: 200,
+    castTimeMs: 960,
     effects: [
       {
         type: 'strike',
-        coefficient: 0.665,
-        hits: 1
+        // Each impact along the movement path can strike the target and finish a combo field.
+        ticks: [280, 400, 520, 640].map((atMs) => ({
+          atMs,
+          coefficient: 0.665,
+          comboFinishers: [{ ownerId: 'warrior', finisherType: COMBO_FINISHER.WHIRL }]
+        })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
