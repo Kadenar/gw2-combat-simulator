@@ -139,7 +139,8 @@ test('shared modals stay visible in a scrolled iframe and release viewport track
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
 
-    if (await dialog.count()) await expect(dialog).not.toHaveAttribute('style', /--embed-viewport/);
+    // The rename dialog removes itself on close. Retained dialogs must clear their viewport styles.
+    await expect(frame.locator(`${dialogSelector}[style*="--embed-viewport"]`)).toHaveCount(0);
 
     await expect(trigger).toBeFocused();
   }
